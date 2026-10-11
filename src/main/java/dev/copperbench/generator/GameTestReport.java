@@ -90,8 +90,16 @@ public final class GameTestReport {
             result.addProperty("frameworkTests", frameworkTests);
             result.addProperty("acceptanceExecuted", executed - frameworkExecuted);
             result.addProperty("reportSha256", java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes)));
+            int acceptanceExecuted = executed - frameworkExecuted;
+            int required = Math.max(1, minimumTests);
             if (failed > 0 || reportedFailure) return reason(result, "GAMETEST_FAILED");
-            if (executed - frameworkExecuted < Math.max(1, minimumTests)) return reason(result, "GAMETEST_NO_TESTS");
+            if (acceptanceExecuted < required) {
+                String preciseReason = acceptanceExecuted == 0 ? "GAMETEST_NO_TESTS" : "GAMETEST_INSUFFICIENT_TESTS";
+                result.addProperty("detail", preciseReason + ": At least " + required + " business tests must execute; observed "
+                        + acceptanceExecuted + ". Skipped and framework cases do not count toward this minimum.");
+                // Preserve the v1.0 code/shape; detail distinguishes zero from insufficient execution.
+                return reason(result, "GAMETEST_NO_TESTS");
+            }
             result.addProperty("status", "passed"); result.addProperty("reasonCode", "GAMETEST_PASSED");
             return result;
         } catch (Exception exception) {

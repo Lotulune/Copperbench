@@ -3,15 +3,145 @@
   "suite": "copperbench-ai-core",
   "minimumCases": 10,
   "cases": [
-    {"id":"create-element","covers":["create elements"],"operation":"create_mod_element","expected":"committed"},
-    {"id":"procedure-edit","covers":["Procedure modification"],"operation":"update_procedure","expected":"committed"},
-    {"id":"rename-reference","covers":["rename references"],"operation":"rename_registry_entry","expected":"committed"},
-    {"id":"build-repair","covers":["build repair"],"operation":"build_workspace","expected":"accepted"},
-    {"id":"revision-conflict","covers":["revision conflicts"],"operation":"update_mod_element","expected":"rejected:WORKSPACE_REVISION_CONFLICT"},
-    {"id":"readonly-denial","covers":["unauthorized access rejection"],"operation":"create_mod_element","expected":"rejected:PERMISSION_DENIED"},
-    {"id":"datagen-cancel","covers":["datagen cancellation"],"operation":"cancel_task","expected":"cancelled"},
-    {"id":"datagen-publish","covers":["datagen preview and publish"],"operation":"publish_datagen_output","expected":"committed"},
-    {"id":"recovery-restore","covers":["recovery point restore"],"operation":"restore_recovery_point","expected":"rejected:USER_APPROVAL_REQUIRED"},
-    {"id":"task-reconnect","covers":["task event reconnect"],"operation":"get_task","expected":"running|succeeded|failed|cancelled"}
-  ]
+    {
+      "id": "create-element",
+      "covers": [
+        "create elements"
+      ],
+      "operation": "create_mod_element",
+      "expected": "committed",
+      "displayName": "Fixture element creation",
+      "observedCoverage": [
+        "fixture-element-create"
+      ]
+    },
+    {
+      "id": "procedure-edit",
+      "covers": [
+        "Procedure modification"
+      ],
+      "operation": "update_procedure",
+      "expected": "committed",
+      "displayName": "Fixture procedure modification",
+      "observedCoverage": [
+        "fixture-procedure-edit"
+      ]
+    },
+    {
+      "id": "rename-reference",
+      "covers": [
+        "rename references"
+      ],
+      "operation": "rename_registry_entry",
+      "expected": "committed",
+      "displayName": "Fixture registry rename",
+      "observedCoverage": [
+        "fixture-registry-rename"
+      ]
+    },
+    {
+      "id": "build-repair",
+      "covers": [
+        "build repair"
+      ],
+      "operation": "build_workspace",
+      "expected": "accepted",
+      "displayName": "Build task acceptance, query, and cancellation",
+      "observedCoverage": [
+        "build-task-acceptance",
+        "running-task-query",
+        "build-task-cancellation"
+      ]
+    },
+    {
+      "id": "revision-conflict",
+      "covers": [
+        "revision conflicts"
+      ],
+      "operation": "update_mod_element",
+      "expected": "rejected:WORKSPACE_REVISION_CONFLICT",
+      "displayName": "Stale revision rejection",
+      "observedCoverage": [
+        "stale-revision-denial"
+      ]
+    },
+    {
+      "id": "readonly-denial",
+      "covers": [
+        "unauthorized access rejection"
+      ],
+      "operation": "create_mod_element",
+      "expected": "rejected:PERMISSION_DENIED",
+      "displayName": "Read-only mutation rejection",
+      "observedCoverage": [
+        "read-only-mutation-denial"
+      ]
+    },
+    {
+      "id": "datagen-cancel",
+      "covers": [
+        "datagen cancellation"
+      ],
+      "operation": "cancel_task",
+      "expected": "cancelled",
+      "displayName": "Datagen task acceptance and cancellation",
+      "observedCoverage": [
+        "datagen-task-acceptance",
+        "datagen-task-cancellation"
+      ]
+    },
+    {
+      "id": "datagen-publish",
+      "covers": [
+        "datagen preview and publish"
+      ],
+      "operation": "publish_datagen_output",
+      "expected": "committed",
+      "displayName": "Fixture datagen preview and publication",
+      "observedCoverage": [
+        "fixture-datagen-preview",
+        "manifest-hash-shape-check",
+        "fixture-datagen-publish"
+      ]
+    },
+    {
+      "id": "recovery-restore",
+      "covers": [
+        "recovery point restore"
+      ],
+      "operation": "restore_recovery_point",
+      "expected": "rejected:USER_APPROVAL_REQUIRED",
+      "displayName": "Recovery point creation and restore approval rejection",
+      "observedCoverage": [
+        "recovery-point-creation",
+        "restore-approval-denial"
+      ]
+    },
+    {
+      "id": "task-reconnect",
+      "covers": [
+        "task event reconnect"
+      ],
+      "operation": "get_task",
+      "expected": "running|succeeded|failed|cancelled",
+      "displayName": "Repeated task polling in the same client session",
+      "observedCoverage": [
+        "same-client-task-polling"
+      ]
+    }
+  ],
+  "displayName": "Copperbench MCP protocol-contract evaluations",
+  "scope": {
+    "kind": "protocol-contract",
+    "transport": "loopback-http-mcp",
+    "host": "McpConformanceServerMain",
+    "taskGateway": "InMemoryWorkspaceTaskGateway",
+    "workspaceMutation": "no-op",
+    "modelDriven": false,
+    "realBuild": false,
+    "repairLoop": false,
+    "transportReconnect": false,
+    "gameplay": false
+  },
+  "legacyCoverageNote": "Case IDs and covers are retained compatibility identifiers; observedCoverage describes executed checks."
 }

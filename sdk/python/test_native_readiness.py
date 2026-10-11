@@ -209,13 +209,17 @@ class NativeReadinessTest(unittest.TestCase):
     def test_absent_item_recipe_and_unknown_contract_return_actionable_error(self):
         for kind in ("item", "recipe", "typo_type"):
             with self.subTest(kind=kind):
-                client, requests = self.client(self.environment({"generic": {}, "block": {}}))
+                environment = self.environment({"generic": {}, "block": {}})
+                client, requests = self.client(environment)
                 with self.assertRaises(NativeApiError) as raised:
                     client.field_contract(kind)
                 error = raised.exception
-                self.assertEqual(error.code, "FIELD_CONTRACT_UNAVAILABLE")
+                self.assertEqual(error.code, "NATIVE_FIELD_CONTRACT_UNAVAILABLE")
                 self.assertEqual(error.details["elementType"], kind)
-                self.assertEqual(error.details["availableContracts"], ["block", "generic"])
+                self.assertEqual(error.details["availableTypes"], ["block", "generic"])
+                self.assertEqual(error.details["reason"], "type_not_advertised")
+                self.assertIn("get_workspace_environment", error.details["nextAction"])
+                self.assertIs(error.details["environment"], environment)
                 self.assertEqual(error.details["generator"]["id"], "fabric-1.21.1")
                 self.assertEqual(error.details["inspection"]["requires"], ["elementId"])
                 self.assertIn("get_mod_element_editor", str(error))
@@ -228,7 +232,7 @@ class NativeReadinessTest(unittest.TestCase):
         self.assertEqual(client.available_field_contracts(), ())
         with self.assertRaises(NativeApiError) as raised:
             client.field_contract("item")
-        self.assertEqual(raised.exception.code, "FIELD_CONTRACT_UNAVAILABLE")
+        self.assertEqual(raised.exception.code, "NATIVE_FIELD_CONTRACT_UNAVAILABLE")
         self.assertIn("(none)", str(raised.exception))
 
     def test_future_core_item_contract_is_used_without_sdk_special_cases(self):
@@ -246,15 +250,20 @@ class NativeReadinessTest(unittest.TestCase):
 
     def test_malformed_metadata_is_not_reported_as_unsupported_feature(self):
         for data in (None, [], {}, {"fieldContracts": None}, {"fieldContracts": []},
-                     {"fieldContracts": {"item": None}}, {"fieldContracts": {"": {}}}):
+                     {"fieldContracts": {"item": None}}, {"fieldContracts": {"": {}}},
+                     {"fieldContracts": {" ": {}}}, {"fieldContracts": {"\t\n": {}}},
+                     {"fieldContracts": {"item": {}, "broken": []}}):
             with self.subTest(data=data):
                 result = {"status": "succeeded", "revision": 7, "data": data}
-                client, requests = self.client(result)
-                with self.assertRaises(NativeApiError) as raised:
-                    client.field_contract("item")
-                self.assertEqual(raised.exception.code, "NATIVE_INVALID_RESPONSE")
-                self.assertIs(raised.exception.details, result)
-                self.assertEqual(len(requests), 1)
+                for method in ("field_contract", "available_field_contracts", "discover_field_contract"):
+                    with self.subTest(method=method):
+                        client, requests = self.client(result)
+                        with self.assertRaises(NativeApiError) as raised:
+                            getattr(client, method)(*(() if method == "available_field_contracts" else ("item",)))
+                        self.assertEqual(raised.exception.code, "NATIVE_INVALID_RESPONSE")
+                        self.assertIs(raised.exception.details, result)
+                        self.assertEqual(len(requests), 1)
+                        client.close.assert_not_called()
 
     def test_core_rejection_is_not_hidden_by_discovery(self):
         client, requests = self.client(self.rejected("Workspace unavailable", code="WORKSPACE_NOT_FOUND"))

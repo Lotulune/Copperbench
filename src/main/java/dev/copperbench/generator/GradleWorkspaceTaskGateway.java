@@ -1022,17 +1022,46 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private void addFailureDiagnostic(String code, String failureId, String taskKind, String messageKey,
 				String fallback, JsonObject extraArgs) {
+			if (code.equals("GENERATION_SOURCE_CONFLICT") && extraArgs != null
+					&& extraArgs.has("conflicts") && extraArgs.get("conflicts").isJsonArray()
+					&& !extraArgs.getAsJsonArray("conflicts").isEmpty()) {
+				for (JsonElement conflict : extraArgs.getAsJsonArray("conflicts"))
+					addFailureDiagnostic(code, failureId, taskKind, messageKey, fallback, extraArgs,
+							conflict.isJsonObject() ? conflict.getAsJsonObject() : null);
+			} else addFailureDiagnostic(code, failureId, taskKind, messageKey, fallback, extraArgs, null);
+		}
+
+		private void addFailureDiagnostic(String code, String failureId, String taskKind, String messageKey,
+				String fallback, JsonObject extraArgs, JsonObject sourceConflict) {
 			JsonObject args = new JsonObject();
 			args.addProperty("backend", backend.displayName());
 			args.addProperty("task", taskKind);
 			args.addProperty("failureId", failureId);
 			if (extraArgs != null)
 				extraArgs.entrySet().forEach(entry -> args.add(entry.getKey(), entry.getValue().deepCopy()));
+			String relative = sourceConflictPath(sourceConflict);
+			String path = relative == null ? null : "/" + relative;
+			JsonObject preview = null;
+			if (relative != null) {
+				args.addProperty("sourcePath", relative);
+				args.addProperty("displaySourcePath", displaySourcePath(relative));
+				for (String key : List.of("reasonCode", "expectedOwnership", "observedOwnership"))
+					if (sourceConflict.has(key)) args.add(key, sourceConflict.get(key).deepCopy());
+				messageKey = "diagnostic.generation_source_conflict_at";
+				fallback = "Source conflict at {displaySourcePath}. Review the file and its ownership before generating again.";
+				try {
+					WorkspaceExecutionSnapshot.rejectLinks(resolveInside(executionRoot, relative));
+					preview = captureSourcePreview(executionRoot, relative, path, "1");
+				} catch (java.io.IOException | RuntimeException unavailable) {
+					// Retain the location, but only offer a preview when its bytes were safely captured.
+				}
+			}
 			JsonObject diagnostic = new JsonObject();
 			diagnostic.addProperty("code", code);
 			diagnostic.addProperty("severity", "error");
 			diagnostic.add("message", localized(messageKey, fallback, args));
-			diagnostic.add("path", JsonNull.INSTANCE);
+			if (path == null) diagnostic.add("path", JsonNull.INSTANCE);
+			else diagnostic.addProperty("path", path);
 			diagnostic.add("elementId", JsonNull.INSTANCE);
 			diagnostic.addProperty("recoverable", true);
 			JsonObject action = new JsonObject();
@@ -1044,9 +1073,43 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			actionPayload.addProperty("taskId", id().toString());
 			action.add("payload", actionPayload);
 			JsonArray actions = new JsonArray();
+			if (preview != null) {
+				sourcePreviews.put(path, preview);
+				JsonObject source = new JsonObject();
+				source.addProperty("id", "open_conflict_source");
+				source.add("label", localized("action.open_conflict_source", "View source"));
+				source.addProperty("kind", "open_source");
+				source.addProperty("target", path);
+				actions.add(source);
+			}
 			actions.add(action);
 			diagnostic.add("actions", actions);
 			diagnosticEntries.add(diagnostic);
+		}
+
+		private static String sourceConflictPath(JsonObject conflict) {
+			JsonElement raw = conflict == null ? null : conflict.get("relativePath");
+			if (raw == null || !raw.isJsonPrimitive() || !raw.getAsJsonPrimitive().isString()) return null;
+			String value = raw.getAsString().replace('\\', '/');
+			if (value.isBlank() || value.indexOf('\0') >= 0 || value.startsWith("/")
+					|| value.matches("^[A-Za-z]:.*")) return null;
+			try {
+				Path relative = Path.of(value).normalize();
+				if (relative.isAbsolute() || relative.startsWith("..") || relative.toString().isEmpty()) return null;
+				return relative.toString().replace('\\', '/');
+			} catch (RuntimeException invalid) { return null; }
+		}
+
+		private static String displaySourcePath(String path) {
+			StringBuilder display = new StringBuilder();
+			path.codePoints().limit(512).forEach(codePoint -> {
+				int kind = Character.getType(codePoint);
+				if (Character.isISOControl(codePoint) || kind == Character.FORMAT || kind == Character.SURROGATE
+						|| kind == Character.LINE_SEPARATOR || kind == Character.PARAGRAPH_SEPARATOR) display.append(' ');
+				else display.appendCodePoint(codePoint);
+			});
+			if (path.codePointCount(0, path.length()) > 512) display.append(" [truncated]");
+			return display.toString();
 		}
 
 		private JsonObject procedureDiagnosticTarget(String path, UUID elementId) {

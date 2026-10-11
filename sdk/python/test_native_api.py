@@ -54,6 +54,25 @@ for line in sys.stdin:
     if operation == 'list_mod_elements':
         cursor = request['payload'].get('cursor')
         result['data'] = {'items': [{'name': '第二个' if cursor else '第一个'}], 'nextCursor': None if cursor else 'page2'}
+    if operation == 'get_workspace_environment':
+        contracts = {
+            'block': {'contractVersion': 1},
+            'item': {'coverage': 'partial', 'fields': [{'name': 'stackSize', 'type': 'integer', 'min': 1, 'max': 99}]},
+            'recipe': {'coverage': 'partial', 'fields': [{'name': 'recipeType', 'type': 'string', 'options': ['Crafting', 'Smelting']}]},
+        }
+        result['data'] = {'fieldContracts': contracts}
+        if mode == 'legacy_contracts':
+            result['data']['fieldContracts'] = {'block': contracts['block']}
+        if mode == 'missing_contracts':
+            result['data'] = {}
+        if mode == 'invalid_contracts':
+            result['data']['fieldContracts'] = []
+        if mode == 'invalid_contract':
+            contracts['item'] = None
+    if operation == 'reject_diagnostic':
+        result = {'status': 'rejected', 'revision': revision, 'data': {},
+                  'diagnostics': [{'code': 'FIELD_TYPE_INVALID', 'path': '/commands/0',
+                                   'message': request['payload']['message']}]}
     if operation == 'get_task':
         result['data'] = {'task': {'state': 'succeeded'}, 'logs': []}
         if mode == 'task_logs':
@@ -112,6 +131,95 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual(1, client.revision)
         self.assertEqual(3, len(self.requests()))
         self.assertEqual('succeeded', client.get_workspace()['status'])
+
+    def test_item_and_recipe_field_discovery_returns_the_advertised_partial_contract(self):
+        client = self.open()
+        environment = client.query('get_workspace_environment')['data']['fieldContracts']
+        for element_type in ('item', 'recipe'):
+            with self.subTest(element_type=element_type):
+                self.assertEqual(environment[element_type], client.field_contract(element_type))
+                self.assertEqual('partial', client.field_contract(element_type)['coverage'])
+        self.assertEqual(0, client.revision)
+        self.assertTrue(all(request['kind'] == 'query' for request in self.requests()))
+
+    def test_unknown_field_contract_is_actionable_and_does_not_close_or_mutate(self):
+        client = self.open()
+        with self.assertRaises(NativeApiError) as raised:
+            client.field_contract('typo')
+        error = raised.exception
+        self.assertEqual('NATIVE_FIELD_CONTRACT_UNAVAILABLE', error.code)
+        self.assertEqual('typo', error.details['elementType'])
+        self.assertEqual(['block', 'item', 'recipe'], error.details['availableTypes'])
+        self.assertEqual('type_not_advertised', error.details['reason'])
+        self.assertIn('get_workspace_environment', error.details['nextAction'])
+        self.assertIn('block, item, recipe', str(error))
+        self.assertEqual('succeeded', client.get_workspace()['status'])
+        self.assertEqual(0, client.revision)
+        self.assertTrue(all(request['kind'] == 'query' for request in self.requests()))
+
+    def test_older_service_missing_type_is_unavailable(self):
+        with self.open('legacy_contracts') as client:
+            with self.assertRaises(NativeApiError) as raised:
+                client.field_contract('item')
+            error = raised.exception
+            self.assertEqual('NATIVE_FIELD_CONTRACT_UNAVAILABLE', error.code)
+            self.assertEqual(['block'], error.details['availableTypes'])
+            self.assertEqual('type_not_advertised', error.details['reason'])
+            self.assertIn('update Copperbench', error.details['nextAction'])
+            self.assertEqual('succeeded', client.get_workspace()['status'])
+
+    def test_malformed_metadata_is_invalid_and_preserves_raw_envelope(self):
+        for mode in ('missing_contracts', 'invalid_contracts', 'invalid_contract'):
+            with self.subTest(mode=mode), self.open(mode) as client:
+                envelope = client.query('get_workspace_environment')
+                for discover in (lambda: client.field_contract('item'), client.available_field_contracts):
+                    with self.assertRaises(NativeApiError) as raised:
+                        discover()
+                    self.assertEqual('NATIVE_INVALID_RESPONSE', raised.exception.code)
+                    self.assertEqual(envelope, raised.exception.details)
+                self.assertEqual('succeeded', client.get_workspace()['status'])
+
+    def test_diagnostic_fallback_renders_args_and_preserves_the_core_receipt(self):
+        client = self.open()
+        message = {'key': 'diagnostic.field_invalid', 'fallback': '{field}: {reason}',
+                   'args': {'field': '/commands/0', 'reason': 'Expected a non-null command string.'}}
+        with self.assertRaises(NativeApiError) as raised:
+            client.query('reject_diagnostic', message=message)
+        error = raised.exception
+        self.assertEqual('/commands/0: Expected a non-null command string.', str(error))
+        self.assertEqual('FIELD_TYPE_INVALID', error.code)
+        self.assertEqual({'status': 'rejected', 'revision': 0, 'data': {}, 'diagnostics': [
+            {'code': 'FIELD_TYPE_INVALID', 'path': '/commands/0', 'message': message}]}, error.details)
+        self.assertEqual(0, client.revision)
+        self.assertEqual('succeeded', client.get_workspace()['status'])
+
+    def test_diagnostic_substitution_is_single_pass_and_does_not_evaluate_format_expressions(self):
+        client = self.open()
+        message = {'fallback': '{field}: {reason}; {missing}; {field.__class__}; {field[0]}; '
+                               '{field!r}; {field:>20}; {{field}}; {count}; {enabled}',
+                   'args': {'field': '铜{reason}', 'reason': 'literal {count} and {"key": 1}',
+                            'count': 2, 'enabled': False}}
+        with self.assertRaises(NativeApiError) as raised:
+            client.query('reject_diagnostic', message=message)
+        self.assertEqual('铜{reason}: literal {count} and {"key": 1}; {missing}; {field.__class__}; '
+                         '{field[0]}; {field!r}; {field:>20}; {{field}}; 2; false', str(raised.exception))
+        self.assertEqual(message, raised.exception.details['diagnostics'][0]['message'])
+
+    def test_diagnostic_missing_or_malformed_args_keep_literal_fallback(self):
+        client = self.open()
+        for message, expected in (
+                ({'fallback': '{field}: {reason}'}, '{field}: {reason}'),
+                ({'fallback': '{field}', 'args': None}, '{field}'),
+                ({'fallback': '{field}', 'args': ['not', 'a', 'mapping']}, '{field}'),
+                ({'fallback': '{field}', 'args': {'field': {'value': 'nested'}}}, '{field}'),
+                ({'fallback': '{value}/{ratio}', 'args': {'value': None, 'ratio': 0.5}}, 'null/0.5'),
+                ({'fallback': None, 'args': {'field': 'value'}}, 'FIELD_TYPE_INVALID'),
+                ({'args': {'field': 'value'}}, 'FIELD_TYPE_INVALID'),
+                ('plain diagnostic', 'plain diagnostic')):
+            with self.subTest(message=message), self.assertRaises(NativeApiError) as raised:
+                client.query('reject_diagnostic', message=message)
+            self.assertEqual(expected, str(raised.exception))
+            self.assertEqual('FIELD_TYPE_INVALID', raised.exception.code)
 
     def test_plan_query_revision_is_payload_only_and_apply_uses_plan_revision(self):
         client = self.open()

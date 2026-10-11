@@ -64,7 +64,7 @@ P1 是本阶段核心工作；P2 是发布质量及扩大试用前的后续工�
 
 **问题。** 当前 `get_workspace_environment.data.fieldContracts` 只公开部分专门契约，SDK 直接索引会产生裸 `KeyError`。通用输入契约不能充当 item/recipe 的完整创建 Schema。[S5]
 
-**首批实现。** 新增 `Workspace.available_field_contracts()`，只读取并返回当前 Core 发布的契约名称。`field_contract()` 对正常契约保持原返回结构；缺失时抛 `NativeApiError(code="FIELD_CONTRACT_UNAVAILABLE")`，提供 `elementType`、`availableContracts`、当前 generator 和需要现有 `elementId` 的 `get_mod_element_editor` 读取入口。畸形响应使用 `NATIVE_INVALID_RESPONSE`，不伪装成“功能不支持”。
+**首批实现与后续对齐。** 新增 `Workspace.available_field_contracts()`，只读取并返回当前 Core 发布的契约名称。`field_contract()` 对正常契约保持原返回结构；缺失时统一抛 `NativeApiError(code="NATIVE_FIELD_CONTRACT_UNAVAILABLE")`，提供 `elementType`、`availableTypes`、`reason`、`nextAction`、原始 `environment`、当前 generator 和需要现有 `elementId` 的 `get_mod_element_editor` 读取入口。畸形响应（含纯空白契约名）使用 `NATIVE_INVALID_RESPONSE`，不伪装成“功能不支持”。早期草稿错误码及详情字段的迁移见 [SDK 兼容说明](../../sdk/python/READINESS.md)。
 
 这项修复只解决失败方式与恢复指引，不声称补齐了 item/recipe 创建契约。SDK 不创建临时元素、不回退成不完整的 generic 契约、不改变 type 名称后再试。
 

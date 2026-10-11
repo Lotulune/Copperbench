@@ -224,6 +224,8 @@ export const zh: Record<string, string> = {
   'task.sources.preparing': '正在准备生成器依赖与源码',
   'editor.generation_pending': '定义已保存，源码尚待生成。请运行“生成”或“构建”，准备依赖并更新受管源码。',
     'diagnostic.generator_preparation_failed': '生成器准备失败：{reason}',
+    'diagnostic.generation_source_conflict_at': '源码冲突：{displaySourcePath}。请检查该文件及其归属后重新生成。',
+    'action.open_conflict_source': '查看源码',
     'diagnostic.generator_local_ipc_unavailable': 'Loom 无法访问本地进程通信文件。请从桌面产品或普通本地终端重试；更换依赖镜像无法修复本地通信问题。',
     'diagnostic.generator_decompilation_failed': 'Minecraft 源码反编译失败。请查看反编译日志和系统日志，检查内存不足、进程被终止等具体原因；该结果本身不能证明下载故障。',
     'field.plantType': '植物类型',
