@@ -163,6 +163,34 @@ def prepare_import_fixture(template, root):
     return workspace_file
 
 
+def discovery_baseline(root, save, timeout=30):
+    # A newly imported file starts the legacy history backend asynchronously.
+    # Observe its initial commit and filesystem calibration before measuring the
+    # discovery reads; the subsequent full before/after comparison remains strict.
+    started = time.monotonic()
+    first = inventory(root)
+    previous = first
+    stable = 0
+    history = root / ".mcreator/localHistory"
+    while True:
+        probes = list(history.glob(".probe-*"))
+        head_ready = any(path.is_file() and re.fullmatch(r"[0-9a-f]{40}", path.read_text().strip())
+                         for path in (history / "refs/heads").glob("*"))
+        observed = inventory(root)
+        stable = stable + 1 if observed == previous and head_ready and not probes else 0
+        elapsed = time.monotonic() - started
+        if stable >= 2 or elapsed >= timeout:
+            save("discovery-startup", {"status": "ready" if stable >= 2 else "timed_out",
+                 "elapsedSeconds": elapsed, "initialHistoryCommitObserved": head_ready,
+                 "changedPathsBeforeQueries": sorted(path for path in first.keys() | observed.keys()
+                                                    if first.get(path) != observed.get(path)),
+                 "remainingProbes": [path.name for path in probes], "before": first, "after": observed})
+            require(stable >= 2, "Imported fixture history startup did not finish before discovery")
+            return observed
+        previous = observed
+        time.sleep(0.25)
+
+
 def verify_conflict_copy(root, workspace_name, conflict_root, open_workspace, save, terminal):
     # A warm copy generates during the edit itself. Omit its generator import
     # cache so the managed edit is genuinely deferred until the build task.
@@ -369,7 +397,7 @@ def main():
         correct_code = (fixture / "recovery_probe.java").read_text(encoding="utf-8")
         assert correct_code.count("return (count + 15) / 16;") == 1
         with open_workspace(workspace_file) as workspace:
-            before = inventory(root)
+            before = discovery_baseline(root, save) if template else inventory(root)
             revision = workspace.revision
             item = workspace.discover_field_contract("item")
             recipe = workspace.discover_field_contract("recipe")
@@ -377,7 +405,11 @@ def main():
             assert item == workspace.field_contract("item") and recipe == workspace.field_contract("recipe")
             references = workspace.field_reference_options("recipe", "blocksitems", search="Items.STICK", limit=1)
             assert references["data"]["options"][0]["value"] == "Items.STICK"
-            assert before == inventory(root) and workspace.revision == revision, "Discovery wrote workspace state"
+            after = inventory(root)
+            save("discovery-nonmutation", {"beforeRevision": revision, "afterRevision": workspace.revision,
+                 "changedPaths": sorted(path for path in before.keys() | after.keys()
+                                        if before.get(path) != after.get(path)), "before": before, "after": after})
+            assert before == after and workspace.revision == revision, "Discovery wrote workspace state"
             save("discovery", {"item": item, "recipe": recipe, "references": references})
             workspace.create_mod_element(**item["minimalExample"])
             payload = copy.deepcopy(recipe["minimalExample"])

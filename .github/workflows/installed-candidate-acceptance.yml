@@ -7,9 +7,15 @@ on:
         description: Full product source commit to build and install
         required: true
         type: string
+      candidate_run:
+        description: Reuse exact packages and frozen manifests from a previous run
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   installed:
@@ -31,6 +37,7 @@ jobs:
           ref: ${{ inputs.product_commit }}
           path: product
       - uses: actions/setup-java@v6
+        if: inputs.candidate_run == ''
         with:
           java-version: '25.0.2'
           distribution: jetbrains
@@ -38,6 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v6
+        if: inputs.candidate_run == ''
         with:
           node-version: 22
       - uses: actions/setup-python@v6
@@ -45,29 +53,47 @@ jobs:
           python-version: '3.12'
       - uses: gradle/actions/setup-gradle@v6
       - name: Install UI build dependencies
+        if: inputs.candidate_run == ''
         working-directory: product
         run: npm ci --prefix ui-shell
       - name: Build Ubuntu packages
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && inputs.candidate_run == ''
         working-directory: product
         shell: bash
         run: |
           set -euo pipefail
           bash ./gradlew --no-daemon exportLinuxCandidate -Pbuilddate=20261011
       - name: Build Windows packages
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && inputs.candidate_run == ''
         working-directory: product
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           ./gradlew.bat --no-daemon exportWindowsZip buildInstallerWin64 -Pbuilddate=20261011
           if ($LASTEXITCODE -ne 0) { throw 'Windows candidate build failed' }
+      - name: Download the frozen candidate packages
+        if: inputs.candidate_run != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: installed-candidate-${{ matrix.os }}
+          run-id: ${{ inputs.candidate_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: product/build/export
+      - name: Download the original candidate identity
+        if: inputs.candidate_run != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: installed-evidence-${{ matrix.os }}
+          run-id: ${{ inputs.candidate_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen
       - name: Install and verify Ubuntu candidate
         if: runner.os == 'Linux'
         shell: bash
         env:
           PRODUCT_COMMIT: ${{ inputs.product_commit }}
           CANDIDATE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REUSE_CANDIDATE_RUN: ${{ inputs.candidate_run }}
         run: |
           set -euo pipefail
           xvfb-run -a python harness/scripts/verify-cloud-installed-delivery.py \
@@ -79,6 +105,7 @@ jobs:
         env:
           PRODUCT_COMMIT: ${{ inputs.product_commit }}
           CANDIDATE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REUSE_CANDIDATE_RUN: ${{ inputs.candidate_run }}
         run: |
           $ErrorActionPreference = 'Stop'
           python harness/scripts/verify-cloud-installed-delivery.py --source product --harness harness --output evidence --source-commit $env:PRODUCT_COMMIT

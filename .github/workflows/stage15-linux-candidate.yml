@@ -11,6 +11,10 @@ on:
         description: Full product commit for installed acceptance
         type: string
         default: ''
+      candidate_run:
+        description: Optional prior installed-candidate run whose frozen packages should be reused
+        type: string
+        default: ''
   pull_request:
     branches:
       - main
@@ -167,9 +171,13 @@ concurrency:
 jobs:
   installed-acceptance:
     if: inputs.installed_acceptance
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/installed-candidate-acceptance.yml
     with:
       product_commit: ${{ inputs.product_commit }}
+      candidate_run: ${{ inputs.candidate_run }}
 
   package-smoke:
     if: ${{ !inputs.installed_acceptance }}

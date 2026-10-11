@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -21,6 +22,27 @@ import traceback
 def digest(path):
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def reused_candidate(manifest_path, export, source_commit, windows):
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    if (manifest.get('manifestVersion') != '1' or manifest.get('sourceCommit') != source_commit
+            or manifest.get('platform') != ('windows-cloud' if windows else 'ubuntu-cloud')
+            or manifest.get('status') != 'frozen_before_installation'):
+        raise ValueError('Frozen candidate source, version, platform or status differs')
+    for name, identity in manifest['assets'].items():
+        if Path(name).name != name or '\\' in name:
+            raise ValueError('Candidate asset name must be a basename')
+        path = export / name
+        if path.stat().st_size != identity['size'] or digest(path) != identity['sha256']:
+            raise ValueError('Retained candidate package changed: ' + name)
+    for relative, identity in manifest['members'].items():
+        path = PurePosixPath(relative)
+        if path.is_absolute() or '..' in path.parts or '\\' in relative or ':' in relative:
+            raise ValueError('Unsafe candidate member path')
+        if not re.fullmatch('[0-9a-f]{64}', identity['sha256']):
+            raise ValueError('Invalid candidate member digest')
+    return manifest
 
 
 def main():
@@ -66,26 +88,34 @@ def main():
             raise RuntimeError(f'{label} failed with exit {result.returncode}; raw output is retained')
 
     try:
-        members = {}
-        selected = [layout / 'lib/copperbench.jar', layout / ('copperbench.exe' if windows else 'copperbench.sh'),
-                    layout / 'scripts/verify-delivery-bundle.py',
-                    layout / 'docs/ai/task-verification-and-delivery.md',
-                    layout / 'ui-core/schemas/v1.0/task-verification.schema.json',
-                    *sorted((layout / 'sdk').rglob('*'))]
-        for path in selected:
-            if path.is_file():
-                members[path.relative_to(layout).as_posix()] = {'size': path.stat().st_size, 'sha256': digest(path)}
+        reused_run = os.environ.get('REUSE_CANDIDATE_RUN')
+        if reused_run:
+            original_manifest = source.parent / 'frozen/evidence/candidate-manifest.json'
+            manifest = reused_candidate(original_manifest, export, actual_commit, windows)
+            record['candidateReuse'] = {'runId': reused_run, 'originalManifestSha256': digest(original_manifest),
+                                        'rebuilt': False}
+        else:
+            members = {}
+            selected = [layout / 'lib/copperbench.jar', layout / ('copperbench.exe' if windows else 'copperbench.sh'),
+                        layout / 'scripts/verify-delivery-bundle.py',
+                        layout / 'docs/ai/task-verification-and-delivery.md',
+                        layout / 'ui-core/schemas/v1.0/task-verification.schema.json',
+                        *sorted((layout / 'sdk').rglob('*'))]
+            for path in selected:
+                if path.is_file():
+                    members[path.relative_to(layout).as_posix()] = {'size': path.stat().st_size, 'sha256': digest(path)}
+            assets = {path.name: {'size': path.stat().st_size, 'sha256': digest(path)}
+                      for path in sorted(export.iterdir()) if path.is_file() and path.suffix in ('.exe', '.zip', '.deb', '.gz')}
+            manifest = {'manifestVersion': '1', 'sourceCommit': actual_commit,
+                        'sourceTree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], cwd=source, text=True).strip(),
+                        'platform': 'windows-cloud' if windows else 'ubuntu-cloud',
+                        'frozenAt': datetime.now(timezone.utc).isoformat(), 'assets': assets, 'members': members,
+                        'status': 'frozen_before_installation', 'runUrl': os.environ.get('CANDIDATE_RUN_URL'),
+                        'harnessCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=harness, text=True).strip()}
+        members, assets = manifest['members'], manifest['assets']
         for required in ['lib/copperbench.jar', 'sdk/python/copperbench_native.py',
                          'scripts/verify-delivery-bundle.py', 'ui-core/schemas/v1.0/task-verification.schema.json']:
             assert required in members, required
-        assets = {path.name: {'size': path.stat().st_size, 'sha256': digest(path)}
-                  for path in sorted(export.iterdir()) if path.is_file() and path.suffix in ('.exe', '.zip', '.deb', '.gz')}
-        manifest = {'manifestVersion': '1', 'sourceCommit': actual_commit,
-                    'sourceTree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], cwd=source, text=True).strip(),
-                    'platform': 'windows-cloud' if windows else 'ubuntu-cloud',
-                    'frozenAt': datetime.now(timezone.utc).isoformat(), 'assets': assets, 'members': members,
-                    'status': 'frozen_before_installation', 'runUrl': os.environ.get('CANDIDATE_RUN_URL'),
-                    'harnessCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=harness, text=True).strip()}
         save('candidate-manifest', manifest)
         app_sha = members['lib/copperbench.jar']['sha256']
         package_sha = assets[package.name]['sha256']
