@@ -59,7 +59,7 @@ public final class WorkspaceDoctor {
         capabilities.addProperty("doctorSchemaVersion", "1.0");
         JsonArray queries = new JsonArray();
         List.of("get_workspace_doctor", "get_workspace_environment", "get_mod_element_field_contract",
-                "get_field_reference_options", "preview_generation", "get_task").forEach(queries::add);
+                "get_field_reference_options", "preview_generation", "get_task", "get_task_verification").forEach(queries::add);
         capabilities.add("queries", queries);
         capabilities.addProperty("implicitNetworkProbe", false);
         capabilities.addProperty("implicitTaskAuthorization", false);

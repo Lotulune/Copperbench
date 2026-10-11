@@ -119,6 +119,19 @@ class WorkspaceTaskEventTest {
 		assertEquals(1, result.data().getAsJsonObject().getAsJsonArray("logs").size());
 		assertEquals("second", result.data().getAsJsonObject().getAsJsonArray("logs").get(0)
 				.getAsJsonObject().get("text").getAsString());
+		var original = result.data().deepCopy();
+		JsonObject summaryPayload = new JsonObject();
+		summaryPayload.addProperty("taskId", taskId.toString()); summaryPayload.addProperty("resultVersion", "1");
+		var summary = service.query(UiCore.Query.of(uuid(8), WORKSPACE_ID, Operation.GET_TASK_VERIFICATION, summaryPayload),
+				new RequestContext(Actor.MCP, PermissionProfile.READ_ONLY));
+		assertEquals("succeeded", summary.status());
+		assertEquals("1", summary.data().getAsJsonObject().get("resultVersion").getAsString());
+		assertEquals(result.revision(), summary.revision());
+		assertEquals(original, service.query(UiCore.Query.of(uuid(9), WORKSPACE_ID, Operation.GET_TASK, queryPayload),
+				new RequestContext(Actor.MCP, PermissionProfile.READ_ONLY)).data());
+		summaryPayload.addProperty("resultVersion", "2");
+		assertFalse(service.query(UiCore.Query.of(uuid(10), WORKSPACE_ID, Operation.GET_TASK_VERIFICATION, summaryPayload),
+				new RequestContext(Actor.MCP, PermissionProfile.READ_ONLY)).status().equals("succeeded"));
 	}
 
 	@Test void asynchronousGradleTaskPublishesFailureAndReplaysCancellationAfterReconnect(@TempDir Path tempDir)

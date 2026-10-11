@@ -14,6 +14,10 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Add opt-in versioned task verification results with bilingual coverage messages while preserving strict legacy task envelopes.
+- Publish complete verified-delivery directories atomically, bind observed application identities, reject duplicate testcases, and provide a bounded offline directory/ZIP verifier.
+- Retain successful Java XML and independently verify Java-generated delivery fixtures in the existing required CI jobs.
+
 - Align Native missing-contract errors and preserve diagnostic braces across SDK/UI consumers; expose safe per-file generation conflict navigation without changing source ownership.
 - Use one Native discovery query on advertised hosts, retain compatible GameTest shortfall codes, and enrich portable verified-export evidence with observed toolchain and acceptance metadata.
 - Label the legacy HTTP eval harness as protocol-contract coverage, retain compatible case identifiers, and verify both SDK conflict codes and original Core diagnostics.

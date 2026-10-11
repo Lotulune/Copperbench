@@ -210,6 +210,9 @@ export interface TaskSummary {
 }
 
 export interface GameTestVerification {
+  minimumTests?: number;
+  detail?: string;
+  processExitCode?: number;
   schemaVersion: '1.0';
   status: 'pending' | 'passed' | 'failed';
   reasonCode: string;
@@ -223,6 +226,14 @@ export interface GameTestVerification {
 }
 
 export type TaskCapability = 'create' | 'edit' | 'build' | 'test' | 'run_client' | 'run_server' | 'restore';
+export interface TaskVerificationResult {
+  resultVersion: '1'; taskId: UUID; taskState: TaskSummary['state']; reasonCode: string;
+  subreason: 'running' | 'cancelled' | 'unconfirmed' | 'report_missing' | 'report_invalid' | 'report_stale'
+    | 'business_failed' | 'no_business_tests' | 'insufficient_business_tests' | 'passed_current_input'
+    | 'passed_historical_input' | 'passed_input_unconfirmed' | 'unavailable' | 'failed';
+  coverage: { minimumTests: number | null; acceptanceExecuted: number | null; shortfall: number | null };
+  message: LocalizedText;
+}
 export interface TaskAuthorizationRequest {
   label: string; root: string; capabilities: TaskCapability[]; ttlSeconds: number; serverEulaAccepted: boolean;
 }
@@ -1056,6 +1067,7 @@ export type QueryOperation =
 	| 'preview_workspace_plan'
 	| 'preview_datagen_output'
   | 'get_task'
+  | 'get_task_verification'
   | 'get_history'
   | 'get_diff'
   | 'preview_recovery_restore'

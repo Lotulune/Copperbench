@@ -93,6 +93,9 @@ class GameTestWorkflowTest {
             assertEquals(report, JsonParser.parseString(Files.readString(Path.of(report.get("verificationPath").getAsString()))));
             if (outcome.equals("pass")) { assertEquals(1, report.get("executed").getAsInt()); assertEquals(1, report.get("passed").getAsInt()); }
             if (outcome.equals("failed")) assertTrue(report.getAsJsonArray("cases").toString().contains("survive serialization"));
+            assertTrue(report.getAsJsonObject("environment").has("application"));
+            if (outcome.equals("failed")) assertEquals("business_failed",
+                    dev.copperbench.core.application.TaskVerificationResult.inspect(task, root).get("subreason").getAsString());
             assertEquals("existing player world", Files.readString(root.resolve("run/world/level.dat")));
             assertEquals(outcome.equals("source_changed") ? "newer implementation" : "native implementation bytes", Files.readString(root.resolve("src/main/java/custom/Native.java")));
             assertEquals(!outcome.equals("source_changed"), report.get("sourceCurrentAtCompletion").getAsBoolean());

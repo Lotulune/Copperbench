@@ -72,6 +72,62 @@ class VerifiedArtifactExporterTest {
                 () -> VerifiedArtifactExporter.export(root, original, UUID.randomUUID(), true)).code());
     }
 
+    @Test void publishedBundleBindsActualBytesAndObservedApplicationWithoutChangingApi() throws Exception {
+        JsonObject task = evidence("<testsuite><testcase name='business'/></testsuite>", 1);
+        JsonObject application = new JsonObject(); application.addProperty("sourceState", "packaged_binary");
+        application.addProperty("applicationSha256", "a".repeat(64)); application.addProperty("token", "must-not-export");
+        JsonObject environment = new JsonObject(); environment.add("application", application);
+        task.getAsJsonObject("verification").add("environment", environment);
+        JsonObject exported = VerifiedArtifactExporter.export(root, task, UUID.randomUUID(), false);
+        assertFalse(exported.has("bundleVersion")); assertFalse(exported.has("coverage"));
+        Path destination = Path.of(exported.get("exportDirectory").getAsString());
+        JsonObject manifest = JsonParser.parseString(Files.readString(destination.resolve("manifest.json"))).getAsJsonObject();
+        assertEquals("1", manifest.get("bundleVersion").getAsString());
+        assertEquals(task.get("id"), manifest.get("taskId"));
+        for (var raw : manifest.getAsJsonArray("files")) {
+            JsonObject entry = raw.getAsJsonObject(); Path path = destination.resolve(entry.get("path").getAsString());
+            assertEquals(Files.size(path), entry.get("size").getAsLong());
+            assertEquals(WorkspaceExecutionSnapshot.sha256(path), entry.get("sha256").getAsString());
+        }
+        String identity = Files.readString(destination.resolve("application-identity.json"));
+        assertTrue(identity.contains("acceptance_record")); assertFalse(identity.contains("must-not-export"));
+        try (var paths = Files.list(destination.getParent())) {
+            assertEquals(List.of(destination), paths.toList(), "No pending directory survives publication");
+        }
+        // Retain one synthetic Java-generated bundle for the independent Python verifier and CI artifacts.
+        Path fixture = Path.of("build/delivery-bundle-fixtures").resolve(task.get("id").getAsString());
+        Files.createDirectories(fixture);
+        try (var files = Files.list(destination)) {
+            for (Path file : files.toList()) Files.copy(file, fixture.resolve(file.getFileName()));
+        }
+    }
+
+    @Test void oldAcceptanceHasExplicitUnknownApplicationAndExistingDeliveriesArePreserved() throws Exception {
+        JsonObject task = evidence("<testsuite><testcase name='business'/></testsuite>", 1);
+        UUID id = UUID.randomUUID();
+        JsonObject exported = VerifiedArtifactExporter.export(root, task, id, false);
+        Path destination = Path.of(exported.get("exportDirectory").getAsString());
+        JsonObject identity = JsonParser.parseString(Files.readString(destination.resolve("application-identity.json"))).getAsJsonObject();
+        assertEquals("unavailable", identity.get("source").getAsString());
+        assertTrue(identity.getAsJsonObject("application").isEmpty());
+        String before = Files.readString(destination.resolve("manifest.json"));
+        assertThrows(FileAlreadyExistsException.class, () -> VerifiedArtifactExporter.export(root, task, id, false));
+        assertEquals(before, Files.readString(destination.resolve("manifest.json")));
+    }
+
+    @Test void lateBundleFailureRemovesStagingAndNeverPublishesASuccessMarker() throws Exception {
+        JsonObject task = evidence("<testsuite><testcase name='business'/></testsuite>", 1);
+        JsonObject environment = new JsonObject(); environment.addProperty("pluginVersion", "x".repeat(1024 * 1024));
+        task.getAsJsonObject("verification").add("environment", environment);
+        UUID id = UUID.randomUUID();
+        var failure = assertThrows(VerifiedArtifactExporter.VerificationException.class,
+                () -> VerifiedArtifactExporter.export(root, task, id, false));
+        assertEquals("VERIFIED_BUNDLE_TOO_LARGE", failure.code());
+        Path exports = root.resolve(".copperbench/verified-exports");
+        assertFalse(Files.exists(exports.resolve(id.toString())));
+        try (var children = Files.list(exports)) { assertEquals(0, children.count()); }
+    }
+
     private JsonObject evidence(String xml, int minimum) throws Exception {
         Path directory = root.resolve(".copperbench/accepted/" + UUID.randomUUID()); Files.createDirectories(directory);
         Path jar = directory.resolve("mod.jar"), report = directory.resolve("report.xml");

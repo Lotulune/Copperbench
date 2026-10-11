@@ -24,6 +24,35 @@ async function schema(name) {
   return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
 }
 
+test('verification is an opt-in versioned query and cannot extend the strict legacy task', async () => {
+  const { ajv } = await createValidator();
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  const request = operationRequest('query', 'get_task_verification', {
+    taskId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', resultVersion: '1'
+  });
+  assert.equal(query(request), true, JSON.stringify(query.errors));
+  request.payload.resultVersion = '2';
+  assert.equal(query(request), false);
+  request.payload.resultVersion = '1';
+  request.payload.minimumTests = 0;
+  assert.equal(query(request), false);
+  const validate = ajv.getSchema('urn:copperbench:task-verification:1');
+  const data = { resultVersion: '1', taskId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', taskState: 'failed',
+    reasonCode: 'GAMETEST_NO_TESTS', subreason: 'insufficient_business_tests',
+    coverage: { minimumTests: 6, acceptanceExecuted: 5, shortfall: 1 },
+    message: { key: 'verification.insufficient_business_tests', fallback: '{shortfall} missing', args: { shortfall: 1 } } };
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+  data.coverage.acceptanceExecuted = null;
+  data.coverage.shortfall = null;
+  assert.equal(validate(data), true);
+  data.resultVersion = '2';
+  assert.equal(validate(data), false);
+  const common = await schema('common');
+  assert.equal(common.$defs.gameTestVerification.additionalProperties, false);
+  assert.equal(common.$defs.gameTestVerification.properties.coverage, undefined);
+  assert.equal(common.$defs.taskSummary.properties.verifiedExport.additionalProperties, false);
+});
+
 test('creation discovery distinguishes availability and validates read-only paging', async () => {
   const { ajv } = await createValidator();
   const query = ajv.getSchema('urn:ui-core:1.0:query');

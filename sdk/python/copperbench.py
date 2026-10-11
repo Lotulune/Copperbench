@@ -84,7 +84,7 @@ TASK_AUTHORIZED_TOOLS = {
 # remain single-attempt until its effects have been reviewed. Keep the same
 # allowlist in the TypeScript client; shared transport fixtures exercise both.
 RETRY_SAFE_TOOLS = frozenset({
-    "get_workspace", "get_workspace_environment", "get_workspace_doctor", "preview_generation", "get_mod_element_field_contract", "get_field_reference_options", "get_workspace_health", "get_task",
+    "get_workspace", "get_workspace_environment", "get_workspace_doctor", "preview_generation", "get_mod_element_field_contract", "get_field_reference_options", "get_workspace_health", "get_task", "get_task_verification",
     "list_mod_elements", "read_mod_element", "get_procedure", "list_workspace_registries",
     "get_workspace_references", "list_recovery_points", "list_task_authorizations",
 })
@@ -218,6 +218,10 @@ class CopperbenchClient:
 
     def get_task(self, task_id: str, after_log_sequence: int = 0) -> dict[str, Any]:
         return self.call_tool("get_task", {"taskId": task_id, "afterLogSequence": after_log_sequence})
+
+    def get_task_verification(self, task_id: str) -> dict[str, Any]:
+        """Read result version 1 when advertised by tools/list; old get_task stays unchanged."""
+        return self.call_tool("get_task_verification", {"taskId": task_id, "resultVersion": "1"})
 
     def prepare_game_tests(self, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("prepare_game_tests", {"expectedRevision": expected_revision})

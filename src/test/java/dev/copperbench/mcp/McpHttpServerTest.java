@@ -388,6 +388,7 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("preview_datagen_output"));
 			assertTrue(tools.body().contains("publish_datagen_output"));
 			assertTrue(tools.body().contains("get_task"));
+			assertTrue(tools.body().contains("get_task_verification"));
 			assertTrue(tools.body().contains("cancel_task"));
 			assertTrue(tools.body().contains("restore_recovery_point"));
 			assertTrue(tools.body().contains("preview_recovery_restore"));
@@ -531,6 +532,14 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			assertEquals("running", toolResult(taskResult).getAsJsonObject("data")
 					.getAsJsonObject("task").get("state").getAsString());
+
+			JsonObject summary = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":701,\"method\":\"tools/call\",\"params\":{\"name\":\"get_task_verification\",\"arguments\":{\"taskId\":\"" + taskId + "\",\"resultVersion\":\"1\"}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("succeeded", summary.get("status").getAsString(), summary::toString);
+			assertEquals("1", summary.getAsJsonObject("data").get("resultVersion").getAsString());
+			assertEquals("running", summary.getAsJsonObject("data").get("subreason").getAsString());
+			assertEquals(1, summary.get("revision").getAsLong());
 
 			HttpResponse<String> cancelledResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":8,\"method\":\"tools/call\",\"params\":{\"name\":\"cancel_task\",\"arguments\":{\"taskId\":\"" + taskId + "\",\"expectedRevision\":1}}}",

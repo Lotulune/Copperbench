@@ -515,6 +515,10 @@ class Workspace:
     def get_task(self, task_id: str, after_log_sequence: int = 0) -> dict[str, Any]:
         return self.query("get_task", taskId=task_id, afterLogSequence=after_log_sequence)
 
+    def get_task_verification(self, task_id: str) -> dict[str, Any]:
+        """Read result version 1 on hosts advertising get_task_verification; never reruns acceptance."""
+        return self.query("get_task_verification", taskId=task_id, resultVersion="1")
+
     def cancel_task(self, task_id: str) -> dict[str, Any]:
         return self.command("cancel_task", taskId=task_id)
 

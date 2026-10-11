@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
+import { useTaskVerification } from '../hooks/useTaskVerification';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview, WorkspacePlan, WorkspacePlanStep } from '../types/contract';
 import './taskAuthorization.css';
@@ -58,6 +59,8 @@ export const TaskDrawer: React.FC = () => {
 
   const logs = activeTask ? state.taskLogs[activeTask.id] || [] : [];
   const diagnostics = activeTask ? state.taskDiagnostics[activeTask.id] || [] : [];
+  const verificationResult = useTaskVerification(activeTask, state.workbench?.workspace.id, state.workbench?.workspace.revision, isTaskDrawerOpen);
+  const hasReportCounts = verificationResult?.coverage.acceptanceExecuted != null && activeTask?.verification?.status !== 'pending';
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -301,8 +304,13 @@ export const TaskDrawer: React.FC = () => {
         </div>
       </div>
 
+      {activeTask?.kind === 'run_gametest' && verificationResult && <section className="gametest-verification" aria-label={uiText("GameTest 验收结果", "GameTest verification result")}>
+        <strong role="status" aria-live="polite" data-testid="task-verification-result">{t(verificationResult.message)}</strong>
+        {verificationResult.coverage.minimumTests !== null && verificationResult.subreason !== 'insufficient_business_tests' && <p>{uiText(
+          `最低业务测试数：${verificationResult.coverage.minimumTests}；已执行：${verificationResult.coverage.acceptanceExecuted ?? '—'}。`,
+          `Required business tests: ${verificationResult.coverage.minimumTests}; executed: ${verificationResult.coverage.acceptanceExecuted ?? '—'}.`)}</p>}
+      </section>}
       {activeTask?.verification && <section className="gametest-verification" aria-label={uiText("GameTest 验收报告", "GameTest verification report")}>
-        <strong>{activeTask.verification.status === 'pending' ? uiText("测试正在执行", "Tests are running") : activeTask.verification.status === 'passed' ? uiText("配置的测试已通过", "Configured tests passed") : uiText("测试尚未通过验收", "Tests have not passed verification")}</strong>
         {activeTask.verification.status === 'passed' && activeTask.verification.artifactSha256 && <div>
           <p>{uiText("这是该次输入的验收结论。导出时重新核对当前输入、被测 JAR 和报告。", "This result applies to the tested input. Export checks the current input, tested JAR and report again.")}</p>
           <label><input type="checkbox" checked={allowHistoricalExport} onChange={event => setAllowHistoricalExport(event.target.checked)} />{uiText("允许导出旧输入对应的历史已验证产物", "Allow exporting a previously verified artifact for older input")}</label>
@@ -311,7 +319,7 @@ export const TaskDrawer: React.FC = () => {
         <dl>{([
           [uiText("发现", "Discovered"), activeTask.verification.discovered], [uiText("执行", "Executed"), activeTask.verification.executed],
           [uiText("通过", "Passed"), activeTask.verification.passed], [uiText("失败", "Failed"), activeTask.verification.failed], [uiText("跳过", "Skipped"), activeTask.verification.skipped]
-        ] as const).map(([name, count]) => <div key={name}><dt>{name}</dt><dd>{count}</dd></div>)}</dl>
+        ] as const).map(([name, count]) => <div key={name}><dt>{name}</dt><dd>{hasReportCounts ? count : '—'}</dd></div>)}</dl>
         {!!activeTask.verification.frameworkTests && <p>{uiText(`其中框架自检 ${activeTask.verification.frameworkTests} 个；验收执行 ${activeTask.verification.acceptanceExecuted ?? 0} 个。框架自检不计入最低验收数量。`, `Framework self-tests: ${activeTask.verification.frameworkTests}; acceptance tests executed: ${activeTask.verification.acceptanceExecuted ?? 0}. Framework self-tests do not count toward the minimum acceptance total.`)}</p>}
         <details><summary>{uiText("用例与被测内容", "Test cases and tested content")}</summary>
           <p>{uiText("结果代码：", "Result code: ")}<code>{activeTask.verification.reasonCode}</code></p>

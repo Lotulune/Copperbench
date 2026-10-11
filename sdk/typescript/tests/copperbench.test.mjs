@@ -20,6 +20,21 @@ const { CopperbenchClient, CopperbenchError } = await import(
 const fixtures = JSON.parse(readFileSync(new URL('../../tests/mcp-client-reliability.json', import.meta.url), 'utf8'));
 const failures = ['timeout', 'connection_reset', 'body_reset', 'incomplete_read', 'http_502', 'http_503', 'http_504'];
 
+test('versioned task verification stays read only and preserves the raw Core result', async () => {
+  const calls = [];
+  const envelope = { status: 'succeeded', revision: 7, data: { resultVersion: '1',
+    reasonCode: 'GAMETEST_NO_TESTS', subreason: 'insufficient_business_tests',
+    coverage: { minimumTests: 6, acceptanceExecuted: 5, shortfall: 1 } } };
+  const sdk = client(async (_, request) => {
+    calls.push(JSON.parse(request.body));
+    return reply(request, toolResult(envelope));
+  }, { taskAuthorizationId: 'must-not-forward' });
+  assert.deepEqual(await sdk.getTaskVerification('task'), envelope);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].params.name, 'get_task_verification');
+  assert.deepEqual(calls[0].params.arguments, { taskId: 'task', resultVersion: '1' });
+});
+
 function client(fetch, options = {}) {
   return new CopperbenchClient({ endpoint: 'http://127.0.0.1:61999/mcp', token: 'fixture-token',
     workspaceId: 'workspace', retryBackoffMs: 0, ...options, fetch });

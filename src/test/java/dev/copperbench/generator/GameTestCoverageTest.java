@@ -98,4 +98,9 @@ class GameTestCoverageTest {
         assertTrue(result.get("detail").getAsString().contains("At least 1"));
         assertEquals("failed", result.get("status").getAsString());
     }
+
+    @Test void repeatedCaseIdentityCannotSatisfyTheMinimum() throws Exception {
+        assertEquals("GAMETEST_REPORT_INVALID", read("<testcase name='same'/><testcase name='same'/>", 2).get("reasonCode").getAsString());
+        assertEquals("passed", read("<testcase classname='one' name='same'/><testcase classname='two' name='same'/>", 2).get("status").getAsString());
+    }
 }

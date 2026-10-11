@@ -434,6 +434,10 @@ final class McpToolCatalog {
 				McpToolCatalog::mutationPayload));
 		tools.add(commandTool("run_gametest", "Run configured tests against a frozen workspace or packaged JAR and return verified test counts and hashes",
 				Operation.RUN_GAMETEST, revisionSchema(), McpToolCatalog::workspacePayload));
+		tools.add(queryTool("get_task_verification", "Read versioned acceptance reasons and coverage without rerunning a task", Operation.GET_TASK_VERIFICATION,
+				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"resultVersion", Map.of("type", "string", "const", "1")), List.of("taskId", "resultVersion")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("get_task", "Read task state, logs and diagnostics", Operation.GET_TASK,
 				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
 						"afterLogSequence", Map.of("type", "integer", "minimum", 0)),

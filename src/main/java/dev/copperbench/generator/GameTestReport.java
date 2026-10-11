@@ -49,8 +49,11 @@ public final class GameTestReport {
             if (nodes.getLength() > 10_000) return reason(result, "GAMETEST_REPORT_INVALID");
             int failed = 0, skipped = 0, frameworkTests = 0, frameworkExecuted = 0;
             JsonArray cases = new JsonArray();
+            var identities = new java.util.HashSet<java.util.List<String>>();
             for (int index = 0; index < nodes.getLength(); index++) {
                 Element element = (Element) nodes.item(index);
+                if (!identities.add(java.util.List.of(element.getAttribute("classname"), element.getAttribute("name"))))
+                    return reason(result, "GAMETEST_REPORT_INVALID");
                 if (element.getAttribute("name").isBlank() || !element.getParentNode().getNodeName().equals("testsuite")
                         || element.getElementsByTagName("testcase").getLength() > 0)
                     return reason(result, "GAMETEST_REPORT_INVALID");

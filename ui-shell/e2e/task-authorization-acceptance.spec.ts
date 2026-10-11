@@ -51,7 +51,7 @@ test('task drawer exposes actual counts, cases and artifact identity', async ({ 
   await page.getByTestId('compact-run-menu').click();
   await page.getByRole('button', { name: '运行已有 GameTest', exact: true }).click();
   const report = page.getByRole('region', { name: 'GameTest 验收报告' });
-  await expect(report).toContainText('配置的测试已通过');
+  await expect(page.getByTestId('task-verification-result')).toContainText('被测输入已通过验收');
   await expect(report.locator('dl')).toContainText('发现3');
   await expect(report.locator('dl')).toContainText('执行2');
   await expect(report.locator('dl')).toContainText('跳过1');

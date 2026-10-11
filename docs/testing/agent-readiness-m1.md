@@ -1,11 +1,13 @@
 # M1 verification record
 
-Implementation is being validated against the
+M1 source implementation merged into main through PR #100. The
 [M1 ledger](../roadmap/agent-readiness-m1.md) and
-[PRD](../roadmap/agent-readiness-prd-2026-10-09.md).
-The baseline is `436a41761d885fa5ad0d76500e2257438137d75f` plus the local
-`codex/generation-preflight` delta. Results describe that source build, not a
-released package. Prior AR-03 results are regression background.
+[PRD](../roadmap/agent-readiness-prd-2026-10-09.md) define its scope.
+The initial observations below used `436a41761d885fa5ad0d76500e2257438137d75f`
+plus the then-local `codex/generation-preflight` delta; later runs retain their own identities.
+They describe source builds, not released packages. Current follow-up work and
+candidate boundaries are indexed in the [remaining-work entry](../remaining-work.md).
+Prior AR-03 results remain regression background.
 
 ## Implemented scope
 
@@ -35,7 +37,7 @@ console logs are retained alongside structured evidence even on failure. Piped
 logging uses `pipefail`, so a successful log write cannot hide a failed command.
 This trigger correction does not itself establish a successful delivery run;
 hosted results remain separately bound to their tested commit on
-[draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
+[PR #100](https://github.com/Lotulune/Copperbench/pull/100), which was a draft at that time and has since merged into main.
 
 The first [PR execution](https://github.com/Lotulune/Copperbench/actions/runs/38075315759)
 checked out `a07d8995` with an empty source delta. Protocol/adapter verification

@@ -1,3 +1,4 @@
+import { legacyTaskVerification } from '../utils/taskVerification';
 import {
   UUID,
   Command,
@@ -4414,6 +4415,12 @@ export class MockCoreBridge implements CoreBridge {
             affectedDomains
           }
         };
+        break;
+      }
+      case 'get_task_verification': {
+        const taskId = (query.payload as { taskId: string }).taskId;
+        const task = this.state.tasks[taskId];
+        data = task ? legacyTaskVerification(task) : null;
         break;
       }
       case 'get_task': {

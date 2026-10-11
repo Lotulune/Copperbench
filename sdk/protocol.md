@@ -154,3 +154,10 @@ projecting each safe relative location into its diagnostic `path`. A Java
 the task directory without following links. Unlocated, unsafe, absent or
 oversized sources keep their diagnostics without advertising an unavailable
 preview. This does not grant source ownership or replay generation.
+
+Task verification has an independent, opt-in `resultVersion: "1"` contract through
+`get_task_verification`, advertised by Native ready operations, MCP tools/list and
+doctor queries. It retains legacy codes and supplies nullable coverage, precise
+subreasons and raw localized message parameters. The existing `get_task` task
+and export envelopes remain strict v1.0. See [task results and portable delivery](../docs/ai/task-verification-and-delivery.md)
+for negotiation, input freshness and offline bundle verification.

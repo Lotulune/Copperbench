@@ -1,0 +1,285 @@
+{
+  "resultVersion": "1",
+  "cases": [
+    {
+      "name": "five of six",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "acceptanceExecuted": 5,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "insufficient_business_tests"
+    },
+    {
+      "name": "zero",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 1,
+          "acceptanceExecuted": 0,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "no_business_tests"
+    },
+    {
+      "name": "skipped only",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "acceptanceExecuted": 0,
+          "failed": 0,
+          "cases": [],
+          "skipped": 6
+        }
+      },
+      "subreason": "no_business_tests"
+    },
+    {
+      "name": "framework only",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "acceptanceExecuted": 0,
+          "failed": 0,
+          "cases": [],
+          "frameworkTests": 6
+        }
+      },
+      "subreason": "no_business_tests"
+    },
+    {
+      "name": "six of six",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "succeeded",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "passed",
+          "reasonCode": "GAMETEST_PASSED",
+          "minimumTests": 6,
+          "acceptanceExecuted": 6,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "passed_input_unconfirmed"
+    },
+    {
+      "name": "seven of six",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "succeeded",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "passed",
+          "reasonCode": "GAMETEST_PASSED",
+          "minimumTests": 6,
+          "acceptanceExecuted": 7,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "passed_input_unconfirmed"
+    },
+    {
+      "name": "failure takes precedence",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_PROCESS_EXITED",
+          "minimumTests": 6,
+          "acceptanceExecuted": 5,
+          "failed": 1,
+          "cases": []
+        }
+      },
+      "subreason": "business_failed"
+    },
+    {
+      "name": "missing",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_REPORT_MISSING",
+          "minimumTests": 6,
+          "acceptanceExecuted": 0,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "report_missing"
+    },
+    {
+      "name": "invalid",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_REPORT_INVALID",
+          "minimumTests": 6,
+          "acceptanceExecuted": 0,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "report_invalid"
+    },
+    {
+      "name": "stale",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_REPORT_STALE",
+          "minimumTests": 6,
+          "acceptanceExecuted": 0,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "report_stale"
+    },
+    {
+      "name": "running",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "running",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "pending",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "acceptanceExecuted": 5,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "running"
+    },
+    {
+      "name": "cancelled",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "cancelled",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "acceptanceExecuted": 5,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "cancelled"
+    },
+    {
+      "name": "session lost",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "running",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "acceptanceExecuted": 5,
+          "failed": 0,
+          "cases": []
+        },
+        "resultObservation": "unconfirmed_after_session_loss"
+      },
+      "subreason": "unconfirmed"
+    },
+    {
+      "name": "missing minimum",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "acceptanceExecuted": 5,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "failed"
+    },
+    {
+      "name": "missing count",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed",
+        "verification": {
+          "schemaVersion": "1.0",
+          "status": "failed",
+          "reasonCode": "GAMETEST_NO_TESTS",
+          "minimumTests": 6,
+          "failed": 0,
+          "cases": []
+        }
+      },
+      "subreason": "failed"
+    },
+    {
+      "name": "no report yet",
+      "task": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "run_gametest",
+        "state": "failed"
+      },
+      "subreason": "unavailable"
+    }
+  ]
+}

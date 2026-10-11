@@ -338,7 +338,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		verification.addProperty("mode", configuration.mode());
 		verification.addProperty("status", "pending");
 		verification.addProperty("minimumTests", configuration.minimumTests());
-		verification.add("environment", backend.gameTestEnvironment());
+		verification.add("environment", backend.gameTestEnvironment().deepCopy());
+		verification.getAsJsonObject("environment").add("application",
+				dev.copperbench.core.application.ApplicationBuildIdentity.inspect());
 		job.record("verification", verification);
 		Path runRoot = snapshot, report = GameTestSupport.safePath(snapshot, configuration.reportPath());
 		List<String> arguments = List.of(configuration.task());

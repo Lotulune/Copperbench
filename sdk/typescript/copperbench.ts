@@ -185,6 +185,11 @@ export class CopperbenchClient {
     return this.callTool('get_task', { taskId, afterLogSequence });
   }
 
+  /** Requires get_task_verification in tools/list; getTask remains compatible with older hosts. */
+  public getTaskVerification(taskId: string): Promise<JsonObject> {
+    return this.callTool('get_task_verification', { taskId, resultVersion: '1' });
+  }
+
   public prepareGameTests(expectedRevision: number): Promise<JsonObject> {
     return this.callTool('prepare_game_tests', { expectedRevision });
   }
@@ -337,7 +342,7 @@ const TASK_AUTHORIZED_TOOLS = new Set([
 // Audited reads only. Plans, previews, external probes and unknown/new tools
 // remain single-attempt. Shared transport fixtures exercise the Python parity.
 const RETRY_SAFE_TOOLS = new Set([
-  'get_workspace', 'get_workspace_environment', 'get_workspace_doctor', 'preview_generation', 'get_mod_element_field_contract', 'get_field_reference_options', 'get_workspace_health', 'get_task',
+  'get_workspace', 'get_workspace_environment', 'get_workspace_doctor', 'preview_generation', 'get_mod_element_field_contract', 'get_field_reference_options', 'get_workspace_health', 'get_task', 'get_task_verification',
   'list_mod_elements', 'read_mod_element', 'get_procedure', 'list_workspace_registries',
   'get_workspace_references', 'list_recovery_points', 'list_task_authorizations'
 ]);

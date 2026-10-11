@@ -1,5 +1,7 @@
 # Copperbench 复评后优化与剩余工作
 
+当前进展：PR #101 已合并，后续 REM-02/03/06 的实现与实际验证范围见[本批证据索引](../testing/remaining-delivery-2026-10-11.md)。以下保留原规划的时间范围；发布前 REM-01 的[候选验收工作表](../testing/next-candidate-acceptance.md)单独维护。
+
 版本：1.0；日期：2026-10-11（日本时间）。
 基线：`da3157b580f560cfd0d184b29f23dff73eeec657`，即已合并 PR #100 的主分支。
 本记录随首批优化代码提交评审；后续与 SDK 契约修复和旧 PR 的有效改进整合，见[整合验证记录](../testing/pr-consolidation-2026-10-11.md)。具体提交的 CI 与合并状态以关联 PR 为准，不更新历史安装版或玩家验收结论。

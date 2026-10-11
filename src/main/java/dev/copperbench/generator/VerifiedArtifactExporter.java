@@ -3,7 +3,6 @@ package dev.copperbench.generator;
 import com.google.gson.JsonObject;
 import java.nio.file.*;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /** Exports the exact artifact selected by an immutable acceptance record, never the newest build/libs file. */
@@ -30,56 +29,67 @@ public final class VerifiedArtifactExporter {
         Path destination = root.toAbsolutePath().normalize().resolve(".copperbench/verified-exports/" + exportId);
         WorkspaceExecutionSnapshot.rejectLinks(destination);
         Files.createDirectories(destination.getParent());
-        Files.createDirectory(destination);
-        // A new export directory cannot overwrite another delivery. A receipt is written only after verification.
-        Path copiedJar = destination.resolve("verified-mod.jar");
-        Path copiedReport = destination.resolve("gametest-results.xml");
-        Files.copy(artifact, copiedJar); Files.copy(report, copiedReport);
-        if (!WorkspaceExecutionSnapshot.sha256(copiedJar).equals(verification.get("artifactSha256").getAsString())
-                || !WorkspaceExecutionSnapshot.sha256(copiedReport).equals(verification.get("reportSha256").getAsString()))
-            throw new VerificationException("VERIFIED_EXPORT_CHANGED: Source bytes changed during copying; no trusted receipt was created.");
-        current = current && verification.getAsJsonObject("sourceSnapshot").get("sha256").getAsString()
-                .equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
-        if (!current && !allowHistorical) throw new VerificationException("VERIFICATION_INPUT_CHANGED: Inputs changed during export; no trusted receipt was created.");
-        JsonObject receipt = new JsonObject();
-        receipt.addProperty("schemaVersion", "1.0");
-        receipt.add("taskId", task.get("id").deepCopy());
-        receipt.addProperty("status", current ? "passed_current_input" : "passed_historical_input");
-        receipt.addProperty("scope", "Only the acceptance cases listed in gametest-results.xml; client behavior is not implied.");
-        receipt.addProperty("artifactPath", "verified-mod.jar");
-        receipt.addProperty("reportPath", "gametest-results.xml");
-        for (String key : new String[]{"artifactSha256", "reportSha256", "passed", "failed", "skipped", "acceptanceExecuted"})
-            if (verification.has(key)) receipt.add(key, verification.get(key).deepCopy());
-        JsonObject environment = new JsonObject();
-        // Preserve observed versions only. Do not substitute the export host's JBR
-        // for the workspace Java release, or copy paths/credentials from the environment.
-        if (verification.has("environment") && verification.get("environment").isJsonObject()) {
-            JsonObject observed = verification.getAsJsonObject("environment");
-            for (String key : new String[]{"generatorId", "loader", "minecraftVersion", "loaderVersion",
-                    "javaVersion", "javaRelease", "fabricApiVersion", "pluginId", "pluginVersion"})
-                if (observed.has(key) && observed.get(key).isJsonPrimitive())
-                    environment.add(key, observed.get(key).deepCopy());
+        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) throw new FileAlreadyExistsException(destination.toString());
+        Path staging = Files.createTempDirectory(destination.getParent(), "." + exportId + ".pending-");
+        try {
+            Path copiedJar = staging.resolve("verified-mod.jar");
+            Path copiedReport = staging.resolve("gametest-results.xml");
+            Files.copy(artifact, copiedJar); Files.copy(report, copiedReport);
+            if (!WorkspaceExecutionSnapshot.sha256(copiedJar).equals(verification.get("artifactSha256").getAsString())
+                    || !WorkspaceExecutionSnapshot.sha256(copiedReport).equals(verification.get("reportSha256").getAsString()))
+                throw new VerificationException("VERIFIED_EXPORT_CHANGED: Source bytes changed during copying; no trusted receipt was created.");
+            current = current && verification.getAsJsonObject("sourceSnapshot").get("sha256").getAsString()
+                    .equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+            if (!current && !allowHistorical) throw new VerificationException("VERIFICATION_INPUT_CHANGED: Inputs changed during export; no trusted receipt was created.");
+            JsonObject receipt = new JsonObject();
+            receipt.addProperty("schemaVersion", "1.0");
+            receipt.add("taskId", task.get("id").deepCopy());
+            receipt.addProperty("status", current ? "passed_current_input" : "passed_historical_input");
+            receipt.addProperty("scope", "Only the acceptance cases listed in gametest-results.xml; client behavior is not implied.");
+            receipt.addProperty("artifactPath", "verified-mod.jar");
+            receipt.addProperty("reportPath", "gametest-results.xml");
+            for (String key : new String[]{"artifactSha256", "reportSha256", "passed", "failed", "skipped", "acceptanceExecuted"})
+                if (verification.has(key)) receipt.add(key, verification.get(key).deepCopy());
+            JsonObject environment = new JsonObject();
+            // Preserve observed versions only. Do not substitute the export host's JBR
+            // for the workspace Java release, or copy paths/credentials from the environment.
+            if (verification.has("environment") && verification.get("environment").isJsonObject()) {
+                JsonObject observed = verification.getAsJsonObject("environment");
+                for (String key : new String[]{"generatorId", "loader", "minecraftVersion", "loaderVersion",
+                        "javaVersion", "javaRelease", "fabricApiVersion", "pluginId", "pluginVersion"})
+                    if (observed.has(key) && observed.get(key).isJsonPrimitive())
+                        environment.add(key, observed.get(key).deepCopy());
+            }
+            receipt.add("environment", environment);
+            if (verification.has("sourceSnapshot")) receipt.add("sourceSha256", verification.getAsJsonObject("sourceSnapshot").get("sha256").deepCopy());
+            // Enrich the portable file, not the strict v1.0 verifiedExport wire envelope.
+            JsonObject portable = receipt.deepCopy();
+            portable.addProperty("portableEvidenceVersion", "1");
+            portable.addProperty("environmentSource", "acceptance_record");
+            for (String key : new String[]{"mode", "minimumTests", "startedAt", "processExitCode"})
+                portable.add(key, verification.get(key).deepCopy());
+            JsonObject coverage = new JsonObject();
+            int required = verification.get("minimumTests").getAsInt();
+            int observed = acceptance.get("acceptanceExecuted").getAsInt();
+            coverage.addProperty("minimumTests", required);
+            coverage.addProperty("acceptanceExecuted", observed);
+            coverage.addProperty("shortfall", Math.max(0, required - observed));
+            coverage.addProperty("status", "sufficient"); // Raw acceptance has already passed validation.
+            portable.add("coverage", coverage);
+            PortableEvidenceBundle.write(staging, task, portable);
+            // Sibling staging keeps publication on one filesystem. Do not publish partially on unsupported stores.
+            Files.move(staging, destination, StandardCopyOption.ATOMIC_MOVE);
+            JsonObject result = receipt.deepCopy();
+            result.addProperty("exportDirectory", destination.toString());
+            return result;
+        } finally {
+            if (Files.exists(staging, LinkOption.NOFOLLOW_LINKS)) {
+                // Only fixed files created by this export are eligible for cleanup; never follow links.
+                for (String name : new String[]{"verified-mod.jar", "gametest-results.xml", "verification.json",
+                        "application-identity.json", "manifest.json"}) Files.deleteIfExists(staging.resolve(name));
+                Files.deleteIfExists(staging);
+            }
         }
-        receipt.add("environment", environment);
-        if (verification.has("sourceSnapshot")) receipt.add("sourceSha256", verification.getAsJsonObject("sourceSnapshot").get("sha256").deepCopy());
-        // Enrich the portable file, not the strict v1.0 verifiedExport wire envelope.
-        JsonObject portable = receipt.deepCopy();
-        portable.addProperty("portableEvidenceVersion", "1");
-        portable.addProperty("environmentSource", "acceptance_record");
-        for (String key : new String[]{"mode", "minimumTests", "startedAt", "processExitCode"})
-            portable.add(key, verification.get(key).deepCopy());
-        JsonObject coverage = new JsonObject();
-        int required = verification.get("minimumTests").getAsInt();
-        int observed = acceptance.get("acceptanceExecuted").getAsInt();
-        coverage.addProperty("minimumTests", required);
-        coverage.addProperty("acceptanceExecuted", observed);
-        coverage.addProperty("shortfall", Math.max(0, required - observed));
-        coverage.addProperty("status", "sufficient"); // Raw acceptance has already passed validation.
-        portable.add("coverage", coverage);
-        Files.writeString(destination.resolve("verification.json"), portable.toString() + "\n", StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
-        JsonObject result = receipt.deepCopy();
-        result.addProperty("exportDirectory", destination.toString());
-        return result;
     }
 
     /** Revalidate raw cases at the delivery boundary, including recovered task records. */

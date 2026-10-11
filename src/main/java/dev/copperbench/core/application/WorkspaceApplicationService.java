@@ -520,6 +520,8 @@ public final class WorkspaceApplicationService {
 			workflow.addProperty("validateOperation", "validate_workspace");
 			workflow.addProperty("buildOperation", "build_workspace");
 			workflow.addProperty("diagnosticsOperation", "get_task");
+			workflow.addProperty("taskVerificationOperation", "get_task_verification");
+			workflow.add("taskVerificationVersions", GSON.toJsonTree(List.of("1")));
 			workflow.addProperty("healthOperation", "get_workspace_health");
 			workflow.addProperty("planOperation", "plan_workspace_changes");
 			workflow.addProperty("generationPreflightOperation", "preview_generation");
@@ -1497,6 +1499,7 @@ public final class WorkspaceApplicationService {
 				case PLAN_WORKSPACE_CHANGES -> plans.plan(query, context);
 				case PREVIEW_WORKSPACE_PLAN -> plans.preview(query, context);
 				case GET_TASK -> task(query, state);
+				case GET_TASK_VERIFICATION -> taskVerification(query, state);
 				case PREVIEW_DATAGEN_OUTPUT -> previewDatagenOutput(query, state);
 				case GET_HISTORY -> historyList(query, state);
 				case GET_DIFF -> historyDiff(query, state);
@@ -4800,6 +4803,17 @@ public final class WorkspaceApplicationService {
 					path, elementId, true, actions));
 		}
 		return List.copyOf(diagnostics);
+	}
+
+	private QueryResult taskVerification(Query query, WorkspaceState state) {
+		if (!Set.of("taskId", "resultVersion").containsAll(query.payload().keySet())
+				|| !"1".equals(requiredString(query.payload(), "resultVersion")))
+			return queryFailure(query, state.revision(), invalidPayload("Only task verification resultVersion 1 is supported."));
+		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
+		JsonObject task = tasks.find(state.id(), taskId).orElse(null);
+		if (task == null) return queryFailure(query, state.revision(), diagnostic("TASK_NOT_FOUND",
+				"diagnostic.task_not_found", "The requested task does not exist.", "/taskId", null));
+		return querySuccess(query, state.revision(), TaskVerificationResult.inspect(task, workspaceRoot(state.id())));
 	}
 
 	private QueryResult task(Query query, WorkspaceState state) {

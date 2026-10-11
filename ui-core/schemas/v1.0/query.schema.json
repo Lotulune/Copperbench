@@ -56,6 +56,7 @@
         "preview_workspace_plan",
         "preview_datagen_output",
         "get_task",
+        "get_task_verification",
         "get_history",
         "get_diff",
         "preview_recovery_restore",
@@ -82,6 +83,14 @@
     }
   },
   "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "get_task_verification"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {
+        "type": "object", "required": ["taskId", "resultVersion"],
+        "properties": {"taskId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"}, "resultVersion": {"const": "1"}},
+        "additionalProperties": false
+      }}}
+    },
     {
       "if": {"properties": {"operation": {"const": "get_workspace_doctor"}}, "required": ["operation"]},
       "then": {"properties": {"payload": {"$ref": "#/$defs/emptyPayload"}}}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:copperbench:task-verification:1",
+  "title": "Opt-in task verification result version 1",
+  "type": "object",
+  "required": ["resultVersion", "taskId", "taskState", "reasonCode", "subreason", "coverage", "message"],
+  "properties": {
+    "resultVersion": {"const": "1"},
+    "taskId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+    "taskState": {"enum": ["queued", "running", "succeeded", "failed", "cancelled"]},
+    "reasonCode": {"type": "string"},
+    "subreason": {"enum": ["running", "cancelled", "unconfirmed", "report_missing", "report_invalid", "report_stale",
+      "business_failed", "no_business_tests", "insufficient_business_tests", "passed_current_input",
+      "passed_historical_input", "passed_input_unconfirmed", "unavailable", "failed"]},
+    "coverage": {
+      "type": "object", "required": ["minimumTests", "acceptanceExecuted", "shortfall"],
+      "properties": {
+        "minimumTests": {"type": ["integer", "null"], "minimum": 1},
+        "acceptanceExecuted": {"type": ["integer", "null"], "minimum": 0},
+        "shortfall": {"type": ["integer", "null"], "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "message": {"$ref": "urn:ui-core:1.0:common#/$defs/localizedText"}
+  },
+  "additionalProperties": false
+}

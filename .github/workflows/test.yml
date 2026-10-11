@@ -40,6 +40,8 @@ jobs:
         run: python3 -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
       - name: Test installed-run provenance and study evidence accounting
         run: python3 -m unittest discover -s scripts/tests -p 'test_agent_readiness*.py'
+      - name: Test offline delivery verification and malformed bundles
+        run: python3 -m unittest discover -s scripts/tests -p 'test_delivery_bundle.py'
       - name: Select checks
         id: select
         run: python3 scripts/ci/select_checks.py
@@ -79,6 +81,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Compile, test, and generate Javadoc
         run: xvfb-run -a ./gradlew --no-daemon --no-build-cache clean test javadoc
+      - name: Independently verify Java-generated delivery fixtures
+        run: |
+          for bundle in build/delivery-bundle-fixtures/*; do
+            python3 scripts/verify-delivery-bundle.py "$bundle"
+          done
       - name: Publish Java test report
         uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16
         if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.java == 'true' }}
@@ -88,6 +95,16 @@ jobs:
           include_passed: true
           detailed_summary: true
           report_paths: "**/build/test-results/test/TEST-*.xml"
+      - name: Preserve raw Java results including successful runs
+        uses: actions/upload-artifact@v7
+        if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.java == 'true' }}
+        with:
+          name: java-test-results-${{ github.sha }}
+          path: |
+            build/test-results/test/TEST-*.xml
+            build/delivery-bundle-fixtures/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Upload Java diagnostics
         uses: actions/upload-artifact@v7
         if: failure()

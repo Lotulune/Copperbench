@@ -4,6 +4,20 @@
  * 新增合同 key 时必须同步补齐词条，缺失时 UI 回退英文 fallback。
  */
 export const zh: Record<string, string> = {
+  'verification.running': '任务正在执行。',
+  'verification.cancelled': '任务已取消。',
+  'verification.unconfirmed': '重连后尚未确认该任务的最终结果。',
+  'verification.report_missing': '找不到测试报告。',
+  'verification.report_invalid': '测试报告已损坏或格式无效。',
+  'verification.report_stale': '测试报告早于本次运行。',
+  'verification.business_failed': '存在失败用例，验收未通过。请查看失败详情。',
+  'verification.no_business_tests': '没有执行业务测试；跳过项和框架自检不计入验收数量。',
+  'verification.insufficient_business_tests': '要求至少 {minimumTests} 项业务测试，实际执行 {acceptanceExecuted} 项，还差 {shortfall} 项。',
+  'verification.passed_current_input': '当前输入已通过验收。',
+  'verification.passed_historical_input': '仅历史输入已通过验收；导出当前内容前请重新验收。',
+  'verification.passed_input_unconfirmed': '被测输入已通过验收，尚未确认它与当前输入一致。',
+  'verification.unavailable': '此任务尚无可用的验收报告。',
+  'verification.failed': '验收未通过（{reasonCode}）。',
   'diagnostic.workspace_source_failed': '源码操作失败：{detail}',
   'diagnostic.workspace_source_not_found': '找不到源码文件。',
   'diagnostic.workspace_source_conflict': '文件已在外部修改，请读取最新版本后继续。',

@@ -102,6 +102,7 @@ public final class UiCore {
 		@SerializedName("preview_workspace_plan") PREVIEW_WORKSPACE_PLAN,
 		@SerializedName("apply_workspace_plan") APPLY_WORKSPACE_PLAN,
 		@SerializedName("get_task") GET_TASK,
+		@SerializedName("get_task_verification") GET_TASK_VERIFICATION,
 		@SerializedName("preview_datagen_output") PREVIEW_DATAGEN_OUTPUT,
 		@SerializedName("get_history") GET_HISTORY,
 		@SerializedName("get_diff") GET_DIFF,

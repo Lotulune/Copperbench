@@ -72,6 +72,8 @@ class NativeApiSessionTest {
         assertEquals(0, exit);
         assertEquals(3, lines.size());
         assertEquals("1", lines.getFirst().get("nativeApiVersion").getAsString());
+        assertTrue(lines.getFirst().getAsJsonArray("operations").asList().stream()
+                .anyMatch(value -> value.getAsString().equals("get_task_verification")));
         assertEquals("NATIVE_INVALID_REQUEST", lines.get(1).getAsJsonObject("error").get("code").getAsString());
         assertEquals("succeeded", lines.get(2).getAsJsonObject("result").get("status").getAsString());
     }

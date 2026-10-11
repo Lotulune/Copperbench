@@ -15,7 +15,9 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
-The [post-review optimization plan](./roadmap/post-review-optimization-2026-10-11.md) describes the bounded follow-up in PR #101. Its [integration record](./testing/pr-consolidation-2026-10-11.md) maps the retained SDK fixes and protocol-evaluation scope from the superseded PRs #98/#99 to the current implementation.
+PR #101 merged into main at `70261a71`; the subsequent media cleanup merged as PR #102 at `99f95e1d`. The [post-review optimization plan](./roadmap/post-review-optimization-2026-10-11.md) remains the historical scope record. Its [integration record](./testing/pr-consolidation-2026-10-11.md) maps retained SDK fixes and protocol-evaluation scope from superseded PRs #98/#99.
+
+The next local batch implements REM-02 (versioned task reasons and bilingual presentation), REM-03 (portable bundles and offline verification), and REM-06 (current evidence entry points and successful Java XML retention). See the [batch evidence index](./testing/remaining-delivery-2026-10-11.md) for checks and limitations. REM-01 remains a release prerequisite; its [candidate acceptance worksheet](./testing/next-candidate-acceptance.md) is prepared, with new Windows/Ubuntu installed acceptance still unverified. REM-04/05 remain demand-driven follow-ups.
 
 Both findings from the [2026-10-11 PR #100 review](./testing/pr100-review-2026-10-11.md) are fixed: native references resolve through upstream internal identities, and real M1 delivery automatically follows its production and build inputs. The fix passed 45 focused Java tests, Javadoc and workflow-routing checks. Earlier installed/player acceptance retains its tested candidate scope. Both research work packages have been terminated by the user and are not pending work.
 
