@@ -1,6 +1,8 @@
 # REM-01 candidate build and installation attempt
 
-Recorded 2026-10-11 (Japan time). **Candidate builds passed; installation and runtime acceptance have not started.**
+Recorded 2026-10-11 (Japan time). **Historical local attempt: candidate builds passed; VM installation was blocked.**
+The later user-authorized dual-platform cloud results and replacement candidate are tracked in the
+[2026-10-12 cloud acceptance record](remaining-cloud-acceptance-2026-10-12.md).
 The user requested committing the REM-02/03/06 batch and then installed acceptance, and selected continuing in the isolated virtual machines after releasing memory.
 
 ## Source and package identity
@@ -51,7 +53,7 @@ Both virtual machines remain saved with zero assigned memory. No candidate was t
 The saved state, previous installations, workspaces, user applications and network settings were preserved.
 No task-owned large background process remained to release additional memory. Continuing requires sufficient host memory to restore one guest at a time, with additional headroom for the host.
 
-The following remain **unverified for this candidate**: installer execution, running launcher/doctor identity,
+At the end of this local attempt, the following remained **unverified for these local packages**: installer execution, running launcher/doctor identity,
 Native/MCP/TypeScript result agreement, installed language switching, CUSTOM references with distinct names,
 real build and 5/6 rejection, current/historical export and reconnect, source preservation, and independent checks of a newly accepted delivery bundle.
 No Minecraft client was started. The current Codex session has no registered Minecraft-control tools; gameplay checks would additionally require reloading that MCP connection.
@@ -62,6 +64,7 @@ Local artifacts and raw receipts are under `output/candidate-acceptance-20261011
 `frozen-windows/`, `frozen-linux/`, `windows-build.log`, `linux-layout-build.log`, the build-start record,
 and the three VM restore receipts. Draft installer/supplemental acceptance scripts there have only had syntax checks; they have not executed against a guest.
 
-Resume from these frozen packages after the memory condition changes. Recheck hashes before transfer,
+The user subsequently selected cloud acceptance; use its separately frozen package identities and current record above.
+If these local packages are revisited, recheck hashes before transfer,
 then follow the [candidate acceptance matrix](next-candidate-acceptance.md), retain actual task and bundle evidence,
 and update this record from observed results. Do not relabel the earlier candidate's installed or player results as passing this source.

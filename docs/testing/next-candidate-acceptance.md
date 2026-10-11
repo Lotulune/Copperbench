@@ -1,8 +1,9 @@
 # Next candidate acceptance worksheet
 
 Prepared 2026-10-11 (Japan time). Scope: REM-01 after the REM-02/03/06 source batch.
-**Status: local Windows and Linux portable candidates are frozen; installation is blocked by VM restore memory.**
-See the [candidate identities and actual attempts](remaining-candidate-2026-10-11.md). The matrix below remains unverified.
+**Status: Windows Server 2025 and Ubuntu 24.04 cloud installed/API/build/delivery acceptance passed.**
+See the [current cloud results and scope](remaining-cloud-acceptance-2026-10-12.md) and the
+[historical local candidates](remaining-candidate-2026-10-11.md). The broader matrix below is a release checklist; partial source or installed coverage does not close a whole row.
 This preparation does not change the public 0.1.4 releases or the historical candidate results.
 
 ## Freeze before starting
@@ -26,7 +27,8 @@ result.json                passed/failed/unverified per row, classification, evi
 
 The existing [installed-run harness](../../scripts/verify-agent-readiness-installed.py)
 requires explicit `--candidate-sha256`, `--application-sha256`, `--source-commit`,
-`--product-root`, `--candidate-package`, `--workspace-folder` and `--task-authorization`.
+`--product-root`, `--candidate-package` and `--workspace-folder`.
+Interactive bootstrap coverage also requires `--task-authorization`; cloud runs use `--workspace-template` to prepare a generated import fixture and explicitly do not claim bootstrap approval coverage.
 Use `--help` for the remaining exact options. Its existing scenarios do not automatically cover every new row below.
 Retain its actual receipts and add the new result/bundle checks in the same candidate run.
 
@@ -36,16 +38,16 @@ Record each row independently on both platforms, retaining exact commands and ra
 
 | Check | Required observation | Current status |
 | --- | --- | --- |
-| Launcher and doctor | Running application SHA matches the frozen application JAR; OS/cache/network conditions recorded | Unverified |
-| Discovery | Single-type item/recipe contract reads and legitimate CUSTOM references with differing internal/registry names | Unverified |
-| Build and protection | Normal build works; external/manual source conflicts are rejected and authored bytes preserved | Unverified |
-| Acceptance counts | 0/1, all-skipped/framework-only, 5/6 reject; 6/6 and 7/6 still require valid reports and no failures | Unverified |
-| Versioned results | Native, MCP and TypeScript expose the same resultVersion 1 semantics; legacy task responses retain v1.0 shape | Unverified |
-| Language | Chinese/English show actual/required/missing; language changes preserve task/revision and issue no mutation | Unverified |
-| Freshness | Missing, stale, damaged XML retain distinct reasons; failed cases outrank count success | Unverified |
-| Delivery | Current export and reopen pass; stale input requires explicit historical export and retains that label | Unverified |
-| Integrity | JAR/XML/count/manifest tampering rejected; bundle rechecks offline in another clean directory | Unverified |
-| Identity | Application identity in the bundle matches the accepted candidate; mod and application hashes remain separate | Unverified |
+| Launcher and doctor | Running application SHA matches the frozen application JAR; OS/cache/network conditions recorded | Passed on both cloud platforms |
+| Discovery | Single-type item/recipe contract reads and legitimate CUSTOM references with differing internal/registry names | Read-only item/recipe discovery and same-name CUSTOM construction passed; distinct internal/registry import has source tests only |
+| Build and protection | Normal build works; external/manual source conflicts are rejected and authored bytes preserved | Passed on both cloud platforms |
+| Acceptance counts | 0/1, all-skipped/framework-only, 5/6 reject; 6/6 and 7/6 still require valid reports and no failures | Real five-case success and 5/6 refusal passed on both; broader count matrix covered by source tests |
+| Versioned results | Native, MCP and TypeScript expose the same resultVersion 1 semantics; legacy task responses retain v1.0 shape | Installed Native passed; MCP/TypeScript/schema agreement covered by required CI |
+| Language | Chinese/English show actual/required/missing; language changes preserve task/revision and issue no mutation | Source/UI checks passed; installed desktop interaction unverified |
+| Freshness | Missing, stale, damaged XML retain distinct reasons; failed cases outrank count success | Installed stale input and JAR/XML tampering passed; remaining reason matrix covered by source tests |
+| Delivery | Current export and reopen pass; stale input requires explicit historical export and retains that label | Passed on both cloud platforms |
+| Integrity | JAR/XML/count/manifest tampering rejected; bundle rechecks offline in another clean directory | Passed on both cloud platforms, including unsafe path rejection and independent downloaded-bundle checks |
+| Identity | Application identity in the bundle matches the accepted candidate; mod and application hashes remain separate | Passed on both cloud platforms |
 | Client/gameplay | Affected player behavior and save/reenter steps, if needed, have screenshot/action evidence | Unverified; scope to be selected |
 
 For offline verification use the [delivery verifier](../../scripts/verify-delivery-bundle.py).

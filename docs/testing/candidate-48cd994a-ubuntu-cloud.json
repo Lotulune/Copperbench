@@ -1,0 +1,78 @@
+{
+  "manifestVersion": "1",
+  "sourceCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745",
+  "sourceTree": "f1b5869ea5562f6462f6b5ffc6bc4dc437dfd68e",
+  "platform": "ubuntu-cloud",
+  "frozenAt": "2026-10-11T21:21:30.689530+00:00",
+  "assets": {
+    "Copperbench 0.1.4 Linux x86_64.tar.gz": {
+      "size": 969063364,
+      "sha256": "51b4f64a088d84ae162724cb15594a9577281475b3bf3c9b64baf3c5ce075066"
+    },
+    "copperbench_0.1.4_amd64.deb": {
+      "size": 888859860,
+      "sha256": "27b7d328893721a526f69d60ef1436890535efefa54e1a3e38413b2ba5f1e968"
+    }
+  },
+  "members": {
+    "lib/copperbench.jar": {
+      "size": 7815538,
+      "sha256": "4d3d3f970141b7ea696c5a9797f5730945cc61d973aa33e1e0d135b7017d302b"
+    },
+    "copperbench.sh": {
+      "size": 427,
+      "sha256": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93"
+    },
+    "scripts/verify-delivery-bundle.py": {
+      "size": 13958,
+      "sha256": "a0fc19cfd672cd39e1386dc0acff5aea5cbfc12a318102ca22e97c731b5b77dd"
+    },
+    "docs/ai/task-verification-and-delivery.md": {
+      "size": 4054,
+      "sha256": "7712ea59da0b619f4ac9ddb9931c09af3fa66713a0bdb731dafd9af610034422"
+    },
+    "ui-core/schemas/v1.0/task-verification.schema.json": {
+      "size": 1341,
+      "sha256": "81cf52d199d153c48ee1f843875bcd1b1d41fdecbe0d0e88f394f44f7dc18cb1"
+    },
+    "sdk/python/README.md": {
+      "size": 15008,
+      "sha256": "86504578d143f38ff6bdf3f3572e90df2a6491db3b4f5a352d7b119e2d0d2da1"
+    },
+    "sdk/python/agent_readiness_delivery.py": {
+      "size": 16036,
+      "sha256": "707d61b86fc53e05841ce5fcb13db474f29b5084d89285cd921cc3a508cc792c"
+    },
+    "sdk/python/copperbench.py": {
+      "size": 20805,
+      "sha256": "b765fa2361f523a1faeb267c2f487dc924949d5f325001d75ba4b1ebd1af55c6"
+    },
+    "sdk/python/copperbench_console.py": {
+      "size": 5134,
+      "sha256": "4be7663681b58fee3741c0e19b254a4a628c5726b6ab6de56db33380be2b5ab2"
+    },
+    "sdk/python/copperbench_native.py": {
+      "size": 35601,
+      "sha256": "df077b52811bfb7fef849d08b5f312aa959e4d4851509231c7e49abf35e6b565"
+    },
+    "sdk/python/copperbench_scripting.py": {
+      "size": 9407,
+      "sha256": "7ad1c52fd6c7849069256d6a1aa220d9330715408366df190567d368da3a3df2"
+    },
+    "sdk/python/examples/live_workspace.py": {
+      "size": 1022,
+      "sha256": "d336d17b4ee1cc5a029dd00136db8a1ffe1c1393e520602da3c396bba024d433"
+    },
+    "sdk/python/examples/native_workspace.py": {
+      "size": 1126,
+      "sha256": "841eba7c6e6b1a8a24b6c43d594615750a572522593bbb07020cc8381403908c"
+    },
+    "sdk/python/pyproject.toml": {
+      "size": 354,
+      "sha256": "9a7c60b3e516c67f0400346e192cc1fb0c2734a2bf5565a59ebffb47a2dbefb4"
+    }
+  },
+  "status": "frozen_before_installation",
+  "runUrl": "https://github.com/Lotulune/Copperbench/actions/runs/38175670087",
+  "harnessCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745"
+}

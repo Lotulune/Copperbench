@@ -1,0 +1,97 @@
+{
+  "sourceCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745",
+  "sourceTree": "f1b5869ea5562f6462f6b5ffc6bc4dc437dfd68e",
+  "runUrl": "https://github.com/Lotulune/Copperbench/actions/runs/38175670087",
+  "platforms": {
+    "ubuntu": {
+      "status": "passed",
+      "checks": 78,
+      "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "applicationSha256": "4d3d3f970141b7ea696c5a9797f5730945cc61d973aa33e1e0d135b7017d302b",
+      "candidateManifestSha256": "53c27d1820cadbb15d2f2857128c10ab7dee087396e508611cfdbeed6576c77c",
+      "assets": {
+        "Copperbench 0.1.4 Linux x86_64.tar.gz": {
+          "size": 969063364,
+          "sha256": "51b4f64a088d84ae162724cb15594a9577281475b3bf3c9b64baf3c5ce075066"
+        },
+        "copperbench_0.1.4_amd64.deb": {
+          "size": 888859860,
+          "sha256": "27b7d328893721a526f69d60ef1436890535efefa54e1a3e38413b2ba5f1e968"
+        }
+      },
+      "installedMemberCount": 14,
+      "baselineSeconds": 217.06621093400003,
+      "deliverySeconds": 62.18424328799995,
+      "bundles": {
+        "current-delivery": {
+          "taskId": "ee1d0223-6434-491e-8193-f088aaeea518",
+          "status": "passed_current_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "55d2ef1b819fe249f4f6220ab9a0fd41fbbc60d3b78451e36fcb4b061864ec99",
+          "sourceSha256": "0e405939cda75232ed66377b68c1c6288bfee2576d43688f870ca124ab3d8d0a"
+        },
+        "historical-delivery": {
+          "taskId": "ee1d0223-6434-491e-8193-f088aaeea518",
+          "status": "passed_historical_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "55d2ef1b819fe249f4f6220ab9a0fd41fbbc60d3b78451e36fcb4b061864ec99",
+          "sourceSha256": "0e405939cda75232ed66377b68c1c6288bfee2576d43688f870ca124ab3d8d0a"
+        }
+      },
+      "desktopAcceptance": "unverified",
+      "playerBehaviorVerified": false,
+      "completedAt": "2026-10-11T21:26:23.980783+00:00",
+      "elapsedSeconds": 294.47412496199996,
+      "bootstrapCreateVerified": false,
+      "authorityIssued": false,
+      "cachePolicy": "retained",
+      "networkCondition": "Hosted runner defaults; no DNS or proxy changes",
+      "javaVersion": "25.0.2+10-b329.117"
+    },
+    "windows": {
+      "status": "passed",
+      "checks": 78,
+      "os": "Windows-2025Server-10.0.26100-SP0",
+      "applicationSha256": "5d5916aec08585a0992298decd834f6b8eadb8bcedae40c1d763a464b1f25f58",
+      "candidateManifestSha256": "455731f6e4be6de0c49885ea32a9b453a512aea43012ee12267f8a83c799992c",
+      "assets": {
+        "Copperbench 0.1.4 Windows 64bit.exe": {
+          "size": 566020979,
+          "sha256": "94d95ba6aa6ca0f500913139b0a7952db8b074ba0937844812f34f1586a7d6e7"
+        },
+        "Copperbench 0.1.4 Windows 64bit.zip": {
+          "size": 601628068,
+          "sha256": "9f64fc888fccd6f557fae0db58feb1f032fb0568208455d25f923798a1b27279"
+        }
+      },
+      "installedMemberCount": 14,
+      "baselineSeconds": 477.8589999999999,
+      "deliverySeconds": 111.35899999999992,
+      "bundles": {
+        "current-delivery": {
+          "taskId": "46c9f257-392e-48e7-8a65-26a01c66904c",
+          "status": "passed_current_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "a0937675426bbf8991b3a885c7d185b9847dcb741fc3994294e59db205b105ce",
+          "sourceSha256": "5d00cb557fd63971a409005bd3ba6d19fe9fa34f65488eeeef5390781ab52ee9"
+        },
+        "historical-delivery": {
+          "taskId": "46c9f257-392e-48e7-8a65-26a01c66904c",
+          "status": "passed_historical_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "a0937675426bbf8991b3a885c7d185b9847dcb741fc3994294e59db205b105ce",
+          "sourceSha256": "5d00cb557fd63971a409005bd3ba6d19fe9fa34f65488eeeef5390781ab52ee9"
+        }
+      },
+      "desktopAcceptance": "unverified",
+      "playerBehaviorVerified": false,
+      "completedAt": "2026-10-11T21:34:04.589905+00:00",
+      "elapsedSeconds": 667.3599999999999,
+      "bootstrapCreateVerified": false,
+      "authorityIssued": false,
+      "cachePolicy": "retained",
+      "networkCondition": "Hosted runner defaults; no DNS or proxy changes",
+      "javaVersion": "25.0.3+1-b329.124"
+    }
+  }
+}

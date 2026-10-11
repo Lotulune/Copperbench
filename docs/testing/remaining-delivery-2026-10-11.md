@@ -5,7 +5,8 @@ This record describes local source changes on `codex/remaining-delivery-20261011
 The user selected the next small implementation batch plus candidate-acceptance preparation.
 
 Follow-up: the batch was committed as `e11848de`; packaging additions and frozen candidates use `e178ecd2`.
-The [candidate build and installation record](remaining-candidate-2026-10-11.md) retains the subsequent VM memory blocker. Installation remains unverified.
+The [local candidate record](remaining-candidate-2026-10-11.md) retains the VM memory blocker.
+The [cloud acceptance record](remaining-cloud-acceptance-2026-10-12.md) records the later failures, Windows history correction and replacement candidate: both platforms' installed acceptance, real M1 and required CI passed.
 
 ## Delivered scope
 
@@ -14,7 +15,7 @@ The [candidate build and installation record](remaining-candidate-2026-10-11.md)
 | REM-02 | New advertised, versioned `get_task_verification` read shared by Native/MCP/TypeScript and UI; precise bilingual reasons, required/executed/shortfall, unknown counts distinguished from zero, fresh input comparison |
 | REM-03 | Atomic five-file delivery directory, observed application identity, byte manifest, unique testcase enforcement, bounded stdlib offline directory/ZIP verifier |
 | REM-06 | Current entry points reflect merged PRs; successful raw Java XML retained for 30 days in the existing required job; evidence and failure classifications documented |
-| REM-01 preparation | [Candidate acceptance worksheet](next-candidate-acceptance.md), freeze fields, platform matrix and evidence layout prepared; no new candidate/package claimed |
+| REM-01 follow-up | [Candidate worksheet](next-candidate-acceptance.md) and separately frozen Windows/Ubuntu cloud candidates; installed/API/build/delivery acceptance passed, desktop/player scope remains separate |
 | REM-04/05 | Still demand-driven follow-ups, outside this selected batch |
 
 The [protocol and delivery guide](../ai/task-verification-and-delivery.md) documents capability discovery,
@@ -61,7 +62,7 @@ None of these tests substitutes for a real installed application or Minecraft ga
 | Historical `298846dc` | [Installed cache provenance](installed-cache-provenance-2026-10-11.md) | Only the frozen Windows/Ubuntu cold/warm candidates and recorded network conditions |
 | PR #101, merged at `70261a71` | [Integration record](pr-consolidation-2026-10-11.md) and [PR #101](https://github.com/Lotulune/Copperbench/pull/101) | Original source checks; historical installed/player observations retain their original candidate |
 | PR #102, `99f95e1d` | Local development base | Repository media cleanup; no newly inferred runtime acceptance |
-| This local REM-02/03/06 delta | Local checks above; new hosted CI not run here | Candidate not frozen; Windows/Ubuntu installation and real M1/player replay unverified |
+| REM-02/03/06, `e178ecd2` onward | [Cloud checks and candidate evidence](remaining-cloud-acceptance-2026-10-12.md) | Separate source, installed and unverified desktop/player scopes; old failed attempts retained |
 
 For future runs, the existing Java required job uploads `java-test-results-<source SHA>`
 with raw XML and clearly synthetic cross-verifier fixtures on success or failure.
@@ -70,5 +71,5 @@ The [candidate worksheet](next-candidate-acceptance.md#failure-classification) s
 `product`, `harness`, `infrastructure`, `user-stop`, and unresolved classifications.
 Old failed runs remain evidence; replacing a candidate never overwrites their identity.
 
-The final release candidate, external provenance/signing, actual installed replay and selected player/save-reenter checks remain unverified.
+Release publication, external provenance/signing and selected player/save-reenter checks remain unverified. Installed replay status is maintained in the cloud record above.
 Both cancelled research work packages remain closed.
