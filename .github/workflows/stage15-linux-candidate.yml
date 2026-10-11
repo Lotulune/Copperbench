@@ -1,7 +1,16 @@
 name: Stage 15 Linux candidate
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      installed_acceptance:
+        description: Run the dedicated Ubuntu and Windows installed-candidate checks
+        type: boolean
+        default: false
+      product_commit:
+        description: Full product commit for installed acceptance
+        type: string
+        default: ''
   pull_request:
     branches:
       - main
@@ -156,7 +165,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  installed-acceptance:
+    if: inputs.installed_acceptance
+    uses: ./.github/workflows/installed-candidate-acceptance.yml
+    with:
+      product_commit: ${{ inputs.product_commit }}
+
   package-smoke:
+    if: ${{ !inputs.installed_acceptance }}
     name: Ubuntu 24.04 package candidate smoke
     runs-on: ubuntu-24.04
     permissions:

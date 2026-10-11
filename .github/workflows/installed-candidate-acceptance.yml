@@ -1,0 +1,107 @@
+name: Installed candidate acceptance
+
+on:
+  workflow_call:
+    inputs:
+      product_commit:
+        description: Full product source commit to build and install
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  installed:
+    name: Installed acceptance (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - name: Checkout acceptance harness
+        uses: actions/checkout@v7
+        with:
+          path: harness
+      - name: Checkout exact product source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.product_commit }}
+          path: product
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '25.0.2'
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Install UI build dependencies
+        working-directory: product
+        run: npm ci --prefix ui-shell
+      - name: Build Ubuntu packages
+        if: runner.os == 'Linux'
+        working-directory: product
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash ./gradlew --no-daemon exportLinuxCandidate -Pbuilddate=20261011
+      - name: Build Windows packages
+        if: runner.os == 'Windows'
+        working-directory: product
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./gradlew.bat --no-daemon exportWindowsZip buildInstallerWin64 -Pbuilddate=20261011
+          if ($LASTEXITCODE -ne 0) { throw 'Windows candidate build failed' }
+      - name: Install and verify Ubuntu candidate
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          PRODUCT_COMMIT: ${{ inputs.product_commit }}
+          CANDIDATE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          xvfb-run -a python harness/scripts/verify-cloud-installed-delivery.py \
+            --source product --harness harness --output evidence \
+            --source-commit "$PRODUCT_COMMIT"
+      - name: Install and verify Windows candidate
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          PRODUCT_COMMIT: ${{ inputs.product_commit }}
+          CANDIDATE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python harness/scripts/verify-cloud-installed-delivery.py --source product --harness harness --output evidence --source-commit $env:PRODUCT_COMMIT
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installed acceptance failed; evidence retained' }
+      - name: Preserve installed evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: installed-evidence-${{ matrix.os }}
+          path: |
+            evidence/
+            product/build/reports/problems/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Preserve exact candidate packages
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: installed-candidate-${{ matrix.os }}
+          path: |
+            product/build/export/*.exe
+            product/build/export/*.zip
+            product/build/export/*.deb
+            product/build/export/*.tar.gz
+          if-no-files-found: warn
+          retention-days: 14

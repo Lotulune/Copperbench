@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 import traceback
+import uuid
 
 
 def digest(path):
@@ -146,6 +147,22 @@ def check_running_environment(envelope, record):
     return {"application": application, "gradle": gradle}
 
 
+def prepare_import_fixture(template, root):
+    """Prepare an empty imported fixture; this does not test bootstrap or issue authority."""
+    document = read_record(template)
+    require(document.get("mod_elements") == []
+            and document.get("workspaceSettings", {}).get("currentGenerator") == "fabric-1.21.1",
+            "Imported fixture requires an empty Fabric 1.21.1 workspace template")
+    require(not root.exists(), "Imported fixture destination must be new")
+    document["workspaceSettings"].update(modid="m1_delivery", modName="M1 Delivery",
+                                        modElementsPackage="net.mcreator.m1_delivery")
+    document["dev.copperbench"] = {"schemaVersion": 1, "workspaceId": str(uuid.uuid4()), "revision": 0}
+    root.mkdir(parents=True)
+    workspace_file = root / "m1_delivery.mcreator"
+    workspace_file.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+    return workspace_file
+
+
 def verify_conflict_copy(root, workspace_name, conflict_root, open_workspace, save, terminal):
     # A warm copy generates during the edit itself. Omit its generator import
     # cache so the managed edit is genuinely deferred until the build task.
@@ -186,7 +203,9 @@ def main():
     parser.add_argument("--application-sha256", required=True, help="Application JAR hash frozen from the selected candidate")
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--workspace-folder", required=True, type=Path)
-    parser.add_argument("--task-authorization", required=True)
+    parser.add_argument("--task-authorization")
+    parser.add_argument("--workspace-template", type=Path,
+                        help="Import a fresh empty fixture instead of testing authorized bootstrap creation")
     parser.add_argument("--fixture", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--cache-mode", choices=("retained", "cold", "warm"), default="retained")
@@ -194,11 +213,14 @@ def main():
     parser.add_argument("--warm-from", type=Path, help="Successful cold run's result.json; required for warm mode")
     parser.add_argument("--cache-policy", default="", help="Operator note only; never establishes cache state")
     args = parser.parse_args()
+    if not args.workspace_template and not args.task_authorization:
+        parser.error("Bootstrap creation requires --task-authorization; fixture imports require --workspace-template")
     if not __debug__:
         parser.error("Run without Python -O: the existing delivery assertions must remain enabled")
     product = args.product_root.resolve(strict=True)
     package = args.candidate_package.resolve(strict=True)
     fixture = args.fixture.resolve(strict=True)
+    template = args.workspace_template.resolve(strict=True) if args.workspace_template else None
     root = args.workspace_folder.resolve()
     output = args.output.resolve()
     conflict_root = root.with_name(root.name + "-conflict")
@@ -210,7 +232,7 @@ def main():
         cache_home = cache_home.resolve()
     try:
         disjoint_paths([root, conflict_root, output, *([cache_home] if cache_home else [])],
-                       [product, package, fixture])
+                       [product, package, fixture, *([template] if template else [])])
     except ValueError as error:
         parser.error(str(error))
     if not re.fullmatch(r"[0-9a-f]{40}", args.source_commit):
@@ -244,6 +266,8 @@ def main():
                           ("recovery_probe.java", "ContractGameTests.java", "copperbench-tests.json")},
         "autonomousAgentSuccessMeasured": False, "playerBehaviorVerified": False,
         "sourceCommitEvidence": "operator_declared; binary hashes are checked independently",
+        "workspaceOrigin": "imported_metadata_fixture" if template else "authorized_bootstrap",
+        "bootstrapCreateVerified": False,
         "cachePolicy": args.cache_mode, "cacheNote": args.cache_policy,
         "cache": {"mode": args.cache_mode, "initialCondition": "not_prepared",
                   "requestedHome": str(cache_home) if cache_home else None},
@@ -252,6 +276,9 @@ def main():
                      product / "lib/copperbench.jar": record["applicationSha256"],
                      Path(copperbench_native.__file__): record["sdkSha256"],
                      **{fixture / name: value for name, value in record["fixtureHashes"].items()}}
+    if template:
+        record["workspaceTemplateSha256"] = digest(template)
+        frozen_inputs[template] = record["workspaceTemplateSha256"]
     environment_before = {}
 
     def save(name, value):
@@ -317,11 +344,18 @@ def main():
         environment_before = {key: os.environ.get(key) for key in overrides}
         os.environ.update(overrides)
         save("result", record)
-        created = cli("create", ["bootstrap", "create-workspace", "--generator-id", "fabric-1.21.1",
-            "--mod-name", "M1 Delivery", "--mod-id", "m1_delivery", "--workspace-folder", str(root),
-            "--task-authorization", args.task_authorization, "--no-prompt", "true"])
-        assert created["status"] == "committed", created
-        workspace_file = Path(created["data"]["workspaceFile"]).resolve(strict=True)
+        if template:
+            workspace_file = prepare_import_fixture(template, root)
+            save("fixture-preparation", {"kind": "imported_metadata_fixture", "templateSha256": digest(template),
+                 "workspaceFile": str(workspace_file), "bootstrapCreateVerified": False,
+                 "authorityIssued": False})
+        else:
+            created = cli("create", ["bootstrap", "create-workspace", "--generator-id", "fabric-1.21.1",
+                "--mod-name", "M1 Delivery", "--mod-id", "m1_delivery", "--workspace-folder", str(root),
+                "--task-authorization", args.task_authorization, "--no-prompt", "true"])
+            assert created["status"] == "committed", created
+            workspace_file = Path(created["data"]["workspaceFile"]).resolve(strict=True)
+            record["bootstrapCreateVerified"] = True
         assert workspace_file.parent == root.resolve()
         before = inventory(root)
         save("doctor", cli("doctor", ["headless", "--workspace", str(workspace_file), "doctor"], timeout=180))

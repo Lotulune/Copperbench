@@ -44,6 +44,31 @@ class InstalledCacheEvidenceTest(unittest.TestCase):
         path.write_text(json.dumps(record), encoding="utf-8")
         return path, payload
 
+    def test_import_fixture_preserves_template_and_uses_a_new_workspace_identity(self):
+        template = self.root / "template.mcreator"
+        original = {"mod_elements": [], "workspaceSettings": {"currentGenerator": "fabric-1.21.1", "modid": "original"},
+                    "dev.copperbench": {"workspaceId": "template-id"}}
+        template.write_text(json.dumps(original), encoding="utf-8")
+        first = installed.prepare_import_fixture(template, self.root / "first")
+        second = installed.prepare_import_fixture(template, self.root / "second")
+        one, two = installed.read_record(first), installed.read_record(second)
+        self.assertNotEqual(one["dev.copperbench"]["workspaceId"], two["dev.copperbench"]["workspaceId"])
+        self.assertEqual(original, installed.read_record(template))
+        self.assertEqual("m1_delivery", one["workspaceSettings"]["modid"])
+        with self.assertRaisesRegex(ValueError, "must be new"):
+            installed.prepare_import_fixture(template, first.parent)
+        self.assertEqual(one, installed.read_record(first))
+
+    def test_import_fixture_rejects_nonempty_or_wrong_generator_before_writing(self):
+        template = self.root / "template.mcreator"
+        target = self.root / "never-created"
+        for document in ({"mod_elements": [{}], "workspaceSettings": {"currentGenerator": "fabric-1.21.1"}},
+                         {"mod_elements": [], "workspaceSettings": {"currentGenerator": "neoforge-1.21.1"}}):
+            template.write_text(json.dumps(document), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "empty Fabric"):
+                installed.prepare_import_fixture(template, target)
+            self.assertFalse(target.exists())
+
     def test_cold_requires_new_empty_home_without_clearing_existing_data(self):
         cache, environment, before = installed.prepare_cache("cold", self.cache, None, self.identity)
         self.assertEqual("created_empty_before_product_launch", cache["initialCondition"])
