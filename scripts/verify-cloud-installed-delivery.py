@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Install a frozen cloud candidate and run public installed SDK checks.
 
-The workspace is an imported empty metadata fixture. No task grant is issued,
+The workspace is an imported empty fixture prepared with the installed generator. No task grant is issued,
 no interactive bootstrap approval is simulated, and no player actions are claimed.
 """
 import argparse
@@ -150,7 +150,7 @@ def main():
             '--source-commit', actual_commit, '--workspace-folder', str(output.parent / (output.name + '-workspace')),
             '--workspace-template', str(product / 'examples/agent-native/wayfinder-bell/wayfinder_bell.mcreator'),
             '--fixture', str(source / 'examples/agent-readiness/m1-delivery'), '--output', str(baseline),
-            '--cache-mode', 'retained', '--cache-policy', 'Hosted runner defaults; retained caches, isolated profile; imported empty metadata fixture'],
+            '--cache-mode', 'retained', '--cache-policy', 'Hosted runner defaults; retained caches, isolated profile; imported generated fixture'],
             env=environment)
         run('delivery', [sys.executable, str(harness / 'scripts/verify-installed-delivery.py'),
             '--product', str(product), '--baseline', str(baseline),
@@ -159,6 +159,11 @@ def main():
     except BaseException as error:
         record.update(status='failed', error=str(error), errorType=type(error).__name__, traceback=traceback.format_exc())
     finally:
+        profile = output.parent / (output.name + '-profile')
+        for path in profile.rglob('*.log') if profile.exists() else []:
+            target = output / 'profile-logs' / path.relative_to(profile)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
         record.update(completedAt=datetime.now(timezone.utc).isoformat(), elapsedSeconds=time.monotonic() - started)
         save('result', record)
         print(json.dumps(record), flush=True)

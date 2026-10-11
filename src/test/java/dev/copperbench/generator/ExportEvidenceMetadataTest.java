@@ -63,11 +63,13 @@ class ExportEvidenceMetadataTest {
         JsonObject expectedDisk = receipt.deepCopy(); expectedDisk.remove("exportDirectory");
         JsonObject legacyFields = disk.deepCopy();
         for (String key : new String[]{"portableEvidenceVersion", "environmentSource", "mode", "minimumTests",
-                "startedAt", "processExitCode", "coverage"}) {
+                "startedAt", "processExitCode", "coverage", "applicationIdentitySha256"}) {
             legacyFields.remove(key);
             assertFalse(receipt.has(key), "Strict v1.0 wire response must not gain " + key);
         }
         assertEquals(expectedDisk, legacyFields);
+        assertEquals(WorkspaceExecutionSnapshot.sha256(directory.resolve("application-identity.json")),
+                disk.get("applicationIdentitySha256").getAsString());
         assertEquals("acceptance_record", disk.get("environmentSource").getAsString());
         assertEquals("1", disk.get("portableEvidenceVersion").getAsString());
         assertEquals("packaged_jar", disk.get("mode").getAsString());

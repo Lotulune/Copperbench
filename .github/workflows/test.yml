@@ -39,7 +39,9 @@ jobs:
       - name: Test change selection and failure handling
         run: python3 -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
       - name: Test installed-run provenance and study evidence accounting
-        run: python3 -m unittest discover -s scripts/tests -p 'test_agent_readiness*.py'
+        run: |
+          python3 -m unittest discover -s scripts/tests -p 'test_agent_readiness*.py'
+          python3 -m unittest discover -s scripts/tests -p 'test_cloud_installed_delivery.py'
       - name: Test offline delivery verification and malformed bundles
         run: python3 -m unittest discover -s scripts/tests -p 'test_delivery_bundle.py'
       - name: Select checks

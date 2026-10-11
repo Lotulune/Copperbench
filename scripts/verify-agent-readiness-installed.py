@@ -163,6 +163,34 @@ def prepare_import_fixture(template, root):
     return workspace_file
 
 
+def generate_fixture_base(product, workspace_file, output, save):
+    """Use packaged generator templates to finish test input before opening the public SDK."""
+    source = Path(__file__).resolve().parents[1] / "src/test/java/dev/copperbench/headless/InstalledDeliveryWorkspaceFixture.java"
+    copied_source = output / source.name
+    shutil.copy2(source, copied_source)
+    classes = output / "fixture-classes"
+    classes.mkdir()
+    suffix = ".exe" if sys.platform == "win32" else ""
+    classpath = os.pathsep.join([str(product / "lib/copperbench.jar"), str(product / "lib/*")])
+    commands = [
+        ("fixture-compile", [str(product / ("jdk/bin/javac" + suffix)), "-cp", classpath,
+                             "-d", str(classes), str(copied_source)]),
+        ("fixture-generate", [str(product / ("jdk/bin/java" + suffix)), "-Xmx512m",
+                              "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                              "--enable-native-access=ALL-UNNAMED,jcef", "-cp", str(classes) + os.pathsep + classpath,
+                              "dev.copperbench.headless.InstalledDeliveryWorkspaceFixture", str(workspace_file),
+                              str(output / "fixture-runtime.json")]),
+    ]
+    for label, command in commands:
+        started = time.monotonic()
+        with (output / (label + ".stdout")).open("wb") as stdout, (output / (label + ".stderr")).open("wb") as stderr:
+            result = subprocess.run(command, cwd=product, stdout=stdout, stderr=stderr, timeout=240, check=False)
+        save(label + "-receipt", {"exitCode": result.returncode, "elapsedSeconds": time.monotonic() - started})
+        require(result.returncode == 0, label + " failed; raw output retained")
+    return {"preparerSha256": digest(copied_source), "runtimeReceipt": read_record(output / "fixture-runtime.json"),
+            "preparedFiles": inventory(workspace_file.parent)}
+
+
 def discovery_baseline(root, save, timeout=30):
     # A newly imported file starts the legacy history backend asynchronously.
     # Observe its initial commit and filesystem calibration before measuring the
@@ -294,7 +322,7 @@ def main():
                           ("recovery_probe.java", "ContractGameTests.java", "copperbench-tests.json")},
         "autonomousAgentSuccessMeasured": False, "playerBehaviorVerified": False,
         "sourceCommitEvidence": "operator_declared; binary hashes are checked independently",
-        "workspaceOrigin": "imported_metadata_fixture" if template else "authorized_bootstrap",
+        "workspaceOrigin": "imported_generated_fixture" if template else "authorized_bootstrap",
         "bootstrapCreateVerified": False,
         "cachePolicy": args.cache_mode, "cacheNote": args.cache_policy,
         "cache": {"mode": args.cache_mode, "initialCondition": "not_prepared",
@@ -374,9 +402,10 @@ def main():
         save("result", record)
         if template:
             workspace_file = prepare_import_fixture(template, root)
-            save("fixture-preparation", {"kind": "imported_metadata_fixture", "templateSha256": digest(template),
+            preparation = generate_fixture_base(product, workspace_file, output, save)
+            save("fixture-preparation", {"kind": "imported_generated_fixture", "templateSha256": digest(template),
                  "workspaceFile": str(workspace_file), "bootstrapCreateVerified": False,
-                 "authorityIssued": False})
+                 "authorityIssued": False, **preparation})
         else:
             created = cli("create", ["bootstrap", "create-workspace", "--generator-id", "fabric-1.21.1",
                 "--mod-name", "M1 Delivery", "--mod-id", "m1_delivery", "--workspace-folder", str(root),
