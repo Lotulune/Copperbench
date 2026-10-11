@@ -1,0 +1,91 @@
+{
+  "classification": "product",
+  "candidateCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745",
+  "taskId": "f09581f3-c7ba-4eac-9f1c-85e78843f313",
+  "code": "GENERATION_SOURCE_CONFLICT",
+  "cause": "Desktop dependency setup generated base source without consuming pending Core generation metadata.",
+  "sourceChanges": [
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/event/BlockEvents.java",
+      "beforeSha256": "e66504299577541e530a50772e23425a2433bcec54486d5ecff5f82df3db0f66",
+      "afterSha256": "1add663e28b3e3aa838cb73287007ad5540fbaa9ccf22c309af92b93a7a3c180"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/event/ItemEvents.java",
+      "beforeSha256": "b9131a27b7eacfe70964bcd9aa1a73d62a923b75597358e4d2055eab21b95c72",
+      "afterSha256": "e142a8a65547bba5f78f1ca3077239ae095671e6f2e9c7371ff87065496be747"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/event/LivingEntityEvents.java",
+      "beforeSha256": "f7bb65df2f127ed38e023f6e978fd72afcb99dcf17955d8f3be82ae4b3eec59d",
+      "afterSha256": "a6c1fc435ca5bc19f544d6c3a0d2d2c60efc73b89a38453a7ad846a15f362a7f"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/event/MiscEvents.java",
+      "beforeSha256": "a40e454f8cfed5c4c36d15cbc449640ead30165be75873be815ae66bb30e4446",
+      "afterSha256": "390e86c84efc51cb9ec18e2897415ef3cf6e82f109991002958c99fc91224bd4"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/event/PlayerEvents.java",
+      "beforeSha256": "ce34b2ebef3f8d2bd2f33d1cf5b905cdad02f2767e199f59ed2c6987090fe2fa",
+      "afterSha256": "6930a9c923a22378a3f90a3e3c6cf9e5dfeb1e318f0b47d08a29562c9b253c96"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/M1DeliveryMod.java",
+      "beforeSha256": "3c53c39ea0e2a391007baaf56ea07ebe5166b3ab650368b4c29e8ccb29787bd2",
+      "afterSha256": "96ea31838b5e84e1f35fc5112ff5dbf1498c57817d4f1e9dad698c2ecfb2ce0c"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/M1DeliveryModClient.java",
+      "beforeSha256": "d4525b1dd80e5e7bffdb1d7d13217f202376e43c058658c47df44da14178de13",
+      "afterSha256": "c526cb3acbc5eab706ba4c7d913d6c6ebfc284cf5612f3795b213d8c99a2b929"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/BlockItemMixin.java",
+      "beforeSha256": "c990803e2ea0eab0c3bf98f1ca04f23c7f680b110b867c98cfb578b44b900417",
+      "afterSha256": "bb47c3c23e67a66b23c9d5c771a4157f67901bcb9f484059f3c91994c2d23552"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/BoneMealItemMixin.java",
+      "beforeSha256": "462237ad7b61be0ccccd735b843eec16a96d4881086824aa1f22f769c7bc4391",
+      "afterSha256": "718ab17ef50f2db8fe6d064fae48bb10b16f86451e7f86be0d7435a75a47d856"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/CommandsMixin.java",
+      "beforeSha256": "7a9556cbb2d94de8622716e68b86b58eb11a6488195ec058d246d8115d53c878",
+      "afterSha256": "324f24272f3d44f0b89544d9c38aa604a066dea6c256e7387e16f6e66cae0f35"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/ExperienceOrbMixin.java",
+      "beforeSha256": "1d8aada57469cf64ff12c079aae89f42097bad46253c3dbcbdfac936fb1a50ee",
+      "afterSha256": "f312cf0420021a8f4cb7e4e81b8d2895d6372db13292d857731217bac343e122"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/ItemStackMixin.java",
+      "beforeSha256": "9b480fb804d4d196c2e6f6e7b74230c76d68ae53a353dcf68343ddd943a6735c",
+      "afterSha256": "2ec93d0e0ba30dba4551cc5c5917f41406eaeb7b237d303ebc7d5dd9d90b6696"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/LivingEntityMixin.java",
+      "beforeSha256": "9269f75c15ddadfb6636eee6ed1ff12d25ce03b001dbb5ce9043d7c20a51b925",
+      "afterSha256": "661b0fa617de018eeba2895b1ceb161f46a45e8636fccfe5d020dfe8131cb53c"
+    },
+    {
+      "path": "src/main/java/net/mcreator/m1_delivery/mixin/PlayerMixin.java",
+      "beforeSha256": "fd8e95fdba32bf6c3841e3f1fabe48c9be754e06aa1b981083cd6661a4e9f658",
+      "afterSha256": "251194dea6f94f5cca93ce06f848ea4e49f03696279b83f404159db46b5d6586"
+    },
+    {
+      "path": "src/main/resources/m1_delivery.mixins.json",
+      "beforeSha256": "3173a01bcae4c86f946c3ff4df1ad1c928026694530017ed06b4df9b83baafb2",
+      "afterSha256": "61c0611358fee3c17a977a01404c234fe701bbb43abaaea9fc73f8c8eed18bdf"
+    }
+  ],
+  "fixedSourceCommit": "f1ee111234554462b4dcf75228374ab5aa313a03",
+  "normalShutdownObserved": true,
+  "evidence": [
+    "build-running-live.json",
+    "old-candidate.log",
+    "screenshots/09-build-source-conflict-0.png"
+  ]
+}

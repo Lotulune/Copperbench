@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "observedAt": "2026-10-11T22:46:35.1898905Z",
+  "expectedLauncherPid": 10768,
+  "executableRoot": "D:\\CB-Desktop-20261012\\final\\Copperbench014",
+  "remainingTestProcesses": 0,
+  "normalShutdownLogObserved": true,
+  "lastTaskState": "succeeded",
+  "lastTaskId": "d6006bc2-30fe-4196-92c7-16025921bb49",
+  "evidence": "shutdown-log.txt"
+}

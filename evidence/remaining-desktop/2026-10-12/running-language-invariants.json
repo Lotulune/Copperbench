@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "revisionBefore": 3,
+  "revisionAfter": 3,
+  "taskIdsBefore": [
+    "360ddd7e-4cf6-44fe-b846-b6fbd0077c71",
+    "589e0a51-0f23-4eb0-9de5-0a0e5a543677"
+  ],
+  "taskIdsAfter": [
+    "360ddd7e-4cf6-44fe-b846-b6fbd0077c71",
+    "589e0a51-0f23-4eb0-9de5-0a0e5a543677"
+  ],
+  "taskSetUnchanged": true,
+  "sameWorkspace": true
+}

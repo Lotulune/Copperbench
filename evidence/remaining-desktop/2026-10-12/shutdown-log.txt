@@ -1,0 +1,12 @@
+2026-10-12-07:44:11 [AWT-EventQueue-0/ERROR] [STDERR] Oct 12, 2026 7:44:11 AM org.apache.coyote.AbstractProtocol stop
+INFO: Stopping ProtocolHandler ["http-nio-127.0.0.1-auto-1-49346"]
+2026-10-12-07:44:11 [AWT-EventQueue-0/ERROR] [STDERR] Oct 12, 2026 7:44:11 AM org.apache.coyote.AbstractProtocol destroy
+INFO: Destroying ProtocolHandler ["http-nio-127.0.0.1-auto-1-49346"]
+2026-10-12-07:44:11 [AWT-EventQueue-0/INFO] [Workspace] Closing workspace
+2026-10-12-07:44:11 [AWT-EventQueue-0/INFO] [Workspace File Manager/M1_DELIVERY] Saving the workspace by direct request
+2026-10-12-07:44:11 [AWT-EventQueue-0/DEBUG] [Workspace File Manager/M1_DELIVERY] Workspace stored on the FS
+2026-10-12-07:44:11 [AWT-EventQueue-0/DEBUG] [Workspace user settings] Storing user workspace settings
+2026-10-12-07:44:11 [AWT-EventQueue-0/DEBUG] [Application] Closing any potentially open MCreator windows
+2026-10-12-07:44:11 [AWT-EventQueue-0/DEBUG] [Application] Performing exit tasks
+2026-10-12-07:44:11 [AWT-EventQueue-0/DEBUG] [Application] Stopping AWT thread
+2026-10-12-07:44:12 [AWT-EventQueue-0/DEBUG] [Application] Exiting Copperbench

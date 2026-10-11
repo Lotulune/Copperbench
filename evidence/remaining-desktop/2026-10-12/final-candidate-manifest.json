@@ -1,0 +1,68 @@
+{
+  "sourceCommit": "82d0dc34afe476962d2766be203f228900714303",
+  "sourceTree": "68e064d3b3c4c7b7ebc76f500c636783bbc0f96a",
+  "applicationSha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8",
+  "applicationSize": 7815711,
+  "baseCandidateCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745",
+  "basePackageSha256": "9f64fc888fccd6f557fae0db58feb1f032fb0568208455d25f923798a1b27279",
+  "assembly": "Frozen Windows portable ZIP plus rebuilt application JAR; 13 other frozen members unchanged",
+  "frozenAt": "2026-10-11T22:35:51.783433+00:00",
+  "members": {
+    "lib/copperbench.jar": {
+      "sha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8",
+      "size": 7815711
+    },
+    "copperbench.exe": {
+      "sha256": "14e2a56b3da4fa527fffc5067dc4febbd4e9e34e6882db3fc9d302e3b389208a",
+      "size": 200704
+    },
+    "scripts/verify-delivery-bundle.py": {
+      "sha256": "a0fc19cfd672cd39e1386dc0acff5aea5cbfc12a318102ca22e97c731b5b77dd",
+      "size": 13958
+    },
+    "docs/ai/task-verification-and-delivery.md": {
+      "sha256": "7712ea59da0b619f4ac9ddb9931c09af3fa66713a0bdb731dafd9af610034422",
+      "size": 4054
+    },
+    "ui-core/schemas/v1.0/task-verification.schema.json": {
+      "sha256": "81cf52d199d153c48ee1f843875bcd1b1d41fdecbe0d0e88f394f44f7dc18cb1",
+      "size": 1341
+    },
+    "sdk/python/agent_readiness_delivery.py": {
+      "sha256": "707d61b86fc53e05841ce5fcb13db474f29b5084d89285cd921cc3a508cc792c",
+      "size": 16036
+    },
+    "sdk/python/copperbench.py": {
+      "sha256": "b765fa2361f523a1faeb267c2f487dc924949d5f325001d75ba4b1ebd1af55c6",
+      "size": 20805
+    },
+    "sdk/python/copperbench_console.py": {
+      "sha256": "4be7663681b58fee3741c0e19b254a4a628c5726b6ab6de56db33380be2b5ab2",
+      "size": 5134
+    },
+    "sdk/python/copperbench_native.py": {
+      "sha256": "df077b52811bfb7fef849d08b5f312aa959e4d4851509231c7e49abf35e6b565",
+      "size": 35601
+    },
+    "sdk/python/copperbench_scripting.py": {
+      "sha256": "7ad1c52fd6c7849069256d6a1aa220d9330715408366df190567d368da3a3df2",
+      "size": 9407
+    },
+    "sdk/python/examples/live_workspace.py": {
+      "sha256": "d336d17b4ee1cc5a029dd00136db8a1ffe1c1393e520602da3c396bba024d433",
+      "size": 1022
+    },
+    "sdk/python/examples/native_workspace.py": {
+      "sha256": "841eba7c6e6b1a8a24b6c43d594615750a572522593bbb07020cc8381403908c",
+      "size": 1126
+    },
+    "sdk/python/pyproject.toml": {
+      "sha256": "9a7c60b3e516c67f0400346e192cc1fb0c2734a2bf5565a59ebffb47a2dbefb4",
+      "size": 354
+    },
+    "sdk/python/README.md": {
+      "sha256": "86504578d143f38ff6bdf3f3572e90df2a6491db3b4f5a352d7b119e2d0d2da1",
+      "size": 15008
+    }
+  }
+}

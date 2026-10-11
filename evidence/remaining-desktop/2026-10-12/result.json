@@ -1,0 +1,561 @@
+{
+  "recordVersion": "1",
+  "date": "2026-10-12",
+  "status": "passed",
+  "scope": "Windows 11 native portable frontend, real packaged GameTest and verified delivery",
+  "sourceCommit": "82d0dc34afe476962d2766be203f228900714303",
+  "applicationSha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8",
+  "workspaceId": "f9ac0dda-c598-4a4b-8ce7-667fa6ac8614",
+  "workspaceRevision": 3,
+  "tasks": [
+    {
+      "scenario": "normal-build",
+      "sourceCommitPrefix": "f1ee1112",
+      "observedAt": "2026-10-11T22:44:01.224328+00:00",
+      "id": "589e0a51-0f23-4eb0-9de5-0a0e5a543677",
+      "kind": "build",
+      "state": "succeeded",
+      "startedAt": "2026-10-11T22:22:30.365870500Z",
+      "completedAt": "2026-10-11T22:23:03.296610900Z",
+      "diagnosticCodes": []
+    },
+    {
+      "scenario": "five-of-six-refused",
+      "sourceCommitPrefix": "f1ee1112",
+      "observedAt": "2026-10-11T22:26:28.466223+00:00",
+      "id": "360ddd7e-4cf6-44fe-b846-b6fbd0077c71",
+      "kind": "run_gametest",
+      "state": "failed",
+      "startedAt": "2026-10-11T22:23:21.155688600Z",
+      "completedAt": "2026-10-11T22:25:56.885269600Z",
+      "diagnosticCodes": [
+        "GAMETEST_NO_TESTS"
+      ],
+      "verification": {
+        "schemaVersion": "1.0",
+        "status": "failed",
+        "reasonCode": "GAMETEST_NO_TESTS",
+        "discovered": 5,
+        "executed": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "frameworkTests": 0,
+        "acceptanceExecuted": 5,
+        "cases": [
+          {
+            "name": "contractgametests.itemstacksurvivesserialization",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.recipeproducesdeclareditem",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.reciperejectswrongingredient",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.registeredstacklimit",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.repairedmanualcodehasindependentexpectedvalues",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          }
+        ],
+        "mode": "packaged_jar",
+        "minimumTests": 6,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "javaRelease": 21,
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19",
+          "application": {
+            "javaVersion": "25.0.3+1-b329.124",
+            "javaVendor": "JetBrains s.r.o.",
+            "mcpSdkVersion": "2.0.0",
+            "sourceState": "packaged_binary",
+            "version": "0.1.4",
+            "applicationSha256": "1362d8e4a6deadf64e2c8586d8f4102988672646f068d2bfbdb6370acb66aa69",
+            "buildDate": "20261012",
+            "snapshot": "false"
+          }
+        },
+        "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+        "reportSha256": "5d8bbe61858a68b0e0695909ffffd07f05c1abf31d0990fd5ec036a44ed4971b",
+        "detail": "GAMETEST_INSUFFICIENT_TESTS: At least 6 business tests must execute; observed 5. Skipped and framework cases do not count toward this minimum.",
+        "startedAt": "2026-10-11T22:24:28.951892300Z",
+        "completedAt": "2026-10-11T22:25:56.742750Z",
+        "processExitCode": 0,
+        "sourceCurrentAtCompletion": true,
+        "taskId": "360ddd7e-4cf6-44fe-b846-b6fbd0077c71",
+        "workspaceId": "f9ac0dda-c598-4a4b-8ce7-667fa6ac8614",
+        "workspaceRevision": 3
+      },
+      "versionedResultAtObservation": {
+        "resultVersion": "1",
+        "taskId": "360ddd7e-4cf6-44fe-b846-b6fbd0077c71",
+        "taskState": "failed",
+        "reasonCode": "GAMETEST_NO_TESTS",
+        "subreason": "insufficient_business_tests",
+        "coverage": {
+          "minimumTests": 6,
+          "acceptanceExecuted": 5,
+          "shortfall": 1
+        },
+        "message": {
+          "key": "verification.insufficient_business_tests",
+          "fallback": "{minimumTests} required; {acceptanceExecuted} business tests executed; {shortfall} missing.",
+          "args": {
+            "minimumTests": 6,
+            "acceptanceExecuted": 5,
+            "shortfall": 1,
+            "reasonCode": "GAMETEST_NO_TESTS"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "five-of-five-passed",
+      "sourceCommitPrefix": "f1ee1112",
+      "observedAt": "2026-10-11T22:31:18.764501+00:00",
+      "id": "7f81934c-8fe1-408f-a1d7-d6d8b84f928b",
+      "kind": "run_gametest",
+      "state": "succeeded",
+      "startedAt": "2026-10-11T22:28:24.536943900Z",
+      "completedAt": "2026-10-11T22:31:00.818060400Z",
+      "diagnosticCodes": [],
+      "verification": {
+        "schemaVersion": "1.0",
+        "status": "passed",
+        "reasonCode": "GAMETEST_PASSED",
+        "discovered": 5,
+        "executed": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "frameworkTests": 0,
+        "acceptanceExecuted": 5,
+        "cases": [
+          {
+            "name": "contractgametests.itemstacksurvivesserialization",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.recipeproducesdeclareditem",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.reciperejectswrongingredient",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.registeredstacklimit",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.repairedmanualcodehasindependentexpectedvalues",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          }
+        ],
+        "mode": "packaged_jar",
+        "minimumTests": 5,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "javaRelease": 21,
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19",
+          "application": {
+            "javaVersion": "25.0.3+1-b329.124",
+            "javaVendor": "JetBrains s.r.o.",
+            "mcpSdkVersion": "2.0.0",
+            "sourceState": "packaged_binary",
+            "version": "0.1.4",
+            "applicationSha256": "1362d8e4a6deadf64e2c8586d8f4102988672646f068d2bfbdb6370acb66aa69",
+            "buildDate": "20261012",
+            "snapshot": "false"
+          }
+        },
+        "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+        "reportSha256": "5a24ca3e2720e20df50ad1284caa829a209aba5713c97a89406e8a8a91c704d7",
+        "startedAt": "2026-10-11T22:29:32.169273500Z",
+        "completedAt": "2026-10-11T22:31:00.635186600Z",
+        "processExitCode": 0,
+        "sourceCurrentAtCompletion": true,
+        "taskId": "7f81934c-8fe1-408f-a1d7-d6d8b84f928b",
+        "workspaceId": "f9ac0dda-c598-4a4b-8ce7-667fa6ac8614",
+        "workspaceRevision": 3
+      },
+      "versionedResultAtObservation": {
+        "resultVersion": "1",
+        "taskId": "7f81934c-8fe1-408f-a1d7-d6d8b84f928b",
+        "taskState": "succeeded",
+        "reasonCode": "GAMETEST_PASSED",
+        "subreason": "passed_current_input",
+        "coverage": {
+          "minimumTests": 5,
+          "acceptanceExecuted": 5,
+          "shortfall": 0
+        },
+        "message": {
+          "key": "verification.passed_current_input",
+          "fallback": "The current input passed acceptance.",
+          "args": {
+            "minimumTests": 5,
+            "acceptanceExecuted": 5,
+            "shortfall": 0,
+            "reasonCode": "GAMETEST_PASSED"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "current-export",
+      "sourceCommitPrefix": "f1ee1112",
+      "observedAt": "2026-10-11T22:31:49.097899+00:00",
+      "id": "12e6d56e-4fe0-4c48-aad8-9c81d62a9775",
+      "kind": "export",
+      "state": "succeeded",
+      "startedAt": "2026-10-11T22:31:33.756944100Z",
+      "completedAt": "2026-10-11T22:31:34.081908800Z",
+      "diagnosticCodes": [],
+      "verifiedExport": {
+        "schemaVersion": "1.0",
+        "taskId": "7f81934c-8fe1-408f-a1d7-d6d8b84f928b",
+        "status": "passed_current_input",
+        "scope": "Only the acceptance cases listed in gametest-results.xml; client behavior is not implied.",
+        "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+        "reportSha256": "5a24ca3e2720e20df50ad1284caa829a209aba5713c97a89406e8a8a91c704d7",
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "acceptanceExecuted": 5,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "javaRelease": 21,
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19"
+        },
+        "sourceSha256": "ae607e4a5c7857433211482e92c84a5069c663f5a22658b36ed9548d33167ebd"
+      }
+    },
+    {
+      "scenario": "stale-default-export-refused",
+      "sourceCommitPrefix": "f1ee1112",
+      "observedAt": "2026-10-11T22:33:31.267554+00:00",
+      "id": "ad9eaa5f-366b-42a3-ab2e-6bfc2ef97d54",
+      "kind": "export",
+      "state": "failed",
+      "startedAt": "2026-10-11T22:33:14.717676300Z",
+      "completedAt": "2026-10-11T22:33:14.880258500Z",
+      "diagnosticCodes": [
+        "VERIFICATION_INPUT_CHANGED"
+      ]
+    },
+    {
+      "scenario": "explicit-historical-export",
+      "sourceCommitPrefix": "f1ee1112",
+      "observedAt": "2026-10-11T22:35:01.609404+00:00",
+      "id": "31c3defe-6abf-4585-b12b-6fe41eaa8874",
+      "kind": "export",
+      "state": "succeeded",
+      "startedAt": "2026-10-11T22:34:21.849681900Z",
+      "completedAt": "2026-10-11T22:34:22.047069400Z",
+      "diagnosticCodes": [],
+      "verifiedExport": {
+        "schemaVersion": "1.0",
+        "taskId": "7f81934c-8fe1-408f-a1d7-d6d8b84f928b",
+        "status": "passed_historical_input",
+        "scope": "Only the acceptance cases listed in gametest-results.xml; client behavior is not implied.",
+        "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+        "reportSha256": "5a24ca3e2720e20df50ad1284caa829a209aba5713c97a89406e8a8a91c704d7",
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "acceptanceExecuted": 5,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "javaRelease": 21,
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19"
+        },
+        "sourceSha256": "ae607e4a5c7857433211482e92c84a5069c663f5a22658b36ed9548d33167ebd"
+      }
+    },
+    {
+      "scenario": "final-five-of-five-passed",
+      "sourceCommitPrefix": "82d0dc34",
+      "observedAt": "2026-10-11T22:44:01.224328+00:00",
+      "id": "41431cd4-d28d-4cf7-a9ba-3991669659fd",
+      "kind": "run_gametest",
+      "state": "succeeded",
+      "startedAt": "2026-10-11T22:38:36.759512100Z",
+      "completedAt": "2026-10-11T22:41:04.839425500Z",
+      "diagnosticCodes": [],
+      "verification": {
+        "schemaVersion": "1.0",
+        "status": "passed",
+        "reasonCode": "GAMETEST_PASSED",
+        "discovered": 5,
+        "executed": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "frameworkTests": 0,
+        "acceptanceExecuted": 5,
+        "cases": [
+          {
+            "name": "contractgametests.itemstacksurvivesserialization",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.recipeproducesdeclareditem",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.reciperejectswrongingredient",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.registeredstacklimit",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          },
+          {
+            "name": "contractgametests.repairedmanualcodehasindependentexpectedvalues",
+            "className": "fabric-gametest-api-v1:empty",
+            "status": "passed",
+            "scope": "acceptance"
+          }
+        ],
+        "mode": "packaged_jar",
+        "minimumTests": 5,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "javaRelease": 21,
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19",
+          "application": {
+            "javaVersion": "25.0.3+1-b329.124",
+            "javaVendor": "JetBrains s.r.o.",
+            "mcpSdkVersion": "2.0.0",
+            "sourceState": "packaged_binary",
+            "version": "0.1.4",
+            "applicationSha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8",
+            "buildDate": "20261012",
+            "snapshot": "false"
+          }
+        },
+        "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+        "reportSha256": "e22a6a0319d259fd0f1ed68444826926d9d2e4acad23e7fb337691bced4c0f5e",
+        "startedAt": "2026-10-11T22:39:40.068561300Z",
+        "completedAt": "2026-10-11T22:41:04.699962500Z",
+        "processExitCode": 0,
+        "sourceCurrentAtCompletion": true,
+        "taskId": "41431cd4-d28d-4cf7-a9ba-3991669659fd",
+        "workspaceId": "f9ac0dda-c598-4a4b-8ce7-667fa6ac8614",
+        "workspaceRevision": 3
+      },
+      "versionedResultAtObservation": {
+        "resultVersion": "1",
+        "taskId": "41431cd4-d28d-4cf7-a9ba-3991669659fd",
+        "taskState": "succeeded",
+        "reasonCode": "GAMETEST_PASSED",
+        "subreason": "passed_current_input",
+        "coverage": {
+          "minimumTests": 5,
+          "acceptanceExecuted": 5,
+          "shortfall": 0
+        },
+        "message": {
+          "key": "verification.passed_current_input",
+          "fallback": "The current input passed acceptance.",
+          "args": {
+            "minimumTests": 5,
+            "acceptanceExecuted": 5,
+            "shortfall": 0,
+            "reasonCode": "GAMETEST_PASSED"
+          }
+        }
+      }
+    },
+    {
+      "scenario": "final-current-export",
+      "sourceCommitPrefix": "82d0dc34",
+      "observedAt": "2026-10-11T22:44:01.224328+00:00",
+      "id": "d6006bc2-30fe-4196-92c7-16025921bb49",
+      "kind": "export",
+      "state": "succeeded",
+      "startedAt": "2026-10-11T22:43:45.213818100Z",
+      "completedAt": "2026-10-11T22:43:45.530801300Z",
+      "diagnosticCodes": [],
+      "verifiedExport": {
+        "schemaVersion": "1.0",
+        "taskId": "41431cd4-d28d-4cf7-a9ba-3991669659fd",
+        "status": "passed_current_input",
+        "scope": "Only the acceptance cases listed in gametest-results.xml; client behavior is not implied.",
+        "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+        "reportSha256": "e22a6a0319d259fd0f1ed68444826926d9d2e4acad23e7fb337691bced4c0f5e",
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "acceptanceExecuted": 5,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "javaRelease": 21,
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19"
+        },
+        "sourceSha256": "ae607e4a5c7857433211482e92c84a5069c663f5a22658b36ed9548d33167ebd"
+      }
+    }
+  ],
+  "reopen": {
+    "status": "passed",
+    "sameWorkspace": true,
+    "revisionUnchanged": true,
+    "taskSetUnchanged": true,
+    "originalTaskFieldsPreserved": {
+      "31c3defe-6abf-4585-b12b-6fe41eaa8874": true,
+      "ad9eaa5f-366b-42a3-ab2e-6bfc2ef97d54": true,
+      "12e6d56e-4fe0-4c48-aad8-9c81d62a9775": true,
+      "7f81934c-8fe1-408f-a1d7-d6d8b84f928b": true,
+      "360ddd7e-4cf6-44fe-b846-b6fbd0077c71": true,
+      "589e0a51-0f23-4eb0-9de5-0a0e5a543677": true
+    },
+    "addedField": {
+      "restoredFromHistory": true
+    },
+    "reopenedApplicationSha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8"
+  },
+  "offlineFinal": {
+    "application": {
+      "applicationSha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8",
+      "buildDate": "20261012",
+      "javaVendor": "JetBrains s.r.o.",
+      "javaVersion": "25.0.3+1-b329.124",
+      "mcpSdkVersion": "2.0.0",
+      "snapshot": "false",
+      "sourceState": "packaged_binary",
+      "version": "0.1.4"
+    },
+    "applicationIdentitySource": "acceptance_record",
+    "bundleVersion": "1",
+    "coverage": {
+      "acceptanceExecuted": 5,
+      "discovered": 5,
+      "executed": 5,
+      "failed": 0,
+      "frameworkTests": 0,
+      "passed": 5,
+      "skipped": 0
+    },
+    "inputStatusAtExport": "passed_current_input",
+    "minimumTests": 5,
+    "provenance": "not_authenticated",
+    "status": "consistent",
+    "taskId": "41431cd4-d28d-4cf7-a9ba-3991669659fd"
+  },
+  "offlineHistorical": {
+    "application": {
+      "applicationSha256": "1362d8e4a6deadf64e2c8586d8f4102988672646f068d2bfbdb6370acb66aa69",
+      "buildDate": "20261012",
+      "javaVendor": "JetBrains s.r.o.",
+      "javaVersion": "25.0.3+1-b329.124",
+      "mcpSdkVersion": "2.0.0",
+      "snapshot": "false",
+      "sourceState": "packaged_binary",
+      "version": "0.1.4"
+    },
+    "applicationIdentitySource": "acceptance_record",
+    "bundleVersion": "1",
+    "coverage": {
+      "acceptanceExecuted": 5,
+      "discovered": 5,
+      "executed": 5,
+      "failed": 0,
+      "frameworkTests": 0,
+      "passed": 5,
+      "skipped": 0
+    },
+    "inputStatusAtExport": "passed_historical_input",
+    "minimumTests": 5,
+    "provenance": "not_authenticated",
+    "status": "consistent",
+    "taskId": "7f81934c-8fe1-408f-a1d7-d6d8b84f928b"
+  },
+  "shutdown": {
+    "status": "passed",
+    "observedAt": "2026-10-11T22:46:35.1898905Z",
+    "expectedLauncherPid": 10768,
+    "executableRoot": "D:\\CB-Desktop-20261012\\final\\Copperbench014",
+    "remainingTestProcesses": 0,
+    "normalShutdownLogObserved": true,
+    "lastTaskState": "succeeded",
+    "lastTaskId": "d6006bc2-30fe-4196-92c7-16025921bb49",
+    "evidence": "shutdown-log.txt"
+  },
+  "unverified": [
+    "Windows 11 NSIS installation",
+    "Minecraft player/save-reenter interactions",
+    "interactive bootstrap authorization",
+    "final CSS commit cloud installation"
+  ],
+  "measurements": {
+    "performanceComparisonClaimed": false,
+    "note": "Task start/end times retained; input/capture latency was not independently instrumented."
+  },
+  "localRawEvidence": "output/desktop-acceptance-20261012"
+}

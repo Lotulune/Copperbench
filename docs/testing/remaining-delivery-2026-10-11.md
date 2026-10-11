@@ -6,7 +6,8 @@ The user selected the next small implementation batch plus candidate-acceptance 
 
 Follow-up: the batch was committed as `e11848de`; packaging additions and frozen candidates use `e178ecd2`.
 The [local candidate record](remaining-candidate-2026-10-11.md) retains the VM memory blocker.
-The [cloud acceptance record](remaining-cloud-acceptance-2026-10-12.md) records the later failures, Windows history correction and replacement candidate: both platforms' installed acceptance, real M1 and required CI passed.
+The [cloud acceptance record](remaining-cloud-acceptance-2026-10-12.md) records the later failures, Windows history correction and replacement candidates: both platforms' installed acceptance, real M1 and required CI passed.
+The [Windows 11 desktop record](remaining-desktop-acceptance-2026-10-12.md) closes the selected native frontend checks, including two product fixes, real 5/6 refusal and 5/5 success, bilingual results, current/historical delivery and task recovery after reopening.
 
 ## Delivered scope
 
@@ -15,7 +16,7 @@ The [cloud acceptance record](remaining-cloud-acceptance-2026-10-12.md) records 
 | REM-02 | New advertised, versioned `get_task_verification` read shared by Native/MCP/TypeScript and UI; precise bilingual reasons, required/executed/shortfall, unknown counts distinguished from zero, fresh input comparison |
 | REM-03 | Atomic five-file delivery directory, observed application identity, byte manifest, unique testcase enforcement, bounded stdlib offline directory/ZIP verifier |
 | REM-06 | Current entry points reflect merged PRs; successful raw Java XML retained for 30 days in the existing required job; evidence and failure classifications documented |
-| REM-01 follow-up | [Candidate worksheet](next-candidate-acceptance.md) and separately frozen Windows/Ubuntu cloud candidates; installed/API/build/delivery acceptance passed, desktop/player scope remains separate |
+| REM-01 follow-up | [Candidate worksheet](next-candidate-acceptance.md) and separately frozen Windows/Ubuntu cloud candidates; installed/API/build/delivery and Windows 11 native portable frontend acceptance passed; player scope remains separate |
 | REM-04/05 | Still demand-driven follow-ups, outside this selected batch |
 
 The [protocol and delivery guide](../ai/task-verification-and-delivery.md) documents capability discovery,
@@ -62,7 +63,8 @@ None of these tests substitutes for a real installed application or Minecraft ga
 | Historical `298846dc` | [Installed cache provenance](installed-cache-provenance-2026-10-11.md) | Only the frozen Windows/Ubuntu cold/warm candidates and recorded network conditions |
 | PR #101, merged at `70261a71` | [Integration record](pr-consolidation-2026-10-11.md) and [PR #101](https://github.com/Lotulune/Copperbench/pull/101) | Original source checks; historical installed/player observations retain their original candidate |
 | PR #102, `99f95e1d` | Local development base | Repository media cleanup; no newly inferred runtime acceptance |
-| REM-02/03/06, `e178ecd2` onward | [Cloud checks and candidate evidence](remaining-cloud-acceptance-2026-10-12.md) | Separate source, installed and unverified desktop/player scopes; old failed attempts retained |
+| REM-02/03/06, `e178ecd2` onward | [Cloud checks and candidate evidence](remaining-cloud-acceptance-2026-10-12.md) | Source and installed acceptance; old failed attempts retained |
+| Desktop fixes, `f1ee1112` and `82d0dc34` | [Native desktop evidence](remaining-desktop-acceptance-2026-10-12.md) | Windows 11 portable frontend passed; cloud packages remain separately bound to `f1ee1112`; player scope remains unverified |
 
 For future runs, the existing Java required job uploads `java-test-results-<source SHA>`
 with raw XML and clearly synthetic cross-verifier fixtures on success or failure.

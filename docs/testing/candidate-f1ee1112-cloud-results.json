@@ -1,0 +1,275 @@
+{
+  "sourceCommit": "f1ee111234554462b4dcf75228374ab5aa313a03",
+  "sourceTree": "de635456393759fdb359ea1bfff6a89f69a5188f",
+  "runUrl": "https://github.com/Lotulune/Copperbench/actions/runs/38179867767",
+  "platforms": {
+    "windows": {
+      "status": "passed",
+      "checks": 78,
+      "sourceCommit": "f1ee111234554462b4dcf75228374ab5aa313a03",
+      "os": "Windows-2025Server-10.0.26100-SP0",
+      "applicationSha256": "1e114a93bf4ee63d18f5a86607f47946fd1df33cf3aa746c8bb9077aec84f685",
+      "candidateManifestSha256": "110dd91ebb12fc04cdf2c090934d3ce39ca1802cce7ee9d5ec27880349ab26d6",
+      "assets": {
+        "Copperbench 0.1.4 Windows 64bit.exe": {
+          "size": 566020807,
+          "sha256": "8327975664b22967bf84656aefb2c460ba3abd1ec94e491635b43b4e36365457"
+        },
+        "Copperbench 0.1.4 Windows 64bit.zip": {
+          "size": 601628201,
+          "sha256": "5eb50e3cdd04cddc5a439135fe6995e137eae09e1c23a5e85f025b4c4b37345e"
+        }
+      },
+      "installedMemberCount": 14,
+      "baselineSeconds": 431.2819999999999,
+      "deliverySeconds": 103.36000000000013,
+      "bundles": {
+        "current-delivery": {
+          "taskId": "d2dc5e5a-0ee4-4b81-8b37-f7bca5ce6e74",
+          "status": "passed_current_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "417fb8421ebf91de699ce9fae332c28ffa34fce77a06d9f24f33fcbc1b99ba52",
+          "sourceSha256": "83fdebc4346d1d16c55c97c9d1ccdae39d6c351111a0ff7ba1ae839ac0faa775"
+        },
+        "historical-delivery": {
+          "taskId": "d2dc5e5a-0ee4-4b81-8b37-f7bca5ce6e74",
+          "status": "passed_historical_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "417fb8421ebf91de699ce9fae332c28ffa34fce77a06d9f24f33fcbc1b99ba52",
+          "sourceSha256": "83fdebc4346d1d16c55c97c9d1ccdae39d6c351111a0ff7ba1ae839ac0faa775"
+        }
+      },
+      "desktopAcceptance": "unverified",
+      "playerBehaviorVerified": false,
+      "completedAt": "2026-10-11T22:34:21.283267+00:00",
+      "elapsedSeconds": 595.4369999999999,
+      "bootstrapCreateVerified": false,
+      "authorityIssued": false,
+      "networkCondition": "Hosted runner defaults; no DNS or proxy changes",
+      "cacheCondition": "Retained runner caches and bundled distributions; not a cold-cache claim",
+      "baselineTasks": [
+        {
+          "label": "initial-build",
+          "id": "9f39d873-adcb-43f2-9b1d-8bcf9a32ff4d",
+          "state": "succeeded"
+        },
+        {
+          "label": "controlled-compile-failure",
+          "id": "46887838-e38d-4d30-bfb8-31b7abc61983",
+          "state": "failed"
+        },
+        {
+          "label": "repaired-build",
+          "id": "a8c00fb5-1808-40d2-9518-4c53b0656980",
+          "state": "succeeded"
+        },
+        {
+          "label": "packaged-acceptance",
+          "id": "d2dc5e5a-0ee4-4b81-8b37-f7bca5ce6e74",
+          "state": "succeeded"
+        },
+        {
+          "label": "verified-export",
+          "id": "0fad3d58-0b8c-4195-8cfc-7f8c10225fdf",
+          "state": "succeeded"
+        },
+        {
+          "label": "reopened-verified-export",
+          "id": "4c2946a9-9c42-4800-bf87-12ad15299fe0",
+          "state": "succeeded"
+        },
+        {
+          "label": "conflict-build",
+          "id": "7f64f523-66b3-452b-92cc-9122b99adf2a",
+          "state": "failed"
+        }
+      ],
+      "deliveryChecks": [
+        "read-only-versioned-result-preserves-legacy-task",
+        "current-delivery-offline-and-application-identity",
+        "five-of-six-export-refused",
+        "real-packaged-five-of-six-result",
+        "jar-tamper-export-refused",
+        "xml-tamper-export-refused",
+        "stale-current-export-refused",
+        "historical-delivery-offline-and-application-identity",
+        "offline-jar-rejected",
+        "offline-xml-rejected",
+        "offline-count-rejected",
+        "offline-path-rejected",
+        "offline-manifest-rejected"
+      ],
+      "deliveryTasks": [
+        {
+          "label": "current-export",
+          "id": "ba83f4b0-d9c0-4fb1-aa49-e662284941e9",
+          "state": "succeeded"
+        },
+        {
+          "label": "five-of-six",
+          "id": "b440de34-117d-49df-88b2-9c67a840aa7d",
+          "state": "failed"
+        },
+        {
+          "label": "five-of-six-export-refused",
+          "id": "16f2aba8-11fb-4368-b1f8-480a3ed50108",
+          "state": "failed"
+        },
+        {
+          "label": "jar-tamper-export-refused",
+          "id": "b1a6c71a-cbf2-47de-a9ce-6012953f2346",
+          "state": "failed"
+        },
+        {
+          "label": "xml-tamper-export-refused",
+          "id": "5c38178d-f9ba-4096-bc1c-14c33bf0d143",
+          "state": "failed"
+        },
+        {
+          "label": "stale-current-export-refused",
+          "id": "a01facff-fcf5-4671-984e-8c0630a67979",
+          "state": "failed"
+        },
+        {
+          "label": "historical-export",
+          "id": "0942be96-e6ee-4088-8de6-d66898b2a450",
+          "state": "succeeded"
+        }
+      ]
+    },
+    "ubuntu": {
+      "status": "passed",
+      "checks": 78,
+      "sourceCommit": "f1ee111234554462b4dcf75228374ab5aa313a03",
+      "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "applicationSha256": "27265c357d3859b0a965452f1293c0d3eccde3f5a6a964ef3727d4c064d62154",
+      "candidateManifestSha256": "56af3045c26df7dd38430c23d556440ee5a982cabf8826cfb7e9975372783e42",
+      "assets": {
+        "Copperbench 0.1.4 Linux x86_64.tar.gz": {
+          "size": 969063644,
+          "sha256": "36e14defae888e862bf95ecdc54e3082977c5010c83839f7d307e8b7c48542a3"
+        },
+        "copperbench_0.1.4_amd64.deb": {
+          "size": 888866828,
+          "sha256": "d42516a5bef235b75ea0d64b5bb39e6104f8b7452abf6f916bd19e7280f573d2"
+        }
+      },
+      "installedMemberCount": 14,
+      "baselineSeconds": 209.218745028,
+      "deliverySeconds": 61.88442843400003,
+      "bundles": {
+        "current-delivery": {
+          "taskId": "0b742bba-3432-411b-8052-d33b57b15e85",
+          "status": "passed_current_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "64bc9597400c7c09ad47da31e949ef0b851a9cfd1b8b0bcbb788a84d32c23c91",
+          "sourceSha256": "ed4361f7494fa304ac0b1061182f03c7df96a92c48dc45d56251bf85f2a0954c"
+        },
+        "historical-delivery": {
+          "taskId": "0b742bba-3432-411b-8052-d33b57b15e85",
+          "status": "passed_historical_input",
+          "artifactSha256": "e08cacd0e7fea6464424a0ec9cef4ca84833fe521ec631202eacea8164836285",
+          "reportSha256": "64bc9597400c7c09ad47da31e949ef0b851a9cfd1b8b0bcbb788a84d32c23c91",
+          "sourceSha256": "ed4361f7494fa304ac0b1061182f03c7df96a92c48dc45d56251bf85f2a0954c"
+        }
+      },
+      "desktopAcceptance": "unverified",
+      "playerBehaviorVerified": false,
+      "completedAt": "2026-10-11T22:28:23.052215+00:00",
+      "elapsedSeconds": 284.82546437400003,
+      "bootstrapCreateVerified": false,
+      "authorityIssued": false,
+      "networkCondition": "Hosted runner defaults; no DNS or proxy changes",
+      "cacheCondition": "Retained runner caches and bundled distributions; not a cold-cache claim",
+      "baselineTasks": [
+        {
+          "label": "initial-build",
+          "id": "b8a50c5c-a40a-4410-85a0-5c6b9d84ee43",
+          "state": "succeeded"
+        },
+        {
+          "label": "controlled-compile-failure",
+          "id": "932f00cf-f1fa-4998-bb3f-dd79d70cf9d1",
+          "state": "failed"
+        },
+        {
+          "label": "repaired-build",
+          "id": "cf26035e-1ea6-4ed8-90e0-be45db3c0728",
+          "state": "succeeded"
+        },
+        {
+          "label": "packaged-acceptance",
+          "id": "0b742bba-3432-411b-8052-d33b57b15e85",
+          "state": "succeeded"
+        },
+        {
+          "label": "verified-export",
+          "id": "09177a0f-f163-4f97-85bd-5baff22625e0",
+          "state": "succeeded"
+        },
+        {
+          "label": "reopened-verified-export",
+          "id": "25d297ec-ac70-4d9b-a7ae-10e241658472",
+          "state": "succeeded"
+        },
+        {
+          "label": "conflict-build",
+          "id": "dc307da8-3eec-4a27-9536-f4537c9e6803",
+          "state": "failed"
+        }
+      ],
+      "deliveryChecks": [
+        "read-only-versioned-result-preserves-legacy-task",
+        "current-delivery-offline-and-application-identity",
+        "five-of-six-export-refused",
+        "real-packaged-five-of-six-result",
+        "jar-tamper-export-refused",
+        "xml-tamper-export-refused",
+        "stale-current-export-refused",
+        "historical-delivery-offline-and-application-identity",
+        "offline-jar-rejected",
+        "offline-xml-rejected",
+        "offline-count-rejected",
+        "offline-path-rejected",
+        "offline-manifest-rejected"
+      ],
+      "deliveryTasks": [
+        {
+          "label": "current-export",
+          "id": "018cb0b3-9363-45cb-a39e-c9dfe98fbde3",
+          "state": "succeeded"
+        },
+        {
+          "label": "five-of-six",
+          "id": "794084b0-00fe-4ace-ad61-bdd6f621809d",
+          "state": "failed"
+        },
+        {
+          "label": "five-of-six-export-refused",
+          "id": "5f02cd1e-d73e-4c1c-a585-4a033eea1ecc",
+          "state": "failed"
+        },
+        {
+          "label": "jar-tamper-export-refused",
+          "id": "51732322-c875-43d4-997e-892ffb87bb74",
+          "state": "failed"
+        },
+        {
+          "label": "xml-tamper-export-refused",
+          "id": "5e2832e5-39bc-4d78-bd50-166848c4b674",
+          "state": "failed"
+        },
+        {
+          "label": "stale-current-export-refused",
+          "id": "6c4b6bd5-eddf-453d-913b-96de41d9dd93",
+          "state": "failed"
+        },
+        {
+          "label": "historical-export",
+          "id": "27843f33-0e50-4b53-ad97-ab10cfd030e1",
+          "state": "succeeded"
+        }
+      ]
+    }
+  }
+}

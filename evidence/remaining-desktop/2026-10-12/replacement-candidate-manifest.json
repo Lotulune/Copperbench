@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "f1ee111234554462b4dcf75228374ab5aa313a03",
+  "sourceTree": "de635456393759fdb359ea1bfff6a89f69a5188f",
+  "applicationSha256": "1362d8e4a6deadf64e2c8586d8f4102988672646f068d2bfbdb6370acb66aa69",
+  "applicationSize": 7815678,
+  "baseCandidateCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745",
+  "basePackage": "Copperbench 0.1.4 Windows 64bit.zip",
+  "basePackageSha256": "9f64fc888fccd6f557fae0db58feb1f032fb0568208455d25f923798a1b27279",
+  "assembly": "Verified frozen base portable ZIP plus application JAR built from the fixed source; other distribution members unchanged",
+  "buildCommand": "scripts/run-gradle-external.ps1 --no-daemon jar -Pbuilddate=20261012",
+  "frozenAt": "2026-10-11T22:19:04.2234840Z",
+  "ciRun": 38179860974,
+  "m1Run": 38179864313,
+  "installedRun": 38179867767
+}

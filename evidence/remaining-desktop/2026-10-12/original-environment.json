@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-11T22:10:26.7891465Z",
+  "os": "Microsoft Windows 11 专业版",
+  "version": "10.0.26100",
+  "build": "26100",
+  "architecture": "64 位",
+  "session": "native",
+  "dpi": 120,
+  "packageMode": "portable_zip",
+  "candidateCommit": "48cd994ac22b6a2bf6f0b30b13457250b0c59745",
+  "processId": 11860,
+  "executable": "D:\\CB-Desktop-20261012\\portable\\Copperbench014\\jdk\\bin\\javaw.exe",
+  "workspace": "D:/CB-Desktop-20261012/workspace",
+  "profile": "D:/CB-Desktop-20261012/profile",
+  "gradleHome": "D:/CB-Desktop-20261012/profile/gradle",
+  "cache": "retained; not a cold-cache run",
+  "networking": "official sources selected in candidate profile; host network unchanged",
+  "graphicalReadinessEvidence": "graphical-probe.json",
+  "minimumTestsForFirstScenario": 6,
+  "bootstrapCreateVerified": false,
+  "minecraftPlayerVerified": false
+}

@@ -1,8 +1,9 @@
 # Next candidate acceptance worksheet
 
 Prepared 2026-10-11 (Japan time). Scope: REM-01 after the REM-02/03/06 source batch.
-**Status: Windows Server 2025 and Ubuntu 24.04 cloud installed/API/build/delivery acceptance passed.**
-See the [current cloud results and scope](remaining-cloud-acceptance-2026-10-12.md) and the
+**Status: Windows Server 2025 and Ubuntu 24.04 cloud installed/API/build/delivery acceptance passed; Windows 11 native portable frontend acceptance also passed after two fixes.**
+See the [cloud results and candidate identities](remaining-cloud-acceptance-2026-10-12.md),
+[native desktop results](remaining-desktop-acceptance-2026-10-12.md), and
 [historical local candidates](remaining-candidate-2026-10-11.md). The broader matrix below is a release checklist; partial source or installed coverage does not close a whole row.
 This preparation does not change the public 0.1.4 releases or the historical candidate results.
 
@@ -43,9 +44,9 @@ Record each row independently on both platforms, retaining exact commands and ra
 | Build and protection | Normal build works; external/manual source conflicts are rejected and authored bytes preserved | Passed on both cloud platforms |
 | Acceptance counts | 0/1, all-skipped/framework-only, 5/6 reject; 6/6 and 7/6 still require valid reports and no failures | Real five-case success and 5/6 refusal passed on both; broader count matrix covered by source tests |
 | Versioned results | Native, MCP and TypeScript expose the same resultVersion 1 semantics; legacy task responses retain v1.0 shape | Installed Native passed; MCP/TypeScript/schema agreement covered by required CI |
-| Language | Chinese/English show actual/required/missing; language changes preserve task/revision and issue no mutation | Source/UI checks passed; installed desktop interaction unverified |
+| Language | Chinese/English show actual/required/missing; language changes preserve task/revision and issue no mutation | Native Windows 11 Chinese/English running and terminal results passed; task/revision preservation checked. Ubuntu desktop interaction remains unverified |
 | Freshness | Missing, stale, damaged XML retain distinct reasons; failed cases outrank count success | Installed stale input and JAR/XML tampering passed; remaining reason matrix covered by source tests |
-| Delivery | Current export and reopen pass; stale input requires explicit historical export and retains that label | Passed on both cloud platforms |
+| Delivery | Current export and reopen pass; stale input requires explicit historical export and retains that label | Passed on both cloud platforms and through the Windows 11 native frontend |
 | Integrity | JAR/XML/count/manifest tampering rejected; bundle rechecks offline in another clean directory | Passed on both cloud platforms, including unsafe path rejection and independent downloaded-bundle checks |
 | Identity | Application identity in the bundle matches the accepted candidate; mod and application hashes remain separate | Passed on both cloud platforms |
 | Client/gameplay | Affected player behavior and save/reenter steps, if needed, have screenshot/action evidence | Unverified; scope to be selected |

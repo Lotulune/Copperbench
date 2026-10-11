@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "sameWorkspace": true,
+  "revisionUnchanged": true,
+  "taskSetUnchanged": true,
+  "originalTaskFieldsPreserved": {
+    "31c3defe-6abf-4585-b12b-6fe41eaa8874": true,
+    "ad9eaa5f-366b-42a3-ab2e-6bfc2ef97d54": true,
+    "12e6d56e-4fe0-4c48-aad8-9c81d62a9775": true,
+    "7f81934c-8fe1-408f-a1d7-d6d8b84f928b": true,
+    "360ddd7e-4cf6-44fe-b846-b6fbd0077c71": true,
+    "589e0a51-0f23-4eb0-9de5-0a0e5a543677": true
+  },
+  "addedField": {
+    "restoredFromHistory": true
+  },
+  "reopenedApplicationSha256": "fa76a7593c97bcec914a02b4b56f2cdd85a2940c39f42ded9cdc6653b6dbb6b8"
+}

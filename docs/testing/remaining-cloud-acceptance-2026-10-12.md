@@ -2,8 +2,10 @@
 
 Recorded 2026-10-12 (Japan time). The user authorized committing the remaining batch and moved both Windows and Linux installation acceptance to cloud runners after local VM restore could not obtain enough memory.
 
-The new candidate source is `48cd994ac22b6a2bf6f0b30b13457250b0c59745`.
-**Both cloud installation runs, real M1 and final required CI passed.** The candidate includes the Windows history fix found by the previous frozen candidate; the old binaries and failed attempts remain separate evidence. Completion is limited to the installed/API/build/delivery scope below, with desktop/player checks explicitly separate.
+The first passing replacement candidate source is `48cd994ac22b6a2bf6f0b30b13457250b0c59745`.
+**Both cloud installation runs, real M1 and required CI passed for that candidate.** It includes the Windows history fix found by the previous frozen candidate; the old binaries and failed attempts remain separate evidence.
+
+The later [Windows 11 native desktop acceptance](remaining-desktop-acceptance-2026-10-12.md) found and fixed GUI initialization and dark-menu defects. The initialization fix has a separately frozen passing cloud rerun below; the final CSS fix has native desktop and required-CI evidence. Cloud installed/API/build/delivery evidence remains distinct from desktop/player scope.
 
 ## Source and runs
 
@@ -43,6 +45,41 @@ The exact accepted [Windows packages](https://github.com/Lotulune/Copperbench/ac
 The [Windows evidence](https://github.com/Lotulune/Copperbench/actions/runs/38175670087/artifacts/11715369926) and
 [Ubuntu evidence](https://github.com/Lotulune/Copperbench/actions/runs/38175670087/artifacts/11716162017) are retained for 30 days, and have also been downloaded into the task worktree. No public release is created.
 
+## Desktop fix cloud follow-up
+
+Native Windows 11 validation exposed a GUI initialization defect in `48cd994a`: base generation
+rewrote pending Core inputs and caused a false source conflict. The fix is
+`f1ee111234554462b4dcf75228374ab5aa313a03`, tree `de635456393759fdb359ea1bfff6a89f69a5188f`.
+Its [required CI](https://github.com/Lotulune/Copperbench/actions/runs/38179860974),
+[real M1/protocol](https://github.com/Lotulune/Copperbench/actions/runs/38179864313), and
+[Windows/Ubuntu package installation](https://github.com/Lotulune/Copperbench/actions/runs/38179867767)
+all passed. This is a new candidate; none of the older receipts is relabeled.
+
+| Platform | Installer SHA-256 | Application JAR SHA-256 |
+| --- | --- | --- |
+| Windows Server 2025 | `8327975664b22967bf84656aefb2c460ba3abd1ec94e491635b43b4e36365457` | `1e114a93bf4ee63d18f5a86607f47946fd1df33cf3aa746c8bb9077aec84f685` |
+| Ubuntu 24.04 | `d42516a5bef235b75ea0d64b5bb39e6104f8b7452abf6f916bd19e7280f573d2` | `27265c357d3859b0a965452f1293c0d3eccde3f5a6a964ef3727d4c064d62154` |
+
+The [Windows manifest](candidate-f1ee1112-windows-cloud.json),
+[Ubuntu manifest](candidate-f1ee1112-ubuntu-cloud.json), and
+[compact results](candidate-f1ee1112-cloud-results.json) retain full identity, actual task IDs,
+all 13 supplemental checks, current/historical JAR/XML/input hashes and timings.
+Both installations matched all 14 frozen members. The downloaded evidence independently passed
+78 checks per platform, including real report counts, offline bundle verification and rejection
+of JAR/XML/count/path/manifest corruption. The audit was rerun on these new artifacts.
+
+The exact [Windows packages](https://github.com/Lotulune/Copperbench/actions/runs/38179867767/artifacts/11717845688)
+and [Ubuntu packages](https://github.com/Lotulune/Copperbench/actions/runs/38179867767/artifacts/11717546182)
+are retained for 14 days; [Windows evidence](https://github.com/Lotulune/Copperbench/actions/runs/38179867767/artifacts/11717831198)
+and [Ubuntu evidence](https://github.com/Lotulune/Copperbench/actions/runs/38179867767/artifacts/11717418729)
+for 30 days. Evidence is also downloaded under `output/desktop-acceptance-20261012/cloud/`.
+Caches and default runner networking match the recorded retained-cache conditions.
+
+The final native desktop source `82d0dc34` adds only theme colors for native select options.
+Its [required CI](https://github.com/Lotulune/Copperbench/actions/runs/38181079774) and final
+Windows 11 GameTest/export passed; this record does not claim another cloud installation of
+that CSS-only revision. Its local application hash differs from both cloud applications above.
+
 ## Preserved attempts and corrections
 
 | Attempt | Observed result | Classification |
@@ -71,7 +108,7 @@ Both platforms passed normal build, controlled Java failure and repair, five pac
 
 The hosted OS versions are Ubuntu 24.04 and Windows Server 2025. Each run records bundled Java, cache preferences, effective Gradle home and default runner networking. These are retained-cache runs, not cold-cache measurements. No DNS or proxy workaround is applied.
 
-Windows 11 desktop interaction, installed UI language switching, separate installed MCP/TypeScript sessions, imported CUSTOM references with different internal/registry names, and Minecraft player/save-reenter behavior remain unverified by this installed harness. The same-source required checks cover the API/schema/SDK/UI result matrix separately. No bootstrap approval or autonomous-agent success rate is claimed.
+This installed harness does not verify Windows 11 desktop interaction or installed UI language switching; those checks now have a separate [native desktop record](remaining-desktop-acceptance-2026-10-12.md). Separate installed MCP/TypeScript sessions, imported CUSTOM references with different internal/registry names, and Minecraft player/save-reenter behavior remain unverified. The same-source required checks cover the API/schema/SDK/UI result matrix separately. No bootstrap approval or autonomous-agent success rate is claimed.
 
 Downloaded evidence is under `output/candidate-acceptance-20261011/cloud/` in the task worktree. Workflow artifacts retain installation stdout/stderr, fixture preparation, complete discovery inventories, task envelopes, process identities, failure diagnostics, portable JAR/XML/receipts, tampered copies and offline verifier output. Candidate packages are retained separately. The local independent audit recomputes evidence digests, checks task and application identity, reruns the verifier on the real bundles and rejects each altered copy.
 
