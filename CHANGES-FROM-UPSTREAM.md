@@ -14,6 +14,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Preserve deferred Core generation inputs during desktop dependency setup so opening a cold SDK workspace does not create false source conflicts; external edits remain protected.
 - Add opt-in versioned task verification results with bilingual coverage messages while preserving strict legacy task envelopes.
 - Publish complete verified-delivery directories atomically, bind observed application identities, reject duplicate testcases, and provide a bounded offline directory/ZIP verifier.
 - Retain successful Java XML and independently verify Java-generated delivery fixtures in the existing required CI jobs.

@@ -208,6 +208,19 @@ public class WorkspaceGeneratorSetup {
 				new File(generator.getFolderManager().getWorkspaceCacheDir(), "setupInfo"));
 	}
 
+	/**
+	 * Generates the legacy setup base unless Core already owns a deferred generation plan.
+	 * Pending plans retain their original file hashes until a guarded Core task consumes them.
+	 *
+	 * @param workspace the workspace whose dependencies were prepared
+	 * @return whether base generation succeeded or is deferred to the pending Core task
+	 */
+	public static boolean generateBaseAfterDependencySetup(Workspace workspace) {
+		if (workspace.getMetadata("dev.copperbench.pendingGeneration") != null)
+			return true;
+		return workspace.getGenerator().generateBase();
+	}
+
 	public static void requestSetup(Workspace workspace) {
 		new File(workspace.getFolderManager().getWorkspaceCacheDir(), "setupInfo").delete();
 	}

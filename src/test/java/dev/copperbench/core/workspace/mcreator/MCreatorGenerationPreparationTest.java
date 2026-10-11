@@ -88,6 +88,38 @@ class MCreatorGenerationPreparationTest {
         }
     }
 
+    @Test void desktopDependencySetupPreservesPendingInputsAndDoesNotBlessExternalEdits() throws Exception {
+        try (Workspace workspace = cold(); var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
+                new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+            assertEquals("committed", session.uiEntry().execute(Command.of(UUID.randomUUID(), session.workspaceId(), 0,
+                    Operation.CREATE_MOD_ELEMENT, createPayload())).result().status());
+            Path main = root.resolve("src/main/java/net/mcreator/cold_fields/ColdFieldsMod.java");
+            byte[] original = Files.readAllBytes(main);
+            JsonObject pending = MCreatorGenerationPreparation.pending(workspace).deepCopy();
+            assertTrue(net.mcreator.generator.setup.WorkspaceGeneratorSetup.generateBaseAfterDependencySetup(workspace));
+            assertArrayEquals(original, Files.readAllBytes(main));
+            assertEquals(pending, MCreatorGenerationPreparation.pending(workspace));
+            MCreatorGenerationPreparation.verifyPending(workspace);
+
+            String external = Files.readString(main) + "\n// External generated-region edit\n";
+            Files.writeString(main, external);
+            assertTrue(net.mcreator.generator.setup.WorkspaceGeneratorSetup.generateBaseAfterDependencySetup(workspace));
+            assertEquals(external, Files.readString(main));
+            assertEquals(pending, MCreatorGenerationPreparation.pending(workspace));
+            assertThrows(java.io.IOException.class, () -> MCreatorGenerationPreparation.verifyPending(workspace));
+        }
+    }
+
+    @Test void desktopDependencySetupStillGeneratesBaseWithoutPendingCoreWork() throws Exception {
+        try (Workspace workspace = cold()) {
+            Path main = root.resolve("src/main/java/net/mcreator/cold_fields/ColdFieldsMod.java");
+            Files.delete(main);
+            assertNull(MCreatorGenerationPreparation.pending(workspace));
+            assertTrue(net.mcreator.generator.setup.WorkspaceGeneratorSetup.generateBaseAfterDependencySetup(workspace));
+            assertTrue(Files.isRegularFile(main));
+        }
+    }
+
     @Test void legacyColdBuildStillRejectsUnownedSourceBeforeDependencyPreparation() throws Exception {
         try (Workspace workspace = cold(); var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
                 new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {

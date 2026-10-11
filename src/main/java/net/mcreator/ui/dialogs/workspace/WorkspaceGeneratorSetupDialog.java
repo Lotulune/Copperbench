@@ -114,7 +114,7 @@ public class WorkspaceGeneratorSetupDialog {
 						L10N.t("dialog.setup_workspace.step.generating_base"));
 				dial.addProgressUnit(p4);
 				try {
-					m.getGenerator().generateBase();
+					WorkspaceGeneratorSetup.generateBaseAfterDependencySetup(m.getWorkspace());
 				} catch (Exception e) {
 					// We catch any potential exceptions here to make sure generator setup does not fail due to base generation failure
 					LOG.error("Failed to generate base", e);
