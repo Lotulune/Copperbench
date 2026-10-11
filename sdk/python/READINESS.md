@@ -12,15 +12,29 @@ print(workspace.available_field_contracts())
 try:
     contract = workspace.field_contract("item")
 except NativeApiError as error:
-    if error.code != "FIELD_CONTRACT_UNAVAILABLE":
+    if error.code != "NATIVE_FIELD_CONTRACT_UNAVAILABLE":
         raise
     print(error)
-    print(error.details["availableContracts"])
+    print(error.details["availableTypes"])
 ```
 
 `available_field_contracts()` lists the keys actually published by the connected Core. These are not the complete set of creatable Mod Element types: generic input contracts may also be listed. `field_contract()` returns an existing contract unchanged. Missing item/recipe metadata is not proof that the type cannot be created.
 
-**Compatibility note:** callers that previously caught the incidental `KeyError` for absent contracts must now catch `NativeApiError` and inspect `error.code`. Missing metadata uses `FIELD_CONTRACT_UNAVAILABLE`; malformed metadata uses `NATIVE_INVALID_RESPONSE`; Core rejection codes are preserved. The SDK neither invents a contract nor creates a probe element. For an existing element, query `get_mod_element_editor` with its actual `elementId`.
+**Compatibility note:** callers that previously caught the incidental `KeyError` for absent contracts must now catch `NativeApiError` and inspect `error.code`. A requested name absent from a valid contract map uses `NATIVE_FIELD_CONTRACT_UNAVAILABLE`; malformed metadata uses `NATIVE_INVALID_RESPONSE`; Core rejection codes are preserved. The SDK neither invents a contract nor creates a probe element. For an existing element, query `get_mod_element_editor` with its actual `elementId`.
+
+The unavailable error includes `elementType`, `availableTypes`,
+`reason="type_not_advertised"`, `nextAction`, `generator`, an existing-element
+`inspection` query and the original `environment` receipt. Missing/invalid maps,
+non-object entries and empty or whitespace-only names are malformed responses;
+their errors retain the raw receipt and leave the session usable. An empty map
+is valid and advertises no contracts.
+
+The earlier readiness draft's `FIELD_CONTRACT_UNAVAILABLE` and
+`details.availableContracts` are replaced by the native SDK-prefixed code and
+`details.availableTypes`, matching the reconciled SDK convention. Update those
+error handlers when moving from that draft. Versioned `discover_field_contract`
+responses retain their existing shape, including `availableContracts` for older
+Cores that do not expose the new query.
 
 ## Versioned item and recipe discovery
 
@@ -48,7 +62,7 @@ Input acceptance is distinct from generation support and gameplay acceptance.
 
 ## Readable messages with raw evidence
 
-Simple named placeholders in diagnostic fallbacks are replaced using `message.args`. For example, `{field}: {reason}` can render `/commands/0: Expected a non-null command string.`. Arguments are inserted literally, once. Missing or structured arguments remain visible as placeholders; attribute access, indexing and format expressions are not evaluated.
+Simple named placeholders in diagnostic fallbacks are replaced using `message.args`. For example, `{field}: {reason}` can render `/commands/0: Expected a non-null command string.`. Arguments are inserted literally, once. Missing or structured arguments remain visible as placeholders; double braces, attribute access, indexing and format expressions are not evaluated.
 
 `NativeApiError.code` and `details` retain the original diagnostic envelope, including key, fallback and arguments. Message rendering does not replay rejected writes, change revisions or grant permissions.
 
@@ -68,4 +82,4 @@ The query returns the observed revision, workspace-input fingerprint (nullable w
 python -W error::ResourceWarning -m unittest discover -s sdk/python -p 'test_*.py'
 ```
 
-The SDK regressions are protocol-level tests. They do not replace real Core, packaged-JAR or installed-client acceptance. See the [implementation record](../../docs/testing/agent-readiness-2026-10-09.md) for observed validation limits.
+The SDK regressions are protocol-level tests. They do not replace real Core, packaged-JAR or installed-client acceptance. The [contract-alignment record](../../docs/testing/sdk-contract-alignment-2026-10-11.md) covers the corrected missing-contract, literal-message and source-navigation behavior. The [initial implementation record](../../docs/testing/agent-readiness-2026-10-09.md) retains its historical scope.

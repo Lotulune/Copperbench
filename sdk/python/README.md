@@ -26,8 +26,11 @@ options = workspace.field_reference_options(
     "recipe", "blocksitems", search="Items.STICK", limit=20)
 ```
 
-旧 Core 未公开新查询时返回 `not_exposed`；原 `field_contract()` 的格式和
-缺失契约错误保持兼容。查询不创建探针元素。字段默认值、嵌套输入形状、条件要求、
+旧 Core 未公开新查询时返回 `not_exposed`；原 `field_contract()` 的成功返回格式保持不变。
+缺失契约统一使用 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，详情包含 `availableTypes`、
+`reason`、`nextAction` 和原始 `environment`；畸形元数据使用 `NATIVE_INVALID_RESPONSE`。
+早期草稿的错误码及详情字段迁移见 [SDK 兼容说明](READINESS.md)。
+查询不创建探针元素。字段默认值、嵌套输入形状、条件要求、
 引用入口和生成器限制来自 Core；最小示例进入八轨道的保存、生成与重开验证。
 真实构建与可信导出的固定样本位于源码仓库
 `examples/agent-readiness/m1-delivery/README.md`。

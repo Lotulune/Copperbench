@@ -141,9 +141,16 @@ payloads/options, including probe/approval flags, are rejected.
 
 Diagnostic display uses the shared
 [message fixtures](tests/diagnostic-rendering.json): a single literal pass over
-simple named placeholders; unknown names and complex/nonfinite values remain
-visible. Legacy strings remain accepted. Malformed presentation falls back to
+simple named placeholders; unknown names, double braces and complex/nonfinite
+values remain visible. Legacy strings remain accepted. Malformed presentation falls back to
 the stable error code. SDK errors preserve raw `details`, including localized
 key/args, conflict information, actions and task state. UI locale changes render
 the original message again. Presentation never retries a mutation or closes
 an otherwise healthy session.
+
+Generation source conflicts retain the complete structured conflict list while
+projecting each safe relative location into its diagnostic `path`. A Java
+`open_source` action is offered only when a bounded preview was captured inside
+the task directory without following links. Unlocated, unsafe, absent or
+oversized sources keep their diagnostics without advertising an unavailable
+preview. This does not grant source ownership or replay generation.

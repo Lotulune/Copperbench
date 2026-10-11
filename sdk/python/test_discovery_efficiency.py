@@ -138,12 +138,14 @@ class DiscoveryEfficiencyTest(unittest.TestCase):
         client, requests = self.client(operations=())
         data = environment()
         data["fieldContractDiscovery"] = "untrusted_other_operation"
-        client._receive = lambda _: {"id": requests[-1]["id"], "result": {
-            "status": "succeeded", "revision": 7, "data": data}}
+        result = {"status": "succeeded", "revision": 7, "data": data}
+        client._receive = lambda _: {"id": requests[-1]["id"], "result": result}
         with self.assertRaises(NativeApiError) as raised:
             client.discover_field_contract("item")
         self.assertEqual("NATIVE_INVALID_RESPONSE", raised.exception.code)
+        self.assertIs(result, raised.exception.details)
         self.assertEqual(["get_workspace_environment"], [r["operation"] for r in requests])
+        client.close.assert_not_called()
 
     def test_legacy_field_contract_shape_and_query_are_unchanged(self):
         client, requests = self.client()

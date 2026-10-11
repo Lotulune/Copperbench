@@ -62,7 +62,7 @@ def _render_message(message: Any, default: str) -> str:
             return json.dumps(value)
         return match.group(0)
 
-    return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", substitute, fallback)
+    return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", substitute, fallback)
 
 
 class CopperbenchError(RuntimeError):

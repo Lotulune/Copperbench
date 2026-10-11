@@ -1,5 +1,7 @@
 /** Known editor labels. Older hosts may supply bilingual fallbacks for these keys. */
 export const en: Record<string, string> = {
+  'diagnostic.generation_source_conflict_at': 'Source conflict at {displaySourcePath}. Review the file and its ownership before generating again.',
+  'action.open_conflict_source': 'View source',
   'diagnostic.workspace_source_failed': 'Source operation failed: {detail}',
   'diagnostic.workspace_source_not_found': 'Source file not found.',
   'diagnostic.workspace_source_conflict': 'The file changed externally. Read the latest version to continue.',
