@@ -1,0 +1,74 @@
+{
+  "manifestVersion": "1",
+  "sourceCommit": "e178ecd292178974e5ad64c234006b09e81e70d7",
+  "sourceTree": "ea767de7cec207f0da65b46d189fbd2e8a60622e",
+  "platform": "windows",
+  "builtFromCleanSource": true,
+  "frozenAt": "2026-10-11T03:51:33.466941+00:00",
+  "assets": {
+    "Copperbench 0.1.4 Windows 64bit.zip": {
+      "size": 1110761525,
+      "sha256": "16f40151ef3ab1080a5a699c174ec39f7f19ca75b4d05f4a25ff787d4e8ec26d"
+    },
+    "Copperbench 0.1.4 Windows 64bit.exe": {
+      "size": 789141737,
+      "sha256": "e130b06ac35d3a4f93f8e6cd7d197696b1f3b4fd7970060fc0c2067303dea137"
+    }
+  },
+  "members": {
+    "copperbench.exe": {
+      "size": 200704,
+      "sha256": "c28f419754637cfa6b59e6ff189951c577172176907b3795c04f4128cad3f4ef"
+    },
+    "docs/ai/task-verification-and-delivery.md": {
+      "size": 4054,
+      "sha256": "7712ea59da0b619f4ac9ddb9931c09af3fa66713a0bdb731dafd9af610034422"
+    },
+    "lib/copperbench.jar": {
+      "size": 7814509,
+      "sha256": "72c65f891b18d545a7764745558b509bd32c09fb30f870bc518cf3ba9810d346"
+    },
+    "scripts/verify-delivery-bundle.py": {
+      "size": 13958,
+      "sha256": "a0fc19cfd672cd39e1386dc0acff5aea5cbfc12a318102ca22e97c731b5b77dd"
+    },
+    "sdk/python/README.md": {
+      "size": 15008,
+      "sha256": "86504578d143f38ff6bdf3f3572e90df2a6491db3b4f5a352d7b119e2d0d2da1"
+    },
+    "sdk/python/agent_readiness_delivery.py": {
+      "size": 16036,
+      "sha256": "707d61b86fc53e05841ce5fcb13db474f29b5084d89285cd921cc3a508cc792c"
+    },
+    "sdk/python/copperbench.py": {
+      "size": 20805,
+      "sha256": "b765fa2361f523a1faeb267c2f487dc924949d5f325001d75ba4b1ebd1af55c6"
+    },
+    "sdk/python/copperbench_console.py": {
+      "size": 5134,
+      "sha256": "4be7663681b58fee3741c0e19b254a4a628c5726b6ab6de56db33380be2b5ab2"
+    },
+    "sdk/python/copperbench_native.py": {
+      "size": 35601,
+      "sha256": "df077b52811bfb7fef849d08b5f312aa959e4d4851509231c7e49abf35e6b565"
+    },
+    "sdk/python/copperbench_scripting.py": {
+      "size": 9407,
+      "sha256": "7ad1c52fd6c7849069256d6a1aa220d9330715408366df190567d368da3a3df2"
+    },
+    "sdk/python/pyproject.toml": {
+      "size": 354,
+      "sha256": "9a7c60b3e516c67f0400346e192cc1fb0c2734a2bf5565a59ebffb47a2dbefb4"
+    },
+    "sdk/python/examples/live_workspace.py": {
+      "size": 1022,
+      "sha256": "d336d17b4ee1cc5a029dd00136db8a1ffe1c1393e520602da3c396bba024d433"
+    },
+    "sdk/python/examples/native_workspace.py": {
+      "size": 1126,
+      "sha256": "841eba7c6e6b1a8a24b6c43d594615750a572522593bbb07020cc8381403908c"
+    }
+  },
+  "hostedCi": "not_run_for_this_commit",
+  "status": "frozen_before_installation"
+}

@@ -4,6 +4,9 @@ Date: 2026-10-11 (Japan time). Development base: `99f95e1d7ea0e919342414572e31f6
 This record describes local source changes on `codex/remaining-delivery-20261011`; it is not a release or an installed-candidate acceptance.
 The user selected the next small implementation batch plus candidate-acceptance preparation.
 
+Follow-up: the batch was committed as `e11848de`; packaging additions and frozen candidates use `e178ecd2`.
+The [candidate build and installation record](remaining-candidate-2026-10-11.md) retains the subsequent VM memory blocker. Installation remains unverified.
+
 ## Delivered scope
 
 | Item | Result |

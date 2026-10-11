@@ -1,7 +1,8 @@
 # Next candidate acceptance worksheet
 
 Prepared 2026-10-11 (Japan time). Scope: REM-01 after the REM-02/03/06 source batch.
-**Status: not run; no final application JAR or Windows/Ubuntu package is frozen by this worksheet.**
+**Status: local Windows and Linux portable candidates are frozen; installation is blocked by VM restore memory.**
+See the [candidate identities and actual attempts](remaining-candidate-2026-10-11.md). The matrix below remains unverified.
 This preparation does not change the public 0.1.4 releases or the historical candidate results.
 
 ## Freeze before starting
