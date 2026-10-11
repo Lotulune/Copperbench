@@ -9,6 +9,11 @@
 - TypeScript SDK: `sdk/typescript/`; after `npm ci --prefix ui-shell`, run `npm run test:sdk --prefix ui-shell` using the UI shell's TypeScript development dependency.
 - Documentation: run `node scripts/verify-markdown-links.mjs`. The verification table in `CONTRIBUTING.md` gives commands by changed layer; source checks do not replace installed-product or gameplay evidence.
 
+## Product media
+
+- For promotional videos, covers and product screenshots, use the versioned images listed in [current media and capture details](assets/screenshots/README.md), plus the [Copperbench brand source](assets/branding/README.md).
+- `evidence/` and historical PRD, handoff and design records describe dated candidates. Do not use their screenshots or prototype visuals as the current interface. Keep browser preview captures distinct from native desktop and Minecraft gameplay footage.
+
 ## Language and evidence
 
 - Reply to the user in Chinese. Use English for commands and tool arguments when practical.

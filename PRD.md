@@ -193,7 +193,7 @@ Minecraft Mod Creator 是基于 MCreator 二次开发的 Minecraft Java 模组�
 
 UI 设计与 React 实现由 `zcodeglm5.3` 负责；核心团队负责领域合同、Java bridge、JCEF 生命周期、Windows 原生窗口桥和集成测试。
 
-- **NFR-UI-01**：已关闭。任务地图与信息架构已交付；三套原型在 `prototypes/`。正式方向为 A「专注工坊流」，由现行 JCEF/React 产品壳实现。
+- **NFR-UI-01**：已关闭。任务地图与信息架构已交付；三套原型现通过[历史快照](https://github.com/Lotulune/Copperbench/tree/70261a71ce0403e00f8c118026f80c3579d554b7/prototypes)追溯。当时选定方向 A「专注工坊流」，后续由 JCEF/React 产品壳实现；当前界面见[展示素材](./assets/screenshots/README.md)。
 - **NFR-UI-02**：界面必须更直观、简洁、高级、沉浸，但保持创作工具所需的信息密度和效率。
 - **NFR-UI-03**：使用紧凑、标准、宽屏三种自适应工作台，不按窗口比例整体缩放。
 - **NFR-UI-04**：覆盖 1366×768、1080p、2K、4K 和 Windows 125%、150%、175%、200% 显示缩放。

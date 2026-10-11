@@ -44,7 +44,7 @@ Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。
   </tr>
 </table>
 
-<sub>0.1.4 前端的浏览器截图，使用内置 Copper Trails 示例数据。 [截图来源](assets/screenshots/README.md)</sub>
+<sub>0.1.4 前端的浏览器截图，使用内置 Copper Trails 示例数据。 [当前宣传素材与截图来源](assets/screenshots/README.md)</sub>
 
 ## 能做什么
 
