@@ -63,6 +63,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#map(net.mcreator.workspace.Workspace,dev.copperbench.core.workspace.ProductMetadataManager.Metadata)" tabindex="0">map(Workspace, ProductMetadataManager.Metadata)</a></li>
+<li><a href="#internalElementNames(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">internalElementNames(WorkspaceState)</a></li>
 <li><a href="#elementId(java.util.UUID,net.mcreator.workspace.elements.ModElement)" tabindex="0">elementId(UUID, ModElement)</a></li>
 </ol>
 </li>
@@ -114,10 +115,15 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#elementId(java.util.UUID,net.mcreator.workspace.elements.ModElement)" class="member-name-link">elementId</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="../../../../../net/mcreator/workspace/elements/ModElement.html" title="class in net.mcreator.workspace.elements">ModElement</a>&nbsp;element)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#map(net.mcreator.workspace.Workspace,dev.copperbench.core.workspace.ProductMetadataManager.Metadata)" class="member-name-link">map</a><wbr>(<a href="../../../../../net/mcreator/workspace/Workspace.html" title="class in net.mcreator.workspace">Workspace</a>&nbsp;workspace,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#internalElementNames(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">internalElementNames</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Resolves native reference names for the current elements without changing their public projection.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#map(net.mcreator.workspace.Workspace,dev.copperbench.core.workspace.ProductMetadataManager.Metadata)" class="member-name-link">map</a><wbr>(<a href="../../../../../net/mcreator/workspace/Workspace.html" title="class in net.mcreator.workspace">Workspace</a>&nbsp;workspace,
  <a href="../ProductMetadataManager.Metadata.html" title="class in dev.copperbench.core.workspace">ProductMetadataManager.Metadata</a>&nbsp;metadata)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -161,6 +167,23 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="internalElementNames(dev.copperbench.core.workspace.WorkspaceState)">
+<h3>internalElementNames</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">internalElementNames</span><wbr><span class="parameters">(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</span></div>
+<div class="block">Resolves native reference names for the current elements without changing their public projection.
+The serialized identities describe imported elements; new elements use their current internal name.
+Removed identities in an older upstream snapshot never reintroduce a deleted reference target.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>state</code> - current workspace state, including its upstream snapshot</dd>
+<dt>Returns:</dt>
+<dd>internal names of elements still present in this state</dd>
 </dl>
 </div>
 </section>

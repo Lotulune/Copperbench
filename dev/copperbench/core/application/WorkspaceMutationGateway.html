@@ -56,6 +56,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#previewGeneration(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">previewGeneration(WorkspaceState)</a></li>
 <li><a href="#workspaceSourceOwnership()" tabindex="0">workspaceSourceOwnership()</a></li>
 <li><a href="#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)" tabindex="0">procedureContextIssues(ProcedureIr)</a></li>
 <li><a href="#procedureTriggerCatalog()" tabindex="0">procedureTriggerCatalog()</a></li>
@@ -155,37 +156,42 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Persists a validated workspace plan plus bounded file artifacts as one durable transaction.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="../../procedure/ProcedureIr.ValidationIssue.html" title="class in dev.copperbench.procedure">ProcedureIr.ValidationIssue</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)" class="member-name-link">procedureContextIssues</a><wbr>(<a href="../../procedure/ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#previewGeneration(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">previewGeneration</a><wbr>(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Read-only generation source plan; unavailable adapters report unknown instead of inferring ownership.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="../../procedure/ProcedureIr.ValidationIssue.html" title="class in dev.copperbench.procedure">ProcedureIr.ValidationIssue</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)" class="member-name-link">procedureContextIssues</a><wbr>(<a href="../../procedure/ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Additional read-only Procedure checks using the backend's active generator/plugin metadata.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default com.google.gson.JsonArray</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#procedureTriggerCatalog()" class="member-name-link">procedureTriggerCatalog</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default com.google.gson.JsonArray</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#procedureTriggerCatalog()" class="member-name-link">procedureTriggerCatalog</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Read-only external triggers available to the active generator with its enabled APIs.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">validateWorkspacePlan</a><wbr>(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">validateWorkspacePlan</a><wbr>(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
  <a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;after)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Performs mutation-backend preflight checks that must agree between plan, preview, and apply.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,java.util.List)" class="member-name-link">validateWorkspacePlan</a><wbr>(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,java.util.List)" class="member-name-link">validateWorkspacePlan</a><wbr>(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
  <a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;after,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="WorkspacePlanArtifact.html" title="class in dev.copperbench.core.application">WorkspacePlanArtifact</a>&gt;&nbsp;artifacts)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Performs preflight for structured plan mutations plus bounded file artifacts.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#workspacePlanArtifactsAlreadyApplied(java.util.List)" class="member-name-link">workspacePlanArtifactsAlreadyApplied</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="WorkspacePlanArtifact.html" title="class in dev.copperbench.core.application">WorkspacePlanArtifact</a>&gt;&nbsp;artifacts)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#workspacePlanArtifactsAlreadyApplied(java.util.List)" class="member-name-link">workspacePlanArtifactsAlreadyApplied</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="WorkspacePlanArtifact.html" title="class in dev.copperbench.core.application">WorkspacePlanArtifact</a>&gt;&nbsp;artifacts)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Returns whether every bounded file artifact already has the exact durable bytes recorded by the plan.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#workspaceSourceOwnership()" class="member-name-link">workspaceSourceOwnership</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#workspaceSourceOwnership()" class="member-name-link">workspaceSourceOwnership</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">File ownership supplied by the active generator; trailing-slash keys own a directory.</div>
 </div>
 </div>
@@ -202,6 +208,15 @@ loadScripts(document, 'script');</script>
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="previewGeneration(dev.copperbench.core.workspace.WorkspaceState)">
+<h3>previewGeneration</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">previewGeneration</span><wbr><span class="parameters">(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</span></div>
+<div class="block">Read-only generation source plan; unavailable adapters report unknown instead of inferring ownership.</div>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="workspaceSourceOwnership()">
 <h3>workspaceSourceOwnership</h3>
