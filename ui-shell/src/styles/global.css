@@ -352,6 +352,11 @@ input, select, textarea {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+select option, select optgroup {
+  color: var(--text-main);
+  background-color: var(--bg-input);
+}
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 2px var(--accent-copper-dim);
