@@ -40,6 +40,7 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -113,6 +114,7 @@ class GitHistoryBackend implements AutoCloseable {
 				long startTime = System.currentTimeMillis();
 
 				Repository repo = git.getRepository();
+				excludeTrackedRuntimeFiles();
 				IndexDiff diff = new IndexDiff(repo, Constants.HEAD, new FileTreeIterator(repo));
 				diff.diff();
 
@@ -303,23 +305,39 @@ class GitHistoryBackend implements AutoCloseable {
 		}
 	}
 
-	private static void configureIgnores(File historyDatabaseDir) {
+	private static void configureIgnores(File historyDatabaseDir) throws IOException {
 		File excludeFile = new File(historyDatabaseDir, "info/exclude");
-		if (excludeFile.isFile())
-			return;
-
 		excludeFile.getParentFile().mkdirs();
+		String original = excludeFile.isFile() ? Files.readString(excludeFile.toPath()) : "";
+		String contents = original;
+		if (contents.isEmpty())
+			contents = String.join("\n", List.of(".git/", ".gradle/", ".mcreator/", ".idea/", ".eclipse/",
+					"build/", "run/", "runs/")) + "\n";
+		// The writer lease is mandatory-locked on Windows. Neither it nor the
+		// separate Copperbench history database belongs in workspace checkpoints.
+		for (String runtime : List.of("/.copperbench/", "/.git")) {
+			if (!contents.lines().anyMatch(runtime::equals))
+				contents += (contents.endsWith("\n") ? "" : "\n") + runtime + "\n";
+		}
+		if (!contents.equals(original))
+			Files.writeString(excludeFile.toPath(), contents);
+	}
 
-		List<String> ignores = new ArrayList<>();
-		ignores.add(".git/");
-		ignores.add(".gradle/");
-		ignores.add(".mcreator/");
-		ignores.add(".idea/");
-		ignores.add(".eclipse/");
-		ignores.add("build/");
-		ignores.add("run/");
-		ignores.add("runs/");
-		FileIO.writeStringToFile(String.join("\n", ignores), excludeFile);
+	private void excludeTrackedRuntimeFiles() throws IOException, GitAPIException {
+		// Older checkpoints may already track runtime metadata. Remove only their
+		// index entries; cached removal leaves every live workspace byte in place.
+		DirCache index = git.getRepository().readDirCache();
+		List<String> paths = new ArrayList<>();
+		for (int i = 0; i < index.getEntryCount(); i++) {
+			String path = index.getEntry(i).getPathString();
+			if (path.startsWith(".copperbench/") || path.equals(".git"))
+				paths.add(path);
+		}
+		if (!paths.isEmpty()) {
+			var remove = git.rm().setCached(true);
+			paths.forEach(remove::addFilepattern);
+			remove.call();
+		}
 	}
 
 	private void stageChanges(IndexDiff diff) throws GitAPIException {

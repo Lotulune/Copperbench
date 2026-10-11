@@ -254,6 +254,7 @@ jobs:
         run: >-
           .\gradlew.bat --no-daemon --no-build-cache test
           --tests dev.copperbench.core.workspace.WorkspaceFilesTest
+          --tests dev.copperbench.history.LegacyHistoryRuntimeFilesTest
           --tests dev.copperbench.assets.ResourcePackExportServiceTest
           --tests dev.copperbench.migration.LoaderMigrationServiceTest
           --tests dev.copperbench.migration.UpstreamWorkspaceImportServiceTest
