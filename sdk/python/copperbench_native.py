@@ -375,25 +375,31 @@ class Workspace:
     def discover_field_contract(self, element_type: str) -> dict[str, Any]:
         """Read versioned creation metadata with available/not_exposed/unsupported states.
 
+        Hosts advertising this operation use one query and no contract cache.
         Older Cores retain their original field_contract() format. Missing new
         discovery support is explicit; it never creates a probe or guesses fields.
         """
         if not isinstance(element_type, str) or not element_type.strip():
             raise ValueError("element_type must be a nonempty string")
-        environment, contracts = self._field_contract_environment()
-        operation = environment.get("fieldContractDiscovery")
-        if operation is None:
-            return {"elementType": element_type,
-                    "generatorId": environment.get("generator", {}).get("id", ""),
-                    "contractVersion": "1", "availability": "not_exposed",
-                    "complete": False, "fields": [],
-                    "reasonCode": "FIELD_CONTRACT_DISCOVERY_UNAVAILABLE",
-                    "availableContracts": sorted(contracts),
-                    "alternatives": [{"operation": "get_mod_element_editor",
-                                      "requires": ["elementId"]}]}
-        if operation != "get_mod_element_field_contract":
-            raise NativeApiError("Core returned invalid discovery metadata",
-                                 "NATIVE_INVALID_RESPONSE", environment)
+        operation = "get_mod_element_field_contract"
+        # Native readiness already advertises operation names. On capable hosts,
+        # query only the requested type; do not fetch every contract first.
+        # This catalog is session-local, not a cache of fields or mutable state.
+        if operation not in getattr(self, "operations", ()):
+            environment, contracts = self._field_contract_environment()
+            operation = environment.get("fieldContractDiscovery")
+            if operation is None:
+                return {"elementType": element_type,
+                        "generatorId": environment.get("generator", {}).get("id", ""),
+                        "contractVersion": "1", "availability": "not_exposed",
+                        "complete": False, "fields": [],
+                        "reasonCode": "FIELD_CONTRACT_DISCOVERY_UNAVAILABLE",
+                        "availableContracts": sorted(contracts),
+                        "alternatives": [{"operation": "get_mod_element_editor",
+                                          "requires": ["elementId"]}]}
+            if operation != "get_mod_element_field_contract":
+                raise NativeApiError("Core returned invalid discovery metadata",
+                                     "NATIVE_INVALID_RESPONSE", environment)
         result = self.query(operation, elementType=element_type)
         data = result.get("data")
         if (not isinstance(data, dict) or data.get("elementType") != element_type

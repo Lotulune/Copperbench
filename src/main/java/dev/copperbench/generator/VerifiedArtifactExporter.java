@@ -23,7 +23,7 @@ public final class VerifiedArtifactExporter {
             throw new VerificationException("VERIFIED_ARTIFACT_UNAVAILABLE: A passed packaged-JAR record with artifact and report hashes is required.");
         Path artifact = checkedFile(verification, "artifactPath", "artifactSha256");
         Path report = checkedFile(verification, "reportPath", "reportSha256");
-        validateAcceptance(verification, report);
+        JsonObject acceptance = validateAcceptance(verification, report);
         boolean current = verification.has("sourceSnapshot") && verification.getAsJsonObject("sourceSnapshot").get("sha256")
                 .getAsString().equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
         if (!current && !allowHistorical) throw new VerificationException("VERIFICATION_INPUT_CHANGED: Explicitly select historical export or rerun acceptance.");
@@ -51,18 +51,39 @@ public final class VerifiedArtifactExporter {
         for (String key : new String[]{"artifactSha256", "reportSha256", "passed", "failed", "skipped", "acceptanceExecuted"})
             if (verification.has(key)) receipt.add(key, verification.get(key).deepCopy());
         JsonObject environment = new JsonObject();
-        if (verification.has("environment")) for (String key : new String[]{"generatorId", "loader", "minecraftVersion", "loaderVersion", "javaVersion"})
-            if (verification.getAsJsonObject("environment").has(key)) environment.add(key, verification.getAsJsonObject("environment").get(key).deepCopy());
+        // Preserve observed versions only. Do not substitute the export host's JBR
+        // for the workspace Java release, or copy paths/credentials from the environment.
+        if (verification.has("environment") && verification.get("environment").isJsonObject()) {
+            JsonObject observed = verification.getAsJsonObject("environment");
+            for (String key : new String[]{"generatorId", "loader", "minecraftVersion", "loaderVersion",
+                    "javaVersion", "javaRelease", "fabricApiVersion", "pluginId", "pluginVersion"})
+                if (observed.has(key) && observed.get(key).isJsonPrimitive())
+                    environment.add(key, observed.get(key).deepCopy());
+        }
         receipt.add("environment", environment);
         if (verification.has("sourceSnapshot")) receipt.add("sourceSha256", verification.getAsJsonObject("sourceSnapshot").get("sha256").deepCopy());
-        Files.writeString(destination.resolve("verification.json"), receipt.toString() + "\n", StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
+        // Enrich the portable file, not the strict v1.0 verifiedExport wire envelope.
+        JsonObject portable = receipt.deepCopy();
+        portable.addProperty("portableEvidenceVersion", "1");
+        portable.addProperty("environmentSource", "acceptance_record");
+        for (String key : new String[]{"mode", "minimumTests", "startedAt", "processExitCode"})
+            portable.add(key, verification.get(key).deepCopy());
+        JsonObject coverage = new JsonObject();
+        int required = verification.get("minimumTests").getAsInt();
+        int observed = acceptance.get("acceptanceExecuted").getAsInt();
+        coverage.addProperty("minimumTests", required);
+        coverage.addProperty("acceptanceExecuted", observed);
+        coverage.addProperty("shortfall", Math.max(0, required - observed));
+        coverage.addProperty("status", "sufficient"); // Raw acceptance has already passed validation.
+        portable.add("coverage", coverage);
+        Files.writeString(destination.resolve("verification.json"), portable.toString() + "\n", StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
         JsonObject result = receipt.deepCopy();
         result.addProperty("exportDirectory", destination.toString());
         return result;
     }
 
     /** Revalidate raw cases at the delivery boundary, including recovered task records. */
-    private static void validateAcceptance(JsonObject record, Path report) throws VerificationException {
+    private static JsonObject validateAcceptance(JsonObject record, Path report) throws VerificationException {
         try {
             if (!"packaged_jar".equals(record.get("mode").getAsString())
                     || record.get("processExitCode").getAsBigDecimal().signum() != 0)
@@ -78,6 +99,7 @@ public final class VerifiedArtifactExporter {
                 if (!parsed.get(key).equals(record.get(key)))
                     throw new VerificationException("VERIFIED_ACCEPTANCE_INVALID: Report differs from recorded " + key + ".");
             }
+            return parsed;
         } catch (VerificationException exception) {
             throw exception;
         } catch (RuntimeException exception) {
