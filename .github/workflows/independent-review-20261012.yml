@@ -1,0 +1,185 @@
+name: Independent review 2026-10-12
+
+on:
+  push:
+    branches: [codex/independent-review-20261012]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: Current-source regressions and acceptance identity probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Assess the frozen product, not modifications on this test-only branch.
+          ref: 99f95e1d7ea0e919342414572e31f6dd6e5c4429
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '25.0.2'
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Record actual product identity and prepare dependencies
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/independent-review
+          git rev-parse HEAD > build/reports/independent-review/product-commit.txt
+          git status --porcelain > build/reports/independent-review/initial-source-status.txt
+          java -version 2> build/reports/independent-review/product-java.txt
+          npm ci --prefix ui-shell
+      - name: Re-run all existing Python SDK regressions
+        run: |
+          set -euo pipefail
+          python -W error::ResourceWarning -m unittest discover -s sdk/python -p 'test_*.py' \
+            2>&1 | tee build/reports/independent-review/python.log
+      - name: Re-run existing product regression classes
+        run: |
+          set -euo pipefail
+          xvfb-run -a ./gradlew --no-daemon --no-build-cache test \
+            --tests dev.copperbench.headless.NativeApiSessionTest \
+            --tests dev.copperbench.core.workspace.mcreator.ElementFieldDiscoveryTest \
+            --tests dev.copperbench.core.workspace.mcreator.NativeElementReferenceValidationTest \
+            --tests dev.copperbench.core.workspace.mcreator.GenerationConflictDiagnosticTest \
+            --tests dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest \
+            --tests dev.copperbench.generator.GameTestReportTest \
+            --tests dev.copperbench.generator.VerifiedArtifactExporterTest \
+            --tests dev.copperbench.generator.GameTestCoverageTest \
+            --tests dev.copperbench.generator.ExportEvidenceMetadataTest \
+            2>&1 | tee build/reports/independent-review/baseline-java.log
+          cp -a build/test-results/test build/reports/independent-review/baseline-xml
+      - name: Add independent acceptance-identity probes in the disposable checkout
+        run: |
+          cat > src/test/java/dev/copperbench/generator/IndependentAcceptanceIdentityProbeTest.java <<'JAVA'
+          package dev.copperbench.generator;
+
+          import com.google.gson.JsonObject;
+          import org.junit.jupiter.api.Test;
+          import org.junit.jupiter.api.io.TempDir;
+          import java.nio.charset.StandardCharsets;
+          import java.nio.file.Files;
+          import java.nio.file.Path;
+          import java.time.Instant;
+          import java.util.UUID;
+          import static org.junit.jupiter.api.Assertions.*;
+
+          /** Review-only probes. They do not alter the product or its existing tests. */
+          class IndependentAcceptanceIdentityProbeTest {
+              @TempDir Path root;
+
+              private JsonObject observe(String label, String xml, int minimum) throws Exception {
+                  Path report = root.resolve(label + ".xml");
+                  Files.writeString(report, xml, StandardCharsets.UTF_8);
+                  JsonObject observed = GameTestReport.read(report, Instant.now().minusSeconds(1), minimum);
+                  Path output = Path.of("build/reports/independent-review/probe-observations");
+                  Files.createDirectories(output);
+                  Files.writeString(output.resolve(label + ".xml"), xml, StandardCharsets.UTF_8);
+                  Files.writeString(output.resolve(label + ".json"), observed.toString(), StandardCharsets.UTF_8);
+                  return observed;
+              }
+
+              @Test void sixDistinctBusinessIdentitiesMeetTheSixCaseMinimum() throws Exception {
+                  StringBuilder xml = new StringBuilder("<testsuite tests='6'>");
+                  for (int i = 0; i < 6; i++) xml.append("<testcase classname='acceptance.Contract' name='case-").append(i).append("'/>");
+                  xml.append("</testsuite>");
+                  JsonObject result = observe("distinct-six-control", xml.toString(), 6);
+                  assertEquals("passed", result.get("status").getAsString());
+                  assertEquals(6, result.get("acceptanceExecuted").getAsInt());
+              }
+
+              @Test void sameMethodNameInDifferentClassesRemainsDistinct() throws Exception {
+                  String xml = "<testsuite><testcase classname='acceptance.A' name='check'/><testcase classname='acceptance.B' name='check'/></testsuite>";
+                  assertEquals("passed", observe("different-classes-control", xml, 2).get("status").getAsString());
+              }
+
+              @Test void sixCopiesOfOneIdentityMustNotSatisfySixBusinessCases() throws Exception {
+                  String xml = "<testsuite tests='6'>" + "<testcase classname='acceptance.Contract' name='single-case'/>".repeat(6) + "</testsuite>";
+                  JsonObject result = observe("duplicate-one-identity", xml, 6);
+                  assertEquals("failed", result.get("status").getAsString(),
+                          "Six XML entries for one class/name identity must not substitute for six distinct business cases: " + result);
+              }
+
+              @Test void duplicateIdentitiesAcrossSuitesMustNotInflateTheMinimum() throws Exception {
+                  String cases = "<testcase classname='acceptance.Contract' name='single-case'/>".repeat(3);
+                  String xml = "<testsuites><testsuite name='first'>" + cases + "</testsuite><testsuite name='copied'>" + cases + "</testsuite></testsuites>";
+                  assertEquals("failed", observe("duplicate-across-suites", xml, 6).get("status").getAsString(),
+                          "Copying suite contents must not inflate distinct acceptance coverage");
+              }
+
+              @Test voidHashConsistentDuplicateReportsMustNotAcquireTrustedExport() throws Exception {
+                  // The observation simulates an accidentally duplicated report, not a forged signature.
+                  String xml = "<testsuite>" + "<testcase classname='acceptance.Contract' name='single-case'/>".repeat(6) + "</testsuite>";
+                  Path directory = root.resolve(".copperbench/accepted");
+                  Files.createDirectories(directory);
+                  Path report = directory.resolve("report.xml"), jar = directory.resolve("mod.jar");
+                  Files.writeString(report, xml); Files.writeString(jar, "fixture-jar");
+                  Instant started = Instant.now().minusSeconds(1);
+                  JsonObject record = GameTestReport.read(report, started, 6);
+                  record.addProperty("mode", "packaged_jar"); record.addProperty("minimumTests", 6);
+                  record.addProperty("startedAt", started.toString()); record.addProperty("processExitCode", 0);
+                  record.addProperty("artifactPath", jar.toString()); record.addProperty("artifactSha256", WorkspaceExecutionSnapshot.sha256(jar));
+                  JsonObject snapshot = new JsonObject();
+                  snapshot.addProperty("sha256", WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+                  record.add("sourceSnapshot", snapshot);
+                  JsonObject task = new JsonObject();
+                  task.addProperty("id", UUID.randomUUID().toString()); task.addProperty("state", "succeeded"); task.add("verification", record);
+                  JsonObject outcomes = new JsonObject();
+                  for (boolean historical : new boolean[]{false, true}) {
+                      try {
+                          JsonObject receipt = VerifiedArtifactExporter.export(root, task, UUID.randomUUID(), historical);
+                          outcomes.add(historical ? "historicalAllowed" : "currentOnly", receipt);
+                      } catch (VerifiedArtifactExporter.VerificationException rejected) {
+                          outcomes.addProperty(historical ? "historicalAllowed" : "currentOnly", rejected.code());
+                      }
+                  }
+                  Path output = Path.of("build/reports/independent-review/probe-observations");
+                  Files.createDirectories(output);
+                  Files.writeString(output.resolve("duplicate-export.json"), outcomes.toString());
+                  Files.writeString(output.resolve("duplicate-export-record.json"), record.toString());
+                  assertTrue(outcomes.get("currentOnly").isJsonPrimitive() && outcomes.get("historicalAllowed").isJsonPrimitive(),
+                          "Matching hashes do not make repeated identities independent business cases: " + outcomes);
+              }
+          }
+          JAVA
+          # Correct the probe declaration before compilation; product source is untouched.
+          sed -i 's/@Test voidHashConsistent/@Test void hashConsistent/' src/test/java/dev/copperbench/generator/IndependentAcceptanceIdentityProbeTest.java
+      - name: Execute the new negative probes against the unchanged product
+        run: |
+          set -euo pipefail
+          xvfb-run -a ./gradlew --no-daemon --no-build-cache test \
+            --tests dev.copperbench.generator.IndependentAcceptanceIdentityProbeTest \
+            2>&1 | tee build/reports/independent-review/identity-probes.log
+      - name: Preserve exact source slices and observations
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/independent-review/source
+          cp -a sdk build/reports/independent-review/source/
+          mkdir -p build/reports/independent-review/source/ui-core
+          cp -a ui-core/schemas build/reports/independent-review/source/ui-core/
+          cp src/main/java/dev/copperbench/generator/GameTestReport.java build/reports/independent-review/source/
+          cp src/main/java/dev/copperbench/generator/VerifiedArtifactExporter.java build/reports/independent-review/source/
+          cp src/test/java/dev/copperbench/generator/IndependentAcceptanceIdentityProbeTest.java build/reports/independent-review/source/ || true
+          git status --porcelain > build/reports/independent-review/final-source-status.txt
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: independent-review-20261012
+          path: |
+            build/reports/independent-review/
+            build/test-results/test/
+          if-no-files-found: error
+          retention-days: 30
