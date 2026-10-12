@@ -27,6 +27,9 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -49,6 +52,9 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 	@Nullable private final CefMessageRouter router;
 	@Nullable private final CefBrowser expectedBrowser;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	// Preserve request order without doing filesystem or Core work on Chromium's message-router thread.
+	private final ExecutorService requests = Executors.newSingleThreadExecutor(
+			Thread.ofVirtual().name("copperbench-core-", 0).factory());
 	@Nullable private WebView lifecycleWebView;
 	@Nullable private WebView.PageLoadListener loadStartListener;
 	@Nullable private Runnable closeListener;
@@ -166,32 +172,27 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 		String payload = request.substring(queryPrefix.length());
 		try {
 			requireWorkspaceScope(payload);
-			JsonObject envelope = JsonParser.parseString(payload).getAsJsonObject();
-			if (envelope.has("operation") && java.util.Set.of("get_blockbench_environment", "get_blockbench_task",
-					"list_blockbench_tasks", "begin_blockbench_task", "finish_blockbench_task", "cancel_blockbench_task",
-					"preview_blockbench_import", "import_blockbench_task", "recover_blockbench_import")
-					.contains(envelope.get("operation").getAsString())) {
-				// A connection probe can take seconds; keep the Chromium message-router thread responsive.
-				Thread.ofVirtual().name("blockbench-discovery").start(() -> {
-					try {
-						String result = endpoint.handle(payload);
-						if (!closed.get()) callback.success(result != null ? result : "{}");
-					} catch (RuntimeException exception) {
-						if (!closed.get()) callback.failure(400, "Blockbench environment query failed");
-					}
-				});
-				return true;
-			}
-			String resultJson = endpoint.handle(payload);
-			callback.success(resultJson != null ? resultJson : "{}");
-		} catch (IllegalArgumentException | IllegalStateException | JsonParseException e) {
-			LOG.warn("UI-Core bridge query failed: {}", e.getMessage(), e);
-			callback.failure(400, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
-		} catch (RuntimeException e) {
-			LOG.error("Unexpected UI-Core bridge failure", e);
-			callback.failure(500, "UI-Core bridge request failed");
+			requests.execute(() -> handleRequest(payload, callback));
+		} catch (RejectedExecutionException exception) {
+			callback.failure(503, "UI-Core bridge transport is closed");
+		} catch (IllegalArgumentException | IllegalStateException | JsonParseException exception) {
+			callback.failure(400, exception.getMessage() != null ? exception.getMessage() : exception.getClass().getSimpleName());
 		}
 		return true;
+	}
+
+	private void handleRequest(String payload, CefQueryCallback callback) {
+		if (closed.get()) return;
+		try {
+			String resultJson = endpoint.handle(payload);
+			if (!closed.get()) callback.success(resultJson != null ? resultJson : "{}");
+		} catch (IllegalArgumentException | IllegalStateException | JsonParseException e) {
+			LOG.warn("UI-Core bridge query failed: {}", e.getMessage(), e);
+			if (!closed.get()) callback.failure(400, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+		} catch (RuntimeException e) {
+			LOG.error("Unexpected UI-Core bridge failure", e);
+			if (!closed.get()) callback.failure(500, "UI-Core bridge request failed");
+		}
 	}
 
 	private void requireWorkspaceScope(String payload) {
@@ -209,7 +210,7 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 
 	@Override
 	public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
-		// Queries in UI-Core bridge are transactional; no background cancellation is required.
+		// Accepted Core commands remain transactional even if the browser stops waiting for their result.
 	}
 
 	public static String generateBootstrapScript(UUID workspaceId, String queryPrefix) {
@@ -283,6 +284,7 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 	@Override
 	public void close() {
 		if (closed.compareAndSet(false, true)) {
+			requests.shutdownNow();
 			if (eventSubscription != null) {
 				try {
 					eventSubscription.close();

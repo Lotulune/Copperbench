@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,6 +34,53 @@ class LocalHistoryServiceTest {
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-17T00:00:00Z"), ZoneOffset.UTC);
 
 	@TempDir Path workspace;
+
+	@Test void recoveryStatusIsReadOnlyEvenWhileTheIndexIsLocked() throws Exception {
+		Path source = workspace.resolve("workspace.mcreator");
+		Files.writeString(source, "baseline");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			RecoveryPoint baseline = history.createRecoveryPoint(new RecoveryPointRequest("Baseline", Actor.UI, ""));
+			Path gitDirectory = workspace.resolve(".copperbench/local-history.git");
+			byte[] index = Files.readAllBytes(gitDirectory.resolve("index"));
+			List<String> objects;
+			try (var files = Files.walk(gitDirectory.resolve("objects"))) {
+				objects = files.filter(Files::isRegularFile).map(Path::toString).sorted().toList();
+			}
+			Path lock = gitDirectory.resolve("index.lock");
+			Files.writeString(lock, "held by another writer");
+			assertEquals(baseline.id(), history.currentRecoveryPointId());
+			Files.writeString(source, "external edit");
+			assertNull(history.currentRecoveryPointId());
+			assertArrayEquals(index, Files.readAllBytes(gitDirectory.resolve("index")));
+			assertEquals("held by another writer", Files.readString(lock));
+			try (var files = Files.walk(gitDirectory.resolve("objects"))) {
+				assertEquals(objects, files.filter(Files::isRegularFile).map(Path::toString).sorted().toList());
+			}
+		}
+	}
+
+	@Test void recoveryStatusDetectsNewDeletedAndReplacedFilesButIgnoresEmptyAndExcludedDirectories() throws Exception {
+		Path source = workspace.resolve("source.txt");
+		Files.writeString(source, "baseline");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			RecoveryPoint baseline = history.createRecoveryPoint(new RecoveryPointRequest("Baseline", Actor.UI, ""));
+			Files.createDirectories(workspace.resolve("empty/nested"));
+			Files.createDirectories(workspace.resolve("build"));
+			Files.writeString(workspace.resolve("build/ignored.txt"), "build output");
+			assertEquals(baseline.id(), history.currentRecoveryPointId());
+			Path added = workspace.resolve("new/directory/file.txt");
+			Files.createDirectories(added.getParent());
+			Files.writeString(added, "new input");
+			assertNull(history.currentRecoveryPointId());
+			Files.delete(added);
+			assertEquals(baseline.id(), history.currentRecoveryPointId());
+			Files.delete(source);
+			assertNull(history.currentRecoveryPointId());
+			Files.createDirectory(source);
+			Files.writeString(source.resolve("nested.txt"), "replacement directory");
+			assertNull(history.currentRecoveryPointId());
+		}
+	}
 
 	@Test void rewritingTrackedWorkspaceFileInvalidatesCurrentRecoveryPoint() throws Exception {
 		Path sentinel = workspace.resolve("stage13-history-sentinel.txt");

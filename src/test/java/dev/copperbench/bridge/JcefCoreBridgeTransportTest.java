@@ -27,6 +27,7 @@ import dev.copperbench.core.workspace.WorkspaceState;
 import org.cef.callback.CefQueryCallback;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -73,6 +74,8 @@ class JcefCoreBridgeTransportTest {
 		transport = new JcefCoreBridgeTransport(WORKSPACE_ID, endpoint, dispatchedScripts::add);
 	}
 
+	@AfterEach void closeTransport() { transport.close(); }
+
 	@Test
 	void handlesQueriesWithConfiguredPrefixAndDelegatesToEndpoint() {
 		TestQueryCallback handshakeCallback = new TestQueryCallback();
@@ -86,6 +89,7 @@ class JcefCoreBridgeTransportTest {
 				JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + handshakeEnvelope, false, handshakeCallback);
 
 		assertTrue(handledHandshake);
+		handshakeCallback.await();
 		assertNotNull(handshakeCallback.successResponse);
 		assertEquals("1.0", JsonParser.parseString(handshakeCallback.successResponse)
 				.getAsJsonObject().get("selectedSchemaVersion").getAsString());
@@ -98,6 +102,7 @@ class JcefCoreBridgeTransportTest {
 				JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + queryEnvelope, false, queryCallback);
 
 		assertTrue(handledQuery);
+		queryCallback.await();
 		assertNotNull(queryCallback.successResponse);
 		assertEquals("1.0", JsonParser.parseString(queryCallback.successResponse)
 				.getAsJsonObject().get("schemaVersion").getAsString());
@@ -145,6 +150,7 @@ class JcefCoreBridgeTransportTest {
 				JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + invalidSchemaQuery, false, callback);
 
 		assertTrue(handled);
+		callback.await();
 		assertNull(callback.successResponse);
 		assertEquals(400, callback.failureCode);
 		assertTrue(callback.failureMessage.contains("Unsupported UI-Core schema version"));
@@ -154,8 +160,57 @@ class JcefCoreBridgeTransportTest {
 				JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + "invalid-json-content", false, malformedCallback);
 
 		assertTrue(handledMalformed);
+		malformedCallback.await();
 		assertNull(malformedCallback.successResponse);
 		assertEquals(400, malformedCallback.failureCode);
+	}
+
+	@Test void coreRequestsLeaveTheBrowserThreadFreeAndKeepTheirOrder() throws Exception {
+		var entered = new java.util.concurrent.CountDownLatch(1);
+		var release = new java.util.concurrent.CountDownLatch(1);
+		var second = new TestQueryCallback();
+		String envelope = JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + UiCore.wireGson().toJson(
+				Query.of(idSupplier.get(), WORKSPACE_ID, Operation.GET_WORKBENCH, new JsonObject()));
+		CefQueryCallback first = new CefQueryCallback() {
+			@Override public void success(String response) {
+				entered.countDown();
+				try { release.await(5, java.util.concurrent.TimeUnit.SECONDS); }
+				catch (InterruptedException exception) { Thread.currentThread().interrupt(); }
+			}
+			@Override public void failure(int code, String message) { fail(message); }
+		};
+		try {
+			assertTimeoutPreemptively(java.time.Duration.ofSeconds(2),
+					() -> assertTrue(transport.onQuery(null, null, 1, envelope, false, first)));
+			assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+			assertTrue(transport.onQuery(null, null, 2, envelope, false, second));
+			assertFalse(second.completed.isDone(), "The second request must not overtake an active request");
+		} finally { release.countDown(); }
+		second.await();
+		assertNotNull(second.successResponse);
+	}
+
+	@Test void closeDiscardsQueuedCoreRequests() throws Exception {
+		var entered = new java.util.concurrent.CountDownLatch(1);
+		var interrupted = new java.util.concurrent.CountDownLatch(1);
+		String envelope = JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + UiCore.wireGson().toJson(
+				Query.of(idSupplier.get(), WORKSPACE_ID, Operation.GET_WORKBENCH, new JsonObject()));
+		CefQueryCallback first = new CefQueryCallback() {
+			@Override public void success(String response) {
+				entered.countDown();
+				try { new java.util.concurrent.CountDownLatch(1).await(); }
+				catch (InterruptedException exception) { interrupted.countDown(); Thread.currentThread().interrupt(); }
+			}
+			@Override public void failure(int code, String message) { fail(message); }
+		};
+		assertTimeoutPreemptively(java.time.Duration.ofSeconds(2),
+				() -> assertTrue(transport.onQuery(null, null, 1, envelope, false, first)));
+		assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+		var queued = new TestQueryCallback();
+		assertTrue(transport.onQuery(null, null, 2, envelope, false, queued));
+		transport.close();
+		assertTrue(interrupted.await(5, java.util.concurrent.TimeUnit.SECONDS));
+		assertFalse(queued.completed.isDone());
 	}
 
 	@Test
@@ -218,6 +273,7 @@ class JcefCoreBridgeTransportTest {
 				JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + commandEnvelope, false, callback);
 
 		assertTrue(handled);
+		callback.await();
 		assertNotNull(callback.successResponse);
 		assertEquals("committed", JsonParser.parseString(callback.successResponse)
 				.getAsJsonObject().get("status").getAsString());
@@ -254,6 +310,7 @@ class JcefCoreBridgeTransportTest {
 	}
 
 	private static final class TestQueryCallback implements CefQueryCallback {
+		private final java.util.concurrent.CompletableFuture<Void> completed = new java.util.concurrent.CompletableFuture<>();
 		private String successResponse;
 		private int failureCode = -1;
 		private String failureMessage;
@@ -261,12 +318,19 @@ class JcefCoreBridgeTransportTest {
 		@Override
 		public void success(String response) {
 			this.successResponse = response;
+			completed.complete(null);
 		}
 
 		@Override
 		public void failure(int error_code, String error_message) {
 			this.failureCode = error_code;
 			this.failureMessage = error_message;
+			completed.complete(null);
+		}
+
+		void await() {
+			try { completed.get(5, java.util.concurrent.TimeUnit.SECONDS); }
+			catch (Exception exception) { throw new AssertionError("Bridge request did not complete", exception); }
 		}
 	}
 }

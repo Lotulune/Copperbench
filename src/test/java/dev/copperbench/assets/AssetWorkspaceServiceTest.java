@@ -64,6 +64,25 @@ class AssetWorkspaceServiceTest {
 		assertTrue(service.search("missing", null).isEmpty());
 	}
 
+	@Test void preservesAllSupportedRootsAndPackMetadataWhilePruningUnrelatedTrees() throws IOException {
+		List<String> supported = List.of("models/authoring.bbmodel", "resourcepacks/demo/pack.mcmeta",
+				"src/main/resources/assets/demo/models/item/test.json", "src/main/assets/demo/lang/en_us.json",
+				"pack.mcmeta", "pack.png", "src/main/pack.mcmeta", "src/main/pack.png");
+		for (String relative : supported) {
+			Path file = workspace.resolve(relative);
+			Files.createDirectories(file.getParent());
+			Files.writeString(file, "{}");
+		}
+		for (String directory : List.of(".scratch", ".gradle", "build", "run", "output", "references", "src/main/java")) {
+			Path file = workspace.resolve(directory).resolve("assets/demo/irrelevant.json");
+			Files.createDirectories(file.getParent());
+			Files.writeString(file, "{broken");
+		}
+		List<String> paths = new AssetWorkspaceService(workspace).list().stream().map(AssetDescriptor::relativePath).toList();
+		assertEquals(3 + supported.size(), paths.size());
+		assertTrue(paths.containsAll(supported));
+	}
+
 	@Test
 	void buildsReferencesAndReportsMissingTargets() {
 		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();

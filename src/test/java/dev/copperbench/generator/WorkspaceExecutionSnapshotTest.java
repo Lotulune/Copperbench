@@ -13,6 +13,51 @@ import static org.junit.jupiter.api.Assertions.*;
 class WorkspaceExecutionSnapshotTest {
     @TempDir Path temp;
 
+    @Test void rejectsNewerInputsBeforeReadingLargeContents() throws Exception {
+        Path root = temp.resolve("query");
+        Path input = root.resolve("reference.bin");
+        write(input, "before");
+        String fingerprint = WorkspaceExecutionSnapshot.fingerprint(root, () -> false);
+        var capturedAt = Files.getLastModifiedTime(input);
+        // A sparse file exceeds the content-hashing limit. A stale query must reject it from metadata.
+        Path large = root.resolve("later.bin");
+        try (var file = Files.newByteChannel(large, java.util.Set.of(java.nio.file.StandardOpenOption.CREATE_NEW,
+                java.nio.file.StandardOpenOption.WRITE, java.nio.file.StandardOpenOption.SPARSE))) {
+            file.position(3L * 1024 * 1024 * 1024);
+            file.write(java.nio.ByteBuffer.wrap(new byte[]{0}));
+        }
+        Files.setLastModifiedTime(large, java.nio.file.attribute.FileTime.fromMillis(capturedAt.toMillis() + 1000));
+        assertFalse(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+    }
+
+    @Test void matchingTimestampsStillRequireFullContentVerificationAndDetectRemovedInputs() throws Exception {
+        Path root = temp.resolve("query");
+        Path input = root.resolve("build.gradle");
+        write(input, "before");
+        String fingerprint = WorkspaceExecutionSnapshot.fingerprint(root, () -> false);
+        var capturedAt = Files.getLastModifiedTime(input);
+        assertTrue(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+        Files.writeString(input, "edited");
+        Files.setLastModifiedTime(input, capturedAt);
+        assertFalse(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+        Files.delete(input);
+        assertFalse(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+    }
+
+    @Test void newerRuntimeFilesDoNotInvalidateInputsAndCancellationIsHonored() throws Exception {
+        Path root = temp.resolve("query");
+        Path input = root.resolve("build.gradle");
+        write(input, "before");
+        String fingerprint = WorkspaceExecutionSnapshot.fingerprint(root, () -> false);
+        var capturedAt = Files.getLastModifiedTime(input);
+        Path runtime = root.resolve(".copperbench/task-runs/result.json");
+        write(runtime, "runtime");
+        Files.setLastModifiedTime(runtime, java.nio.file.attribute.FileTime.fromMillis(capturedAt.toMillis() + 1000));
+        assertTrue(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+        assertThrows(WorkspaceExecutionSnapshot.SnapshotException.class,
+                () -> WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> true));
+    }
+
     @Test void copiesNativeSourcesBuildScriptsTestsAndEntrypointsButExcludesWorldsAndCredentials() throws Exception {
         Path root = temp.resolve("project");
         String[] inputs = {"example.mcreator", "build.gradle", "settings.gradle", "gradlew", "gradle/wrapper/gradle-wrapper.jar",

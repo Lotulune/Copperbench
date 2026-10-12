@@ -14,6 +14,8 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Dispatch Core bridge requests in order off Chromium's message-router thread, prune non-asset directories from resource listing, and reject dependency snapshots with newer workspace inputs before hashing contents or loading unusable vanilla catalogs.
+- Compare recovery points with the working tree without staging files or writing Git objects during history/health reads; stop comparing a recovery point at its first changed input.
 - Align Native missing-contract errors and preserve diagnostic braces across SDK/UI consumers; expose safe per-file generation conflict navigation without changing source ownership.
 - Use one Native discovery query on advertised hosts, retain compatible GameTest shortfall codes, and enrich portable verified-export evidence with observed toolchain and acceptance metadata.
 - Label the legacy HTTP eval harness as protocol-contract coverage, retain compatible case identifiers, and verify both SDK conflict codes and original Core diagnostics.
