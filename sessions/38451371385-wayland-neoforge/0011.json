@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "913bd6c5-78bf-411d-84f0-a4d932e7e201",
+    "action_id": "wn-resume-pause",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "escape"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38451371385-wayland-neoforge",
+  "sequence": 11
+}
