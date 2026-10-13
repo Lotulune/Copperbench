@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "72964871-7499-48a9-be68-3a66ba653f23",
+    "action_id": "xn-first-save-title",
+    "actions": [
+      {
+        "type": "click",
+        "x": 425,
+        "y": 347,
+        "button": "left",
+        "frame_id": "b915e8b7-023e-413d-b3a7-be113931ff58"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 26
+}
