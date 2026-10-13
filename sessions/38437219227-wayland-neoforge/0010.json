@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "537d2587-c6dd-40b6-bffc-fdbf14f85132",
+    "action_id": "create-reviewed-exact-world-once",
+    "actions": [
+      {
+        "type": "click",
+        "x": 267,
+        "y": 448,
+        "frame_id": "397c4565-65f5-4b8c-802f-2a257108d7ed"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1700
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 10
+}
