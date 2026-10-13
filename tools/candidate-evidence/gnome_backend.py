@@ -18,6 +18,7 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gio, GLib, Gdk
 from PIL import Image
 from minecraft_control_bridge.errors import BridgeError
+from minecraft_control_bridge.backends.x11 import X11Backend
 
 KEYSYM={'enter':'Return','escape':'Escape','space':'space','shift':'Shift_L','ctrl':'Control_L','alt':'Alt_L',
         'tab':'Tab','backspace':'BackSpace','up':'Up','down':'Down','left':'Left','right':'Right',
@@ -81,6 +82,13 @@ class GnomeWaylandBackend:
             self.remote=self._call('org.gnome.Mutter.RemoteDesktop','/org/gnome/Mutter/RemoteDesktop',
                                    'org.gnome.Mutter.RemoteDesktop','CreateSession')[0]
             self._input('Start')
+            # Mutter creates each virtual device on its first notification. Release
+            # unpressed controls on these new devices before accepting user input;
+            # otherwise the first real key/button can be consumed by device setup.
+            self._input('NotifyKeyboardKeysym',GLib.Variant('(ub)',(Gdk.keyval_from_name('Shift_L'),False)))
+            self._input('NotifyPointerButton',GLib.Variant('(ib)',(272,False)))
+            time.sleep(.1)
+            self.input_initialization={'virtualKeyboardUnpressedRelease':True,'virtualPointerUnpressedRelease':True}
         except BaseException:
             self._observer('Disarm');self.remote=None;raise
 
@@ -154,3 +162,30 @@ class GnomeWaylandBackend:
     def close(self):
         try:self.disarm()
         finally:self.capture_dir.cleanup()
+
+
+class GnomeX11Backend(X11Backend):
+    """Use the real GNOME foreground state while retaining X11 capture and input."""
+    def __init__(self):
+        super().__init__()
+        self.bus=Gio.bus_get_sync(Gio.BusType.SESSION,None)
+
+    def _observer(self,method,arguments=None):
+        return self.bus.call_sync('org.gnome.Shell','/dev/copperbench/ValidationObserver',
+            'dev.copperbench.ValidationObserver',method,arguments,None,Gio.DBusCallFlags.NONE,3000,None).unpack()
+
+    def _state(self):return json.loads(self._observer('State')[0])
+
+    def focus(self,window_id):
+        selected=super().window(window_id)
+        matches=[w for w in self._state()['windows'] if w['pid']==selected['pid'] and w['title']==selected['title']]
+        if len(matches)!=1:raise BridgeError('FOCUS_TARGET_AMBIGUOUS','GNOME cannot uniquely identify this exact X11 window')
+        self._observer('Focus',GLib.Variant('(s)',(matches[0]['window_id'],)))
+        time.sleep(.25)
+        return self.window(window_id)['focused']
+
+    def window(self,window_id):
+        row=super().window(window_id)
+        state=self._state()
+        row['focused']=row['focused'] and not state['overview'] and not state['screenShield'] and not state['modalCount']
+        return row

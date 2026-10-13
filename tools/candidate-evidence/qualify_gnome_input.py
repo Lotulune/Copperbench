@@ -45,8 +45,8 @@ if os.environ['P263_DESKTOP']=='wayland':
     from gnome_backend import GnomeWaylandBackend
     backend=GnomeWaylandBackend()
 else:
-    from minecraft_control_bridge.backends.x11 import X11Backend
-    backend=X11Backend()
+    from gnome_backend import GnomeX11Backend
+    backend=GnomeX11Backend()
 engine=Engine(backend);child=subprocess.Popen([sys.executable,__file__,'--child',str(state)])
 record={'scope':'Actual GTK callbacks and screenshots; no Minecraft player acceptance','status':'running'}
 try:
@@ -57,6 +57,7 @@ try:
         time.sleep(.1)
     assert window is not None,'Probe window was not found'
     attached=engine.attach(window['window_id'],root/'bridge',focus=True)
+    record['inputInitialization']=getattr(backend,'input_initialization',None)
     sid=attached['session_id'];time.sleep(.5)
     before=engine.observe(sid);save(root/'before.json',before)
     result=engine.step(sid,'probe-text',[{'type':'text','text':'abc123'},{'type':'wait','duration_ms':500}])

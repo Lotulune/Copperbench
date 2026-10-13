@@ -29,6 +29,7 @@ export default class ValidationObserver extends Extension {
             const window = actor.meta_window;
             const rect = window.get_frame_rect();
             return {window_id: String(window.get_stable_sequence()), pid: window.get_pid(),
+                x11_window_id: typeof window.get_xwindow === 'function' ? String(window.get_xwindow()) : null,
                 title: window.get_title(), client_type: window.get_client_type(),
                 native_wayland: window.get_client_type() === Meta.WindowClientType.WAYLAND,
                 focused: !blocked && window.has_focus(),

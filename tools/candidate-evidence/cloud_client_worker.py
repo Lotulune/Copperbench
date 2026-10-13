@@ -72,8 +72,8 @@ try:
         from gnome_backend import GnomeWaylandBackend
         backend=GnomeWaylandBackend()
     else:
-        from minecraft_control_bridge.backends.x11 import X11Backend
-        backend=X11Backend()
+        from gnome_backend import GnomeX11Backend
+        backend=GnomeX11Backend()
     engine=Engine(backend)
     def launch():
         global attempt,task_id
@@ -114,7 +114,8 @@ try:
         try:
             if operation in ('doctor','list_windows'):result=getattr(engine,operation)()
             elif operation=='status':
-                result={'session':record,'activeTask':read(out/'active-task.json') if (out/'active-task.json').exists() else None}
+                result={'session':record,'activeTask':read(out/'active-task.json') if (out/'active-task.json').exists() else None,
+                        'compositorState':backend._state()}
             elif operation=='attach':
                 selected=backend.window(arguments['window_id']);pid=selected['pid']
                 process_cwd=Path(f'/proc/{pid}/cwd').resolve()
@@ -122,6 +123,7 @@ try:
                 assert process_cwd.is_relative_to(root) or str(root) in cmdline,'Window does not belong to the installed test workspace'
                 save(out/f'run-{attempt}-client-process.json',{'pid':pid,'cwd':str(process_cwd),'commandLine':cmdline,'window':selected})
                 result=engine.attach(arguments['window_id'],out/'bridge',root/'run',focus=arguments.get('focus',False))
+                save(out/f'run-{attempt}-input-initialization.json',getattr(backend,'input_initialization',None))
             elif operation in ('observe','step','record_verification','stop','detach'):
                 result=getattr(engine,operation)(**arguments)
             elif operation=='reopen':
