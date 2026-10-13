@@ -1,0 +1,36 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "action_id": "xn-manual-cap16",
+    "actions": [
+      {
+        "type": "click",
+        "x": 319,
+        "y": 374,
+        "button": "left",
+        "frame_id": "004e8b7f-2bdd-4466-9977-6ba2f49516e8"
+      },
+      {
+        "type": "click",
+        "x": 283,
+        "y": 374,
+        "button": "left",
+        "frame_id": "004e8b7f-2bdd-4466-9977-6ba2f49516e8"
+      },
+      {
+        "type": "click",
+        "x": 319,
+        "y": 374,
+        "button": "left",
+        "frame_id": "004e8b7f-2bdd-4466-9977-6ba2f49516e8"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 15
+}
