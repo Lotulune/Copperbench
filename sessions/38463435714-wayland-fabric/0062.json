@@ -1,0 +1,17 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "84fbca66-bbd2-4bf8-98a5-9efa9d876064",
+    "expectation": "New native Wayland PID15519 reopened exact P263-fabric-wayland-38463435714. Initial restored scene shows same Camp Post and kit16/1/2/3 plus post1. Read-only queries confirmed score11 and gold(12,80,12) without rerunning function. The scene/player position changed between initial load and score query without movement commands; exact final-position equality is not asserted, and join log versus first-save coordinates must be audited separately.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-f9f3aa7a-8deb-4b36-ac2e-33ef606065c9.png",
+      "frame-c3a5ffa1-7eb5-4b44-8ddb-46c95fd0cb90.png",
+      "frame-8c88b524-c61b-4b34-a5ce-c02ea76d3795.png",
+      "frame-c2ae6ef9-3b02-479f-8049-ef9a2acb4314.png"
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 62
+}
