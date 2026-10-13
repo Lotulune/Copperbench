@@ -1,0 +1,31 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "67c12b92-f2fb-412f-80af-1ff58e79136d",
+    "action_id": "player-take-two-crafted-kits",
+    "actions": [
+      {
+        "type": "click",
+        "x": 574,
+        "y": 146,
+        "frame_id": "a7cf8946-34f3-4ff4-a343-d1faf4bf6c82",
+        "settle_ms": 300,
+        "duration_ms": 150
+      },
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "frame_id": "a7cf8946-34f3-4ff4-a343-d1faf4bf6c82",
+        "settle_ms": 300,
+        "duration_ms": 150
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 25
+}
