@@ -50,6 +50,13 @@ try:
     # The process still needs this exact desktop socket, while product data/cache remain isolated.
     for key in ('XDG_RUNTIME_DIR','DISPLAY','XAUTHORITY','WAYLAND_DISPLAY','DBUS_SESSION_BUS_ADDRESS','XDG_SESSION_TYPE'):
         if key in os.environ:env[key]=os.environ[key]
+    # Loom 1.17.21 defaults useXvfb to true for client runs when CI=true,
+    # even with an existing DISPLAY. This task already owns a real GNOME
+    # compositor; disable that automatic replacement for the product process
+    # only. Keep GITHUB_ACTIONS and the real runner identity unchanged.
+    record['clientCiEnvironment']={'inherited':env.get('CI'),'effective':'false',
+        'reason':'Use the task GNOME display instead of Loom automatic Xvfb'}
+    env['CI']='false'
     env['SDL_VIDEO_DRIVER']='wayland' if desktop=='wayland' else 'x11'
     if desktop=='xorg':env['SDL_VIDEO_FORCE_EGL']='1'
     record['renderingRequest']={'sdlVideoDriver':env['SDL_VIDEO_DRIVER'],
@@ -149,7 +156,13 @@ try:
                 process_cwd=Path(f'/proc/{pid}/cwd').resolve()
                 cmdline=Path(f'/proc/{pid}/cmdline').read_bytes().replace(b'\0',b' ').decode('utf-8','replace')
                 assert process_cwd.is_relative_to(root) or str(root) in cmdline,'Window does not belong to the installed test workspace'
-                save(out/f'run-{attempt}-client-process.json',{'pid':pid,'cwd':str(process_cwd),'commandLine':cmdline,'window':selected})
+                display_keys=('DISPLAY','XAUTHORITY') if desktop=='xorg' else ('WAYLAND_DISPLAY','XDG_RUNTIME_DIR')
+                process_fields=Path(f'/proc/{pid}/environ').read_bytes().split(b'\0')
+                process_display={k.decode():v.decode() for field in process_fields if b'=' in field
+                    for k,v in [field.split(b'=',1)] if k.decode() in display_keys}
+                assert process_display=={key:env[key] for key in display_keys},'Client is attached to another display'
+                save(out/f'run-{attempt}-client-process.json',{'pid':pid,'cwd':str(process_cwd),'commandLine':cmdline,
+                    'displayEnvironment':process_display,'window':selected})
                 result=engine.attach(arguments['window_id'],out/'bridge',root/'run',focus=arguments.get('focus',False))
                 save(out/f'run-{attempt}-input-initialization.json',getattr(backend,'input_initialization',None))
             elif operation in ('observe','step','record_verification','stop','detach'):
