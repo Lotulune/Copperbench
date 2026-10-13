@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "create-reviewed-exact-superflat-world-once",
+    "actions": [
+      {
+        "type": "click",
+        "x": 267,
+        "y": 448,
+        "frame_id": "f92a0f9a-14f0-496d-8d3e-fa65a6184d03"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1700
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 12
+}
