@@ -1,0 +1,17 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "d1990ac5-aa4a-4a41-9dbf-208b86efa56a",
+    "expectation": "A new Native-launched PID14933 reopened exact P263-neo-xorg-38462584079. Restored Camp Post and inventory kit16/1/2/3 plus post1 match first save. Read-only queries confirm camp_probe camp_count=11 and gold at(12,80,12); function was not rerun. Saved NBT comparison remains a separate check.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-11680280-4ed4-47f9-aa37-2b2d59ed7ea6.png",
+      "frame-7b1a78f5-0238-4204-8889-2ea530376855.png",
+      "frame-685df15b-c272-4a1f-b236-5cbbdb178b47.png",
+      "frame-2eb2623a-ec7e-449b-8b7d-68a3c633cfaf.png"
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 52
+}
