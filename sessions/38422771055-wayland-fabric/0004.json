@@ -1,0 +1,9 @@
+{
+  "operation": "check_focus_loss",
+  "arguments": {
+    "session_id": "8a7519a7-7b2f-4ef8-aa91-0d9ecc5ff177",
+    "action_id": "real-minecraft-focus-loss"
+  },
+  "sessionKey": "38422771055-wayland-fabric",
+  "sequence": 4
+}
