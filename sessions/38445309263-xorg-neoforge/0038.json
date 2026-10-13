@@ -1,0 +1,15 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "a2b753cb-1cba-4497-9ce3-6db652e872cc",
+    "expectation": "A new installed NeoForge Xorg PID16071 reopened exact P263-neo-xorg-38445309263 after the first client normally exited. The player-placed Camp Post and hotbar kits16/1/2 with one remaining Post are visibly restored. Serialized-state comparison and normal second task terminal are separate acceptance checks.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-dfb36c87-db34-480f-9862-43fe014983f7.png",
+      "frame-4de26979-f0a1-4f1b-be7c-6e409b8e6a5f.png"
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 38
+}
