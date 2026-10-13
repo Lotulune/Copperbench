@@ -1,0 +1,24 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-singleplayer",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 203,
+        "frame_id": "2f6d0b4e-d4b0-41af-affb-c542cdf34ed7",
+        "button": "left",
+        "settle_ms": 100,
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 900
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 6
+}
