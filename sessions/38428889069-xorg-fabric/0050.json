@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "759e3278-b037-48bd-bded-08ebaef32aaa",
+    "action_id": "save-reopened-world-to-title",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 348,
+        "frame_id": "be414408-c767-44f0-a254-68f237f76446"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 50
+}
