@@ -18,7 +18,7 @@ def main():
     if args.run<1 or not 1<=args.sequence<=9999:raise ValueError('Invalid run or sequence')
     value=json.loads(args.request.read_text(encoding='utf-8-sig'))
     allowed={'doctor','list_windows','status','attach','observe','step','record_verification','stop','detach',
-             'reopen','archive_world','finish'}
+             'reopen','archive_world','finish','check_focus_loss'}
     if value.get('operation') not in allowed:raise ValueError('Unknown operation')
     key=f'{args.run}-{args.desktop}-{args.loader}'
     value.update(sessionKey=key,sequence=args.sequence)

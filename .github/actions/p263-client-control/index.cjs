@@ -8,7 +8,7 @@ const evidence = process.env.P263_CLIENT_EVIDENCE;
 const desktopEvidence = process.env.P263_DESKTOP_EVIDENCE;
 const key = `${process.env.GITHUB_RUN_ID}-${process.env.P263_DESKTOP}-${process.env.P263_LOADER}`;
 const allowed = new Set(['doctor','list_windows','status','attach','observe','step','record_verification',
-                         'stop','detach','reopen','archive_world','finish']);
+                         'stop','detach','reopen','archive_world','finish','check_focus_loss']);
 let child, stopped = false, exitCode = null;
 async function exists(file) {try {await fs.access(file); return true;} catch {return false;}}
 async function abort() {
@@ -80,8 +80,9 @@ async function main() {
         lastActivity=Date.now();
       }
     }
-    // One planner services several desktops; idle sessions must not exhaust the repository API budget.
-    await pause(await exists(requestFile) ? 1000 : Date.now()-lastActivity>45000 ? 60000 : 8000);
+    // Keep responses prompt for the entire 120-second frame budget, then back off.
+    // This never extends the Engine's frame validity or repeats a submitted action.
+    await pause(await exists(requestFile) ? 1000 : Date.now()-lastActivity>120000 ? 60000 : 8000);
   }
   if (exitCode===null) {
     await abort();

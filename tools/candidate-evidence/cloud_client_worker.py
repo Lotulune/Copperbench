@@ -121,7 +121,7 @@ try:
                 # Inspect only this task's game process. Preserve raw dumps for a
                 # rendered-but-unmapped window without sending desktop input.
                 if desktop=='xorg' and not result['compositorState']['windows']:
-                    processes=[]
+                    processes=[];inaccessible=[]
                     for process in Path('/proc').iterdir():
                         if not process.name.isdecimal():continue
                         try:
@@ -135,7 +135,10 @@ try:
                             (destination/(process.name+'-threads.txt')).write_bytes(dump.stdout+dump.stderr)
                             processes.append({'pid':int(process.name),'environment':environment,'threadDumpExit':dump.returncode})
                         except (FileNotFoundError,ProcessLookupError):continue
+                        except PermissionError:
+                            inaccessible.append(int(process.name))
                     result['gameProcessDiagnostics']=processes
+                    result['inaccessibleProcessIds']=inaccessible
                     directory=out/'bridge/diagnostic-desktop';directory.mkdir(parents=True,exist_ok=True)
                     screenshot=directory/(str(sequence)+'.png')
                     capture=subprocess.run(['gnome-screenshot','--file='+str(screenshot)],capture_output=True,timeout=15)
@@ -151,6 +154,10 @@ try:
                 save(out/f'run-{attempt}-input-initialization.json',getattr(backend,'input_initialization',None))
             elif operation in ('observe','step','record_verification','stop','detach'):
                 result=getattr(engine,operation)(**arguments)
+            elif operation=='check_focus_loss':
+                from gnome_backend import check_focus_loss
+                result=check_focus_loss(engine,arguments['session_id'],arguments['action_id'])
+                save(out/f'run-{attempt}-focus-loss.json',result)
             elif operation=='reopen':
                 assert task_id is None and engine.session is None,'Close and detach the first client before reopening'
                 launch();result={'status':'launched','attempt':attempt,'taskId':task_id}
@@ -164,8 +171,14 @@ try:
                 shutil.copytree(source,target)
                 result={'status':'archived','world':name,'path':str(target),'attempt':attempt}
             elif operation=='finish':
-                assert task_id is None and attempt==2 and engine.session is None
-                result={'status':'lifecycle-completed'}
+                scope=arguments.get('scope','full_lifecycle')
+                assert scope in ('full_lifecycle','supplementary_focus_only')
+                assert task_id is None and engine.session is None
+                assert attempt==(2 if scope=='full_lifecycle' else 1)
+                if scope=='supplementary_focus_only':
+                    assert read(out/'run-1-focus-loss.json')['status']=='passed'
+                record['validationScope']=scope
+                result={'status':'lifecycle-completed','validationScope':scope}
                 (out/'finish.signal').write_text('planner reviewed finish\n',encoding='utf-8')
             else:raise ValueError('Unsupported operation')
             answer['result']=result

@@ -10,6 +10,7 @@ const XML = `<node><interface name="dev.copperbench.ValidationObserver">
 <method name="Arm"><arg type="b" direction="out"/></method>
 <method name="Disarm"/>
 <method name="Focus"><arg type="s" direction="in"/><arg type="b" direction="out"/></method>
+<method name="ShowOverview"><arg type="b" direction="out"/></method>
 </interface></node>`;
 
 export default class ValidationObserver extends Extension {
@@ -35,7 +36,7 @@ export default class ValidationObserver extends Extension {
 
     State() {
         const shieldActive = Main.screenShield?.active ?? false;
-        const blocked = Main.overview.visible || shieldActive;
+        const blocked = Main.overview.visible || shieldActive || (Main.modalCount ?? 0) > 0;
         const windows = global.get_window_actors().map(actor => {
             const window = actor.meta_window;
             const rect = window.get_frame_rect();
@@ -76,6 +77,14 @@ export default class ValidationObserver extends Extension {
         Main.overview.hide();
         matches[0].activate(global.get_current_time());
         return matches[0].has_focus();
+    }
+
+    ShowOverview() {
+        // Task-local negative input test. No guessed desktop shortcut or game
+        // input is used to place GNOME in this observable, reversible state.
+        if (Main.screenShield?.active) return false;
+        Main.overview.show();
+        return Main.overview.visible;
     }
 
     disable() {

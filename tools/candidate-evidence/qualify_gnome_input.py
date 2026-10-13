@@ -81,6 +81,13 @@ try:
     final=json.loads(state.read_text(encoding='utf-8'));record['afterPointer']=final
     if hasattr(backend,'_state'):record['compositorState']=backend._state()
     assert after_text['text']=='abc123' and final['clicks']==1,'Compositor input did not reach actual widget callbacks'
+    from gnome_backend import check_focus_loss
+    record['focusLoss']=check_focus_loss(engine,sid,'probe-focus-loss')
+    save(root/'focus-loss.json',record['focusLoss'])
+    assert not record['focusLoss']['heldKeys'] and not record['focusLoss']['heldButtons']
+    captured=subprocess.run(['gnome-screenshot','--file='+str(root/'focus-overview.png')],capture_output=True,timeout=15)
+    assert captured.returncode==0 and (root/'focus-overview.png').is_file()
+    # The next action must require explicit detach/attach; do not steal focus back.
     record['status']='passed'
 except BaseException as error:
     record.update(status='failed',error=str(error));raise

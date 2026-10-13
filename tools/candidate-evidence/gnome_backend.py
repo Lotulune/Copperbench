@@ -26,6 +26,32 @@ KEYSYM={'enter':'Return','escape':'Escape','space':'space','shift':'Shift_L','ct
 KEYSYM.update({f'f{i}':f'F{i}' for i in range(1,13)})
 
 
+def check_focus_loss(engine, session_id, action_id):
+    """Expose the real GNOME overview, then require rejection before any input."""
+    engine._require(session_id)
+    engine._window()
+    engine._require_frame()
+    before=engine.backend._state()
+    if not engine.backend._observer('ShowOverview')[0]:
+        raise BridgeError('FOCUS_PROBE_UNAVAILABLE','GNOME did not expose its overview')
+    time.sleep(.3)
+    after=engine.backend._state()
+    if not after['overview']:
+        raise BridgeError('FOCUS_PROBE_UNAVAILABLE','Overview state was not confirmed')
+    try:
+        receipt=engine.step(session_id,action_id,[{'type':'hold','keys':['w'],'duration_ms':50}])
+    except BridgeError as error:
+        if error.code!='FOCUS_LOST':raise
+        if engine.backend.keys or engine.backend.buttons:
+            engine.stop(session_id)
+            raise BridgeError('FOCUS_PROTECTION_FAILED','Held input remained after focus loss')
+        return {'status':'passed','scope':'Real compositor focus loss rejects input before execution',
+                'errorCode':error.code,'inputExecuted':False,'before':before,'after':after,
+                'heldKeys':sorted(engine.backend.keys),'heldButtons':sorted(engine.backend.buttons)}
+    engine.stop(session_id)
+    raise BridgeError('FOCUS_PROTECTION_FAILED','Input was not rejected in GNOME overview',receipt)
+
+
 class GnomeWaylandBackend:
     platform='linux-gnome-wayland-task'
 
