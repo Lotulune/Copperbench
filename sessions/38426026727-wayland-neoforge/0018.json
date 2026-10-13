@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "f7b9190d-5008-4f4d-ae76-29d5bf94e8f6",
+    "action_id": "normal-quit-focus-supplement",
+    "actions": [
+      {
+        "type": "click",
+        "x": 530,
+        "y": 396,
+        "frame_id": "747c4c14-dcae-4682-a6c8-fe12c2549a55"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1000
+      }
+    ]
+  },
+  "sessionKey": "38426026727-wayland-neoforge",
+  "sequence": 18
+}
