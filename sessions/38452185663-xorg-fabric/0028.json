@@ -1,0 +1,26 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-confirm-function-gold",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/execute if block 12 80 12 minecraft:gold_block run say camp_signal_gold_present"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 130
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 28
+}
