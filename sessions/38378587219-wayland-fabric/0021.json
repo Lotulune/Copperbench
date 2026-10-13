@@ -1,0 +1,37 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "67c12b92-f2fb-412f-80af-1ff58e79136d",
+    "action_id": "prepare-camp-post-open-inventory",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/give @s copperbench_camp_kit:camp_post 2"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 150
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "e"
+        ],
+        "duration_ms": 150
+      },
+      {
+        "type": "wait",
+        "duration_ms": 400
+      }
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 21
+}
