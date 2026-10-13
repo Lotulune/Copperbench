@@ -1,0 +1,58 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "take-crafted-output-and-aim-at-ground",
+    "actions": [
+      {
+        "type": "click",
+        "x": 574,
+        "y": 146,
+        "frame_id": "e307e3d5-9d9a-45d7-a7cd-b85ebdcc7a4b"
+      },
+      {
+        "type": "click",
+        "x": 354,
+        "y": 374,
+        "frame_id": "e307e3d5-9d9a-45d7-a7cd-b85ebdcc7a4b"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "e"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 120
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "w"
+        ],
+        "duration_ms": 350
+      },
+      {
+        "type": "look",
+        "dx": 0,
+        "dy": 230,
+        "duration_ms": 180
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "5"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 27
+}
