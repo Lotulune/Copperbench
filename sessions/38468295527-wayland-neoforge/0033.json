@@ -1,0 +1,14 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "7da98d26-1d03-416f-9021-63cab64e9b74",
+    "expectation": "Real GNOME overview focus loss rejected input FOCUS_LOST before execution; no held keys/buttons. The separate check_focus_loss receipt, actions and pre-probe pause frame establish this bounded focus check.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-9631e3d9-0b37-41b2-9804-99d2ae356b63.png"
+    ]
+  },
+  "sessionKey": "38468295527-wayland-neoforge",
+  "sequence": 33
+}
