@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4ead76ed-a1bb-4c23-8747-311c13d5dea4",
+    "action_id": "cancel-unsubmitted-overlong-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 585,
+        "y": 448,
+        "frame_id": "ade35d73-139b-447a-86b8-084f2c1e7b2f"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1000
+      }
+    ]
+  },
+  "sessionKey": "38426026727-wayland-neoforge",
+  "sequence": 12
+}
