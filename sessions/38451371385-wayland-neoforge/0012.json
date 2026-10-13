@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "913bd6c5-78bf-411d-84f0-a4d932e7e201",
+    "action_id": "wn-resume-save-title",
+    "actions": [
+      {
+        "type": "click",
+        "x": 425,
+        "y": 347,
+        "button": "left",
+        "frame_id": "0f720ba4-3f9e-422d-b0bc-b258ef0516a1"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38451371385-wayland-neoforge",
+  "sequence": 12
+}
