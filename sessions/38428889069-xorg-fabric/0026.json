@@ -1,0 +1,57 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "manual-full-stack-attempt-and-shaped-crafting",
+    "actions": [
+      {
+        "type": "click",
+        "x": 319,
+        "y": 374,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "click",
+        "x": 283,
+        "y": 374,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "click",
+        "x": 319,
+        "y": 374,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "click",
+        "x": 354,
+        "y": 374,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 126,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "click",
+        "x": 390,
+        "y": 374,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 162,
+        "frame_id": "54a39b8e-fa54-48f8-abf4-da0a89faca7d"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 26
+}
