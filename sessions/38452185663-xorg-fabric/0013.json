@@ -1,0 +1,35 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-move-look-open-chat",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "w"
+        ],
+        "duration_ms": 350
+      },
+      {
+        "type": "look",
+        "dx": 32,
+        "dy": 25,
+        "duration_ms": 140
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 150
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 13
+}
