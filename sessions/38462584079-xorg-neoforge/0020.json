@@ -1,0 +1,46 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-aim-post",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "e"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 200
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "w"
+        ],
+        "duration_ms": 350
+      },
+      {
+        "type": "look",
+        "dx": 0,
+        "dy": 230,
+        "duration_ms": 150
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "5"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 300
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 20
+}
