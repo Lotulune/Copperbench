@@ -1,0 +1,23 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "7da98d26-1d03-416f-9021-63cab64e9b74",
+    "expectation": "Native Wayland NeoForge G2: actual movement and visible turn; manual merge preserves16+1; shaped recipe yields2 and consumes stick/string; shapeless yields3 and consumes flint/paper; actual post placement decrements2 to1; function executes once, score11 and gold(12,80,12) are read back. Give commands are preparation only. Early distant-horizon rendering artifacts are preserved as an environment/visual limitation, cause not established by this run.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-21447a43-12a7-4fbc-9709-845b737c29cf.png",
+      "frame-ddbedb03-c85c-4717-a2bf-302a32f836ff.png",
+      "frame-e628ebee-0278-416e-96a6-f16f68302ab4.png",
+      "frame-1a0dce56-72b6-4dd9-b30c-547c0fb36441.png",
+      "frame-0318b8f6-6d55-4d84-9e1d-2d7ef8b41a42.png",
+      "frame-535c412f-708b-471e-8795-d230d5957c78.png",
+      "frame-2b61b421-486c-449a-bda7-1fddd7c38b97.png",
+      "frame-59f29736-97f2-438f-a355-21fdfb902372.png",
+      "frame-296d790e-bb44-4c25-a4c6-742bdccdaf9b.png",
+      "frame-267aa604-1b40-43f6-a500-c22e130eabf7.png"
+    ]
+  },
+  "sessionKey": "38468295527-wayland-neoforge",
+  "sequence": 30
+}
