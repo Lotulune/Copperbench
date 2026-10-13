@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bb21416f-4c03-4358-a335-70bc2d99aadd",
+    "action_id": "welcome-keyboard-focus-001",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "tab"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38368061083-wayland-fabric",
+  "sequence": 8
+}
