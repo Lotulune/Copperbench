@@ -1,0 +1,27 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "759e3278-b037-48bd-bded-08ebaef32aaa",
+    "action_id": "enter-reviewed-exact-saved-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 380,
+        "y": 123,
+        "frame_id": "530f71bb-226a-473a-99e9-244e95d93775"
+      },
+      {
+        "type": "click",
+        "x": 268,
+        "y": 396,
+        "frame_id": "530f71bb-226a-473a-99e9-244e95d93775"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 46
+}
