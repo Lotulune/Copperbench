@@ -1,0 +1,84 @@
+name: P263 cloud installed client acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_run:
+        description: Run that holds the frozen Linux candidate
+        required: true
+        type: string
+      loader:
+        description: Exact 26.3 loader
+        required: true
+        type: choice
+        options: [fabric, neoforge]
+      desktop:
+        description: Real GNOME session
+        required: true
+        type: choice
+        options: [xorg, wayland]
+  push:
+    branches: [codex/p263-unique-cases]
+    paths: [.github/workflows/p263-cloud-client.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  client:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install GNOME and the bounded control transport
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gnome-shell gnome-session-bin \
+            gnome-settings-daemon gnome-screenshot dbus-x11 xserver-xorg-core \
+            xserver-xorg-video-dummy xauth x11-utils mesa-utils python3-pil python3-xlib gir1.2-gtk-3.0
+          npm ci --prefix .github/actions/p263-client-control --ignore-scripts
+          npm ci --prefix ui-core --ignore-scripts
+      - uses: actions/download-artifact@v8
+        with:
+          name: p263-ubuntu-${{ inputs.loader }}-candidate
+          run-id: ${{ inputs.candidate_run }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/candidate
+      - name: Revalidate the frozen installation in this fresh runner
+        env:
+          P263_LOADER: ${{ inputs.loader }}
+        run: |
+          python3 tools/candidate-evidence/installed_acceptance.py \
+            --candidate "$RUNNER_TEMP/candidate/frozen" --platform ubuntu --loader "$P263_LOADER" \
+            --output "$RUNNER_TEMP/installed-evidence" --work-root "$RUNNER_TEMP/installed-work"
+      - name: Bind the client to the installed receipt
+        env:
+          P263_LOADER: ${{ inputs.loader }}
+          P263_DESKTOP: ${{ inputs.desktop }}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          config={'installedRun':str(root/'installed-evidence/cold/installed-run.json'),
+                  'installationCell':str(root/'installed-evidence/cell/cell.json'),
+                  'prepared':str(root/'installed-evidence/prepared-product.json'),
+                  'worldName':'P263-'+os.environ['P263_LOADER']+'-'+os.environ['P263_DESKTOP']+'-'+os.environ['GITHUB_RUN_ID']}
+          (root/'client-config.json').write_text(json.dumps(config,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Keep the installed Native lifecycle and reviewed desktop actions alive
+        uses: ./.github/actions/p263-client-control
+        env:
+          P263_LOADER: ${{ inputs.loader }}
+          P263_DESKTOP: ${{ inputs.desktop }}
+          P263_CLIENT_CONFIG: ${{ runner.temp }}/client-config.json
+          P263_CLIENT_EVIDENCE: ${{ runner.temp }}/client-evidence
+          P263_DESKTOP_EVIDENCE: ${{ runner.temp }}/desktop-evidence
+        with:
+          token: ${{ github.token }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: p263-client-installed-api
+          path: ${{ runner.temp }}/installed-evidence/
+          if-no-files-found: warn
+          retention-days: 14

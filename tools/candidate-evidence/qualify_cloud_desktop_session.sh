@@ -86,3 +86,6 @@ gdbus call --session --dest org.gnome.Shell --object-path /dev/copperbench/Valid
   --method dev.copperbench.ValidationObserver.State > "$evidence/window-observer-state.txt"
 printf '{"status":"interfaces_observed","desktop":"%s","displayBackend":"%s","clientAcceptance":"not_run","formalSupportClaim":false}\n' \
   "$desktop" "$XDG_SESSION_TYPE" > "$evidence/result.json"
+if [ -n "${P263_CLIENT_CONFIG:-}" ]; then
+  python3 tools/candidate-evidence/cloud_client_worker.py
+fi
