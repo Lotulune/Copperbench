@@ -1,0 +1,48 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "d1990ac5-aa4a-4a41-9dbf-208b86efa56a",
+    "action_id": "xnG2-reopen-score",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 200
+      },
+      {
+        "type": "text",
+        "text": "/scoreboard players get camp_probe camp_count"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 50
+}
