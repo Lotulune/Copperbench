@@ -1,0 +1,29 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "action_id": "xn-take-crafted-two",
+    "actions": [
+      {
+        "type": "click",
+        "x": 574,
+        "y": 146,
+        "button": "left",
+        "frame_id": "127b71dc-caee-4ff9-bdb4-4dab13cb3e16"
+      },
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "button": "left",
+        "frame_id": "127b71dc-caee-4ff9-bdb4-4dab13cb3e16"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 17
+}
