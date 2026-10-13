@@ -1,0 +1,51 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "action_id": "wfG2-shaped-inputs",
+    "actions": [
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "frame_id": "e80b2ea1-c69f-4dba-bc38-c3c2dc5b314b",
+        "button": "left",
+        "settle_ms": 100,
+        "duration_ms": 60
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 126,
+        "frame_id": "e80b2ea1-c69f-4dba-bc38-c3c2dc5b314b",
+        "button": "left",
+        "settle_ms": 100,
+        "duration_ms": 60
+      },
+      {
+        "type": "click",
+        "x": 391,
+        "y": 374,
+        "frame_id": "e80b2ea1-c69f-4dba-bc38-c3c2dc5b314b",
+        "button": "left",
+        "settle_ms": 100,
+        "duration_ms": 60
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 162,
+        "frame_id": "e80b2ea1-c69f-4dba-bc38-c3c2dc5b314b",
+        "button": "left",
+        "settle_ms": 100,
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 19
+}
