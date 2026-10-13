@@ -50,13 +50,13 @@ try:
     # The process still needs this exact desktop socket, while product data/cache remain isolated.
     for key in ('XDG_RUNTIME_DIR','DISPLAY','XAUTHORITY','WAYLAND_DISPLAY','DBUS_SESSION_BUS_ADDRESS','XDG_SESSION_TYPE'):
         if key in os.environ:env[key]=os.environ[key]
-    # Loom 1.17.21 defaults useXvfb to true for client runs when CI=true,
-    # even with an existing DISPLAY. This task already owns a real GNOME
-    # compositor; disable that automatic replacement for the product process
-    # only. Keep GITHUB_ACTIONS and the real runner identity unchanged.
-    record['clientCiEnvironment']={'inherited':env.get('CI'),'effective':'false',
+    # Loom 1.17.21 maps the presence of CI to isLinux, ignoring its value.
+    # Even CI=false enables Xvfb. This task already owns a real GNOME display;
+    # remove CI for the product process only, retaining GITHUB_ACTIONS and
+    # the real runner identity. The attach check verifies the actual display.
+    record['clientCiEnvironment']={'inherited':env.get('CI'),'effective':None,
         'reason':'Use the task GNOME display instead of Loom automatic Xvfb'}
-    env['CI']='false'
+    env.pop('CI',None)
     env['SDL_VIDEO_DRIVER']='wayland' if desktop=='wayland' else 'x11'
     if desktop=='xorg':env['SDL_VIDEO_FORCE_EGL']='1'
     record['renderingRequest']={'sdlVideoDriver':env['SDL_VIDEO_DRIVER'],
