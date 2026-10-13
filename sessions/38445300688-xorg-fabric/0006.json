@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "f5394b07-e665-412f-9a47-ee7412693633",
+    "action_id": "xf-resume-world-list",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 235,
+        "button": "left",
+        "frame_id": "347560c7-355f-4065-b949-febbdb1574a4"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 650
+      }
+    ]
+  },
+  "sessionKey": "38445300688-xorg-fabric",
+  "sequence": 6
+}
