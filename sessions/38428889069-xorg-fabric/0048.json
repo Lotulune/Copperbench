@@ -1,0 +1,14 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "759e3278-b037-48bd-bded-08ebaef32aaa",
+    "expectation": "The second Xorg client PID 15097 entered the exact reviewed saved world P263-fabric-xorg-38428889069. The placed Camp Post, selected slot and hotbar Trail Kit counts 16, 1, 2 and remaining Camp Post 1 persist visually. Serialized world comparison will be performed after normal exit; it is not claimed by this visual verdict.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-5a74d45e-2e6a-4d47-943e-e1fba1e2374f.png"
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 48
+}
