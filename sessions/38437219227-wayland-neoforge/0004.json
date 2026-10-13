@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "537d2587-c6dd-40b6-bffc-fdbf14f85132",
+    "action_id": "welcome-continue",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 449,
+        "frame_id": "7d1bbf29-b3a2-45d1-bf64-e87306b8d522"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1700
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 4
+}
