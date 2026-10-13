@@ -1,0 +1,9 @@
+{
+  "operation": "check_focus_loss",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-real-gnome-focus-loss"
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 33
+}
