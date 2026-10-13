@@ -19,6 +19,7 @@ import net.minecraft.world.level.storage.LevelResource;
 /** Independent expectations against the packaged JAR; no generated implementation classes are imported. */
 @net.neoforged.fml.common.Mod("copperbench_test_host")
 public final class AcceptanceTests {
+    private final Set<String> initialCases = new HashSet<>();
     public AcceptanceTests(net.neoforged.bus.api.IEventBus bus) {
         var functions = net.neoforged.neoforge.registries.DeferredRegister.<java.util.function.Consumer<GameTestHelper>>create(
                 Registries.TEST_FUNCTION, "copperbench_camp_kit");
@@ -49,10 +50,15 @@ public final class AcceptanceTests {
     }
 
     private void t03(GameTestHelper h) {
-        var shaped = shapedInput(); result(matching(h, shaped, "camp_shaped").value().assemble(shaped), 2);
-        var shapeless = CraftingInput.of(2, 1, List.of(new ItemStack(Items.PAPER), new ItemStack(Items.FLINT)));
-        result(matching(h, shapeless, "camp_shapeless").value().assemble(shapeless), 3);
-        h.succeed();
+        // Exercise ordering beyond the former fixed twenty-tick reload delay.
+        h.runAfterDelay(40, () -> {
+            var shaped = shapedInput(); result(matching(h, shaped, "camp_shaped").value().assemble(shaped), 2);
+            var shapeless = CraftingInput.of(2, 1, List.of(new ItemStack(Items.PAPER), new ItemStack(Items.FLINT)));
+            result(matching(h, shapeless, "camp_shapeless").value().assemble(shapeless), 3);
+            initialCases.add("t03");
+            System.out.println("COPPERBENCH_RECIPE_BASELINE_COMPLETED t03");
+            h.succeed();
+        });
     }
 
     private void t04(GameTestHelper h) {
@@ -69,17 +75,23 @@ public final class AcceptanceTests {
             AbstractFurnaceBlockEntity.serverTick(h.getLevel(), pos, h.getLevel().getBlockState(pos), furnace);
         require(furnace.getItem(0).is(Items.DIRT) && furnace.getItem(1).getCount() == 2 && furnace.getItem(2).isEmpty(),
                 "a wrong furnace input consumes neither ingredients nor fuel and yields no output");
+        initialCases.add("t04");
+        System.out.println("COPPERBENCH_RECIPE_BASELINE_COMPLETED t04");
         h.succeed();
     }
 
     private void t07(GameTestHelper h) {
         cook(h, new BlockPos(1, 1, 1), Blocks.FURNACE, Items.STRING, "camp_smelting", 200, 2);
+        initialCases.add("t07");
+        System.out.println("COPPERBENCH_RECIPE_BASELINE_COMPLETED t07");
         h.succeed();
     }
 
     private void t08(GameTestHelper h) {
         cook(h, new BlockPos(1, 1, 1), Blocks.BLAST_FURNACE, Items.FLINT, "camp_blasting", 100, 1);
         cook(h, new BlockPos(2, 1, 2), Blocks.SMOKER, Items.PAPER, "camp_smoking", 100, 1);
+        initialCases.add("t08");
+        System.out.println("COPPERBENCH_RECIPE_BASELINE_COMPLETED t08");
         h.succeed();
     }
 
@@ -113,9 +125,13 @@ public final class AcceptanceTests {
     }
 
     private void t09(GameTestHelper h) {
-        // Other tests finish their synchronous initial-data assertions before this reload changes a shared recipe.
-        h.runAfterDelay(20, () -> {
-            var input = shapedInput(); result(matching(h, input, "camp_shaped").value().assemble(input), 2);
+        var input = shapedInput();
+        var pendingReload = new java.util.concurrent.atomic.AtomicReference<java.util.concurrent.CompletableFuture<Void>>();
+        h.startSequence()
+                .thenWaitUntil(() -> h.assertTrue(initialCases.containsAll(Set.of("t03", "t04", "t07", "t08")),
+                        "waiting for every initial recipe case before changing shared data"))
+                .thenExecute(() -> {
+            result(matching(h, input, "camp_shaped").value().assemble(input), 2);
             JsonObject modified = JsonParser.parseString("""
                     {"type":"minecraft:crafting_shaped","pattern":["S","T"],
                      "key":{"S":"minecraft:stick","T":"minecraft:string"},
@@ -136,12 +152,11 @@ public final class AcceptanceTests {
             Set<String> selected = new LinkedHashSet<>(repository.getSelectedIds());
             require(repository.getAvailableIds().contains("file/copperbench_recipe_reload"), "controlled recipe datapack is discoverable");
             selected.add("file/copperbench_recipe_reload");
-            var reload = server.reloadResources(selected);
-            h.startSequence().thenWaitUntil(() -> h.assertTrue(reload.isDone(), "waiting for actual recipe reload"))
-                    .thenExecute(() -> {
-                        reload.join(); result(matching(h, input, "camp_shaped").value().assemble(input), 4);
-                        System.out.println("COPPERBENCH_RECIPE_RELOAD_APPLIED count=4");
-                    }).thenSucceed();
-        });
+            pendingReload.set(server.reloadResources(selected));
+        }).thenWaitUntil(() -> h.assertTrue(pendingReload.get().isDone(), "waiting for actual recipe reload"))
+                .thenExecute(() -> {
+                    pendingReload.get().join(); result(matching(h, input, "camp_shaped").value().assemble(input), 4);
+                    System.out.println("COPPERBENCH_RECIPE_RELOAD_APPLIED count=4");
+                }).thenSucceed();
     }
 }
