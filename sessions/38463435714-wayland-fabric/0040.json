@@ -1,0 +1,26 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "action_id": "wfG2-gold-query",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/execute if block 12 80 12 minecraft:gold_block run say camp_signal_gold_present"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      }
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 40
+}
