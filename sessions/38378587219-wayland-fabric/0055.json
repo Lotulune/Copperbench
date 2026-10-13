@@ -1,0 +1,33 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "2c2c17aa-a44f-4e25-aff4-3c49e8bf2cb0",
+    "action_id": "leave-reopened-inventory-pause",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "e"
+        ],
+        "duration_ms": 150
+      },
+      {
+        "type": "wait",
+        "duration_ms": 400
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "escape"
+        ],
+        "duration_ms": 150
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 55
+}
