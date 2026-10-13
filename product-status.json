@@ -18,6 +18,22 @@
     "betaEligible": true
   },
   "delivery": {
+    "p263CandidateQualification": {
+      "date": "2026-10-14",
+      "status": "reviewed-scoped-candidates",
+      "formalSupportClaim": false,
+      "published": false,
+      "scopes": [
+        "fabric:G2:windows",
+        "neoforge:G2:windows",
+        "fabric:G2:ubuntu",
+        "neoforge:G2:ubuntu"
+      ],
+      "report": "docs/testing/p263-closeout-2026-10-14.md",
+      "releaseNotes": "docs/releases/copperbench-26-3-candidate-2026-10-14.md",
+      "manifest": "evidence/p263/2026-10-14/qualification.json",
+      "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
+    },
     "stableRelease": {
       "tag": "v0.1.4",
       "linuxTag": "v0.1.4-linux-stable",
