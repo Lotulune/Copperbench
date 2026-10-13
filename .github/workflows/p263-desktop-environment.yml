@@ -30,7 +30,11 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends gnome-shell gnome-session-bin \
             gnome-settings-daemon gnome-screenshot dbus-x11 xserver-xorg-core \
-            xserver-xorg-video-dummy xauth x11-utils mesa-utils python3-pil python3-xlib gir1.2-gtk-3.0
+            xserver-xorg-video-dummy xauth x11-utils mesa-utils python3-venv python3-pil python3-xlib gir1.2-gtk-3.0
+          python3 -m venv --system-site-packages "$RUNNER_TEMP/desktop-venv"
+          "$RUNNER_TEMP/desktop-venv/bin/python" -m pip install \
+            -c tools/minecraft-control-bridge/requirements-lock.txt -e tools/minecraft-control-bridge
+          echo "$RUNNER_TEMP/desktop-venv/bin" >> "$GITHUB_PATH"
       - name: Inspect the real compositor and control interfaces
         env:
           P263_DESKTOP: ${{ matrix.session }}

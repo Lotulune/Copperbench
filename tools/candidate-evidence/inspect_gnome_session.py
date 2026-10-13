@@ -35,7 +35,7 @@ try:
     (evidence/'adapter-probe.json').write_text(json.dumps({'status':'armed_without_pressed_controls',
         'platform':backend.platform,'windows':backend.list_windows(),
         'emergencyPressed':backend.emergency_pressed(),'inputInitialization':getattr(backend,'input_initialization',None),
-        'scope':'New virtual devices may receive unpressed releases for initialization; no gameplay input or acceptance'})+'\n',encoding='utf-8')
+        'scope':'No input notifications sent; no gameplay input or acceptance'})+'\n',encoding='utf-8')
 finally:
     backend.close()
 # Closing this connection ends the temporary inspection session; no input lease is retained.

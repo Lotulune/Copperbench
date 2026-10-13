@@ -82,15 +82,8 @@ class GnomeWaylandBackend:
             self.remote=self._call('org.gnome.Mutter.RemoteDesktop','/org/gnome/Mutter/RemoteDesktop',
                                    'org.gnome.Mutter.RemoteDesktop','CreateSession')[0]
             self._input('Start')
-            # Mutter creates each virtual device on its first notification. Release
-            # unpressed controls on these new devices before accepting user input;
-            # otherwise the first real key/button can be consumed by device setup.
-            self._input('NotifyKeyboardKeysym',GLib.Variant('(ub)',(Gdk.keyval_from_name('Shift_L'),False)))
-            self._input('NotifyPointerButton',GLib.Variant('(ib)',(272,False)))
-            time.sleep(.1)
-            self.input_initialization={'virtualKeyboardUnpressedRelease':True,'virtualPointerUnpressedRelease':True}
         except BaseException:
-            self._observer('Disarm');self.remote=None;raise
+            self.disarm();raise
 
     def emergency_pressed(self):return self._state()['emergency']
 

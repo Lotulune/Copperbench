@@ -8,7 +8,7 @@ import time
 
 import gi
 gi.require_version('Gtk','3.0')
-from gi.repository import Gtk,GLib
+from gi.repository import Gtk,GLib,Gdk
 
 
 def save(path,value):
@@ -18,7 +18,7 @@ def save(path,value):
 
 
 if len(sys.argv)>1 and sys.argv[1]=='--child':
-    state=Path(sys.argv[2]);record={'clicks':0,'text':'','scope':'GTK input qualification, not Minecraft'}
+    state=Path(sys.argv[2]);record={'clicks':0,'text':'','events':[],'scope':'GTK input qualification, not Minecraft'}
     window=Gtk.Window(title='Minecraft control input qualification')
     window.set_decorated(False);window.set_default_size(480,240)
     box=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -30,6 +30,17 @@ if len(sys.argv)>1 and sys.argv[1]=='--child':
         record['button']={'x':area.x,'y':area.y,'width':area.width,'height':area.height}
         save(state,record)
     def click(*args):record['clicks']+=1;update()
+    def event(widget,event):
+        details={'widget':widget.get_name(),'type':str(event.type),'monotonic':time.monotonic()}
+        for field in ('keyval','hardware_keycode','button','x','y','state','time'):
+            try:details[field]=float(getattr(event,field))
+            except (AttributeError,TypeError,ValueError):pass
+        record['events'].append(details);update()
+        return False
+    for widget in (window,button,entry):
+        widget.add_events(Gdk.EventMask.BUTTON_PRESS_MASK|Gdk.EventMask.BUTTON_RELEASE_MASK|Gdk.EventMask.KEY_PRESS_MASK|Gdk.EventMask.KEY_RELEASE_MASK|Gdk.EventMask.FOCUS_CHANGE_MASK|Gdk.EventMask.ENTER_NOTIFY_MASK|Gdk.EventMask.LEAVE_NOTIFY_MASK)
+        for signal in ('key-press-event','key-release-event','button-press-event','button-release-event','focus-in-event','focus-out-event','enter-notify-event','leave-notify-event'):
+            widget.connect(signal,event)
     button.connect('clicked',click);entry.connect('changed',update)
     window.connect('destroy',Gtk.main_quit)
     window.show_all();entry.grab_focus()
