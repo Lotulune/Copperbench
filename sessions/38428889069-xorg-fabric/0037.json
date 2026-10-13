@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "41cb126b-dfe3-4fd0-8db7-008e4f29c9a6",
+    "action_id": "normal-quit-first-client",
+    "actions": [
+      {
+        "type": "click",
+        "x": 530,
+        "y": 428,
+        "frame_id": "51ec0fc1-4d8a-45f3-97e8-70d2ac728063"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 700
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 37
+}
