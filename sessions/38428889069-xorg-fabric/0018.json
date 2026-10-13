@@ -1,0 +1,32 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "respawn-and-pause-for-difficulty-preparation",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 284,
+        "frame_id": "59caded0-3c94-496d-8799-8af7dd4de2c6"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 400
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "escape"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 18
+}
