@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "apply-reviewed-peaceful-preparation",
+    "actions": [
+      {
+        "type": "click",
+        "x": 266,
+        "y": 448,
+        "frame_id": "56d67b5e-66e2-47bd-ba13-6f804204fa61"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 800
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 21
+}
