@@ -1,0 +1,29 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-place-post",
+    "actions": [
+      {
+        "type": "hold",
+        "buttons": [
+          "right"
+        ],
+        "duration_ms": 90
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 21
+}
