@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-superflat",
+    "actions": [
+      {
+        "type": "click",
+        "x": 266,
+        "y": 89,
+        "button": "left",
+        "frame_id": "97b0e97e-c18a-4120-be63-ad49f0a64845"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 10
+}
