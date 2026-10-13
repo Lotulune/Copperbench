@@ -1,0 +1,26 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "d210c2c8-f789-4aec-bbd8-90796ee82afd",
+    "action_id": "wnG2-reopen-gold",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/execute if block 12 80 12 minecraft:gold_block run say camp_signal_gold_present"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      }
+    ]
+  },
+  "sessionKey": "38468295527-wayland-neoforge",
+  "sequence": 50
+}
