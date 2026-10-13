@@ -115,7 +115,8 @@ try:
             if operation in ('doctor','list_windows'):result=getattr(engine,operation)()
             elif operation=='status':
                 result={'session':record,'activeTask':read(out/'active-task.json') if (out/'active-task.json').exists() else None,
-                        'compositorState':backend._state()}
+                        'compositorState':backend._state(),
+                        'backendDiagnostics':backend.diagnostics() if hasattr(backend,'diagnostics') else None}
             elif operation=='attach':
                 selected=backend.window(arguments['window_id']);pid=selected['pid']
                 process_cwd=Path(f'/proc/{pid}/cwd').resolve()

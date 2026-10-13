@@ -169,6 +169,20 @@ class GnomeX11Backend(X11Backend):
 
     def _state(self):return json.loads(self._observer('State')[0])
 
+    def diagnostics(self):
+        ids=self._property(self.root,'_NET_CLIENT_LIST')
+        rows=[]
+        for identifier in ([] if ids is None else ids):
+            row={'window_id':str(identifier)}
+            try:row['verifiedWindow']=self.window(identifier)
+            except BridgeError as error:row['inspectionError']={'code':error.code,'message':str(error)}
+            window=self.d.create_resource_object('window',int(identifier))
+            for name in ('_NET_WM_PID','_NET_WM_NAME','WM_CLASS'):
+                value=self._property(window,name)
+                row[name]=value.decode('utf-8','replace') if isinstance(value,bytes) else list(value) if value is not None else None
+            rows.append(row)
+        return {'x11Clients':rows}
+
     def focus(self,window_id):
         selected=super().window(window_id)
         matches=[w for w in self._state()['windows'] if w['pid']==selected['pid'] and w['title']==selected['title']]
