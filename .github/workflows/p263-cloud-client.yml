@@ -37,6 +37,10 @@ jobs:
             xserver-xorg-video-dummy xauth x11-utils mesa-utils python3-pil python3-xlib gir1.2-gtk-3.0
           npm ci --prefix .github/actions/p263-client-control --ignore-scripts
           npm ci --prefix ui-core --ignore-scripts
+          (
+            cd .github/actions/p263-client-control
+            node --input-type=module -e 'import {DefaultArtifactClient} from "@actions/artifact"; new DefaultArtifactClient(); console.log("Artifact client import passed")'
+          )
       - uses: actions/download-artifact@v8
         with:
           name: p263-ubuntu-${{ inputs.loader }}-candidate

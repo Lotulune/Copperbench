@@ -1,10 +1,9 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const {spawn} = require('node:child_process');
-const {DefaultArtifactClient} = require('@actions/artifact');
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
-const artifact = new DefaultArtifactClient();
+let artifact;
 const evidence = process.env.P263_CLIENT_EVIDENCE;
 const desktopEvidence = process.env.P263_DESKTOP_EVIDENCE;
 const key = `${process.env.GITHUB_RUN_ID}-${process.env.P263_DESKTOP}-${process.env.P263_LOADER}`;
@@ -32,6 +31,8 @@ async function upload(name, directory) {
   if (files.length) await artifact.uploadArtifact(name,files,{retentionDays:14});
 }
 async function main() {
+  const {DefaultArtifactClient} = await import('@actions/artifact');
+  artifact = new DefaultArtifactClient();
   console.log(`Planner control key: ${key}`);
   const env = {...process.env};
   for (const name of Object.keys(env))
