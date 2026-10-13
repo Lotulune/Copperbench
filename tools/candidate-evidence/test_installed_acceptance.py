@@ -10,6 +10,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 import zipfile
 
@@ -183,6 +184,17 @@ class InstalledAcceptanceTest(unittest.TestCase):
              patch.object(gate.host_platform, 'machine', return_value='x86_64'), \
              patch.object(gate.host_platform, 'freedesktop_os_release', return_value={'ID': 'ubuntu', 'VERSION_ID': '22.04'}):
             with self.assertRaisesRegex(ValueError, 'Ubuntu 24.04'): gate.host_identity('ubuntu')
+
+    def test_windows_cell_rejects_server_and_older_workstation_builds(self):
+        with patch.object(gate.host_platform,'system',return_value='Windows'), \
+             patch.object(gate.host_platform,'machine',return_value='AMD64'):
+            for build,product in [(26100,3),(26100,2),(19045,1)]:
+                with patch.object(gate.sys,'getwindowsversion',create=True,
+                                  return_value=SimpleNamespace(build=build,product_type=product)):
+                    with self.assertRaisesRegex(ValueError,'Windows 11 workstation'):gate.host_identity('windows')
+            with patch.object(gate.sys,'getwindowsversion',create=True,
+                              return_value=SimpleNamespace(build=26100,product_type=1)):
+                self.assertEqual(gate.host_identity('windows')['productType'],1)
 
     def test_failed_run_cannot_produce_portable_pass(self):
         run = self.root / 'failed'; run.mkdir()

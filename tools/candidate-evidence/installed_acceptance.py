@@ -34,8 +34,11 @@ def host_identity(platform):
                 'machine': host_platform.machine(), 'python': host_platform.python_version()}
     ce.require(identity['machine'].lower() in ('amd64', 'x86_64'), 'Expected an x86_64 host')
     if platform == 'windows':
-        ce.require(identity['system'] == 'Windows' and sys.getwindowsversion().build >= 22000,
-                   'Windows 11 or newer is required for this cell')
+        ce.require(identity['system'] == 'Windows', 'Windows 11 is required for this cell')
+        version=sys.getwindowsversion()
+        ce.require(version.build >= 22000 and version.product_type == 1,
+                   'Windows 11 workstation is required; Windows Server does not satisfy this cell')
+        identity.update(build=version.build,productType=version.product_type)
     else:
         ce.require(identity['system'] == 'Linux', 'Ubuntu acceptance must run on Linux')
         release = host_platform.freedesktop_os_release()
