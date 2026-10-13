@@ -70,7 +70,7 @@ class PreviewAccessTest {
         var unsupportedType = request("command"); unsupportedType.addProperty("command", "create_mod_element");
         unsupportedType.add("payload", JsonParser.parseString("{\"elementType\":\"loottable\",\"name\":\"unverified\"}"));
         code(send(service, unsupportedType), "PREVIEW_ELEMENT_UNVERIFIED");
-        code(command(service, "run_client"), "PREVIEW_NATIVE_OPERATION_UNVERIFIED");
+        code(command(service, "run_datagen"), "PREVIEW_NATIVE_OPERATION_UNVERIFIED");
         var missing = service(new PreviewCapabilityCatalog(Map.of()));
         send(missing, request("opt_in"));
         code(command(missing, "build_workspace"), "PREVIEW_ENVIRONMENT_UNVERIFIED");
@@ -85,7 +85,7 @@ class PreviewAccessTest {
                     .map(com.google.gson.JsonElement::getAsJsonObject).filter(item -> item.get("ready").getAsBoolean())
                     .map(item -> item.get("operation").getAsString()).collect(java.util.stream.Collectors.toSet());
             var expected = new java.util.HashSet<>(java.util.Set.of("create_workspace", "update_workspace_file", "validate_workspace",
-                    "generate_workspace", "build_workspace", "run_server"));
+                    "generate_workspace", "build_workspace", "run_server", "run_client"));
             expected.addAll(java.util.Set.of("prepare_game_tests", "run_gametest", "export_workspace"));
             expected.addAll(java.util.Set.of("create_mod_element", "update_mod_element"));
             assertEquals(expected, ready);

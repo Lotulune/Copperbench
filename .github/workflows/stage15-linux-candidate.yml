@@ -196,7 +196,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p build/p263-linux-neoforge-graph
-          cp tools/generator-probes/neoforge-26.3/gradle.lockfile build/p263-linux-neoforge-graph/linux.lockfile
+          cp tools/generator-probes/neoforge-26.3/gradle/linux.lockfile build/p263-linux-neoforge-graph/linux.lockfile
           cp tools/generator-probes/neoforge-26.3/gradle/verification-metadata.xml build/p263-linux-neoforge-graph/
           git rev-parse HEAD > build/p263-linux-neoforge-graph/source-commit.txt
           cp /etc/os-release build/p263-linux-neoforge-graph/os-release.txt

@@ -96,8 +96,13 @@ def verify_inputs(lock: dict, cache: Path, project: Path) -> dict:
     return checked
 
 
+def dependency_graph_files(lock: dict) -> tuple[str, ...]:
+    files = ("gradle.lockfile", "gradle/verification-metadata.xml")
+    return files + (("gradle/linux.lockfile",) if lock.get("generatorId") == "neoforge-26.3" else ())
+
+
 def verify_dependency_graph(lock: dict, project: Path) -> None:
-    for name in ("gradle.lockfile", "gradle/verification-metadata.xml"):
+    for name in dependency_graph_files(lock):
         expected = lock.get("dependencyGraph", {}).get(name)
         path = member(project, name)
         if not expected or not path.is_file():
@@ -183,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise ProbeFailure("BUILD_ARTIFACT_MISSING", "Expected exactly one probe mod JAR")
             receipt["probeJar"] = {"file": jars[0].name, "sha256": sha256(jars[0])}
             receipt["dependencyLocks"] = {name: sha256(project / name)
-                                          for name in ("gradle.lockfile", "gradle/verification-metadata.xml")}
+                                          for name in dependency_graph_files(lock)}
             receipt["status"] = "graph_frozen" if args.freeze_dependencies else "qualified"
         else:
             receipt["status"] = "inputs_verified"

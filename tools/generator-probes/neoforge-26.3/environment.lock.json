@@ -77,7 +77,7 @@
     }
   ],
   "projectFiles": {
-    "build.gradle": "20e3f281b3b4bcf2ff4c0606466c4cf157aa657ad6ea0b7acdec825c3a7d8c07",
+    "build.gradle": "6a3748d9326dff6893223b62b31429beacb3320f21edadbf47d1c0947e034441",
     "settings.gradle": "98e79b4cef630908d025a4adaa5f381f11447de5916a684fce94e3b8bd7adbee",
     "src/main/java/dev/copperbench/probe/NeoForgeEnvironmentProbe.java": "4003724af651a7fb4a77182f35cf881b4b05752678d4e116e47689c6ae511c1a",
     "src/main/resources/META-INF/neoforge.mods.toml": "5784fab76f4c6282202da0593e71aa8a9a32342937775e32bfdab710ef33ad73"
@@ -101,7 +101,8 @@
   },
   "dependencyGraph": {
     "gradle.lockfile": "b3d77145b1b294691b6d48276d0f21e69239cdc83d49c83185214ea124afee69",
-    "gradle/verification-metadata.xml": "1aff690175e356698efdf872927ed4f73cc7377d3b14d1bdd5ada3c0911ca235"
+    "gradle/verification-metadata.xml": "56db4e6d4668b2f547e05cc605246384364dd916f5aa70183d3131c5010444e3",
+    "gradle/linux.lockfile": "178ae37a69c1f3f8e8a1ea572c4fc1e6dd3eebfb7764dd368bccca34dcb2bbf9"
   },
   "pluginMarkerPoms": {
     "coordinate": "net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:2.0.148",
@@ -163,5 +164,166 @@
     "taskType": "net.neoforged.nfrtgradle.DownloadAssets",
     "reason": "ModDev 2.0.148 defaults this helper to Java 21; exact 26.3 workspace supplies Java 25 only.",
     "qualification": "p263-ticket-29-windows-installed-downloadAssets-java25"
+  },
+  "linuxDependencyQualification": {
+    "run": "https://github.com/Lotulune/Copperbench/actions/runs/38351212931",
+    "platform": "Ubuntu 24.04 x86_64",
+    "windowsLockUnchanged": true,
+    "newArtifacts": [
+      {
+        "url": "https://libraries.minecraft.net/com/mojang/jtracy/1.14.38/jtracy-1.14.38-natives-linux.jar",
+        "artifact": [
+          "com.mojang",
+          "jtracy",
+          "1.14.38",
+          "jtracy-1.14.38-natives-linux.jar"
+        ],
+        "bytes": 256636,
+        "sha256": "6c64f455ebaa5f663136102b75fca635078d79efe284aa0aa3c60fa31ce48203"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.16.Final/netty-transport-native-epoll-4.2.16.Final-linux-aarch_64.jar",
+        "artifact": [
+          "io.netty",
+          "netty-transport-native-epoll",
+          "4.2.16.Final",
+          "netty-transport-native-epoll-4.2.16.Final-linux-aarch_64.jar"
+        ],
+        "bytes": 43899,
+        "sha256": "212cc7d81390e31b580a1fb91b6c8d963b43e762ed072c555e2b09ad4476e928"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.16.Final/netty-transport-native-epoll-4.2.16.Final-linux-x86_64.jar",
+        "artifact": [
+          "io.netty",
+          "netty-transport-native-epoll",
+          "4.2.16.Final",
+          "netty-transport-native-epoll-4.2.16.Final-linux-x86_64.jar"
+        ],
+        "bytes": 42393,
+        "sha256": "2e00548e731948881d0c73ee79d2ead759254e750929406a1d595484758f0267"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.16.Final/netty-transport-native-epoll-4.2.16.Final.pom",
+        "artifact": [
+          "io.netty",
+          "netty-transport-native-epoll",
+          "4.2.16.Final",
+          "netty-transport-native-epoll-4.2.16.Final.pom"
+        ],
+        "bytes": 32111,
+        "sha256": "41154ee0c04b85777bdbfadf7a94735201e8cb24d7619409c5997d394cd87764"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl/3.4.3/lwjgl-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl",
+          "3.4.3",
+          "lwjgl-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 137717,
+        "sha256": "d719e545a6db4ea87eb64d55630ba628755572bb5b56d51a1548347b5354cadb"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-freetype/3.4.3/lwjgl-freetype-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-freetype",
+          "3.4.3",
+          "lwjgl-freetype-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 1385284,
+        "sha256": "cbc702aa1d9c8fece6fe46a4e606c7c164eb7f0f7ca79f668dd95544db53fb2c"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-jemalloc/3.4.3/lwjgl-jemalloc-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-jemalloc",
+          "3.4.3",
+          "lwjgl-jemalloc-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 224040,
+        "sha256": "1c7fc271f132e3d606d3044b2520fcb663481e55e5783c6ef4272e3bae73a7d9"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-openal/3.4.3/lwjgl-openal-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-openal",
+          "3.4.3",
+          "lwjgl-openal-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 1159799,
+        "sha256": "433cbf19b16b177dd12897ef24c37117d9ffff48736b6c81616efc72ad4691f9"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-opengl/3.4.3/lwjgl-opengl-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-opengl",
+          "3.4.3",
+          "lwjgl-opengl-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 82244,
+        "sha256": "4056e81c1174201f63e980f76b9955746c0f13d712e4d30ee02c38ae6bccd4ce"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-sdl/3.4.3/lwjgl-sdl-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-sdl",
+          "3.4.3",
+          "lwjgl-sdl-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 1665811,
+        "sha256": "e1880683a4af33299e9a1b8d7ec1799bed8fb709064ea08dcc2a15cd1101c0b3"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-shaderc/3.4.3/lwjgl-shaderc-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-shaderc",
+          "3.4.3",
+          "lwjgl-shaderc-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 3872753,
+        "sha256": "0dced6d3362cbcd68d8ac9a07f2ce045c604a9abce371e1f66c77cfb837f7fd7"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-spvc/3.4.3/lwjgl-spvc-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-spvc",
+          "3.4.3",
+          "lwjgl-spvc-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 1265592,
+        "sha256": "8898165a90911bfd6be0aa1168449d9092f1747f6b7a16c2270d8265981725b3"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-stb/3.4.3/lwjgl-stb-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-stb",
+          "3.4.3",
+          "lwjgl-stb-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 286507,
+        "sha256": "5c66a2f11b18062b62ef9c6433f753720f7bdad44b18ab4078a0a6404a64a720"
+      },
+      {
+        "url": "https://repo.maven.apache.org/maven2/org/lwjgl/lwjgl-vma/3.4.3/lwjgl-vma-3.4.3-natives-linux.jar",
+        "artifact": [
+          "org.lwjgl",
+          "lwjgl-vma",
+          "3.4.3",
+          "lwjgl-vma-3.4.3-natives-linux.jar"
+        ],
+        "bytes": 64034,
+        "sha256": "f8690711c842de5aa15759459b8294fd682e452441b063bd7f902710db801804"
+      }
+    ]
   }
 }

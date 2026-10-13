@@ -31,7 +31,12 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 25
 }
 
-dependencyLocking { lockAllConfigurations() }
+dependencyLocking {
+    lockAllConfigurations()
+    if (System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('linux')) {
+        lockFile = file('gradle/linux.lockfile')
+    }
+}
 
 // The NeoForge development runtime skips vanilla's EULA check.
 tasks.named('runServer').configure {

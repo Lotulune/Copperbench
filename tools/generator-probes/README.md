@@ -51,6 +51,16 @@ downloads and published checksums (SHA-256 for Groovy/JUnit; SHA-1 for Spring
 remain required by Gradle. Source receipts and the cold failure/repaired replay
 are retained with ticket 29; replaying a failed cache is not a new cold pass.
 
+NeoForge also keeps `gradle/linux.lockfile` for the actual Linux graph. It adds
+the epoll transport selected on Linux; Windows continues to use `gradle.lockfile`.
+The probe and generated workspace select the lock by the running OS. The shared
+verification metadata pins both graphs, including Linux native libraries. The
+[Linux graph qualification](https://github.com/Lotulune/Copperbench/actions/runs/38351212931)
+produced the lock, and all 14 added artifacts were independently downloaded from
+their original repositories and checked against their SHA-256 pins. Both locks
+are part of the environment receipt; a missing or edited Linux lock fails input
+verification on either platform.
+
 ## Run a probe
 
 Use Python 3.11 or later, the repository wrapper, and the existing Windows external

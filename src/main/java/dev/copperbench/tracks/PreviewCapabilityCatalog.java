@@ -49,29 +49,31 @@ public final class PreviewCapabilityCatalog {
 
     public static PreviewCapabilityCatalog official() {
         return new PreviewCapabilityCatalog(Map.of(
-                "fabric-26.3", new Evidence("p263-ticket-03-fabric-environment-2026-10-12", structuredOperations(Map.of(
-                        UiCore.Operation.CREATE_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12",
-                        UiCore.Operation.UPDATE_WORKSPACE_FILE, "p263-ticket-07-fabric-native-build-2026-10-12",
-                        UiCore.Operation.VALIDATE_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12",
-                        UiCore.Operation.GENERATE_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12",
-                        UiCore.Operation.RUN_SERVER, "p263-ticket-07-fabric-native-build-2026-10-12",
-                        UiCore.Operation.PREPARE_GAME_TESTS, "p263-ticket-09-fabric-native-acceptance-2026-10-12",
-                        UiCore.Operation.RUN_GAMETEST, "p263-ticket-09-fabric-native-acceptance-2026-10-12",
-                        UiCore.Operation.EXPORT_WORKSPACE, "p263-ticket-09-fabric-native-acceptance-2026-10-12",
-                        UiCore.Operation.BUILD_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12",
-                        UiCore.Operation.CREATE_MOD_ELEMENT, "p263-ticket-22-fabric-code-2026-10-13")),
+                "fabric-26.3", new Evidence("p263-ticket-03-fabric-environment-2026-10-12", structuredOperations(Map.ofEntries(
+                        Map.entry(UiCore.Operation.CREATE_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.UPDATE_WORKSPACE_FILE, "p263-ticket-07-fabric-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.VALIDATE_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.GENERATE_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.RUN_CLIENT, "p263-ticket-32-fabric-client-qualification-2026-10-13"),
+                        Map.entry(UiCore.Operation.RUN_SERVER, "p263-ticket-07-fabric-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.PREPARE_GAME_TESTS, "p263-ticket-09-fabric-native-acceptance-2026-10-12"),
+                        Map.entry(UiCore.Operation.RUN_GAMETEST, "p263-ticket-09-fabric-native-acceptance-2026-10-12"),
+                        Map.entry(UiCore.Operation.EXPORT_WORKSPACE, "p263-ticket-09-fabric-native-acceptance-2026-10-12"),
+                        Map.entry(UiCore.Operation.BUILD_WORKSPACE, "p263-ticket-07-fabric-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.CREATE_MOD_ELEMENT, "p263-ticket-22-fabric-code-2026-10-13"))),
                         Map.of("item", ITEM_FIELDS, "block", BLOCK_FIELDS, "recipe", RECIPE_FIELDS, "function", FUNCTION_FIELDS, "code", CODE_FIELDS), "registered"),
-                "neoforge-26.3", new Evidence("p263-ticket-04-neoforge-environment-2026-10-12", structuredOperations(Map.of(
-                        UiCore.Operation.CREATE_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12",
-                        UiCore.Operation.UPDATE_WORKSPACE_FILE, "p263-ticket-08-neoforge-native-build-2026-10-12",
-                        UiCore.Operation.VALIDATE_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12",
-                        UiCore.Operation.GENERATE_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12",
-                        UiCore.Operation.RUN_SERVER, "p263-ticket-08-neoforge-native-build-2026-10-12",
-                        UiCore.Operation.PREPARE_GAME_TESTS, "p263-ticket-10-neoforge-native-acceptance-2026-10-12",
-                        UiCore.Operation.RUN_GAMETEST, "p263-ticket-10-neoforge-native-acceptance-2026-10-12",
-                        UiCore.Operation.EXPORT_WORKSPACE, "p263-ticket-10-neoforge-native-acceptance-2026-10-12",
-                        UiCore.Operation.BUILD_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12",
-                        UiCore.Operation.CREATE_MOD_ELEMENT, "p263-ticket-23-neoforge-code-2026-10-13")),
+                "neoforge-26.3", new Evidence("p263-ticket-04-neoforge-environment-2026-10-12", structuredOperations(Map.ofEntries(
+                        Map.entry(UiCore.Operation.CREATE_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.UPDATE_WORKSPACE_FILE, "p263-ticket-08-neoforge-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.VALIDATE_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.GENERATE_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.RUN_CLIENT, "p263-ticket-33-neoforge-client-qualification-2026-10-13"),
+                        Map.entry(UiCore.Operation.RUN_SERVER, "p263-ticket-08-neoforge-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.PREPARE_GAME_TESTS, "p263-ticket-10-neoforge-native-acceptance-2026-10-12"),
+                        Map.entry(UiCore.Operation.RUN_GAMETEST, "p263-ticket-10-neoforge-native-acceptance-2026-10-12"),
+                        Map.entry(UiCore.Operation.EXPORT_WORKSPACE, "p263-ticket-10-neoforge-native-acceptance-2026-10-12"),
+                        Map.entry(UiCore.Operation.BUILD_WORKSPACE, "p263-ticket-08-neoforge-native-build-2026-10-12"),
+                        Map.entry(UiCore.Operation.CREATE_MOD_ELEMENT, "p263-ticket-23-neoforge-code-2026-10-13"))),
                         Map.of("item", ITEM_FIELDS, "block", BLOCK_FIELDS, "recipe", RECIPE_FIELDS, "function", FUNCTION_FIELDS, "code", CODE_FIELDS), "registered")));
     }
 

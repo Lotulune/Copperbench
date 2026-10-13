@@ -75,6 +75,20 @@ class ProbeInputTest(unittest.TestCase):
         self.lock["schemaVersion"] = 2
         self.assert_rejected("LOCK_VERSION_UNSUPPORTED", lambda: validate_lock(self.lock))
 
+    def test_neoforge_linux_graph_is_required_and_tampering_is_rejected(self):
+        self.lock["generatorId"] = "neoforge-26.3"
+        self.lock["dependencyGraph"] = {}
+        for name in ("gradle.lockfile", "gradle/verification-metadata.xml", "gradle/linux.lockfile"):
+            path = self.project / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"frozen")
+            self.lock["dependencyGraph"][name] = hashlib.sha256(b"frozen").hexdigest()
+        verify_dependency_graph(self.lock, self.project)
+        (self.project / "gradle/linux.lockfile").write_bytes(b"edited")
+        self.assert_rejected("DEPENDENCY_GRAPH_CHANGED", lambda: verify_dependency_graph(self.lock, self.project))
+        (self.project / "gradle/linux.lockfile").unlink()
+        self.assert_rejected("DEPENDENCY_GRAPH_UNLOCKED", lambda: verify_dependency_graph(self.lock, self.project))
+
     def test_dependency_graph_must_be_frozen_and_unchanged(self):
         self.assert_rejected("DEPENDENCY_GRAPH_UNLOCKED", lambda: verify_dependency_graph(self.lock, self.project))
         self.lock["dependencyGraph"] = {}

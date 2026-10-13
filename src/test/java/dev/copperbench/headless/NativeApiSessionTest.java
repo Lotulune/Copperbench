@@ -69,7 +69,7 @@ class NativeApiSessionTest {
         receipts.add(selected);
         assertEquals("succeeded", selected.get("status").getAsString());
         var denied = api.dispatch(request("preview", "command", 0,
-                "{\"supportedVersions\":[\"1\"],\"generatorId\":\"fabric-26.3\",\"expectedRevision\":0,\"command\":\"run_client\"}")).getAsJsonObject("result");
+                "{\"supportedVersions\":[\"1\"],\"generatorId\":\"fabric-26.3\",\"expectedRevision\":0,\"command\":\"run_datagen\"}")).getAsJsonObject("result");
         receipts.add(denied);
         assertTrue(denied.toString().contains("PREVIEW_NATIVE_OPERATION_UNVERIFIED"));
         var legacy = api.dispatch(request("command", "build_workspace", 0, "{}")).getAsJsonObject("result");
@@ -95,11 +95,39 @@ class NativeApiSessionTest {
             assertEquals("succeeded", api.dispatch(request("preview", "opt_in", 0, payload))
                     .getAsJsonObject("result").get("status").getAsString());
             var command = JsonParser.parseString(payload).getAsJsonObject();
-            for (String operation : List.of("run_client", "run_datagen")) {
+            for (String operation : List.of("run_datagen")) {
                 command.addProperty("command", operation);
                 assertTrue(api.dispatch(request("preview", "command", 0, command.toString())).toString()
                         .contains("PREVIEW_NATIVE_OPERATION_UNVERIFIED"), target + ": " + operation);
             }
+        }
+    }
+
+    @Test void qualifiedClientsRequireOptInAndWorkspacePermissionAndValidateSuppliedAuthority() {
+        for (String target : List.of("fabric-26.3", "neoforge-26.3")) {
+            var api = session(PermissionProfile.WORKSPACE, target);
+            JsonObject payload = new JsonObject();
+            payload.add("supportedVersions", JsonParser.parseString("[\"1\"]"));
+            payload.addProperty("generatorId", target);
+            payload.addProperty("expectedRevision", 0);
+            JsonObject selection = payload.deepCopy();
+            payload.addProperty("command", "run_client");
+            assertTrue(api.dispatch(request("preview", "command", 0, payload.toString())).toString()
+                    .contains("PREVIEW_OPT_IN_REQUIRED"));
+            assertEquals("succeeded", api.dispatch(request("preview", "opt_in", 0, selection.toString()))
+                    .getAsJsonObject("result").get("status").getAsString());
+            var accepted = api.dispatch(request("preview", "command", 0, payload.toString()));
+            assertEquals("accepted", accepted.getAsJsonObject("result").get("status").getAsString(), accepted.toString());
+            var readOnly = session(PermissionProfile.READ_ONLY, target);
+            assertTrue(readOnly.dispatch(request("preview", "command", 0, payload.toString())).toString()
+                    .contains("PERMISSION_DENIED"));
+            payload.add("payload", JsonParser.parseString("{\"taskAuthorizationId\":\"forged\"}"));
+            assertTrue(api.dispatch(request("preview", "command", 0, payload.toString())).toString()
+                    .contains("TASK_AUTHORIZATION_INVALID"));
+            assertEquals("succeeded", api.dispatch(request("preview", "revoke", 0, selection.toString()))
+                    .getAsJsonObject("result").get("status").getAsString());
+            assertTrue(api.dispatch(request("preview", "command", 0, payload.toString())).toString()
+                    .contains("PREVIEW_OPT_IN_REQUIRED"));
         }
     }
 

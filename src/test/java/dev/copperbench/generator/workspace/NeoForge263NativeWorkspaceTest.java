@@ -62,6 +62,13 @@ class NeoForge263NativeWorkspaceTest {
             String build = Files.readString(temporary.resolve("build.gradle"));
             assertTrue(build.contains("2.0.148")); assertTrue(build.contains("26.3.0.76")); assertTrue(build.contains("--nogui"));
             assertTrue(build.contains("javaExecutable = javaToolchains.launcherFor(java.toolchain)"));
+            assertTrue(build.contains("lockFile = file('gradle/linux.lockfile')"));
+            String linuxLock = Files.readString(temporary.resolve("gradle/linux.lockfile"));
+            assertTrue(linuxLock.contains("io.netty:netty-transport-native-epoll:4.2.16.Final="));
+            assertFalse(Files.readString(temporary.resolve("gradle.lockfile"))
+                    .contains("io.netty:netty-transport-native-epoll:4.2.16.Final="));
+            assertTrue(Files.readString(temporary.resolve("gradle/verification-metadata.xml"))
+                    .contains("netty-transport-native-epoll-4.2.16.Final-linux-x86_64.jar"));
             assertFalse(Files.readString(temporary.resolve("gradlew")).contains("\r"));
             String metadata = Files.readString(temporary.resolve("src/main/resources/META-INF/neoforge.mods.toml"));
             assertTrue(metadata.contains("versionRange=\"[26.3]\""));
