@@ -20,7 +20,7 @@ The helper uses the existing Windows NSIS/ZIP or Ubuntu deb/tar packaging tasks 
 
 The Linux candidate workflow has an optional `p263_loader` dispatch choice. Its default route and existing candidate metadata remain in place. Selecting a loader uploads the scoped candidate with all cells initially `not_run`, then runs the installed API gate below and uploads its separate receipts even on failure. The existing Xvfb preflights do not count as GNOME Xorg or Wayland player acceptance.
 
-The package helper currently selects G1 and declares every other scope unavailable. Availability describes a maintainer-selected implementation boundary bound to the source digest; it is not a gameplay result. G2 requires a new build plan with the complete five-element implementation and the fixed thirteen-case sample.
+The package helper defaults to G1. Explicit `--level G2` freezes a new candidate with the complete five-element implementation and the fixed thirteen-case sample; it never reuses a G1 identity. Availability describes a maintainer-selected implementation boundary bound to the source digest; it is not a gameplay result. Unselected scopes remain unavailable.
 
 ## Installed API gate
 

@@ -172,11 +172,15 @@ class GnomeX11Backend(X11Backend):
     def diagnostics(self):
         ids=self._property(self.root,'_NET_CLIENT_LIST')
         rows=[]
-        for identifier in ([] if ids is None else ids):
+        managed=set(int(i) for i in ([] if ids is None else ids))
+        children=set(w.id for w in self.root.query_tree().children)
+        for identifier in sorted(managed|children):
             row={'window_id':str(identifier)}
+            row['managed']=identifier in managed
             try:row['verifiedWindow']=self.window(identifier)
             except BridgeError as error:row['inspectionError']={'code':error.code,'message':str(error)}
             window=self.d.create_resource_object('window',int(identifier))
+            row['mapState']=window.get_attributes().map_state
             for name in ('_NET_WM_PID','_NET_WM_NAME','WM_CLASS'):
                 value=self._property(window,name)
                 row[name]=value.decode('utf-8','replace') if isinstance(value,bytes) else list(value) if value is not None else None

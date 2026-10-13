@@ -3,7 +3,7 @@
 Requests are planner-reviewed JSON files supplied by the cloud action. This worker
 never accepts shell commands, file paths outside its task, or unbounded UI scripts.
 """
-import hashlib, json, os, shutil, signal, sys, time, traceback
+import hashlib, json, os, shutil, signal, subprocess, sys, time, traceback
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -25,6 +25,7 @@ def save(path,value):
 product=Path(prior['productRoot']);workspace_file=Path(prior['workspace']);root=workspace_file.parent
 desktop=os.environ['P263_DESKTOP'];started=time.monotonic()
 record={'status':'preparing','candidateId':cell['candidateId'],'generatorId':prior['generatorId'],
+        'cell':'client:'+desktop+':'+prior['generatorId'].split('-')[0],
         'artifactSha256':cell['artifactSha256'],'level':cell['level'],'desktop':desktop,
         'installationReceiptSha256':h.sha(config['installationCell']),'observedArtifacts':cell['observedArtifacts'],
         'workspace':str(workspace_file),'runs':[],'controller':'task-local bounded engine; not a registered MCP connection'}
@@ -117,6 +118,29 @@ try:
                 result={'session':record,'activeTask':read(out/'active-task.json') if (out/'active-task.json').exists() else None,
                         'compositorState':backend._state(),
                         'backendDiagnostics':backend.diagnostics() if hasattr(backend,'diagnostics') else None}
+                # Inspect only this task's game process. Preserve raw dumps for a
+                # rendered-but-unmapped window without sending desktop input.
+                if desktop=='xorg' and not result['compositorState']['windows']:
+                    processes=[]
+                    for process in Path('/proc').iterdir():
+                        if not process.name.isdecimal():continue
+                        try:
+                            if (process/'cwd').resolve()!=root/'run':continue
+                            if Path(os.readlink(process/'exe')).name!='java':continue
+                            fields=(process/'environ').read_bytes().split(b'\0')
+                            keys={b'DISPLAY',b'XAUTHORITY',b'SDL_VIDEO_DRIVER',b'SDL_VIDEO_FORCE_EGL',b'LIBGL_ALWAYS_SOFTWARE'}
+                            environment={k.decode():v.decode(errors='replace') for field in fields if b'=' in field
+                                for k,v in [field.split(b'=',1)] if k in keys}
+                            dump=subprocess.run([str(product/'jdk/bin/jcmd'),process.name,'Thread.print'],capture_output=True,timeout=15)
+                            (destination/(process.name+'-threads.txt')).write_bytes(dump.stdout+dump.stderr)
+                            processes.append({'pid':int(process.name),'environment':environment,'threadDumpExit':dump.returncode})
+                        except (FileNotFoundError,ProcessLookupError):continue
+                    result['gameProcessDiagnostics']=processes
+                    directory=out/'bridge/diagnostic-desktop';directory.mkdir(parents=True,exist_ok=True)
+                    screenshot=directory/(str(sequence)+'.png')
+                    capture=subprocess.run(['gnome-screenshot','--file='+str(screenshot)],capture_output=True,timeout=15)
+                    if capture.returncode==0 and screenshot.is_file():
+                        result['image']={'path':str(screenshot),'scope':'Diagnostic desktop only; not an Engine observation and not valid for actions'}
             elif operation=='attach':
                 selected=backend.window(arguments['window_id']);pid=selected['pid']
                 process_cwd=Path(f'/proc/{pid}/cwd').resolve()
