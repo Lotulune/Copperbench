@@ -1,0 +1,21 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "expectation": "Ubuntu Xorg Fabric G2: actual movement/turning, manual cap16 attempt retained16+1, stick/string produced two and flint/paper opposite corners produced three; player took both results and inputs were consumed. Right-click placed Camp Post,2 to1. Actual camp_signal execution gave camp_probe=11 and a read-only block query confirmed gold at(12,80,12). Function/score batch ended with ACTION_TIMEOUT after both visible effects; it was not replayed. Give commands are preparation.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-d72811f4-8ca4-4e4f-b746-fde1e35ae769.png",
+      "frame-7603fcf0-751b-4b55-aee8-15c3a3e8c9ac.png",
+      "frame-bcf01f02-12a5-4afa-af70-c0c547549e63.png",
+      "frame-013f675a-96a0-42ac-907e-2c1b7435bb47.png",
+      "frame-22b4f335-40d3-468e-afa2-0007177c9dc0.png",
+      "frame-2994cb6b-defa-4bf9-a052-5a826bead4d3.png",
+      "frame-07302ee6-ee36-48c0-aae9-d203b03f78b8.png",
+      "frame-31f88a8a-c7c1-4ffd-ab9c-dbf5fb526f1b.png"
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 29
+}
