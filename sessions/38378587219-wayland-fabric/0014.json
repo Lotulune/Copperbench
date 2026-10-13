@@ -1,0 +1,15 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "67c12b92-f2fb-412f-80af-1ff58e79136d",
+    "action_id": "wait-for-created-world",
+    "actions": [
+      {
+        "type": "wait",
+        "duration_ms": 1800
+      }
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 14
+}
