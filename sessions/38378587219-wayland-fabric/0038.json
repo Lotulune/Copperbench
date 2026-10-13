@@ -1,0 +1,19 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "67c12b92-f2fb-412f-80af-1ff58e79136d",
+    "expectation": "Actual player subset: exact world-name text entry, manual attempt to combine 1 with a full stack of 16, return to separate 16+1 stacks, stick-over-string crafting and taking two outputs, keyboard movement and mouse look, and one Camp Post placed with stack decrement 2 to 1. Materials and difficulty/time commands were preparation only. Focus-loss and save/reopen checks are not claimed by this verdict.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-b5fdddf5-3aff-46e2-bc78-f5d676b45c59.png",
+      "frame-d82b7a26-1eef-41e5-8f20-1974d80ed5f2.png",
+      "frame-a7cf8946-34f3-4ff4-a343-d1faf4bf6c82.png",
+      "frame-69308ab9-72d4-402e-a9e7-9cf9ce2025ed.png",
+      "frame-595247e6-0538-4868-b25f-4e749684351d.png",
+      "frame-e8d519ff-301c-4993-8795-6162db35888f.png"
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 38
+}
