@@ -28,7 +28,8 @@ record={'status':'preparing','candidateId':cell['candidateId'],'generatorId':pri
         'cell':'client:'+desktop+':'+prior['generatorId'].split('-')[0],
         'artifactSha256':cell['artifactSha256'],'level':cell['level'],'desktop':desktop,
         'installationReceiptSha256':h.sha(config['installationCell']),'observedArtifacts':cell['observedArtifacts'],
-        'workspace':str(workspace_file),'runs':[],'controller':'task-local bounded engine; not a registered MCP connection'}
+        'workspace':str(workspace_file),'worldName':config['worldName'],'runs':[],
+        'controller':'task-local bounded engine; not a registered MCP connection'}
 engine=None;workspace=None;task_id=None;attempt=0;interrupted=False
 def interrupt(signum, frame):
     global interrupted

@@ -73,10 +73,13 @@ jobs:
           import json,os
           from pathlib import Path
           root=Path(os.environ['RUNNER_TEMP'])
+          loader_label='neo' if os.environ['P263_LOADER']=='neoforge' else 'fabric'
+          world_name='P263-'+loader_label+'-'+os.environ['P263_DESKTOP']+'-'+os.environ['GITHUB_RUN_ID']
+          assert len(world_name)<=32, 'Minecraft world-name field accepts at most 32 characters'
           config={'installedRun':str(root/'installed-evidence/cold/installed-run.json'),
                   'installationCell':str(root/'installed-evidence/cell/cell.json'),
                   'prepared':str(root/'installed-evidence/prepared-product.json'),
-                  'worldName':'P263-'+os.environ['P263_LOADER']+'-'+os.environ['P263_DESKTOP']+'-'+os.environ['GITHUB_RUN_ID']}
+                  'worldName':world_name}
           (root/'client-config.json').write_text(json.dumps(config,indent=2)+'\n',encoding='utf-8')
           PY
       - name: Keep the installed Native lifecycle and reviewed desktop actions alive
