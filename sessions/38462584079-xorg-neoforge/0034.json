@@ -1,0 +1,13 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "expectation": "Real GNOME overview removed focus; the attempted batch was rejected FOCUS_LOST before input with no held keys/buttons. Focus receipt and actions record are evidence; no gameplay conclusion is inferred from focus success.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl"
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 34
+}
