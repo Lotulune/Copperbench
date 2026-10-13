@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bb21416f-4c03-4358-a335-70bc2d99aadd",
+    "action_id": "welcome-continue-002",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 449,
+        "frame_id": "0085d58b-0f3f-4284-9de3-fc5db4e023c5",
+        "button": "left"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 300
+      }
+    ]
+  },
+  "sessionKey": "38368061083-wayland-fabric",
+  "sequence": 7
+}
