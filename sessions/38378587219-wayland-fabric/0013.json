@@ -1,0 +1,23 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "67c12b92-f2fb-412f-80af-1ff58e79136d",
+    "action_id": "create-exact-world-once",
+    "actions": [
+      {
+        "type": "click",
+        "x": 266,
+        "y": 449,
+        "frame_id": "73f65c7b-5fa6-45a5-a157-6440121bcdf8",
+        "settle_ms": 400,
+        "duration_ms": 200
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1200
+      }
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 13
+}
