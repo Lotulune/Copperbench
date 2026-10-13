@@ -2,6 +2,11 @@ name: P263 cloud desktop environment qualification
 
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/p263-unique-cases]
+    paths:
+      - .github/workflows/p263-desktop-environment.yml
+      - tools/candidate-evidence/qualify_cloud_desktop*.sh
 
 permissions:
   contents: read
