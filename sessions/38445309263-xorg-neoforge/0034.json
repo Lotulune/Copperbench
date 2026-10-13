@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "a2b753cb-1cba-4497-9ce3-6db652e872cc",
+    "action_id": "xn-reopen-world-list",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 203,
+        "button": "left",
+        "frame_id": "8da23a05-334c-4191-bd7e-fc302866be94"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 600
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 34
+}
