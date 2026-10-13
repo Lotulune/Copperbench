@@ -28,3 +28,35 @@ and Javadoc passed; detailed XML is retained under
 `output/p263-remaining/cancellation-and-legacy-test-results/`.
 
 Tickets 32–41 remain open until their actual candidate-bound requirements pass.
+
+## Integrated runtime results and follow-up
+
+The [second Fabric G2 run](https://github.com/Lotulune/Copperbench/actions/runs/38360248775)
+passed both installed Native executions: cold 311.923 seconds from an empty
+dependency cache and warm 254.760 seconds. Both ran all thirteen required cases,
+the intentional compile error and repair, cancellation, missing-case and tamper
+rejections, reopening, and independent portable checks. The workflow failed in
+the final cell aggregator because it still required three Native processes;
+G2 correctly adds a fourth process for structured element creation. The original
+run remains failed and its raw evidence is preserved under
+`output/p263-remaining/cloud/fabric-g2-attempt-2/`.
+
+The [second NeoForge G2 run](https://github.com/Lotulune/Copperbench/actions/runs/38360256142)
+built and repaired the generated mod but failed compilation of the independent
+host: the integrated block fixture had omitted `WorldReopenChecks`. The existing
+independently exercised helper is now included. These failures do not establish
+a G2 support claim.
+
+The corrected aggregator validates the exact G1/G2 process count, distinct PIDs
+and clean exits, retains the five structured contracts and element receipts,
+and links the five element checks to actual thirteen-case evidence. All 39
+candidate/installation boundary checks passed. Fresh candidate runs retain their
+own source and artifact identities; earlier failures are not relabeled.
+
+The [GNOME adapter run](https://github.com/Lotulune/Copperbench/actions/runs/38362118611)
+passed on both real Xorg and native Wayland. It captured the desktop and reserved
+and released F8 without sending input. A task-local bounded request queue now
+keeps the installed Native lifecycle alive while returning each action receipt
+and screenshot for planner inspection. It uses the existing bridge engine and
+does not claim that an MCP connection was registered. Actual client qualification
+remains pending.
