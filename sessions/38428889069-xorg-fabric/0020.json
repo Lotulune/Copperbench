@@ -1,0 +1,31 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "select-peaceful-world-difficulty",
+    "actions": [
+      {
+        "type": "click",
+        "x": 555,
+        "y": 239,
+        "frame_id": "b6311790-c214-46f4-8d20-5894f53cdb33"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 200
+      },
+      {
+        "type": "click",
+        "x": 555,
+        "y": 239,
+        "frame_id": "b6311790-c214-46f4-8d20-5894f53cdb33"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 20
+}
