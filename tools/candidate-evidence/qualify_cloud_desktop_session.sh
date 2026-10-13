@@ -4,11 +4,17 @@ evidence=${P263_DESKTOP_EVIDENCE:?}
 desktop=${P263_DESKTOP:?}
 shell_pid=''
 xorg_pid=''
+previous_idle=$(gsettings get org.gnome.desktop.session idle-delay)
 cleanup() {
   if [ -n "$shell_pid" ]; then kill "$shell_pid" 2>/dev/null || true; wait "$shell_pid" 2>/dev/null || true; fi
   if [ -n "$xorg_pid" ]; then sudo kill "$xorg_pid" 2>/dev/null || true; fi
+  gsettings set org.gnome.desktop.session idle-delay "$previous_idle"
 }
 trap cleanup EXIT
+printf '%s\n' "$previous_idle" > "$evidence/idle-delay.before.txt"
+# This is a disposable unattended test desktop. Restore its prior value on exit.
+gsettings set org.gnome.desktop.session idle-delay 0
+gsettings get org.gnome.desktop.session idle-delay > "$evidence/idle-delay.during.txt"
 export XDG_RUNTIME_DIR="${RUNNER_TEMP:?}/p263-desktop-runtime"
 mkdir -m 700 "$XDG_RUNTIME_DIR"
 export XDG_CURRENT_DESKTOP=GNOME
@@ -82,6 +88,9 @@ if [ "$desktop" = wayland ]; then
   export WAYLAND_DISPLAY="$(basename "${sockets[0]}")" GDK_BACKEND=wayland
 fi
 python3 tools/candidate-evidence/inspect_gnome_session.py
+if [ "${P263_INPUT_PROBE:-}" = 1 ]; then
+  python3 tools/candidate-evidence/qualify_gnome_input.py
+fi
 gdbus call --session --dest org.gnome.Shell --object-path /dev/copperbench/ValidationObserver \
   --method dev.copperbench.ValidationObserver.State > "$evidence/window-observer-state.txt"
 printf '{"status":"interfaces_observed","desktop":"%s","displayBackend":"%s","clientAcceptance":"not_run","formalSupportClaim":false}\n' \

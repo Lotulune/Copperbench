@@ -10,6 +10,7 @@ on:
       - tools/candidate-evidence/inspect_gnome_session.py
       - tools/candidate-evidence/gnome-observer/**
       - tools/candidate-evidence/gnome_backend.py
+      - tools/candidate-evidence/qualify_gnome_input.py
 
 permissions:
   contents: read
@@ -33,6 +34,7 @@ jobs:
       - name: Inspect the real compositor and control interfaces
         env:
           P263_DESKTOP: ${{ matrix.session }}
+          P263_INPUT_PROBE: '1'
         run: bash tools/candidate-evidence/qualify_cloud_desktop.sh "$P263_DESKTOP" "$RUNNER_TEMP/desktop-evidence"
       - uses: actions/upload-artifact@v7
         if: always()

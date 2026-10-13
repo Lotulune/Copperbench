@@ -36,6 +36,7 @@ export default class ValidationObserver extends Extension {
                 rect: {left: rect.x, top: rect.y, width: rect.width, height: rect.height}};
         });
         return JSON.stringify({windows, pointer: global.get_pointer().slice(0, 2),
+            stageKeyFocus: String(global.stage.get_key_focus()), modalCount: Main.modalCount ?? null,
             emergency: this._emergency, emergencyReserved: this._action !== 0,
             overview: Main.overview.visible, screenShield: shieldActive,
             screenShieldAvailable: Main.screenShield !== null});
