@@ -1,0 +1,33 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "41cb126b-dfe3-4fd0-8db7-008e4f29c9a6",
+    "action_id": "close-inventory-and-pause-for-save",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "e"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 150
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "escape"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 35
+}
