@@ -1,0 +1,14 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "8a7519a7-7b2f-4ef8-aa91-0d9ecc5ff177",
+    "expectation": "Supplementary focus-only check on the actual native Wayland Minecraft PID 11268: GNOME overview changed focused true to false; the bounded movement request was rejected with FOCUS_LOST before input, with no held keys or buttons. Gameplay and saved-world persistence were verified in the separately retained same-candidate run 38378587219.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-b139f2e9-aa5d-49ea-934d-f69ca780e94b.png"
+    ]
+  },
+  "sessionKey": "38422771055-wayland-fabric",
+  "sequence": 5
+}
