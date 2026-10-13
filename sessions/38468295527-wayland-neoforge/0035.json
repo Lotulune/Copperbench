@@ -1,0 +1,10 @@
+{
+  "operation": "attach",
+  "arguments": {
+    "window_id": "2",
+    "game_dir": "/home/runner/work/_temp/installed-work/cold/workspaces/camp-kit/run",
+    "focus": true
+  },
+  "sessionKey": "38468295527-wayland-neoforge",
+  "sequence": 35
+}
