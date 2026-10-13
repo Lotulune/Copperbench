@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "a78c51b5-beb7-47a9-b946-a16031fd446d",
+    "action_id": "xfg2-reopen-world-list-after-transport-recovery",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 235,
+        "button": "left",
+        "frame_id": "6c4ecc29-2b73-4dd4-ac64-8c6c5ff442c9"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 550
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 45
+}
