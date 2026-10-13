@@ -28,11 +28,19 @@ async function filesAt(directory) {
 }
 async function upload(name, directory) {
   const files = await filesAt(directory);
-  if (files.length) await artifact.uploadArtifact(name,files,{retentionDays:14});
+  if (files.length) await artifact.uploadArtifact(name,files,directory,{retentionDays:14});
 }
 async function main() {
   const {DefaultArtifactClient} = await import('@actions/artifact');
   artifact = new DefaultArtifactClient();
+  if (process.env.P263_CONTROL_PREFLIGHT==='true') {
+    const directory=path.join(process.env.RUNNER_TEMP,'p263-control-preflight');
+    await fs.mkdir(directory);
+    await fs.writeFile(path.join(directory,'receipt.json'),JSON.stringify({source:process.env.GITHUB_SHA,
+      scope:'Transport upload only; no desktop or game input',status:'preflight'}));
+    await upload('p263-controller-preflight',directory);
+    return;
+  }
   console.log(`Planner control key: ${key}`);
   const env = {...process.env};
   for (const name of Object.keys(env))
@@ -45,7 +53,7 @@ async function main() {
   let sequence=1, ready=false;
   while (exitCode === null && Date.now()<deadline && !stopped) {
     if (!ready && await exists(path.join(evidence,'ready.json'))) {
-      await artifact.uploadArtifact('p263-client-ready',[path.join(evidence,'ready.json')],{retentionDays:14});
+      await artifact.uploadArtifact('p263-client-ready',[path.join(evidence,'ready.json')],evidence,{retentionDays:14});
       ready = true;
     }
     if (!ready) {await pause(2000);continue;}

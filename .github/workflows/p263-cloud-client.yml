@@ -41,6 +41,12 @@ jobs:
             cd .github/actions/p263-client-control
             node --input-type=module -e 'import {DefaultArtifactClient} from "@actions/artifact"; new DefaultArtifactClient(); console.log("Artifact client import passed")'
           )
+      - name: Verify the exact controller can upload receipts before installing the product
+        uses: ./.github/actions/p263-client-control
+        env:
+          P263_CONTROL_PREFLIGHT: 'true'
+        with:
+          token: ${{ github.token }}
       - uses: actions/download-artifact@v8
         with:
           name: p263-ubuntu-${{ inputs.loader }}-candidate
@@ -79,6 +85,15 @@ jobs:
           P263_DESKTOP_EVIDENCE: ${{ runner.temp }}/desktop-evidence
         with:
           token: ${{ github.token }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: p263-client-recovery
+          path: |
+            ${{ runner.temp }}/client-evidence/
+            ${{ runner.temp }}/desktop-evidence/
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/upload-artifact@v7
         if: always()
         with:
