@@ -1,0 +1,15 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "f5394b07-e665-412f-9a47-ee7412693633",
+    "expectation": "Supplementary reopen only: the exact archived P263-fabric-xorg-38428889069 world was selected and loaded in a fresh same-candidate installed Fabric Xorg process. Camp Post and hotbar kits16/1/2 and one Post are visibly restored. This does not retroactively change the original run timeout; final serialized comparison and Native normal exit remain separate checks.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-2aab62d1-7086-40c7-abd2-5b51360a7c84.png",
+      "frame-43288e8e-0815-412f-a989-369e594bb324.png"
+    ]
+  },
+  "sessionKey": "38445300688-xorg-fabric",
+  "sequence": 10
+}
