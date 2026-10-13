@@ -19,6 +19,7 @@
 package net.mcreator.ui.dialogs.workspace;
 
 import dev.copperbench.network.ChinaMirrorService;
+import dev.copperbench.shell.ProductDialogs;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
 import net.mcreator.gradle.GradleDaemonUtils;
 import net.mcreator.gradle.GradleResultCode;
@@ -139,6 +140,10 @@ public class WorkspaceGeneratorSetupDialog {
 	}
 
 	private static void showSetupFailedMessage(ProgressDialog dial, MCreator m, String s) {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			SwingUtilities.invokeLater(() -> showSetupFailedMessage(dial, m, s));
+			return;
+		}
 		dial.hideDialog();
 
 		boolean offerChinaMirrors = !ChinaMirrorService.isEnabled();
@@ -151,11 +156,41 @@ public class WorkspaceGeneratorSetupDialog {
 		optionList.add(L10N.t("dialog.setup_workspace.step.workspace_setup_close"));
 		Object[] options = optionList.toArray();
 		String extra = offerChinaMirrors ? L10N.t("dialog.setup_workspace.step.workspace_setup_fail_china_hint") : "";
-		int action = JOptionPane.showOptionDialog(m,
-				L10N.t("dialog.setup_workspace.step.workspace_setup_fail") + extra + (s != null ?
+		String message = L10N.t("dialog.setup_workspace.step.workspace_setup_fail") + extra + (s != null ?
 						L10N.t("dialog.setup_workspace.step.workspace_setup_fail_additionalinfo") + s :
-						"") + "<br><br>", L10N.t("dialog.setup_workspace.step.workspace_setup_fail_title"),
-				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+						"");
+		JOptionPane pane = ProductDialogs.pane(message, JOptionPane.ERROR_MESSAGE, new Object[0], null);
+		JTextArea body = (JTextArea) pane.getMessage();
+		body.setColumns(0);
+		body.setSize(420, Short.MAX_VALUE);
+		JScrollPane description = new JScrollPane(body);
+		description.setBorder(BorderFactory.createEmptyBorder());
+		description.setOpaque(false);
+		description.getViewport().setOpaque(false);
+		description.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		description.setPreferredSize(new Dimension(440, Math.min(180, body.getPreferredSize().height)));
+		JPanel content = new JPanel(new BorderLayout(0, 12));
+		content.setOpaque(false);
+		content.add(description, BorderLayout.CENTER);
+		JPanel actions = new JPanel(new GridLayout(0, 1, 0, 8));
+		actions.setOpaque(false);
+		List<JButton> buttons = new ArrayList<>();
+		for (int i = 0; i < options.length; i++) {
+			int selected = i;
+			JButton button = new JButton(options[i].toString());
+			button.setMargin(new Insets(8, 12, 8, 12));
+			button.addActionListener(event -> pane.setValue(selected));
+			actions.add(button);
+			buttons.add(button);
+		}
+		content.add(actions, BorderLayout.SOUTH);
+		pane.setMessage(content);
+		JDialog dialog = pane.createDialog(m, L10N.t("dialog.setup_workspace.step.workspace_setup_fail_title"));
+		JButton retry = buttons.get(offerChinaMirrors ? 1 : 0);
+		dialog.getRootPane().setDefaultButton(retry);
+		SwingUtilities.invokeLater(retry::requestFocusInWindow);
+		try { dialog.setVisible(true); } finally { dialog.dispose(); }
+		int action = pane.getValue() instanceof Integer selected ? selected : JOptionPane.CLOSED_OPTION;
 		int offset = offerChinaMirrors ? 1 : 0;
 		if (offerChinaMirrors && action == 0) {
 			ChinaMirrorService.rememberChoice(true);

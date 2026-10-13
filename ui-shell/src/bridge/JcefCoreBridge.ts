@@ -243,7 +243,7 @@ export class JcefCoreBridge implements CoreBridge {
     if (!this.isProjectionGenerationCurrent(baselineSequence)) return false;
     this.applyQueryResult(workbench);
     this.notify();
-    if (workbench.status !== 'succeeded' || !workbench.data) return true;
+    if (workbench.status !== 'succeeded' || !workbench.data) throw new Error('Could not read the latest workspace state');
 
     const projectionRevision = workbench.revision;
     if (!(await this.refreshElements(base, baselineSequence, projectionRevision))) return false;
@@ -284,7 +284,7 @@ export class JcefCoreBridge implements CoreBridge {
       if (result.status !== 'succeeded' || !result.data) {
         this.state.diagnostics = [...result.diagnostics];
         this.notify();
-        return true;
+        throw new Error('Could not read the latest mod elements');
       }
       if (result.revision !== projectionRevision) return false;
       if (this.isStaleRevision(result.revision)) return true;

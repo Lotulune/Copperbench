@@ -2,6 +2,33 @@ import { test, expect } from '@playwright/test';
 import { openToolView } from './navigation';
 
 test.describe('JCEF Bridge & Host Transport Integration', () => {
+  test('reports failed projection reads instead of declaring refresh complete', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByTestId('workbench-main')).toBeVisible();
+    const failed = await page.evaluate(async () => {
+      const { JcefCoreBridge } = await import('/src/bridge/JcefCoreBridge.ts');
+      const { coreBridge: fixture } = await import('/src/bridge/index.ts');
+      const workspaceId = fixture.getState().workbench!.workspace.id;
+      const failures: string[] = [];
+      for (const failingOperation of ['get_workbench', 'list_mod_elements']) {
+        const bridge = new JcefCoreBridge({ workspaceId, onEvent: () => () => {}, invoke: async raw => {
+          const request = JSON.parse(raw);
+          if (request.messageType === 'handshake') return JSON.stringify(await fixture.negotiateHandshake(request));
+          if (request.operation === failingOperation) return JSON.stringify({
+            messageType: 'query_result', requestId: request.requestId, workspaceId, operation: request.operation,
+            status: 'failed', revision: 0, data: null, diagnostics: []
+          });
+          return JSON.stringify(await fixture.sendQuery(request));
+        } });
+        try { await bridge.negotiateHandshake({ messageType: 'handshake', requestId: crypto.randomUUID(),
+          supportedSchemaVersions: ['1.0'], client: { id: 'refresh-test', version: '1' } }); }
+        catch { failures.push(failingOperation); }
+        finally { bridge.dispose(); }
+      }
+      return failures;
+    });
+    expect(failed).toEqual(['get_workbench', 'list_mod_elements']);
+  });
   test('keeps the workbench loading until its first Core projection arrives', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByTestId('workbench-main')).toBeVisible();

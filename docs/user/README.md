@@ -77,6 +77,8 @@ Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设
 
 ## 安装与卸载
 
+统一图形安装器的中英步骤见[图形安装指南](./graphical-installation.md)，360 等安全软件的具体检测见[安全告警处理](./security-alerts.md)。这两份说明区分新向导与已经发布的 0.1.4 安装包。
+
 0.1.4 的目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
 
 安装后默认打开新产品外壳（无边框 JCEF 工作台）。若要旧版 Swing 工作区，启动时加 `-Dcopperbench.productShell=false`。

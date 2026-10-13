@@ -83,7 +83,8 @@ test('native task UI preserves racing-save rejection without replaying writes an
 test('preview mode does not pretend to create files or choose an installation', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
-  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
   await page.getByTestId('blockbench-tasks').locator(':scope > summary').click();
   await expect(page.getByRole('button', { name: '新建建模副本' })).toBeDisabled();
   await page.getByTestId('blockbench-setup').locator(':scope > summary').click();

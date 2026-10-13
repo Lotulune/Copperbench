@@ -139,13 +139,11 @@ public class PreferencesDialog extends MCreatorDialog {
 			selectSection(selectedTab);
 
 		ok.addActionListener(_ -> {
-			savePreferences();
-			dispose();
+			if (savePreferences()) dispose();
 		});
 
 		apply.addActionListener(_ -> {
-			savePreferences();
-			apply.setEnabled(false);
+			if (savePreferences()) apply.setEnabled(false);
 		});
 
 		cancel.addActionListener(_ -> dispose());
@@ -255,13 +253,25 @@ public class PreferencesDialog extends MCreatorDialog {
 		sectionPanels.put(section, sectionPanel);
 	}
 
-	private void savePreferences() {
+	private boolean savePreferences() {
+		try {
 		PreferencesManager.getPreferencesRegistry().forEach((_, preferences) -> preferences.forEach(entry -> {
 			if (entries.containsKey(entry))
 				entry.setValueFromComponent(entries.get(entry));
 		}));
 		PreferencesManager.savePreferences();
 		ChinaMirrorService.syncUserHome();
+		L10N.initTranslations();
+		return true;
+		} catch (java.io.UncheckedIOException | SecurityException exception) {
+			String ok = dev.copperbench.shell.UiLocalePreferences.text("确定", "OK");
+			dev.copperbench.shell.ProductDialogs.show(this,
+					dev.copperbench.shell.UiLocalePreferences.text("无法保存语言设置，请检查应用数据目录的写入权限。",
+							"Could not save the language preference. Check write access to the app data folder."),
+					dev.copperbench.shell.UiLocalePreferences.text("保存失败", "Could not save"),
+					JOptionPane.ERROR_MESSAGE, new Object[]{ok}, ok);
+			return false;
+		}
 	}
 
 	private JComponent generateEntryComponent(PreferencesEntry<?> entry, JPanel placeInside) {

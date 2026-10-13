@@ -8,6 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
+    locale: 'zh-CN',
     baseURL: 'http://localhost:5173',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'

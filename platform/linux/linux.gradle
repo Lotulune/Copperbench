@@ -58,6 +58,7 @@ tasks.register('exportLinux64', Copy.class) {
     }
     into('plugins') { from 'build/plugins/' }
     into('license') { from 'license' }
+    into('user') { from('docs/user') { include 'README.md', 'graphical-installation.md', 'security-alerts.md' } }
     into('jdk') { from 'jdk/jbr25_linux_64' }
     into('jdk21') { from 'jdk/jdk21_linux_64' }
     into('gradle-dists') { from 'build/linux-gradle-dists' }
@@ -166,12 +167,23 @@ tasks.register('buildDebLinux64') {
 tasks.register('exportLinuxCandidate') {
     group = 'export'
     dependsOn tarLinux64
-    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) dependsOn buildDebLinux64
+    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) {
+        dependsOn buildDebLinux64
+        dependsOn 'buildInstallerLinux64'
+    }
+}
+
+tasks.register('buildInstallerLinux64', Exec.class) {
+    dependsOn exportLinux64
+    onlyIf { Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC) }
+    commandLine 'node', 'platform/installer/build.mjs', '--platform', 'linux',
+            '--version', project.productVersion, '--payload', 'build/export/linux64'
 }
 
 tasks.register('exportLinux') {
     group = 'export'
     dependsOn tarLinux64
+    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) dependsOn 'buildInstallerLinux64'
 
     doLast {
         delete 'build/export/linux64'

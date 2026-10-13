@@ -41,7 +41,7 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 	}
 
 	@Override public JComponent getComponent(Window parent, Consumer<EventObject> fct) {
-		List<Locale> locales = new ArrayList<>(L10N.getSupportedLocales());
+		List<Locale> locales = new ArrayList<>(List.of(Locale.US, Locale.SIMPLIFIED_CHINESE));
 		locales.sort((a, b) -> {
 			if (a.equals(Locale.US))
 				return -1;
@@ -57,13 +57,19 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 		});
 		JComboBox<Locale> box = new JComboBox<>(locales.toArray(new Locale[0]));
 		box.setRenderer(new LocaleListRenderer());
-		box.setSelectedItem(this.value);
+		box.setSelectedItem(dev.copperbench.shell.UiLocalePreferences.javaLocale());
 		box.addActionListener(fct::accept);
 		return box;
 	}
 
 	@Override public void setValueFromComponent(JComponent component) {
-		this.value = (Locale) ((JComboBox<?>) component).getSelectedItem();
+		Locale selected = (Locale) ((JComboBox<?>) component).getSelectedItem();
+		try {
+			dev.copperbench.shell.UiLocalePreferences.save("zh".equals(selected.getLanguage()) ? "zh" : "en");
+		} catch (java.io.IOException exception) {
+			throw new java.io.UncheckedIOException(exception);
+		}
+		this.value = selected;
 	}
 
 	@Override public void setValueFromJsonElement(JsonElement object) {
