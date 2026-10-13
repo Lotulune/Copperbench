@@ -1,0 +1,17 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "expectation": "Xorg NeoForge G1 real player movement/turning, manual attempt to add one kit to stack16 retained16+1, stick above string recipe produced two that were taken with ingredients consumed, and right-click placed Camp Post reducing2 to1. Give commands are preparation. Missing G1 sample textures/localization remain visible and are not a passed visual quality claim.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-499fe1c1-620e-4d5c-86e4-60a31333ab72.png",
+      "frame-127b71dc-caee-4ff9-bdb4-4dab13cb3e16.png",
+      "frame-88d33d49-c59b-442c-8b88-dd79d0c052a9.png",
+      "frame-8dfcb693-6b6f-413b-ba48-204d9e784b89.png"
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 20
+}
