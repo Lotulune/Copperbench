@@ -28,3 +28,15 @@ waiting, retains permission/revision validation, and allocates the completion
 event against the current revision after cleanup. The focused regression makes
 the interrupted worker read the store before it can finish; stale and read-only
 requests remain rejected. That repair requires a new Fabric replay.
+
+## Later reproduction before cloud client acceptance
+
+The fresh [Xorg preparation run](https://github.com/Lotulune/Copperbench/actions/runs/38363100785)
+and [Wayland preparation run](https://github.com/Lotulune/Copperbench/actions/runs/38363094603)
+reused this historical NeoForge candidate. Both passed cold Native acceptance
+but reproduced `TASK_CANCEL_FAILED` during the warm run. The workspace-monitor
+repair described above is also required for a reproducible NeoForge candidate.
+Neither run reached Minecraft player acceptance. Their original failure logs
+remain under `output/p263-remaining/cloud/neoforge-g1-{xorg,wayland}-client-attempt-1/`.
+The earlier successful run is retained as an observed historical result;
+replacement candidates must pass again before client qualification.

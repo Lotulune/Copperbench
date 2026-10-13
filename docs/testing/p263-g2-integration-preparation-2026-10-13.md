@@ -60,3 +60,20 @@ keeps the installed Native lifecycle alive while returning each action receipt
 and screenshot for planner inspection. It uses the existing bridge engine and
 does not claim that an MCP connection was registered. Actual client qualification
 remains pending.
+
+The [third Fabric G2 run](https://github.com/Lotulune/Copperbench/actions/runs/38362518685)
+subsequently produced a passing installed cell for candidate
+`sha256:ab57577c493f017baa3079bc33a82265b144f6f7eeb55a8fe5dda000e937f4be`.
+Its mod JAR is `d77a9e64dad8913d72089ac3264675c0d21d26723f5f925ef149f8c09907fe6a`;
+the installed cell SHA-256 is
+`a09c4747c06bf331335d8220f5f50c7633ca103f358de3e93003ae346fffbb2e`.
+Four current/historical bundles independently passed in a clean local directory
+and both tampered bundles were rejected. Xorg/Wayland player cells are pending.
+
+The [third NeoForge G2 run](https://github.com/Lotulune/Copperbench/actions/runs/38362120404)
+passed actual cold (362.614 seconds) and warm (188.373 seconds) Native acceptance,
+including all thirteen cases and negative protections. It still contained the
+old three-process cell assertion and failed only in aggregation. Its four
+portable bundles also independently passed and both tampered bundles were
+rejected. Fresh client runners use the corrected external aggregation harness
+and retain its separate source/hash identity.
