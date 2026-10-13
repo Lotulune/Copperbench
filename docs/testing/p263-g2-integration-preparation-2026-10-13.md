@@ -77,3 +77,59 @@ old three-process cell assertion and failed only in aggregation. Its four
 portable bundles also independently passed and both tampered bundles were
 rejected. Fresh client runners use the corrected external aggregation harness
 and retain its separate source/hash identity.
+
+## Repaired candidates and independent review
+
+The subsequent NeoForge cold run exposed a real shared-recipe race: the reload
+changed `camp_shaped` to four outputs before the baseline test checked two.
+The four fixtures now wait for all four baseline completions before applying
+the single reload. The baseline deliberately waits 40 ticks, beyond the old
+20-tick assumption. Original output-count assertions remain unchanged.
+
+| Candidate | Installed run | Result |
+| --- | --- | --- |
+| Fabric G2 `sha256:5af68d4a7690efa0038675bab96987d888bb624f1b8550cfcb74a1a14006203c` | [38369155468](https://github.com/Lotulune/Copperbench/actions/runs/38369155468) | Cold/warm thirteen cases and negative gates passed |
+| NeoForge G2 `sha256:25c777914cbea3ce14fe59c0f9a03a79613d7c03cd3f7631ebd480ec894121d8` | [38371185225](https://github.com/Lotulune/Copperbench/actions/runs/38371185225) | Cold/warm thirteen cases and negative gates passed |
+| NeoForge G1 `sha256:65dbd37b779ff7259273c498f0830646809ef6506f9b2b30d296b0ccfacc24e6` | [38371179293](https://github.com/Lotulune/Copperbench/actions/runs/38371179293) | Cold/warm installed gate passed |
+
+Each row was independently reviewed in a new local directory with the standalone
+verifier and Python isolation: four current/historical bundles passed and two
+tampered bundles were rejected. Evidence resides in
+`output/p263-remaining/{fabric-g2-order-fixed,neoforge-g2-order-fixed,neoforge-g1-runtime-fixed}-offline-review/`.
+The NeoForge candidates also include `DevLaunch:1.0.2` in Linux `runtimeClasspath`
+dependency locking; its already verified component checksum was not weakened.
+
+The actual Fabric Wayland attempt
+[38368061083](https://github.com/Lotulune/Copperbench/actions/runs/38368061083)
+showed a native Minecraft window, but reviewed clicks and Tab did not change
+the welcome screen. Its verdict is **unverified**. Control detached before
+cancellation; cancellation is not normal player save-and-quit. No world was
+created. Original screenshots, receipts and failure records remain intact.
+
+The lightweight real GTK probe
+[38377906115](https://github.com/Lotulune/Copperbench/actions/runs/38377906115)
+passed complete text and click callbacks on GNOME Xorg. Wayland delivered only
+`bc123` and no pointer callback. Raw events show keyboard focus arriving with
+the first attempted key. The task adapter is being corrected to establish the
+headless seat's input capabilities before clients bind; no acceptance claim
+depends on this hypothesis. The earlier unpressed-release initialization was
+removed after Mutter rejected it. The
+[Mutter session implementation](https://raw.githubusercontent.com/GNOME/mutter/gnome-46/src/backends/meta-remote-desktop-session.c)
+confirms that release cannot initialize a missing device. Source retrieval used
+`smart-search fetch`; its main search provider was unavailable, while exact
+source fetching succeeded. Locked bridge dependencies now run in a disposable
+project venv, including the previously missing Xorg capture dependency `mss`.
+
+Windows disk capacity is sufficient again. New G1/G2 packages are building in
+[38377909493](https://github.com/Lotulune/Copperbench/actions/runs/38377909493).
+The server runner only builds packages; acceptance will run on the actual
+Windows 11 workstation. Tickets 32–41 remain in progress.
+
+The corrected seat setup subsequently passed both real desktop input probes in
+[38378300288](https://github.com/Lotulune/Copperbench/actions/runs/38378300288):
+each received exactly `abc123` and one button callback. Wayland advertised two
+task-created virtual devices before the test client connected; creation sent no
+key/button/motion events. Xorg retained its existing input devices. The raw
+callbacks, screenshots and actions are retained under
+`output/p263-remaining/cloud/gnome-input-probe-4/`. This establishes the adapter's
+measured input delivery, while Minecraft player acceptance remains separate.
