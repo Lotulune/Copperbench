@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "657dde32-0335-4139-9c9a-bdd1c2acc360",
+    "action_id": "nf-wayland-enter-saved-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 264,
+        "y": 395,
+        "button": "left",
+        "frame_id": "1262025d-fab9-4fbc-bbe6-05b21565deae"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1400
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 32
+}
