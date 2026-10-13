@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "a2b753cb-1cba-4497-9ce3-6db652e872cc",
+    "action_id": "xn-enter-exact-saved-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 266,
+        "y": 395,
+        "button": "left",
+        "frame_id": "dfb36c87-db34-480f-9862-43fe014983f7"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 36
+}
