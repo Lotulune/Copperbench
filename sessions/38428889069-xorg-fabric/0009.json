@@ -1,0 +1,45 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "set-exact-name-and-world-options",
+    "actions": [
+      {
+        "type": "click",
+        "x": 400,
+        "y": 115,
+        "frame_id": "6d5b8cc7-2f6e-4c1c-9cd8-7485e3db469b"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "ctrl",
+          "a"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "text",
+        "text": "P263-fabric-xorg-38428889069"
+      },
+      {
+        "type": "click",
+        "x": 426,
+        "y": 284,
+        "frame_id": "6d5b8cc7-2f6e-4c1c-9cd8-7485e3db469b"
+      },
+      {
+        "type": "click",
+        "x": 426,
+        "y": 26,
+        "frame_id": "6d5b8cc7-2f6e-4c1c-9cd8-7485e3db469b"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 9
+}
