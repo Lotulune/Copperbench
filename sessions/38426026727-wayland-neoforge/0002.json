@@ -1,0 +1,9 @@
+{
+  "operation": "attach",
+  "arguments": {
+    "window_id": "1",
+    "focus": true
+  },
+  "sessionKey": "38426026727-wayland-neoforge",
+  "sequence": 2
+}
