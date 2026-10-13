@@ -1,0 +1,9 @@
+{
+  "operation": "attach",
+  "arguments": {
+    "window_id": "1",
+    "focus": true
+  },
+  "sessionKey": "38368061083-wayland-fabric",
+  "sequence": 11
+}
