@@ -1,0 +1,29 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-take-two",
+    "actions": [
+      {
+        "type": "click",
+        "x": 574,
+        "y": 146,
+        "button": "left",
+        "frame_id": "7603fcf0-751b-4b55-aee8-15c3a3e8c9ac"
+      },
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "button": "left",
+        "frame_id": "7603fcf0-751b-4b55-aee8-15c3a3e8c9ac"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 18
+}
