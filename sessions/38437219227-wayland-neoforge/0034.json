@@ -1,0 +1,15 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "657dde32-0335-4139-9c9a-bdd1c2acc360",
+    "action_id": "nf-wayland-wait-reopened-world",
+    "actions": [
+      {
+        "type": "wait",
+        "duration_ms": 900
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 34
+}
