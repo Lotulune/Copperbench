@@ -1,0 +1,37 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "action_id": "wfG2-score-query",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/scoreboard players get camp_probe camp_count"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 39
+}
