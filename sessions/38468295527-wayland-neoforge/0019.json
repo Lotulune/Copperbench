@@ -1,0 +1,37 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "7da98d26-1d03-416f-9021-63cab64e9b74",
+    "action_id": "wnG2-shaped-take",
+    "actions": [
+      {
+        "type": "click",
+        "x": 574,
+        "y": 146,
+        "frame_id": "1a0dce56-72b6-4dd9-b30c-547c0fb36441",
+        "button": "left",
+        "settle_ms": 300,
+        "duration_ms": 80
+      },
+      {
+        "type": "wait",
+        "duration_ms": 200
+      },
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "frame_id": "1a0dce56-72b6-4dd9-b30c-547c0fb36441",
+        "button": "left",
+        "settle_ms": 300,
+        "duration_ms": 80
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38468295527-wayland-neoforge",
+  "sequence": 19
+}
