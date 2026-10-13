@@ -1,0 +1,35 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "player-walk-look-open-chat",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "w"
+        ],
+        "duration_ms": 350
+      },
+      {
+        "type": "look",
+        "dx": 32,
+        "dy": 25,
+        "duration_ms": 180
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 450
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 14
+}
