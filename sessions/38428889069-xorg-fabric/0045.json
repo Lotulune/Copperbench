@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "759e3278-b037-48bd-bded-08ebaef32aaa",
+    "action_id": "open-saved-world-list",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 236,
+        "frame_id": "214d461c-298c-4bb0-8339-2cb2dac92f00"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 45
+}
