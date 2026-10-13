@@ -1,0 +1,17 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "a78c51b5-beb7-47a9-b946-a16031fd446d",
+    "expectation": "New Xorg Fabric G2 PID14917 loaded exact P263-fabric-xorg-38452185663. Initial reopened frame restored Camp Post and kits16/1/2/3 with post1. Read-only queries confirmed camp_probe=11 and gold at(12,80,12) without rerunning function. A horse visibly crossed/pushed the player between readonly queries, changing position after load; strict final saved-position equality must not be claimed. The initial reopen frame, action logs and join log must be considered separately from final coordinates.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-df786d5b-84db-4704-aea5-0194f8635100.png",
+      "frame-e64b709b-799c-40ee-9e5c-4df49f3d7ad8.png",
+      "frame-06fdd258-d5dc-43c9-9e84-5e92da14d0ac.png",
+      "frame-9bc64b0d-3721-490f-8e0b-e3df7eef44d7.png"
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 52
+}
