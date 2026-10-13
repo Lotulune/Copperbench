@@ -1,0 +1,209 @@
+{
+  "elementType": "item",
+  "generatorId": "neoforge-26.3",
+  "contractVersion": "1",
+  "complete": true,
+  "availability": "available",
+  "reasonCode": "FIELD_CONTRACT_AVAILABLE",
+  "fields": [
+    {
+      "path": "/texture",
+      "compatibilityPath": "/fields/texture",
+      "inputSchema": {
+        "type": "string",
+        "enum": [
+          "minecraft:barrier",
+          "minecraft:coal",
+          "minecraft:paper",
+          "minecraft:stick"
+        ]
+      },
+      "default": "minecraft:barrier",
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/name",
+      "compatibilityPath": "/fields/name",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared",
+      "readOnlyAfterCreate": true,
+      "defaultFrom": "displayName"
+    },
+    {
+      "path": "/rarity",
+      "compatibilityPath": "/fields/rarity",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "COMMON",
+              "UNCOMMON",
+              "RARE",
+              "EPIC"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "default": "COMMON",
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/stackSize",
+      "compatibilityPath": "/fields/stackSize",
+      "inputSchema": {
+        "type": "integer",
+        "minimum": 1.0,
+        "maximum": 99.0,
+        "suggestedStep": 1.0
+      },
+      "default": 64,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/immuneToFire",
+      "compatibilityPath": "/fields/immuneToFire",
+      "inputSchema": {
+        "type": "boolean"
+      },
+      "default": false,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/fuelBurnTime",
+      "compatibilityPath": "/fields/fuelBurnTime",
+      "inputSchema": {
+        "type": "integer",
+        "minimum": 0.0,
+        "maximum": 128000.0,
+        "suggestedStep": 1.0
+      },
+      "default": 0,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/compostingLayers",
+      "compatibilityPath": "/fields/compostingLayers",
+      "inputSchema": {
+        "type": "integer",
+        "minimum": 0.0,
+        "maximum": 7.0,
+        "suggestedStep": 1.0
+      },
+      "default": 0,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/description",
+      "compatibilityPath": "/fields/description",
+      "inputSchema": {
+        "type": "string"
+      },
+      "requiredOnCreate": false,
+      "generatorSupport": "product",
+      "default": ""
+    },
+    {
+      "path": "/displayName",
+      "compatibilityPath": "/fields/displayName",
+      "inputSchema": {
+        "type": "string"
+      },
+      "requiredOnCreate": false,
+      "generatorSupport": "product",
+      "defaultFrom": "readable_payload_name"
+    },
+    {
+      "path": "/maxStackSize",
+      "compatibilityPath": "/fields/maxStackSize",
+      "inputSchema": {
+        "type": "integer",
+        "minimum": 1.0,
+        "maximum": 99.0,
+        "suggestedStep": 1.0
+      },
+      "requiredOnCreate": false,
+      "generatorSupport": "product",
+      "aliasOf": "/stackSize",
+      "default": 64
+    }
+  ],
+  "alternatives": [
+    {
+      "requires": [
+        "elementId"
+      ],
+      "scope": "existing_element",
+      "operation": "get_mod_element_editor"
+    }
+  ],
+  "compatibilityPath": "/fields",
+  "aliasPolicy": "Top-level and /fields values must agree when both are provided; stackSize and maxStackSize must agree.",
+  "unknownFields": "Rejected; stored unknown nested fields require review before rewriting.",
+  "maxInputDepth": 64,
+  "generatorRestrictions": {
+    "includedFields": [
+      "name",
+      "texture",
+      "stackSize",
+      "rarity",
+      "immuneToFire",
+      "fuelBurnTime",
+      "compostingLayers"
+    ],
+    "excludedFields": [],
+    "source": "active_generator_definition",
+    "scope": "Declared template coverage; excluded fields may persist but have no promised generated effect. References and contextual requirements are checked during generation."
+  },
+  "minimalExample": {
+    "elementType": "item",
+    "name": "discovery_item",
+    "initialValues": {
+      "displayName": "Discovery Item",
+      "stackSize": 16,
+      "texture": "minecraft:barrier"
+    }
+  },
+  "createRequired": [
+    "elementType",
+    "name"
+  ],
+  "createNameSchema": {
+    "type": "string",
+    "pattern": "^[a-z][a-z0-9_]{0,63}$"
+  },
+  "scope": "Complete creation/edit input metadata; inputSchema uses JSON Schema with reference and valueConstraints annotations for contextual rules. Generation and gameplay still require their own acceptance."
+}

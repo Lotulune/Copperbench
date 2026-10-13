@@ -1419,7 +1419,7 @@ export interface PublishBatchResultPayload {
 
 export interface Query<T = unknown> {
   messageType: 'query';
-  schemaVersion: '1.0';
+  schemaVersion: '1.0' | '1.1';
   requestId: UUID;
   workspaceId: UUID;
   operation: QueryOperation;
@@ -1428,7 +1428,7 @@ export interface Query<T = unknown> {
 
 export interface QueryResult<T = unknown> {
   messageType: 'query_result';
-  schemaVersion: '1.0';
+  schemaVersion: '1.0' | '1.1';
   requestId: UUID;
   workspaceId: UUID;
   operation: QueryOperation;
@@ -1722,4 +1722,86 @@ export interface ScenarioDefinition {
   initialMessages: (QueryResult | CoreEvent | CommandResult)[];
   timeline?: ScenarioTimelineEntry[];
   expectedUi: ScenarioExpectedUi;
+}
+
+/** Separately negotiated contract; these fields never extend frozen v1.0 objects. */
+export interface AcceptanceCoverageDiagnostics {
+  schemaVersion: '1';
+  taskId: UUID;
+  state: 'running' | 'report_unavailable' | 'business_failed' | 'no_business' | 'duplicate'
+    | 'required_cases_missing' | 'insufficient' | 'passed_current_input' | 'passed_historical_input';
+  reasonCode: string;
+  evidenceScope: 'required_cases' | 'minimum_only_legacy';
+  inputScope: 'unverified' | 'current_at_completion' | 'current_at_export' | 'historical_at_export';
+  required: number | null;
+  minimumTests: number | null;
+  uniqueExecuted: number | null;
+  shortfall: number | null;
+  duplicates: { className: string; name: string }[];
+  missingCases: { className: string; name: string }[];
+}
+
+export interface PreviewRequest {
+  supportedVersions: string[];
+  operation: 'negotiate' | 'catalog' | 'opt_in' | 'revoke' | 'command' | 'acceptance';
+  generatorId?: string;
+  workspaceFolderPath?: string;
+  expectedRevision?: number;
+  command?: string;
+  payload?: Record<string, unknown>;
+}
+export interface PreviewTarget {
+  generatorId: string;
+  loader: LoaderType;
+  minecraftVersion: string;
+  trackId: TrackId | 'advanced';
+  previewRequired: boolean;
+  selected: boolean;
+  destination: string;
+  available: boolean;
+  workspaceGeneratorName: string;
+  capabilities: {
+    supportStage?: 'registered' | 'native_preview' | 'scoped_support';
+    environmentQualified?: boolean;
+    environmentEvidence?: string;
+    operations?: { operation: string; ready: boolean; reasonCode: string; evidence: string; available: boolean; accessReasonCode: string }[];
+    elementTypes?: { elementType: string; supported: boolean; reasonCode: string; fields: string[] }[];
+  };
+}
+export interface PreviewResult {
+  contract: 'preview_targets';
+  schemaVersion: '1';
+  requestId: string;
+  workspaceId: string;
+  selectedVersion?: string;
+  status: string;
+  revision?: number;
+  diagnostics: Diagnostic[];
+  targets?: PreviewTarget[];
+  core?: CommandResult;
+}
+
+/** Separate extension; the frozen UI-Core 1.0 envelope is unchanged. */
+export interface VersionCopyUpgradeEntry {
+  path: string; sourceValue: unknown; disposition: 'convertible' | 'manual' | 'unsupported';
+  reasonCode: string; targetMeaning: string; recovery: string; evidence: string;
+}
+export interface VersionCopyUpgradePlan {
+  planId: string; ruleVersion: string; sourceWorkspaceId: string; sourceRevision: number;
+  sourceGeneratorId: string; targetGeneratorId: string; sourceFingerprint: string;
+  copyOnly: boolean; executionAvailable: boolean; sourceUnchanged: boolean;
+  worldPolicy: string; recovery: string; entries: VersionCopyUpgradeEntry[];
+  counts: { convertible: number; manual: number; unsupported: number };
+  outputName?: string; targetDirectory?: string; targetPluginFingerprint?: string;
+}
+export interface VersionCopyUpgradeResult {
+  contract: 'version_copy_upgrade'; schemaVersion: '1' | '2'; selectedVersion?: '1' | '2'; requestId: string;
+  workspaceId: string; status: 'succeeded' | 'rejected' | 'failed'; revision?: number; executionAvailable?: boolean;
+  plan?: VersionCopyUpgradePlan; diagnostics: { code: string; message: string }[];
+  execution?: { status: 'prepared' | 'failed'; conversionComplete: boolean; targetDirectory: string;
+    targetWorkspaceFile?: string; sourceUnchanged?: boolean; acceptance: 'not_run'; worldsCopied: false; detail?: string };
+}
+export interface VersionCopyUpgradeV2Request {
+  operation: 'preview' | 'execute'; targetGeneratorId: string; outputName: string;
+  planId?: string; expectedRevision?: number; userApproved?: boolean;
 }

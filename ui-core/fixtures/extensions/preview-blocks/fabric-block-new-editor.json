@@ -1,0 +1,645 @@
+{
+  "element": {
+    "id": "22222222-2222-4222-8222-222222222216",
+    "type": "block",
+    "name": "camp_post",
+    "displayName": "Camp Post",
+    "state": "valid",
+    "ownership": "generated",
+    "updatedAt": "2026-10-12T00:00:00Z",
+    "firstParty": true,
+    "diagnostics": {
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "identity": {
+      "internalName": "camp_post",
+      "registryName": "camp_post",
+      "source": "generator_definition",
+      "namespace": "copperbench_camp_kit",
+      "resourceId": "copperbench_camp_kit:camp_post"
+    }
+  },
+  "configuration": {
+    "generationState": "ready",
+    "status": "consistent",
+    "sourceFingerprint": "2b034e87937250604aec809cee69deb752cb8577971fe30fa61592e5cdc61dbb",
+    "differences": [],
+    "declaredValues": {
+      "displayName": "Camp Post",
+      "name": "camp_post",
+      "description": ""
+    },
+    "effectiveValues": {
+      "displayName": "Camp Post",
+      "name": "camp_post",
+      "description": "",
+      "hardness": 0.0,
+      "resistance": 0.0,
+      "rotationMode": 0,
+      "enablePitch": false,
+      "boundingBoxes": [
+        {
+          "mx": 0.0,
+          "my": 0.0,
+          "mz": 0.0,
+          "Mx": 16.0,
+          "My": 16.0,
+          "Mz": 16.0,
+          "subtract": false
+        }
+      ],
+      "isNotColidable": false,
+      "hasInventory": false,
+      "inventorySize": 0,
+      "inventoryStackSize": 99,
+      "inventoryDropWhenDestroyed": false,
+      "inventoryComparatorPower": false,
+      "inventoryInSlotIDs": [],
+      "inventoryOutSlotIDs": [],
+      "openGUIOnRightClick": false,
+      "texture": "minecraft:stone",
+      "hasBlockItem": true,
+      "maxStackSize": 64,
+      "rarity": "COMMON",
+      "hasGravity": false,
+      "isWaterloggable": false,
+      "unbreakable": false,
+      "hasTransparency": false,
+      "transparencyType": "SOLID",
+      "renderType": 10,
+      "customModelName": "Normal"
+    }
+  },
+  "sections": [
+    {
+      "id": "general",
+      "title": {
+        "key": "editor.section.general",
+        "fallback": "General",
+        "args": {}
+      },
+      "fields": [
+        {
+          "path": "/displayName",
+          "label": {
+            "key": "field.displayName",
+            "fallback": "DisplayName",
+            "args": {}
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": false,
+          "value": "Camp Post",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/name",
+          "label": {
+            "key": "field.name",
+            "fallback": "Name",
+            "args": {}
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": true,
+          "value": "camp_post",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/description",
+          "label": {
+            "key": "field.description",
+            "fallback": "Description",
+            "args": {}
+          },
+          "control": "textarea",
+          "required": false,
+          "readOnly": false,
+          "value": "",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/hardness",
+          "label": {
+            "key": "field.hardness",
+            "fallback": "Hardness",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "number",
+            "maximum": 64000.0,
+            "minimum": -1.0,
+            "suggestedStep": 0.05
+          },
+          "control": "number",
+          "required": false,
+          "readOnly": false,
+          "value": 0.0,
+          "options": [],
+          "constraints": {
+            "min": -1.0,
+            "max": 64000.0,
+            "step": 0.05
+          },
+          "diagnostics": []
+        },
+        {
+          "path": "/resistance",
+          "label": {
+            "key": "field.resistance",
+            "fallback": "Resistance",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "number",
+            "maximum": 2147483647.0,
+            "minimum": 0.0,
+            "suggestedStep": 0.5
+          },
+          "control": "number",
+          "required": false,
+          "readOnly": false,
+          "value": 0.0,
+          "options": [],
+          "constraints": {
+            "min": 0.0,
+            "max": 2147483647.0,
+            "step": 0.5
+          },
+          "diagnostics": []
+        },
+        {
+          "path": "/rotationMode",
+          "label": {
+            "key": "field.rotationMode",
+            "fallback": "RotationMode",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "integer",
+            "enum": [
+              0,
+              5
+            ]
+          },
+          "control": "select",
+          "required": false,
+          "readOnly": false,
+          "value": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": {
+                "key": "field.option",
+                "fallback": "none",
+                "args": {
+                  "label": "none"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": 5,
+              "label": {
+                "key": "field.option",
+                "fallback": "log",
+                "args": {
+                  "label": "log"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "path": "/texture",
+          "label": {
+            "key": "field.texture",
+            "fallback": "Texture",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "string",
+            "enum": [
+              "minecraft:cobblestone",
+              "minecraft:iron_block",
+              "minecraft:oak_log",
+              "minecraft:stone"
+            ]
+          },
+          "control": "select",
+          "required": false,
+          "readOnly": false,
+          "value": "minecraft:stone",
+          "options": [
+            {
+              "value": "minecraft:cobblestone",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:cobblestone",
+                "args": {
+                  "label": "minecraft:cobblestone"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "minecraft:iron_block",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:iron_block",
+                "args": {
+                  "label": "minecraft:iron_block"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "minecraft:oak_log",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:oak_log",
+                "args": {
+                  "label": "minecraft:oak_log"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "minecraft:stone",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:stone",
+                "args": {
+                  "label": "minecraft:stone"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            }
+          ],
+          "resourceType": "block",
+          "diagnostics": []
+        },
+        {
+          "path": "/maxStackSize",
+          "label": {
+            "key": "field.maxStackSize",
+            "fallback": "MaxStackSize",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "integer",
+            "minimum": 1.0,
+            "maximum": 99.0,
+            "suggestedStep": 1.0
+          },
+          "control": "number",
+          "required": false,
+          "readOnly": false,
+          "value": 64,
+          "options": [],
+          "constraints": {
+            "min": 1.0,
+            "max": 99.0,
+            "step": 1.0
+          },
+          "diagnostics": []
+        },
+        {
+          "path": "/rarity",
+          "label": {
+            "key": "field.rarity",
+            "fallback": "Rarity",
+            "args": {}
+          },
+          "inputSchema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "COMMON",
+                  "UNCOMMON",
+                  "RARE",
+                  "EPIC"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "control": "select",
+          "required": false,
+          "readOnly": false,
+          "value": "COMMON",
+          "options": [
+            {
+              "value": "COMMON",
+              "label": {
+                "key": "field.option",
+                "fallback": "COMMON",
+                "args": {
+                  "label": "COMMON"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "UNCOMMON",
+              "label": {
+                "key": "field.option",
+                "fallback": "UNCOMMON",
+                "args": {
+                  "label": "UNCOMMON"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "RARE",
+              "label": {
+                "key": "field.option",
+                "fallback": "RARE",
+                "args": {
+                  "label": "RARE"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "EPIC",
+              "label": {
+                "key": "field.option",
+                "fallback": "EPIC",
+                "args": {
+                  "label": "EPIC"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            }
+          ],
+          "diagnostics": []
+        }
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "mod_elements.create",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.build",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.migrate_loader",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.import_upstream",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "assets.publish_batch",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    }
+  ],
+  "fieldContract": {
+    "contractVersion": 1,
+    "generatorId": "fabric-26.3",
+    "supported": true,
+    "unknownFields": "preserve_read_only",
+    "internalNamePattern": "^[a-z][a-z0-9_]{0,63}$",
+    "fields": [
+      {
+        "name": "description",
+        "path": "/description",
+        "compatibilityPath": "/fields/description",
+        "writable": true,
+        "type": "String",
+        "inputSchema": {
+          "type": "string"
+        },
+        "default": ""
+      },
+      {
+        "name": "displayName",
+        "path": "/displayName",
+        "compatibilityPath": "/fields/displayName",
+        "writable": true,
+        "type": "String",
+        "inputSchema": {
+          "type": "string"
+        },
+        "defaultFrom": "readable_payload_name"
+      },
+      {
+        "name": "hardness",
+        "path": "/hardness",
+        "compatibilityPath": "/fields/hardness",
+        "writable": true,
+        "type": "double",
+        "inputSchema": {
+          "type": "number",
+          "maximum": 64000.0,
+          "minimum": -1.0,
+          "suggestedStep": 0.05
+        },
+        "default": 0.0,
+        "min": -1.0,
+        "max": 64000.0
+      },
+      {
+        "name": "maxStackSize",
+        "path": "/maxStackSize",
+        "compatibilityPath": "/fields/maxStackSize",
+        "writable": true,
+        "type": "int",
+        "inputSchema": {
+          "type": "integer",
+          "minimum": 1.0,
+          "maximum": 99.0,
+          "suggestedStep": 1.0
+        },
+        "default": 64,
+        "min": 1.0,
+        "max": 99.0
+      },
+      {
+        "name": "name",
+        "path": "/name",
+        "compatibilityPath": "/fields/name",
+        "writable": false,
+        "type": "String",
+        "inputSchema": {
+          "type": "string"
+        },
+        "defaultFrom": "payload.name"
+      },
+      {
+        "name": "rarity",
+        "path": "/rarity",
+        "compatibilityPath": "/fields/rarity",
+        "writable": true,
+        "type": "String",
+        "inputSchema": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "COMMON",
+                "UNCOMMON",
+                "RARE",
+                "EPIC"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "default": "COMMON",
+        "options": [
+          {
+            "value": "COMMON",
+            "label": "COMMON"
+          },
+          {
+            "value": "UNCOMMON",
+            "label": "UNCOMMON"
+          },
+          {
+            "value": "RARE",
+            "label": "RARE"
+          },
+          {
+            "value": "EPIC",
+            "label": "EPIC"
+          }
+        ]
+      },
+      {
+        "name": "resistance",
+        "path": "/resistance",
+        "compatibilityPath": "/fields/resistance",
+        "writable": true,
+        "type": "double",
+        "inputSchema": {
+          "type": "number",
+          "maximum": 2147483647.0,
+          "minimum": 0.0,
+          "suggestedStep": 0.5
+        },
+        "default": 0.0,
+        "min": 0.0,
+        "max": 2147483647.0
+      },
+      {
+        "name": "rotationMode",
+        "path": "/rotationMode",
+        "compatibilityPath": "/fields/rotationMode",
+        "writable": true,
+        "type": "int",
+        "inputSchema": {
+          "type": "integer",
+          "enum": [
+            0,
+            5
+          ]
+        },
+        "default": 0,
+        "options": [
+          {
+            "value": 0,
+            "label": "none"
+          },
+          {
+            "value": 5,
+            "label": "log"
+          }
+        ]
+      },
+      {
+        "name": "texture",
+        "path": "/texture",
+        "compatibilityPath": "/fields/texture",
+        "writable": true,
+        "type": "TextureHolder",
+        "inputSchema": {
+          "type": "string",
+          "enum": [
+            "minecraft:cobblestone",
+            "minecraft:iron_block",
+            "minecraft:oak_log",
+            "minecraft:stone"
+          ]
+        },
+        "default": "minecraft:stone"
+      }
+    ],
+    "minimalExample": {
+      "elementType": "block",
+      "name": "camp_post",
+      "initialValues": {
+        "texture": "minecraft:oak_log",
+        "hardness": 3,
+        "resistance": 6,
+        "rotationMode": 5,
+        "maxStackSize": 16,
+        "rarity": "UNCOMMON"
+      }
+    }
+  }
+}

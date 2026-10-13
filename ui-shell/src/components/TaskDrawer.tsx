@@ -15,6 +15,7 @@ import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview, WorkspacePlan, WorkspacePlanStep } from '../types/contract';
 import './taskAuthorization.css';
+import { AcceptanceSummary } from './AcceptanceSummary';
 
 export const TaskDrawer: React.FC = () => {
   const {
@@ -302,7 +303,7 @@ export const TaskDrawer: React.FC = () => {
       </div>
 
       {activeTask?.verification && <section className="gametest-verification" aria-label={uiText("GameTest 验收报告", "GameTest verification report")}>
-        <strong>{activeTask.verification.status === 'pending' ? uiText("测试正在执行", "Tests are running") : activeTask.verification.status === 'passed' ? uiText("配置的测试已通过", "Configured tests passed") : uiText("测试尚未通过验收", "Tests have not passed verification")}</strong>
+        <AcceptanceSummary task={activeTask} fallback={<strong>{activeTask.verification.status === 'pending' ? uiText("测试正在执行", "Tests are running") : activeTask.verification.status === 'passed' ? uiText("配置的测试已通过", "Configured tests passed") : uiText("测试尚未通过验收", "Tests have not passed verification")}</strong>} />
         {activeTask.verification.status === 'passed' && activeTask.verification.artifactSha256 && <div>
           <p>{uiText("这是该次输入的验收结论。导出时重新核对当前输入、被测 JAR 和报告。", "This result applies to the tested input. Export checks the current input, tested JAR and report again.")}</p>
           <label><input type="checkbox" checked={allowHistoricalExport} onChange={event => setAllowHistoricalExport(event.target.checked)} />{uiText("允许导出旧输入对应的历史已验证产物", "Allow exporting a previously verified artifact for older input")}</label>
@@ -328,7 +329,7 @@ export const TaskDrawer: React.FC = () => {
         </details>
       </section>}
       {activeTask?.verifiedExport && <section className="gametest-verification" aria-label={uiText("已验证产物导出", "Verified artifact export")}>
-        <strong>{activeTask.verifiedExport.status === 'passed_historical_input' ? uiText("已导出历史已验证产物", "Previously verified artifact exported") : uiText("已导出当前输入的已验证产物", "Verified artifact for current input exported")}</strong>
+        <AcceptanceSummary task={activeTask} fallback={<strong>{activeTask.verifiedExport.status === 'passed_historical_input' ? uiText("已导出历史已验证产物", "Previously verified artifact exported") : uiText("已导出当前输入的已验证产物", "Verified artifact for current input exported")}</strong>} />
         <p>{activeTask.verifiedExport.exportDirectory}</p>
         <p>{uiText("导出内容：JAR、GameTest 报告和文件清单。", "Exported: JAR, GameTest report and file manifest.")}</p>
       </section>}

@@ -76,6 +76,14 @@ export class CopperbenchClient {
     return this.callTool('get_workspace_health', {});
   }
 
+  /** Explicit editor opt-in; 1.0 remains the frozen legacy projection. */
+  public async readModElement(elementId: string, schemaVersion: '1.0' | '1.1' = '1.1'): Promise<JsonObject> {
+    const result = await this.callTool('read_mod_element', { elementId, schemaVersion });
+    if (result.schemaVersion !== schemaVersion)
+      throw new CopperbenchError('Core did not return the requested editor schema', 'MCP_TOOL_RESULT_INVALID', result);
+    return result;
+  }
+
   /** Read source safety without writes/downloads; ready never authorizes generation or proves a build. */
   public previewGeneration(): Promise<JsonObject> {
     return this.callTool('preview_generation', {});
@@ -191,6 +199,62 @@ export class CopperbenchClient {
 
   public runGameTest(expectedRevision: number): Promise<JsonObject> {
     return this.callTool('run_gametest', { expectedRevision });
+  }
+
+  /** Version 1 is read-only. Explicit version 2 executes a reviewed plan once with target authority. */
+  public async versionCopyUpgrade(operation: 'negotiate' | 'preview' | 'execute', targetGeneratorId?: string,
+    supportedVersions: string[] = ['1'], options: { outputName?: string; planId?: string;
+      expectedRevision?: number; taskAuthorizationId?: string } = {}): Promise<JsonObject> {
+    const result = await this.callTool('version_copy_upgrade', { operation, supportedVersions,
+      ...(targetGeneratorId !== undefined ? { targetGeneratorId } : {}), ...options });
+    if (result.contract !== 'version_copy_upgrade' || !supportedVersions.includes(result.selectedVersion as string))
+      throw new CopperbenchError('Version copy upgrade contract was not negotiated', 'INVALID_RESPONSE', result);
+    return result;
+  }
+
+  /** Preview choice never changes task authority, approval or EULA state. */
+  public async preview(operation: 'negotiate' | 'catalog' | 'opt_in' | 'revoke' | 'command' | 'acceptance',
+    options: { generatorId?: string; command?: string; workspaceFolderPath?: string; expectedRevision?: number;
+      payload?: JsonObject; supportedVersions?: string[] } = {}): Promise<JsonObject> {
+    const { supportedVersions = ['1'], ...request } = options;
+    if (['opt_in', 'revoke', 'command'].includes(operation) &&
+      (!Number.isSafeInteger(request.expectedRevision) || request.expectedRevision! < 0))
+      throw new TypeError('expectedRevision must be a nonnegative safe integer');
+    const args: JsonObject = { ...request, operation, supportedVersions };
+    if (operation === 'command') {
+      args.payload = { ...options.payload };
+      if (this.options.taskAuthorizationId && TASK_AUTHORIZED_TOOLS.has(request.command ?? '') && !('taskAuthorizationId' in (args.payload as JsonObject)))
+        (args.payload as JsonObject).taskAuthorizationId = this.options.taskAuthorizationId;
+    }
+    const result = await this.callTool('preview', args);
+    if (result.contract !== 'preview_targets' || !supportedVersions.includes(result.selectedVersion as string))
+      throw new CopperbenchError('Preview contract was not negotiated', 'INVALID_RESPONSE', result);
+    return result;
+  }
+
+  /** Per-request negotiation, preserving existing authorization and revision checks. */
+  public async acceptance(operation: 'negotiate' | 'catalog' | 'run' | 'get' | 'export', payload: JsonObject = {},
+    expectedRevision?: number, supportedVersions: string[] = ['1'], diagnosticVersions?: string[]): Promise<JsonObject> {
+    const argumentsValue: JsonObject = { operation, supportedVersions, payload: { ...payload } };
+    if (diagnosticVersions !== undefined) argumentsValue.diagnosticVersions = diagnosticVersions;
+    if (operation === 'run' || operation === 'export') {
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision! < 0)
+        throw new TypeError('expectedRevision must be a nonnegative safe integer');
+      argumentsValue.expectedRevision = expectedRevision;
+      if (operation === 'run' && this.options.taskAuthorizationId && !('taskAuthorizationId' in payload))
+        (argumentsValue.payload as JsonObject).taskAuthorizationId = this.options.taskAuthorizationId;
+    }
+    const result = await this.callTool('acceptance', argumentsValue);
+    if (result.contract !== 'required_cases' || !supportedVersions.includes(result.selectedVersion as string))
+      throw new CopperbenchError('Required-case contract was not negotiated', 'INVALID_RESPONSE', result);
+    if (diagnosticVersions !== undefined && !diagnosticVersions.includes((result.coverageDiagnostics as JsonObject | undefined)?.schemaVersion as string))
+      throw new CopperbenchError('Acceptance diagnostic contract was not negotiated', 'INVALID_RESPONSE', result);
+    return result;
+  }
+
+  public async getAcceptanceDiagnostics(taskId: string): Promise<JsonObject> {
+    const response = await this.acceptance('get', { taskId }, undefined, ['1'], ['1']);
+    return response.coverageDiagnostics as JsonObject;
   }
 
   public listTaskAuthorizations(): Promise<JsonObject> {
@@ -327,7 +391,7 @@ export class CopperbenchClient {
 }
 
 const TASK_AUTHORIZED_TOOLS = new Set([
-  'create_workspace', 'create_mod_element', 'update_mod_element', 'delete_mod_element', 'update_procedure',
+  'create_workspace', 'create_mod_element', 'update_mod_element', 'delete_mod_element', 'update_procedure', 'update_workspace_file',
   'set_mod_element_source_management', 'create_registry_entry', 'update_registry_entry', 'delete_registry_entry',
   'rename_registry_entry', 'apply_workspace_plan', 'import_asset', 'import_asset_batch', 'move_asset',
   'create_recovery_point', 'restore_recovery_point', 'publish_datagen_output', 'prepare_game_tests',

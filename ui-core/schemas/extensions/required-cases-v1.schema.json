@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:copperbench:required-cases:1",
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["className", "name"],
+      "properties": {
+        "className": { "type": "string", "maxLength": 4096 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 4096 }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "id", "identityKind", "minimumTests", "cases", "sha256"],
+      "properties": {
+        "schemaVersion": { "const": "1" },
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{0,127}$" },
+        "identityKind": { "enum": ["junit_tuple", "gametest_resource"] },
+        "minimumTests": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "cases": { "type": "array", "minItems": 1, "maxItems": 10000, "uniqueItems": true, "items": { "$ref": "#/$defs/identity" } },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supportedVersions", "operation"],
+      "properties": {
+        "supportedVersions": { "type": "array", "minItems": 1, "maxItems": 16, "items": { "type": "string" } },
+        "operation": { "enum": ["negotiate", "catalog", "run", "get", "export"] },
+        "diagnosticVersions": { "type": "array", "minItems": 1, "maxItems": 16, "items": { "type": "string" } },
+        "expectedRevision": { "type": "integer", "minimum": 0 },
+        "payload": { "type": "object" }
+      },
+      "allOf": [
+        { "if": { "properties": { "diagnosticVersions": {} }, "required": ["diagnosticVersions"] }, "then": { "properties": { "operation": { "const": "get" } } } },
+        {
+          "if": { "properties": { "operation": { "enum": ["negotiate", "catalog"] } } },
+          "then": { "properties": { "payload": { "type": "object", "maxProperties": 0 } } }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "run" } } },
+          "then": {
+            "required": ["payload", "expectedRevision"],
+            "properties": { "expectedRevision": { "type": "integer", "minimum": 0 }, "payload": {
+              "type": "object", "additionalProperties": false, "required": ["requiredCases"],
+              "properties": {
+                "requiredCases": { "$ref": "#/$defs/manifest" },
+                "taskAuthorizationId": { "type": "string", "format": "uuid" }
+              }
+            } }
+          }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "get" } } },
+          "then": {
+            "required": ["payload"],
+            "properties": { "payload": {
+              "type": "object", "additionalProperties": false, "required": ["taskId"],
+              "properties": {
+                "taskId": { "type": "string", "format": "uuid" },
+                "afterLogSequence": { "type": "integer", "minimum": 0 }
+              }
+            } }
+          }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "export" } } },
+          "then": {
+            "required": ["payload", "expectedRevision"],
+            "properties": { "expectedRevision": { "type": "integer", "minimum": 0 }, "payload": {
+              "type": "object", "additionalProperties": false, "required": ["verifiedTaskId"],
+              "properties": {
+                "verifiedTaskId": { "type": "string", "format": "uuid" },
+                "allowHistorical": { "type": "boolean" },
+                "taskAuthorizationId": { "type": "string", "format": "uuid" }
+              }
+            } }
+          }
+        }
+      ]
+    },
+    "observedIdentity": {
+      "type": "object", "additionalProperties": false, "required": ["className", "name"],
+      "properties": {
+        "className": { "type": "string", "maxLength": 8388608 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 8388608 }
+      }
+    },
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["manifestSha256", "required", "minimumTests", "uniqueExecuted", "shortfall", "reasonCode", "status", "duplicates", "missingCases"],
+      "properties": {
+        "manifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "required": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "minimumTests": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "uniqueExecuted": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "shortfall": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "reasonCode": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "duplicates": { "type": "array", "items": { "$ref": "#/$defs/observedIdentity" } },
+        "missingCases": { "type": "array", "items": { "$ref": "#/$defs/identity" } }
+      }
+    },
+    "binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "manifest", "taskId", "workspaceId", "workspaceRevision", "sourceSnapshot", "environment", "hostPath", "reportPath"],
+      "properties": {
+        "schemaVersion": { "const": "1" },
+        "manifest": { "$ref": "#/$defs/manifest" },
+        "taskId": { "type": "string", "format": "uuid" },
+        "workspaceId": { "type": "string", "format": "uuid" },
+        "workspaceRevision": { "type": "integer", "minimum": 0 },
+        "sourceSnapshot": { "$ref": "urn:ui-core:1.0:common#/$defs/sourceSnapshot" },
+        "environment": { "type": "object" },
+        "hostPath": { "type": "string", "minLength": 1 },
+        "reportPath": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "status"],
+      "properties": {
+        "schemaVersion": { "const": "1" },
+        "status": { "enum": ["queued", "pending", "passed", "failed", "legacy_scope"] },
+        "manifest": { "$ref": "#/$defs/manifest" },
+        "frozenPath": { "type": "string" },
+        "frozenSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "binding": { "$ref": "#/$defs/binding" },
+        "coverage": { "$ref": "#/$defs/coverage" },
+        "reasonCode": { "type": "string" }
+      }
+    },
+    "coverageDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "taskId",
+        "state",
+        "reasonCode",
+        "evidenceScope",
+        "inputScope",
+        "required",
+        "minimumTests",
+        "uniqueExecuted",
+        "shortfall",
+        "duplicates",
+        "missingCases"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "1"
+        },
+        "taskId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "state": {
+          "enum": [
+            "running",
+            "report_unavailable",
+            "business_failed",
+            "no_business",
+            "duplicate",
+            "required_cases_missing",
+            "insufficient",
+            "passed_current_input",
+            "passed_historical_input"
+          ]
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceScope": {
+          "enum": [
+            "required_cases",
+            "minimum_only_legacy"
+          ]
+        },
+        "inputScope": {
+          "enum": [
+            "unverified",
+            "current_at_completion",
+            "current_at_export",
+            "historical_at_export"
+          ]
+        },
+        "required": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "minimumTests": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "uniqueExecuted": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "shortfall": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "duplicates": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/observedIdentity"
+          }
+        },
+        "missingCases": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/identity"
+          }
+        }
+      }
+    },
+    "response": {
+      "type": "object", "additionalProperties": false, "required": ["contract", "schemaVersion", "requestId", "status"],
+      "properties": {
+        "contract": { "const": "required_cases" },
+        "schemaVersion": { "const": "1" },
+        "requestId": { "type": "string", "format": "uuid" },
+        "status": { "enum": ["succeeded", "accepted", "failed", "rejected", "committed", "cancelled", "completed"] },
+        "selectedVersion": { "const": "1" },
+        "manifests": { "type": "array", "items": { "$ref": "#/$defs/manifest" } },
+        "core": { "anyOf": [{ "$ref": "urn:ui-core:1.0:command-result" }, { "$ref": "urn:ui-core:1.0:query-result" }] },
+        "task": { "type": ["object", "null"] },
+        "diagnostics": { "type": "array", "items": { "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic" } },
+        "conflict": { "type": ["object", "null"] },
+        "revision": { "type": "integer", "minimum": 0 },
+        "newRevision": { "type": "integer", "minimum": 0 },
+        "requiredCases": { "$ref": "#/$defs/evidence" },
+        "coverageDiagnostics": { "$ref": "#/$defs/coverageDiagnostics" }
+      }
+    }
+  },
+  "$ref": "#/$defs/request"
+}

@@ -36,13 +36,27 @@ for line in sys.stdin:
         time.sleep(30)
     if operation == 'crash':
         sys.exit(2)
-    result = {'status': 'succeeded', 'revision': revision, 'data': {}}
+    result = {'status': 'succeeded', 'revision': revision, 'data': {},
+              'schemaVersion': '1.0' if mode == 'legacy_editor' else request.get('schemaVersion', '1.0')}
     if request['kind'] == 'handshake':
         compatible = '1.0' in request['payload']['supportedSchemaVersions']
         result = {'messageType': 'handshake_result', 'requestId': request['id'],
                   'status': 'compatible' if compatible else 'incompatible',
                   'selectedSchemaVersion': '1.0' if compatible else None,
                   'coreSchemaVersions': ['1.0'], 'diagnostics': []}
+    if request['kind'] == 'version_copy_upgrade':
+        result = {'status': 'succeeded', 'contract': 'version_copy_upgrade', 'selectedVersion': '1',
+                  'revision': revision, 'received': request['payload']}
+        if '2' in request['payload']['supportedVersions']: result['selectedVersion'] = '2'
+    if request['kind'] == 'preview':
+        result = {'status': 'succeeded', 'contract': 'preview_targets', 'selectedVersion': '1',
+                  'revision': revision, 'received': request['payload']}
+    if request['kind'] == 'acceptance':
+        result = {'status': 'succeeded', 'contract': 'required_cases', 'selectedVersion': '1',
+                  'revision': revision, 'received': request['payload'], 'manifests': []}
+        if request['payload'].get('diagnosticVersions') == ['1']:
+            result['coverageDiagnostics'] = {'schemaVersion': '1', 'required': 6, 'uniqueExecuted': 5,
+                                             'shortfall': 1, 'duplicates': [], 'missingCases': []}
     if request['kind'] == 'command':
         if request['expectedRevision'] != revision:
             result = {'status': 'rejected', 'conflict': {'actualRevision': revision}, 'diagnostics': []}
@@ -86,6 +100,16 @@ for line in sys.stdin:
 
 
 class NativeApiTest(unittest.TestCase):
+    def test_editor_version_is_explicit_and_legacy_downgrade_is_rejected(self):
+        with self.open() as workspace:
+            self.assertEqual('1.1', workspace.query('get_mod_element_editor', elementId='element')['schemaVersion'])
+            self.assertEqual('1.0', workspace.query('get_mod_element_editor', schema_version='1.0', elementId='element')['schemaVersion'])
+            self.assertEqual(['1.1', '1.0'], [r['schemaVersion'] for r in self.requests() if r['operation'] == 'get_mod_element_editor'])
+        with self.open('legacy_editor') as workspace:
+            with self.assertRaises(NativeApiError) as failure:
+                workspace.query('get_mod_element_editor', elementId='element')
+            self.assertEqual('NATIVE_INVALID_RESPONSE', failure.exception.code)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='copperbench python ')
         self.addCleanup(self.temp.cleanup)
@@ -110,6 +134,73 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual('incompatible', client.negotiate_schema(['99.0'])['status'])
         self.assertEqual('succeeded', client.query('get_workbench')['status'])
         self.assertEqual(0, client.revision)
+
+    def test_version_copy_upgrade_is_read_only_and_rejects_unnegotiated_results(self):
+        client = self.open(task_authorization_id='authority')
+        result = client.version_copy_upgrade(target_generator_id='fabric-26.3')
+        self.assertEqual({'supportedVersions': ['1'], 'targetGeneratorId': 'fabric-26.3'}, result['received'])
+        self.assertEqual(0, client.revision)
+        with self.assertRaises(NativeApiError) as rejected:
+            client.version_copy_upgrade(target_generator_id='fabric-26.3', supported_versions=('99',))
+        self.assertEqual('INVALID_RESPONSE', rejected.exception.code)
+        calls = [r for r in self.requests() if r['kind'] == 'version_copy_upgrade']
+        self.assertEqual(2, len(calls))
+        self.assertNotIn('expectedRevision', calls[0])
+
+    def test_version_copy_execution_requires_explicit_version_and_exact_plan_parameters(self):
+        client = self.open(task_authorization_id='ambient-authority')
+        result = client.version_copy_upgrade('execute', target_generator_id='fabric-26.3', supported_versions=('2',),
+            output_name='new-copy', plan_id='a' * 64, expected_revision=0, task_authorization_id='target-authority')
+        self.assertEqual({'supportedVersions': ['2'], 'targetGeneratorId': 'fabric-26.3', 'outputName': 'new-copy',
+            'planId': 'a' * 64, 'expectedRevision': 0, 'taskAuthorizationId': 'target-authority'}, result['received'])
+        self.assertEqual(0, client.revision)
+        self.assertEqual(1, len([r for r in self.requests() if r['kind'] == 'version_copy_upgrade']))
+
+    def test_preview_negotiates_each_call_and_keeps_authority_nested(self):
+        client = self.open(task_authorization_id='preview-authority')
+        discovered = client.preview('catalog')['received']
+        self.assertEqual({'supportedVersions': ['1']}, discovered)
+        selected = client.preview('opt_in', generator_id='fabric-26.3')['received']
+        self.assertEqual('fabric-26.3', selected['generatorId'])
+        self.assertEqual(0, selected['expectedRevision'])
+        self.assertNotIn('payload', selected)
+        executed = client.preview('command', generator_id='fabric-26.3', command='build_workspace', payload={'scope': 'workspace'})['received']
+        self.assertEqual('preview-authority', executed['payload']['taskAuthorizationId'])
+        self.assertNotIn('permission', executed)
+        cancelled = client.preview('command', generator_id='fabric-26.3', command='cancel_task', payload={'taskId': 'example'})['received']
+        self.assertNotIn('taskAuthorizationId', cancelled['payload'])
+        self.assertEqual(4, len([request for request in self.requests() if request['kind'] == 'preview']))
+        with self.assertRaises(ValueError):
+            client.preview('revoke', generator_id='fabric-26.3', expected_revision=True)
+
+    def test_required_case_contract_preserves_manifest_revision_and_nested_authority(self):
+        client = self.open(task_authorization_id='test-authority')
+        manifest = {'id': 'raw-v1', 'sha256': 'a' * 64, 'cases': [{'className': '原始', 'name': 'exact#identity'}]}
+        result = client.run_required_cases(manifest)
+        received = result['received']
+        self.assertEqual(['1'], received['supportedVersions'])
+        self.assertEqual(0, received['expectedRevision'])
+        self.assertEqual(manifest, received['payload']['requiredCases'])
+        self.assertEqual('test-authority', received['payload']['taskAuthorizationId'])
+        client.get_required_case_evidence('task')
+        self.assertNotIn('taskAuthorizationId', self.requests()[-1]['payload']['payload'])
+        client.export_required_case_artifact('task')
+        self.assertNotIn('taskAuthorizationId', self.requests()[-1]['payload']['payload'])
+        self.assertEqual(3, len([r for r in self.requests() if r['kind'] == 'acceptance']))
+
+    def test_diagnostic_read_negotiates_without_revision_or_authority_mutation(self):
+        with self.open() as client:
+            revision = client.revision
+            result = client.get_acceptance_diagnostics('task')
+            self.assertEqual((6, 5, 1), (result['required'], result['uniqueExecuted'], result['shortfall']))
+            self.assertEqual(revision, client.revision)
+            request = self.requests()[-1]
+            self.assertEqual('acceptance', request['kind'])
+            self.assertEqual('get', request['operation'])
+            self.assertEqual({'supportedVersions': ['1'], 'diagnosticVersions': ['1'], 'payload': {'taskId': 'task'}}, request['payload'])
+            with self.assertRaises(NativeApiError) as raised:
+                client.acceptance('get', diagnostic_versions=('99',), taskId='task')
+            self.assertEqual('NATIVE_INVALID_RESPONSE', raised.exception.code)
 
     def test_native_calls_need_no_network_and_preserve_revision_and_unicode(self):
         with patch('socket.socket', side_effect=AssertionError('Network must not be used')):

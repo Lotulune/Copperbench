@@ -65,6 +65,14 @@ import java.lang.reflect.Modifier;
 /** Transaction participant for all first-party Java elements backed by the upstream model classes. */
 public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutationGateway {
 
+	@Override public Map<String, byte[]> versionCopyBaseline(JsonObject document, Map<String, JsonObject> definitions) throws Exception {
+		return MCreatorVersionCopy.baseline(workspace, document, definitions);
+	}
+
+	@Override public void generateVersionCopy(Path workspaceFile) throws Exception {
+		MCreatorVersionCopy.generate(workspaceFile);
+	}
+
 	@Override public JsonObject previewGeneration(WorkspaceState state) {
 		String generatorId = workspace.getWorkspaceSettings().getCurrentGenerator();
 		if (dev.copperbench.tracks.VersionTrackCatalog.official().findGenerator(generatorId).isEmpty()
@@ -766,6 +774,20 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		var decision = GeneratorElementCapabilityCatalog.decision(generatorId, type);
 		if (!decision.generatable())
 			return;
+        var scopeIssue = dev.copperbench.core.application.PreviewElementFields.validateGeneration(generatorId, type,
+                dev.copperbench.core.application.ElementFieldCodec.gson().toJsonTree(definition).getAsJsonObject());
+        if (scopeIssue != null) throw new ElementFieldException(scopeIssue.code(), scopeIssue.path(), null, scopeIssue.message());
+        if (definition instanceof Recipe recipe && dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generatorId)) {
+            for (Field field : Recipe.class.getFields()) {
+                try {
+                    if (field.get(recipe) instanceof net.mcreator.element.parts.MItemBlock reference)
+                        validatePreviewRecipeReference(reference, "/" + field.getName());
+                    else if (field.get(recipe) instanceof net.mcreator.element.parts.MItemBlock[] references)
+                        for (int index = 0; index < references.length; index++)
+                            validatePreviewRecipeReference(references[index], "/" + field.getName() + "/" + index);
+                } catch (IllegalAccessException error) { throw new IllegalStateException(error); }
+            }
+        }
 		try {
 			GEValidator.validateAndTryToCorrect(definition, null);
 		} catch (GEValidator.ValidationException | AssertionError exception) {
@@ -854,21 +876,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private Block newBlock(ModElement modElement, Element element) {
-		Block block = new Block(modElement);
-		block.name = element.displayName();
-		block.customModelName = "Normal";
-		block.renderType = 10;
-		block.texture = new TextureHolder(workspace, "minecraft:stone");
-		block.transparencyType = "SOLID";
-		block.colorOnMap = new MapColor(workspace, "DEFAULT");
-		block.noteBlockInstrument = new NoteBlockInstrument(workspace, "harp");
-		block.aiPathNodeType = new AIPathNodeType(workspace, "DEFAULT");
-		block.soundOnStep = new net.mcreator.element.parts.StepSound(workspace, "STONE");
-		block.luminance = new net.mcreator.element.parts.procedure.NumberProcedure(null, 0);
-		block.inventoryStackSize = 99;
-		block.frequencyPerChunks = 10;
-		block.frequencyOnChunk = 16;
-		block.maxGenerateHeight = 64;
+		Block block = dev.copperbench.core.application.StructuredElementDefaults.block(modElement, workspace, element.displayName());
 		applyBlock(block, element);
 		return block;
 	}
@@ -1073,8 +1081,20 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		}
 	}
 
+    private void validatePreviewRecipeReference(net.mcreator.element.parts.MItemBlock reference, String path) {
+        if (reference == null || !reference.getUnmappedValue().startsWith("CUSTOM:")) return;
+        String name = net.mcreator.generator.GeneratorWrapper.getElementPlainName(reference.getUnmappedValue());
+        ModElement target = workspace.getModElementByName(name);
+        if (target == null || !Set.of("item", "block").contains(target.getTypeString()))
+            throw new ElementFieldException("FIELD_REFERENCE_INVALID", path, null, "Select an existing workspace item or block: " + name);
+    }
+
 	private void validateSupportedChanges(Element previous, Element element) {
 		if (previous != null && previous.values().equals(element.values())) return;
+		var scopeIssue = dev.copperbench.core.application.PreviewElementFields.validateChange(
+                workspace.getWorkspaceSettings().getCurrentGenerator(), element.type(),
+                previous == null ? new JsonObject() : previous.values(), element.values());
+        if (scopeIssue != null) throw new ElementFieldException(scopeIssue.code(), scopeIssue.path(), element.id(), scopeIssue.message());
 		var issue = ElementMappingSupport.unsupportedChange(element.type(), previous == null ? new JsonObject() : previous.values(), element.values());
 		if (issue != null) throw new ElementFieldException(issue.code(), issue.path(), element.id(), issue.message());
 		if (previous != null && !Set.of("function", "loottable").contains(element.type())

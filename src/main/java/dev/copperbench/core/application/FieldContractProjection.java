@@ -10,6 +10,19 @@ final class FieldContractProjection {
 
     static JsonObject environment(String generatorId) {
         JsonObject contracts = new JsonObject();
+        if (dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generatorId)) {
+            JsonObject block = BlockFieldContract.capabilities(generatorId);
+            if (block.get("supported").getAsBoolean()) contracts.add("block", block);
+            for (String type : List.of("item", "recipe")) {
+                JsonObject contract = ElementFieldContract.discover(type, generatorId);
+                if (contract.get("complete").getAsBoolean()) contracts.add(type, contract);
+            }
+            JsonObject function = FunctionFieldContract.capabilities(generatorId);
+            if (function.get("supported").getAsBoolean()) contracts.add("function", function);
+            JsonObject code = CodeFieldContract.capabilities(generatorId);
+            if (code.get("supported").getAsBoolean()) contracts.add("code", code);
+            return contracts;
+        }
         contracts.add("block", BlockFieldContract.capabilities(generatorId));
         contracts.add("loottable", LootTableFieldContract.capabilities());
         contracts.add("function", FunctionFieldContract.capabilities());

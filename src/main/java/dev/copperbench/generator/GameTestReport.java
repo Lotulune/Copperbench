@@ -9,12 +9,79 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 /** Bounded JUnit/GameTest XML parsing; process success alone never proves that tests ran. */
 public final class GameTestReport {
+    private record TestIdentity(String className, String name) {}
+
     private GameTestReport() {}
 
     public static JsonObject read(Path report, Instant startedAt, int minimumTests) {
+        return parse(report, startedAt, minimumTests, ignored -> { });
+    }
+
+    private record RawCase(String className, String name, String status, boolean framework) {}
+
+    /** Keeps the frozen v1.0 report separate from negotiated coverage information. */
+    public record Assessment(JsonObject verification, JsonObject coverage) {
+        public Assessment { verification = verification.deepCopy(); coverage = coverage.deepCopy(); }
+    }
+
+    /** Checks one raw report against the manifest selected before the process was started. */
+    public static Assessment assess(Path report, Instant startedAt, RequiredCaseManifest manifest) {
+        return assess(report, startedAt, manifest.minimumTests(), manifest);
+    }
+
+    /** Captures precise machine reasons for legacy thresholds without inventing a named manifest. */
+    public static Assessment assess(Path report, Instant startedAt, int minimumTests) {
+        return assess(report, startedAt, minimumTests, null);
+    }
+
+    private static Assessment assess(Path report, Instant startedAt, int minimumTests, RequiredCaseManifest manifest) {
+        List<RawCase> rows = new ArrayList<>();
+        JsonObject result = parse(report, startedAt, minimumTests, rows::add);
+        Set<RequiredCaseManifest.Identity> seen = new HashSet<>(), executed = new HashSet<>(), passed = new HashSet<>();
+        JsonArray duplicates = new JsonArray(), missing = new JsonArray();
+        for (RawCase row : rows) {
+            if (row.framework()) continue;
+            var identity = manifest == null ? new RequiredCaseManifest.Identity(row.className(), row.name())
+                    : manifest.identity(row.className(), row.name());
+            if (!seen.add(identity)) duplicates.add(identity.json());
+            if (!row.status().equals("skipped")) executed.add(identity);
+            if (row.status().equals("passed")) passed.add(identity);
+        }
+        if (manifest != null)
+            manifest.cases().stream().filter(test -> !passed.contains(test)).forEach(test -> missing.add(test.json()));
+        String reason = result.get("reasonCode").getAsString();
+        if (!reason.equals("GAMETEST_FAILED") && !duplicates.isEmpty()) {
+            reason(result, "GAMETEST_REPORT_INVALID");
+            reason = "GAMETEST_DUPLICATE_TESTS";
+        } else if ((reason.equals("GAMETEST_PASSED") || reason.equals("GAMETEST_NO_TESTS")) && !missing.isEmpty()) {
+            reason(result, "GAMETEST_NO_TESTS");
+            reason = "GAMETEST_REQUIRED_CASES_MISSING";
+        } else if (reason.equals("GAMETEST_NO_TESTS") && !executed.isEmpty()) {
+            reason = "GAMETEST_INSUFFICIENT_TESTS";
+        }
+        if (manifest != null && !reason.equals(result.get("reasonCode").getAsString())) result.addProperty("detail", reason);
+        JsonObject coverage = new JsonObject();
+        if (manifest != null) coverage.addProperty("manifestSha256", manifest.sha256());
+        coverage.addProperty("required", manifest == null ? 0 : manifest.cases().size());
+        coverage.addProperty("minimumTests", minimumTests);
+        coverage.addProperty("uniqueExecuted", executed.size());
+        coverage.addProperty("shortfall", Math.max(0, minimumTests - executed.size()));
+        coverage.addProperty("reasonCode", reason);
+        coverage.addProperty("status", result.get("status").getAsString());
+        coverage.add("duplicates", duplicates);
+        coverage.add("missingCases", missing);
+        return new Assessment(result, coverage);
+    }
+
+    private static JsonObject parse(Path report, Instant startedAt, int minimumTests, Consumer<RawCase> rawCases) {
         JsonObject result = empty("GAMETEST_REPORT_MISSING");
         result.addProperty("reportPath", report.toAbsolutePath().normalize().toString());
         try {
@@ -47,23 +114,31 @@ public final class GameTestReport {
             if (!root.equals("testsuite") && !root.equals("testsuites")) return reason(result, "GAMETEST_REPORT_INVALID");
             var nodes = document.getElementsByTagName("testcase");
             if (nodes.getLength() > 10_000) return reason(result, "GAMETEST_REPORT_INVALID");
-            int failed = 0, skipped = 0, frameworkTests = 0, frameworkExecuted = 0;
+            int failed = 0, skipped = 0, frameworkTests = 0;
             JsonArray cases = new JsonArray();
+            Set<TestIdentity> identities = new HashSet<>();
+            Set<TestIdentity> executedBusiness = new HashSet<>();
+            boolean duplicate = false;
             for (int index = 0; index < nodes.getLength(); index++) {
                 Element element = (Element) nodes.item(index);
                 if (element.getAttribute("name").isBlank() || !element.getParentNode().getNodeName().equals("testsuite")
                         || element.getElementsByTagName("testcase").getLength() > 0)
                     return reason(result, "GAMETEST_REPORT_INVALID");
+                // Use the full producer identity, before display truncation. Suites and attempts cannot add coverage.
+                TestIdentity identity = new TestIdentity(element.getAttribute("classname"), element.getAttribute("name"));
+                if (!identities.add(identity)) duplicate = true;
                 boolean failure = element.getElementsByTagName("failure").getLength() > 0
                         || element.getElementsByTagName("error").getLength() > 0;
                 boolean skip = element.getElementsByTagName("skipped").getLength() > 0;
                 if (failure) failed++; else if (skip) skipped++;
                 // Minecraft 26.x registers this built-in self-check even when no mod test was registered.
-                boolean framework = element.getAttribute("name").equals("minecraft:always_pass");
-                if (framework) { frameworkTests++; if (failure || !skip) frameworkExecuted++; }
+                boolean framework = identity.name().equals("minecraft:always_pass");
+                if (framework) frameworkTests++;
+                else if (failure || !skip) executedBusiness.add(identity);
+                rawCases.accept(new RawCase(identity.className(), identity.name(), failure ? "failed" : skip ? "skipped" : "passed", framework));
                 JsonObject test = new JsonObject();
-                test.addProperty("name", bounded(element.getAttribute("name"), 512));
-                test.addProperty("className", bounded(element.getAttribute("classname"), 512));
+                test.addProperty("name", bounded(identity.name(), 512));
+                test.addProperty("className", bounded(identity.className(), 512));
                 test.addProperty("status", failure ? "failed" : skip ? "skipped" : "passed");
                 test.addProperty("scope", framework ? "framework" : "acceptance");
                 if (failure) {
@@ -88,11 +163,17 @@ public final class GameTestReport {
             result.addProperty("passed", executed - failed); result.addProperty("failed", failed);
             result.addProperty("skipped", skipped); result.add("cases", cases);
             result.addProperty("frameworkTests", frameworkTests);
-            result.addProperty("acceptanceExecuted", executed - frameworkExecuted);
+            int acceptanceExecuted = executedBusiness.size();
+            result.addProperty("acceptanceExecuted", acceptanceExecuted);
             result.addProperty("reportSha256", java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes)));
-            int acceptanceExecuted = executed - frameworkExecuted;
             int required = Math.max(1, minimumTests);
+            if (duplicate) result.addProperty("detail", "GAMETEST_DUPLICATE_TESTS: The report repeats "
+                    + (discovered - identities.size()) + " testcase identities. Repeated identities cannot add business coverage; "
+                    + "rerun acceptance as a separate task.");
             if (failed > 0 || reportedFailure) return reason(result, "GAMETEST_FAILED");
+            // Reject the report even if its distinct cases would otherwise reach the minimum.
+            // Keep the v1.0 shape and broad invalid-report code; all raw rows remain available for diagnosis.
+            if (duplicate) return reason(result, "GAMETEST_REPORT_INVALID");
             if (acceptanceExecuted < required) {
                 String preciseReason = acceptanceExecuted == 0 ? "GAMETEST_NO_TESTS" : "GAMETEST_INSUFFICIENT_TESTS";
                 result.addProperty("detail", preciseReason + ": At least " + required + " business tests must execute; observed "

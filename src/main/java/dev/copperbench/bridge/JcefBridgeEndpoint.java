@@ -43,6 +43,15 @@ public final class JcefBridgeEndpoint {
 					UiCore.wireGson().fromJson(envelope, Handshake.class)));
 			case "command" -> handleCommand(envelope);
 			case "query" -> handleQuery(envelope);
+			case "version_copy_upgrade" -> UiCore.wireGson().toJson(adapter.versionCopyUpgrade(
+					java.util.UUID.fromString(requiredString(envelope, "requestId")),
+					java.util.UUID.fromString(requiredString(envelope, "workspaceId")), envelope.getAsJsonObject("request")));
+			case "preview" -> UiCore.wireGson().toJson(adapter.preview(
+					java.util.UUID.fromString(requiredString(envelope, "requestId")),
+					java.util.UUID.fromString(requiredString(envelope, "workspaceId")), envelope.getAsJsonObject("request")));
+			case "acceptance" -> UiCore.wireGson().toJson(adapter.acceptance(
+					java.util.UUID.fromString(requiredString(envelope, "requestId")),
+					java.util.UUID.fromString(requiredString(envelope, "workspaceId")), envelope.getAsJsonObject("request")));
 			default -> throw new IllegalArgumentException("Unsupported bridge messageType: " + messageType);
 		};
 	}
@@ -62,7 +71,8 @@ public final class JcefBridgeEndpoint {
 	}
 
 	private String handleQuery(JsonObject envelope) {
-		requireSchema(envelope);
+		UiCore.requireQueryVersion(requiredString(envelope, "schemaVersion"),
+				UiCore.wireGson().fromJson(envelope.get("operation"), UiCore.Operation.class));
 		return UiCore.wireGson().toJson(adapter.query(UiCore.wireGson().fromJson(envelope, Query.class)));
 	}
 

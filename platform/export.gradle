@@ -130,6 +130,11 @@ tasks.withType(Copy).matching { it.name in ['exportWin64', 'exportLinux64', 'exp
             'ai/task-authorization-and-acceptance.md', 'ai/client-acceptance.md' } }
     into('scripts') { from('scripts') { include 'prepare-client-trial.py' } }
     into('ui-core/schemas/v1.0') { from('ui-core/schemas/v1.0') { include '*.json' } }
+    into('ui-core/schemas/v1.1') { from('ui-core/schemas/v1.1') { include '*.json' } }
+    into('ui-core/schemas/extensions') { from('ui-core/schemas/extensions') { include '*.json' } }
+    into('sdk/typescript') { from('sdk/typescript') { include 'copperbench.ts' } }
+    into('examples/camp-kit-native') { from('examples/camp-kit-native') }
+    into('tools/portable-evidence') { from('tools/portable-evidence') { include 'copperbench_evidence.py', 'README.md' } }
     into('examples/agent-native/lifecycle-1.21.1') {
         from('examples/agent-native/lifecycle-1.21.1') { include 'README.md', 'render.py', '*.java.template' }
     }

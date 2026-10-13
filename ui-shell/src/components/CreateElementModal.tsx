@@ -1,13 +1,14 @@
 import { tr, uiText } from '../i18n/locale';
 import { elementLabel, elementShortLabel } from '../i18n/labels';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { useDialogA11y } from '../hooks/useDialogA11y';
+import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
 
 export const CreateElementModal: React.FC = () => {
-  const { isCreateModalOpen, setIsCreateModalOpen, createModElement } = useWorkbench();
+  const { isCreateModalOpen, setIsCreateModalOpen, createModElement, workspacePreviewTarget } = useWorkbench();
   const [elementType, setElementType] = useState<ModElementType>('block');
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,6 +16,12 @@ export const CreateElementModal: React.FC = () => {
   const typeIcons: Record<string, typeof Box> = { block: Box, item: Compass, recipe: Scroll, procedure: Terminal, function: FileCode2, loottable: Gift, achievement: Trophy };
 
   const dialogRef = useDialogA11y(isCreateModalOpen, () => setIsCreateModalOpen(false));
+  const supportedTypes = workspacePreviewTarget?.capabilities.elementTypes?.filter(type => type.supported).map(type => type.elementType);
+  const previewReady = !workspacePreviewTarget || (workspacePreviewTarget.selected && workspacePreviewTarget.destination === ''
+    && workspacePreviewTarget.capabilities.operations?.some(operation => operation.operation === 'create_mod_element' && operation.available));
+  useEffect(() => {
+    if (supportedTypes?.length && !supportedTypes.includes(elementType)) setElementType(supportedTypes[0] as ModElementType);
+  }, [workspacePreviewTarget, elementType]);
 
   if (!isCreateModalOpen) return null;
 
@@ -65,6 +72,7 @@ export const CreateElementModal: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <WorkspacePreviewChoice />
             {error && (
               <div role="alert" id="create-element-error" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.3)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--badge-red)', fontSize: '12px' }}>
                 {error}
@@ -106,6 +114,7 @@ export const CreateElementModal: React.FC = () => {
                       key={item.type}
                       type="button"
                       data-testid={`create-element-type-${item.type}`}
+                      disabled={supportedTypes !== undefined && !supportedTypes.includes(type)}
                       onClick={() => setElementType(item.type as ModElementType)}
                       aria-label={item.label}
                       title={item.label}
@@ -144,7 +153,7 @@ export const CreateElementModal: React.FC = () => {
             <button
               type="submit"
               className="btn-primary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !previewReady || (supportedTypes !== undefined && !supportedTypes.includes(elementType))}
               data-testid="create-element-submit-btn"
             >
               <Plus size={14} />

@@ -751,7 +751,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 	}
 
 	private static Path javaHomeFor(String generatorId) {
-		if (generatorId.endsWith("1.20.1")) {
+		if (generatorId.endsWith("1.20.1") || generatorId.endsWith("1.21.1")) {
 			for (Path candidate : List.of(Path.of("jdk", "jdk21_win_64"),
 					Path.of("..", "..", "jdk", "jdk21_win_64"))) {
 				Path javaHome = candidate.toAbsolutePath().normalize();

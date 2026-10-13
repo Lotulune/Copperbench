@@ -86,6 +86,9 @@ class Stage17TaskSessionRecoveryTest {
                 assertEquals("failed", restored.get("state").getAsString());
                 assertFalse(restored.has("resultObservation"));
                 assertTrue(reopened.diagnostics(WORKSPACE, task).toString().contains("SESSION_RUN_CLIENT_EXITED"));
+                JsonObject diagnostic = reopened.diagnostics(WORKSPACE, task).getFirst();
+                assertTrue(diagnostic.has("path"), "Persisted diagnostics must retain the explicit v1.0 null location");
+                assertTrue(diagnostic.get("path").isJsonNull());
             }
         }
     }

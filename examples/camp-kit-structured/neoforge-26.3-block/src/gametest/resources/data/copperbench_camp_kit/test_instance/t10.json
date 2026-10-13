@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "copperbench_camp_kit:t10",
+  "environment": "minecraft:default",
+  "structure": "copperbench_camp_kit:empty",
+  "max_ticks": 1200,
+  "required": true
+}

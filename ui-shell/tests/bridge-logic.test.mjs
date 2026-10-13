@@ -24,6 +24,45 @@ const workspaceId = '11111111-1111-4111-8111-111111111111';
 const taskId = '44444444-4444-4444-8444-444444444444';
 const otherTaskId = '55555555-5555-4555-8555-555555555555';
 const revision = 10;
+
+test('editor schema 1.1 is explicit and a legacy response cannot populate the rich editor', async () => {
+  let downgrade = false;
+  const calls = [];
+  const bridge = new JcefCoreBridge({ workspaceId, onEvent() { return () => {}; }, invoke: async raw => {
+    const request = JSON.parse(raw); calls.push(request);
+    return JSON.stringify({ messageType: 'query_result', schemaVersion: downgrade ? '1.0' : request.schemaVersion,
+      requestId: request.requestId, workspaceId, operation: request.operation, status: 'succeeded', revision,
+      data: { element: { id: 'element' }, configuration: {}, sourceManagement: {} }, diagnostics: [] });
+  } });
+  const query = { messageType: 'query', schemaVersion: '1.1', requestId: randomUUID(), workspaceId,
+    operation: 'get_mod_element_editor', payload: { elementId: 'element' } };
+  assert.equal((await bridge.sendQuery(query)).schemaVersion, '1.1');
+  assert.equal(calls[0].schemaVersion, '1.1');
+  downgrade = true;
+  await assert.rejects(bridge.sendQuery({ ...query, requestId: randomUUID() }), /requested editor schema/);
+});
+
+test('acceptance diagnostics bind the nested Core workspace and never mutate the UI projection', async (t) => {
+  const calls = [];
+  let mismatch = '';
+  const summary = { schemaVersion: '1', taskId, state: 'insufficient', required: 6, minimumTests: 6,
+    uniqueExecuted: 5, shortfall: 1, duplicates: [], missingCases: [] };
+  const bridge = new JcefCoreBridge({ workspaceId, onEvent() { return () => {}; }, invoke: async raw => {
+    const request = JSON.parse(raw); calls.push(request);
+    return JSON.stringify({ contract: 'required_cases', schemaVersion: '1', selectedVersion: '1', status: 'succeeded',
+      requestId: mismatch === 'request' ? otherTaskId : request.requestId,
+      core: { workspaceId: mismatch === 'workspace' ? otherTaskId : workspaceId },
+      coverageDiagnostics: { ...summary, taskId: mismatch === 'task' ? otherTaskId : taskId } });
+  } });
+  t.after(() => bridge.dispose());
+  const before = structuredClone(bridge.getState());
+  assert.deepEqual(await bridge.readAcceptanceDiagnostics(workspaceId, taskId), summary);
+  assert.deepEqual(bridge.getState(), before);
+  assert.deepEqual(calls[0].request, { supportedVersions: ['1'], diagnosticVersions: ['1'], operation: 'get', payload: { taskId } });
+  for (mismatch of ['request', 'workspace', 'task'])
+    await assert.rejects(() => bridge.readAcceptanceDiagnostics(workspaceId, taskId));
+});
+
 const handshake = (supportedSchemaVersions = ['1.0']) => ({
   messageType: 'handshake', requestId: randomUUID(), supportedSchemaVersions,
   client: { id: 'production-bridge-test', version: '1.0' }

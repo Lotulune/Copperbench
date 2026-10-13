@@ -1,0 +1,19 @@
+templates:
+  - template: recipe-crafting.json.ftl
+    writer: json
+    name: "@MODDATAROOT/recipe/@registryname.json"
+    condition: "recipeType %= Crafting"
+  - template: recipe-cooking.json.ftl
+    writer: json
+    name: "@MODDATAROOT/recipe/@registryname.json"
+    condition: "recipeType %= Smelting"
+  - template: recipe-cooking.json.ftl
+    writer: json
+    name: "@MODDATAROOT/recipe/@registryname.json"
+    condition: "recipeType %= Blasting"
+  - template: recipe-cooking.json.ftl
+    writer: json
+    name: "@MODDATAROOT/recipe/@registryname.json"
+    condition: "recipeType %= Smoking"
+
+field_inclusions: [name, recipeType, recipeShapeless, recipeSlots, recipeReturnStack, recipeRetstackSize, cookingTime, xpReward, smeltingInputStack, smeltingReturnStack, blastingInputStack, blastingReturnStack, smokingInputStack, smokingReturnStack]

@@ -1,0 +1,186 @@
+{
+  "element": {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "type": "code",
+    "name": "manual_code",
+    "displayName": "Manual Code",
+    "state": "valid",
+    "ownership": "manual",
+    "updatedAt": "2026-10-13T00:00:00Z",
+    "firstParty": true,
+    "diagnostics": {
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "identity": {
+      "internalName": "manual_code",
+      "registryName": "manual_code",
+      "source": "generator_definition"
+    }
+  },
+  "configuration": {},
+  "sections": [
+    {
+      "id": "identity",
+      "title": {
+        "key": "editor.section.identity",
+        "fallback": "Identity",
+        "args": {}
+      },
+      "fields": [
+        {
+          "path": "/displayName",
+          "label": {
+            "key": "field.displayName",
+            "fallback": "DisplayName",
+            "args": {}
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": false,
+          "value": "Manual Code",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/name",
+          "label": {
+            "key": "field.name",
+            "fallback": "Name",
+            "args": {}
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": true,
+          "value": "manual_code",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/description",
+          "label": {
+            "key": "field.description",
+            "fallback": "Description",
+            "args": {}
+          },
+          "control": "textarea",
+          "required": false,
+          "readOnly": false,
+          "value": "",
+          "options": [],
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "id": "behavior",
+      "title": {
+        "key": "editor.section.behavior",
+        "fallback": "Behavior",
+        "args": {}
+      },
+      "fields": [
+        {
+          "path": "/code",
+          "label": {
+            "key": "field.code",
+            "fallback": "Code",
+            "args": {}
+          },
+          "control": "textarea",
+          "required": false,
+          "readOnly": false,
+          "value": "",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/codeFiles",
+          "label": {
+            "key": "field.codeFiles",
+            "fallback": "CodeFiles",
+            "args": {}
+          },
+          "control": "json",
+          "required": false,
+          "readOnly": false,
+          "value": [],
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/sourceFingerprints/$primary",
+          "label": {
+            "key": "field.$primary",
+            "fallback": "$primary",
+            "args": {}
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": true,
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "options": [],
+          "diagnostics": []
+        }
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "mod_elements.create",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.build",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.migrate_loader",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.import_upstream",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "assets.publish_batch",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    }
+  ]
+}

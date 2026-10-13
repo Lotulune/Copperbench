@@ -298,6 +298,54 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  p263-native:
+    name: 26.3 native delivery (${{ matrix.generator }})
+    runs-on: windows-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        generator: [fabric-26.3, neoforge-26.3]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '25.0.2'
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: npm ci --prefix ui-shell
+      - run: npm ci --prefix ui-core
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Run exact generator backend, Native repair, export and offline verification
+        shell: pwsh
+        run: >-
+          python scripts/ci/p263_native.py --generator '${{ matrix.generator }}'
+          --gradle-home "$env:USERPROFILE/.gradle"
+          --output 'build/nightly-results/generator-${{ matrix.generator }}'
+      - name: Account for every required check even after failure
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/generator-${{ matrix.generator }}
+          --gate generator-${{ matrix.generator }} --job-status '${{ job.status }}'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-gate-generator-${{ matrix.generator }}-${{ github.run_attempt }}
+          path: |
+            build/nightly-results/generator-${{ matrix.generator }}/
+            build/test-results/test/
+            build/reports/tests/test/
+          if-no-files-found: error
+          retention-days: 30
+
   wrapper:
     name: Wrapper integrity and cache gates
     runs-on: ubuntu-24.04
@@ -342,7 +390,7 @@ jobs:
   summary:
     name: Nightly product regression
     if: always()
-    needs: [sdk, ui, core, mcp, stage9-generator-golden, wrapper]
+    needs: [sdk, ui, core, mcp, stage9-generator-golden, p263-native, wrapper]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

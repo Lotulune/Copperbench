@@ -192,6 +192,8 @@ public final class GameTestSupport {
         String run = "gameTestServer { type = 'gameTestServer'; gameDirectory = file('run') }";
         if (!version.equals("1.20.1")) return base
                 + "java.toolchain.languageVersion = JavaLanguageVersion.of(" + javaRelease + ")\n"
+                // 26.3 only exposes its locked Java 25; ModDev's asset helper otherwise requests Java 21.
+                + (version.equals("26.3") ? "tasks.withType(net.neoforged.nfrtgradle.DownloadAssets).configureEach { javaExecutable = javaToolchains.launcherFor(java.toolchain).map { it.executablePath.asFile.absolutePath } }\n" : "")
                 + "neoForge { version = " + quote(env.get("loaderVersion").getAsString()) + "; runs { " + run + " }; mods { " + HOST_ID + " { sourceSet sourceSets.main } } }\n"
                 + "tasks.register('runGameTest') { dependsOn 'runGameTestServer' }\n";
         return base + "java.toolchain.languageVersion = JavaLanguageVersion.of(17)\n"

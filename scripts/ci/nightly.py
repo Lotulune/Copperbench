@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[2]
 GENERATORS = ('fabric-26.2', 'neoforge-26.2', 'fabric-26.1.2', 'neoforge-26.1.2',
               'fabric-1.21.1', 'neoforge-1.21.1', 'fabric-1.20.1', 'neoforge-1.20.1')
+NATIVE_GENERATORS = ('fabric-26.3', 'neoforge-26.3')
 GATES = {
     'sdk-windows': ('SDK regression (windows-latest)', ('harness', 'python', 'typescript', 'timeout-repeat')),
     'sdk-linux': ('SDK regression (ubuntu-24.04)', ('harness', 'python', 'typescript', 'timeout-repeat')),
@@ -24,6 +25,7 @@ GATES = {
     'mcp': ('MCP regression', ('conformance', 'status', 'documentation')),
     'wrapper': ('Wrapper integrity and cache gates', ('manifest', 'cache-matrix')),
     **{f'generator-{name}': (f'Stage 9 generator golden ({name})', ('golden',)) for name in GENERATORS},
+    **{f'generator-{name}': (f'26.3 native delivery ({name})', ('backend', 'native', 'collect', 'offline')) for name in NATIVE_GENERATORS},
 }
 CONCLUSIONS = {'success': 'passed', 'failure': 'failed', 'cancelled': 'cancelled',
                'skipped': 'skipped', 'timed_out': 'failed', 'action_required': 'failed',

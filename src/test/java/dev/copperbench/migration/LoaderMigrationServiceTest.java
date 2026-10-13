@@ -53,7 +53,7 @@ class LoaderMigrationServiceTest {
 		Path target = temp.resolve("blocked-copy");
 		MigrationReport report = service.execute(workspace(false), "neoforge-26.3", null, target);
 		assertFalse(report.complete());
-		assertEquals("UNSUPPORTED_GENERATOR", item(report, "/generator").reasonCode());
+		assertEquals("PREVIEW_NEGOTIATION_REQUIRED", item(report, "/generator").reasonCode());
 		assertFalse(Files.exists(target.resolve("migration-report.json")));
 	}
 
@@ -211,10 +211,22 @@ class LoaderMigrationServiceTest {
 
 	private static void createDirectoryLink(Path link, Path target) throws Exception {
 		if (java.io.File.separatorChar == '\\') {
-			Process process = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J", link.toString(), target.toString())
-					.redirectErrorStream(true).start();
-			String detail = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-			assertEquals(0, process.waitFor(), detail);
+			Path script = Files.createTempFile(link.getParent(), "create-junction-", ".ps1");
+			try {
+				Files.writeString(script, """
+						param([string]$LinkPath, [string]$TargetPath)
+						$ErrorActionPreference = 'Stop'
+						New-Item -ItemType Junction -Path $LinkPath -Target $TargetPath | Out-Null
+						""", StandardCharsets.UTF_8);
+				Process process = new ProcessBuilder("pwsh", "-NoProfile", "-NonInteractive", "-File",
+						script.toString(), "-LinkPath", link.toString(), "-TargetPath", target.toString())
+						.redirectErrorStream(true).start();
+				String detail = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+				assertEquals(0, process.waitFor(), detail);
+				assertEquals(target.toRealPath(), link.toRealPath(), "The fixture must contain a real junction");
+			} finally {
+				Files.deleteIfExists(script);
+			}
 		} else {
 			Files.createSymbolicLink(link, target);
 		}

@@ -52,22 +52,25 @@ public final class Fabric1211Generator {
 
 	public record Profile(String generatorId, String minecraftVersion, String loaderVersion, String loomVersion,
 			String fabricApiVersion, int javaRelease, String readyMarker, boolean modernResourceLocation,
-			boolean unobfuscated) {
+			boolean unobfuscated) implements dev.copperbench.generator.JavaGeneratorProfile {
 		public static final Profile FABRIC_1211 = new Profile("fabric-1.21.1", "1.21.1", "0.19.3", "1.17.19",
 				"0.116.15+1.21.1", 21, "COPPERBENCH_STAGE3_READY", true, false);
 		public static final Profile FABRIC_261 = new Profile("fabric-26.1.2", "26.1.2", "0.19.3", "1.17.19",
 				"0.155.2+26.1.2", 25, "COPPERBENCH_STAGE7_FABRIC261_READY", true, true);
 		public static final Profile FABRIC_262 = new Profile("fabric-26.2", "26.2", "0.19.3", "1.17.19",
 				"0.158.0+26.2", 25, "COPPERBENCH_STAGE7_FABRIC262_READY", true, true);
+		public static final Profile FABRIC_263 = new Profile("fabric-26.3", "26.3", "0.19.5", "1.17.21",
+				"0.162.0+26.3", 25, "COPPERBENCH_P263_FABRIC_INITIALIZED", true, true);
 		public static final Profile FABRIC_1201 = new Profile("fabric-1.20.1", "1.20.1", "0.15.11", "1.7.4",
 				"0.92.2+1.20.1", 17, "COPPERBENCH_STAGE7_FABRIC1201_READY", false, false);
 
 		/**
 		 * Loom 1.7.4 ships with Gradle 8.8 (fabric-loom 1.7 branch wrapper).
-		 * Newer tracks share Gradle 9.7.0 with the New Workspace generator plugins.
+		 * The 26.3 environment freezes Gradle 9.6.0; other newer tracks retain 9.7.0.
 		 */
 		public String gradleWrapperZip() {
-			return javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.7.0-bin.zip";
+			return minecraftVersion.equals("26.3") ? "gradle-9.6.0-bin.zip"
+					: javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.7.0-bin.zip";
 		}
 
 		public String jdkRelativePath() {
@@ -162,6 +165,8 @@ public final class Fabric1211Generator {
 			JsonObject values = fields(element);
 			String base = "/elements/" + element.id() + "/values/fields";
 			try {
+                var scopeIssue = dev.copperbench.core.application.PreviewElementFields.validateGeneration(profile.generatorId(), element.type(), values);
+                if (scopeIssue != null) { issues.add(issue(scopeIssue.code(), scopeIssue.message(), base + scopeIssue.path(), element)); continue; }
 				if (nativeDefinitions
 						&& dev.copperbench.core.application.ElementFieldContract.supports(element.type())) {
 					var definitionIssue = dev.copperbench.core.application.ElementGenerationValidation.validate(element.type(), values, elementNames);

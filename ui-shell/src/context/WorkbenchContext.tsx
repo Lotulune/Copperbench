@@ -41,7 +41,7 @@ import {
   RecoveryRestorePreview,
   WorkspaceHealthProjection
 } from '../types/contract';
-import type { TaskAuthorization, TaskAuthorizationRequest, CommandOperation } from '../types/contract';
+import type { TaskAuthorization, TaskAuthorizationRequest, CommandOperation, PreviewTarget, Command } from '../types/contract';
 import {
   coreBridge,
   BridgeState,
@@ -123,6 +123,7 @@ interface WorkbenchContextType {
   generateWorkspace: () => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
   exportVerifiedArtifact: (taskId: UUID, allowHistorical: boolean) => Promise<CommandResult>;
+  readAcceptanceDiagnostics: (taskId: UUID) => Promise<import('../types/contract').AcceptanceCoverageDiagnostics | null>;
   runClient: () => Promise<CommandResult>;
   runServer: (userApproved: boolean) => Promise<CommandResult>;
   runDatagen: () => Promise<CommandResult>;
@@ -160,6 +161,10 @@ interface WorkbenchContextType {
   importAssetBatch: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
   previewAssetMove: (sourceAssetId: string, targetRelativePath: string) => Promise<AssetMovePreview | null>;
   moveAsset: (planToken: string) => Promise<CommandResult>;
+  workspacePreviewTarget: PreviewTarget | null;
+  previewVersionCopyUpgrade: (targetGeneratorId: string) => Promise<import('../types/contract').VersionCopyUpgradeResult>;
+  versionCopyUpgradeV2: (request: import('../types/contract').VersionCopyUpgradeV2Request) => Promise<import('../types/contract').VersionCopyUpgradeResult>;
+  previewTargets: (request: Omit<import('../types/contract').PreviewRequest, 'supportedVersions'>) => Promise<import('../types/contract').PreviewResult>;
   listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
   createWorkspace: (form: {
     generatorId: string;
@@ -207,6 +212,30 @@ function focusByContractSelector(selector: string): void {
 
 export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<BridgeState>(coreBridge.getState());
+  const [workspacePreviewTarget, setWorkspacePreviewTarget] = useState<PreviewTarget | null>(null);
+  const activeWorkspaceId = state.workbench?.workspace.id;
+  const activeGeneratorId = state.workbench?.workspace.generator.id;
+  useEffect(() => {
+    let active = true;
+    setWorkspacePreviewTarget(null);
+    if (activeWorkspaceId && coreBridge.sendPreview) {
+      void coreBridge.sendPreview(activeWorkspaceId, { operation: 'catalog', supportedVersions: ['1'] })
+        .then(result => {
+          if (active) setWorkspacePreviewTarget(result.targets?.find(target => target.generatorId === activeGeneratorId && target.previewRequired) ?? null);
+        }).catch(error => { console.warn('[Copperbench Preview] Could not read workspace capabilities:', error); });
+    }
+    return () => { active = false; };
+  }, [activeWorkspaceId, activeGeneratorId]);
+
+  const sendWorkspaceCommand = useCallback(async (command: Command): Promise<CommandResult> => {
+    if (!workspacePreviewTarget) return coreBridge.sendCommand(command);
+    if (!coreBridge.sendPreview) throw new Error(tr("当前客户端无法协商预览能力。"));
+    const result = await coreBridge.sendPreview(command.workspaceId, { operation: 'command', supportedVersions: ['1'],
+      generatorId: workspacePreviewTarget.generatorId, command: command.operation,
+      expectedRevision: command.expectedRevision, payload: command.payload as Record<string, unknown> });
+    if (!result.core) throw new Error(result.diagnostics.map(d => t(d.message, d.code)).join('; '));
+    return result.core;
+  }, [workspacePreviewTarget]);
   const { theme, themePreference, toggleTheme } = useTheme();
   const [activeView, setActiveView] = useState<NavView>('hub');
   const activeViewRef = useRef(activeView);
@@ -364,7 +393,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     async (elementId: UUID): Promise<ModElementEditorProjection | null> => {
       const res = await coreBridge.sendQuery({
         messageType: 'query',
-        schemaVersion: '1.0',
+        schemaVersion: '1.1',
         requestId: generateUUID(),
         workspaceId: state.workbench?.workspace.id ?? '',
         operation: 'get_mod_element_editor',
@@ -640,7 +669,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     async (type: ModElementType, name: string): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
       const revision = state.workbench?.workspace.revision ?? 0;
-      const res = await coreBridge.sendCommand({
+      const res = await sendWorkspaceCommand({
         messageType: 'command',
         schemaVersion: '1.0',
         requestId: generateUUID(),
@@ -660,14 +689,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       return res;
     },
-    [state.workbench]
+    [state.workbench, sendWorkspaceCommand]
   );
 
   const updateModElement = useCallback(
     async (elementId: UUID, changes: FieldChange[], expectedRevision?: number): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
       const revision = state.workbench?.workspace.revision ?? 0;
-      return coreBridge.sendCommand({
+      return sendWorkspaceCommand({
         messageType: 'command',
         schemaVersion: '1.0',
         requestId: generateUUID(),
@@ -681,7 +710,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       });
     },
-    [state.workbench]
+    [state.workbench, sendWorkspaceCommand]
   );
 
   const deleteModElement = useCallback(
@@ -711,7 +740,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const generateWorkspace = useCallback(async (): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
     const revision = state.workbench?.workspace.revision ?? 0;
-    const res = await coreBridge.sendCommand({
+    const res = await sendWorkspaceCommand({
       messageType: 'command',
       schemaVersion: '1.0',
       requestId: generateUUID(),
@@ -728,12 +757,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsTaskDrawerOpen(true);
     }
     return res;
-  }, [state.workbench]);
+  }, [state.workbench, sendWorkspaceCommand]);
 
   const buildWorkspace = useCallback(async (): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
     const revision = state.workbench?.workspace.revision ?? 0;
-    const res = await coreBridge.sendCommand({
+    const res = await sendWorkspaceCommand({
       messageType: 'command',
       schemaVersion: '1.0',
       requestId: generateUUID(),
@@ -750,7 +779,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsTaskDrawerOpen(true);
     }
     return res;
-  }, [state.workbench]);
+  }, [state.workbench, sendWorkspaceCommand]);
 
   const runClient = useCallback(async (): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -781,6 +810,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
     return result;
   }, [state.workbench]);
+
+  const diagnosticWorkspaceId = state.workbench?.workspace.id;
+  const readAcceptanceDiagnostics = useCallback(async (taskId: UUID) => {
+    if (!diagnosticWorkspaceId || !coreBridge.readAcceptanceDiagnostics) return null;
+    return coreBridge.readAcceptanceDiagnostics(diagnosticWorkspaceId, taskId);
+  }, [diagnosticWorkspaceId]);
 
   const runWorkspaceTask = useCallback(async (
     operation: 'run_server' | 'run_datagen' | 'run_gametest' | 'prepare_game_tests',
@@ -1233,6 +1268,24 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [state.workbench]
   );
 
+  const previewVersionCopyUpgrade = useCallback(async (targetGeneratorId: string) => {
+    if (!coreBridge.previewVersionCopyUpgrade || !state.workbench) throw new Error(tr('当前客户端无法预览版本复制升级。'));
+    return coreBridge.previewVersionCopyUpgrade(state.workbench.workspace.id, targetGeneratorId);
+  }, [state.workbench]);
+
+  const versionCopyUpgradeV2 = useCallback(async (request: import('../types/contract').VersionCopyUpgradeV2Request) => {
+    if (!coreBridge.versionCopyUpgradeV2 || !state.workbench) throw new Error(tr('当前客户端无法执行版本复制升级。'));
+    return coreBridge.versionCopyUpgradeV2(state.workbench.workspace.id, request);
+  }, [state.workbench]);
+
+  const previewTargets = useCallback(async (request: Omit<import('../types/contract').PreviewRequest, 'supportedVersions'>) => {
+    if (!coreBridge.sendPreview || !state.workbench) throw new Error(tr("当前客户端无法协商预览能力。"));
+    const result = await coreBridge.sendPreview(state.workbench.workspace.id, { ...request, supportedVersions: ['1'],
+      ...(['opt_in', 'revoke', 'command'].includes(request.operation) ? { expectedRevision: state.workbench.workspace.revision } : {}) });
+    if (result.targets) setWorkspacePreviewTarget(result.targets.find(target => target.generatorId === state.workbench!.workspace.generator.id && target.previewRequired) ?? null);
+    return result;
+  }, [state.workbench]);
+
   const listNewWorkspaceGenerators = useCallback(
     async (): Promise<NewWorkspaceGeneratorCatalog | null> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -1402,6 +1455,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       generateWorkspace,
       buildWorkspace,
       exportVerifiedArtifact,
+      readAcceptanceDiagnostics,
       runClient,
       runServer,
       runDatagen,
@@ -1435,6 +1489,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       importAssetBatch,
       previewAssetMove,
       moveAsset,
+      previewVersionCopyUpgrade,
+      versionCopyUpgradeV2,
+      previewTargets,
+      workspacePreviewTarget,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,
@@ -1486,6 +1544,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       generateWorkspace,
       buildWorkspace,
       exportVerifiedArtifact,
+      readAcceptanceDiagnostics,
       runClient,
       runServer,
       runDatagen,
@@ -1519,6 +1578,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       importAssetBatch,
       previewAssetMove,
       moveAsset,
+      previewVersionCopyUpgrade,
+      versionCopyUpgradeV2,
+      previewTargets,
+      workspacePreviewTarget,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,

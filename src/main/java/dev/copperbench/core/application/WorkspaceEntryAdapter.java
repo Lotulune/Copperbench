@@ -32,9 +32,24 @@ public final class WorkspaceEntryAdapter {
 		return service.query(query, context);
 	}
 
+	/** Per-request extension negotiation does not change this adapter's permission profile. */
+	public com.google.gson.JsonObject acceptance(UUID requestId, UUID workspaceId, com.google.gson.JsonObject request) {
+		return service.acceptance(workspaceId, requestId, request, context);
+	}
+
 	/** Subscribes to asynchronous events and replays retained events after a sequence. */
 	public AutoCloseable subscribeEvents(UUID workspaceId, long afterSequence,
 			Consumer<dev.copperbench.core.contract.UiCore.Event> listener) {
 		return service.subscribeEvents(workspaceId, afterSequence, listener);
 	}
+	/** Versioned preview extension, using the same immutable caller permissions. */
+	public com.google.gson.JsonObject preview(java.util.UUID requestId, java.util.UUID workspaceId, com.google.gson.JsonObject request) {
+		return service.preview(workspaceId, requestId, request, context);
+	}
+
+	/** Read-only version-copy upgrade planning with per-request negotiation. */
+	public com.google.gson.JsonObject versionCopyUpgrade(java.util.UUID requestId, java.util.UUID workspaceId, com.google.gson.JsonObject request) {
+		return service.versionCopyUpgrade(workspaceId, requestId, request, context);
+	}
+
 }

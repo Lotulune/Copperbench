@@ -234,6 +234,14 @@ test {
     useJUnitPlatform()
     // The process/session recovery fixture starts a separate JVM with this exact test runtime.
     systemProperty 'copperbench.test.runtimeClasspath', sourceSets.test.runtimeClasspath.asPath
+    systemProperty 'copperbench.p263.fabricNativeBuild', System.getProperty('copperbench.p263.fabricNativeBuild', 'false')
+    systemProperty 'copperbench.p263.neoforgeNativeBuild', System.getProperty('copperbench.p263.neoforgeNativeBuild', 'false')
+    systemProperty 'copperbench.p263.fabricNativeAcceptance', System.getProperty('copperbench.p263.fabricNativeAcceptance', 'false')
+    systemProperty 'copperbench.p263.neoforgeNativeAcceptance', System.getProperty('copperbench.p263.neoforgeNativeAcceptance', 'false')
+    systemProperty 'copperbench.p263.fabricNativeServer', System.getProperty('copperbench.p263.fabricNativeServer', 'false')
+    systemProperty 'copperbench.p263.neoforgeNativeServer', System.getProperty('copperbench.p263.neoforgeNativeServer', 'false')
+    systemProperty 'copperbench.p263.backendFixture', System.getProperty('copperbench.p263.backendFixture', '')
+    systemProperty 'copperbench.gradle.user.home', System.getProperty('copperbench.gradle.user.home', '')
     systemProperty 'copperbench.stage17.coldWorkspaceRoot', System.getProperty('copperbench.stage17.coldWorkspaceRoot', '')
     systemProperty 'copperbench.stage17.buildTracks', System.getProperty('copperbench.stage17.buildTracks', '')
     systemProperty 'copperbench.stage17.gradleProxy', System.getProperty('copperbench.stage17.gradleProxy', '')
@@ -433,6 +441,129 @@ tasks.register('runAgentReadinessDelivery', JavaExec.class) {
     jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
     mainClass.set('dev.copperbench.headless.AgentReadinessDeliveryMain')
     args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
+}
+
+tasks.register('runPreviewNegotiationDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Checks preview discovery, scoped choice and fail-closed creation through real Native SDK processes.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.PreviewNegotiationDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('requiredCasesInputConfig').getOrElse('')
+}
+
+tasks.register('runRequiredCasesDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs required-case negotiation, a real packaged host, reconnect and verified export through Native SDK.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.RequiredCasesDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('requiredCasesInputConfig').getOrElse('')
+}
+
+tasks.register('runNative263Delivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs opt-in exact-target 26.3 Native create, edit, build, server and reconnect acceptance with isolated task authority.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Native263DeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263BackendFixture').getOrElse(''),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263ServerEulaAccepted').getOrElse('false'),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runNative263Acceptance', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs exact-target 26.3 six-case packaged-JAR acceptance, repair, verified export and reconnect through Native SDK.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Native263AcceptanceMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263AcceptanceFixture').getOrElse(''),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runStructured263ItemDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs the selected 26.3 structured item Native creation, editing, four-case host acceptance and reopen/export.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Structured263ItemDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runStructured263BlockDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs a 26.3 structured block Native slice and reopens its saved test world in a separate host.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Structured263BlockDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runStructured263RecipeDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs a 26.3 structured recipe slice through Native creation, real cooking/reload and reopen/export.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Structured263RecipeDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runStructured263FunctionDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs a 26.3 structured function slice through Native creation, actual command effects and reopen/export.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Structured263FunctionDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runVersionCopyDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs a real 26.2 source through Native copy upgrade, target build, independent host and export.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--add-opens=java.base/java.io=ALL-UNNAMED',
+            '--add-opens=java.desktop/java.awt=ALL-UNNAMED', '--add-opens=java.desktop/java.awt.color=ALL-UNNAMED',
+            '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.VersionCopyDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
+}
+
+tasks.register('runStructured263CodeDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs a 26.3 structured manual code slice through Native creation, compile failure/repair and manual-source preservation and reopen/export.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.Structured263CodeDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python'),
+            providers.gradleProperty('p263GradleHome').getOrElse(''),
+            providers.gradleProperty('p263Generator').getOrElse('fabric-26.3')
 }
 
 apply from: 'platform/setup.gradle'

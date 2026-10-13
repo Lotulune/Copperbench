@@ -1,0 +1,287 @@
+{
+  "description": "Synthetic cross-language raw identity and required-case vectors; not runtime acceptance evidence.",
+  "vectors": [
+    {
+      "name": "different_classes_same_name",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"test\"></testcase><testcase classname=\"b\" name=\"test\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 2
+    },
+    {
+      "name": "ambiguous_delimiter_tuple",
+      "xml": "<testsuite><testcase classname=\"a:b\" name=\"c\"></testcase><testcase classname=\"a\" name=\"b:c\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 2
+    },
+    {
+      "name": "explicit_parameter_ids",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"test[one]\"></testcase><testcase classname=\"a\" name=\"test[two]\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 2
+    },
+    {
+      "name": "full_names_before_display_truncation",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxone\"></testcase><testcase classname=\"a\" name=\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxtwo\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 2
+    },
+    {
+      "name": "full_classes_before_display_truncation",
+      "xml": "<testsuite><testcase classname=\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxone\" name=\"case\"></testcase><testcase classname=\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxtwo\" name=\"case\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 2
+    },
+    {
+      "name": "missing_class_is_empty",
+      "xml": "<testsuite><testcase classname=\"\" name=\"case\"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 1
+    },
+    {
+      "name": "nbsp_is_not_java_blank",
+      "xml": "<testsuite><testcase classname=\"\" name=\" \"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 1
+    },
+    {
+      "name": "repeated_identity_six_rows",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"case\"></testcase><testcase classname=\"a\" name=\"case\"></testcase><testcase classname=\"a\" name=\"case\"></testcase><testcase classname=\"a\" name=\"case\"></testcase><testcase classname=\"a\" name=\"case\"></testcase><testcase classname=\"a\" name=\"case\"></testcase></testsuite>",
+      "minimumTests": 6,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_CASES_DUPLICATE"
+    },
+    {
+      "name": "cross_suite_duplicate",
+      "xml": "<testsuites><testsuite><testcase classname=\"a\" name=\"case\"></testcase></testsuite><testsuite><testcase classname=\"a\" name=\"case\"></testcase></testsuite></testsuites>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_CASES_DUPLICATE"
+    },
+    {
+      "name": "later_pass_cannot_hide_failure",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"case\"><failure/></testcase><testcase classname=\"a\" name=\"case\"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_FAILED",
+      "expectedOfflineCode": "EVIDENCE_CASES_FAILED"
+    },
+    {
+      "name": "skip_cannot_erase_duplicate",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"case\"><skipped/></testcase><testcase classname=\"a\" name=\"case\"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_CASES_DUPLICATE"
+    },
+    {
+      "name": "framework_does_not_count",
+      "xml": "<testsuite><testcase classname=\"host\" name=\"minecraft:always_pass\"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_NO_TESTS",
+      "expectedOfflineCode": "EVIDENCE_CASES_INSUFFICIENT"
+    },
+    {
+      "name": "framework_plus_business",
+      "xml": "<testsuite><testcase classname=\"host\" name=\"minecraft:always_pass\"></testcase><testcase classname=\"a\" name=\"case\"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 1
+    },
+    {
+      "name": "five_distinct_for_minimum_six",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"0\"></testcase><testcase classname=\"a\" name=\"1\"></testcase><testcase classname=\"a\" name=\"2\"></testcase><testcase classname=\"a\" name=\"3\"></testcase><testcase classname=\"a\" name=\"4\"></testcase></testsuite>",
+      "minimumTests": 6,
+      "expectedCoreCode": "GAMETEST_NO_TESTS",
+      "expectedOfflineCode": "EVIDENCE_CASES_INSUFFICIENT"
+    },
+    {
+      "name": "extra_distinct_business_allowed",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"0\"></testcase><testcase classname=\"a\" name=\"1\"></testcase><testcase classname=\"a\" name=\"2\"></testcase><testcase classname=\"a\" name=\"3\"></testcase><testcase classname=\"a\" name=\"4\"></testcase><testcase classname=\"a\" name=\"5\"></testcase><testcase classname=\"a\" name=\"6\"></testcase></testsuite>",
+      "minimumTests": 6,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 7
+    },
+    {
+      "name": "all_skipped",
+      "xml": "<testsuite><testcase classname=\"a\" name=\"case\"><skipped/></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_NO_TESTS",
+      "expectedOfflineCode": "EVIDENCE_CASES_INSUFFICIENT"
+    },
+    {
+      "name": "suite_failure_cannot_be_hidden",
+      "xml": "<testsuite failures=\"1\"><testcase name=\"case\"/></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_FAILED",
+      "expectedOfflineCode": "EVIDENCE_CASES_FAILED"
+    },
+    {
+      "name": "blank_name_is_invalid",
+      "xml": "<testsuite><testcase classname=\"a\" name=\" \"></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_XML_INVALID"
+    },
+    {
+      "name": "nested_case_is_invalid",
+      "xml": "<testsuite><testcase name=\"outer\"><testsuite><testcase name=\"inner\"/></testsuite></testcase></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_XML_INVALID"
+    },
+    {
+      "name": "doctype_rejected",
+      "xml": "<!DOCTYPE testsuite [<!ENTITY x \"case\">]><testsuite><testcase name=\"&x;\"/></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_XML_INVALID"
+    },
+    {
+      "name": "malformed_report",
+      "xml": "<testsuite><testcase name=\"case\"></testsuite>",
+      "minimumTests": 1,
+      "expectedCoreCode": "GAMETEST_REPORT_INVALID",
+      "expectedOfflineCode": "EVIDENCE_XML_INVALID"
+    },
+    {
+      "name": "gametest_resource_ignores_structure_class",
+      "xml": "<testsuite><testcase classname=\"host:first\" name=\"camp:a\"></testcase><testcase classname=\"host:second\" name=\"camp:b\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 2,
+      "requiredCases": {
+        "schemaVersion": "1",
+        "id": "shared-identity-v1",
+        "identityKind": "gametest_resource",
+        "minimumTests": 2,
+        "cases": [
+          {
+            "className": "",
+            "name": "camp:a"
+          },
+          {
+            "className": "",
+            "name": "camp:b"
+          }
+        ],
+        "sha256": "d9f96b57757c0e30a650fa2b99f90a421efec08e230e7995b6c8ea3da2e31ee6"
+      }
+    },
+    {
+      "name": "gametest_same_resource_different_class",
+      "xml": "<testsuite><testcase classname=\"host:first\" name=\"camp:a\"></testcase><testcase classname=\"host:other\" name=\"camp:a\"></testcase><testcase classname=\"host:second\" name=\"camp:b\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_DUPLICATE_TESTS",
+      "expectedOfflineCode": "EVIDENCE_CASES_DUPLICATE",
+      "requiredCases": {
+        "schemaVersion": "1",
+        "id": "shared-identity-v1",
+        "identityKind": "gametest_resource",
+        "minimumTests": 2,
+        "cases": [
+          {
+            "className": "",
+            "name": "camp:a"
+          },
+          {
+            "className": "",
+            "name": "camp:b"
+          }
+        ],
+        "sha256": "d9f96b57757c0e30a650fa2b99f90a421efec08e230e7995b6c8ea3da2e31ee6"
+      }
+    },
+    {
+      "name": "required_missing_despite_sufficient_count",
+      "xml": "<testsuite><testcase classname=\"host\" name=\"camp:a\"></testcase><testcase classname=\"host\" name=\"camp:other\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_REQUIRED_CASES_MISSING",
+      "expectedOfflineCode": "EVIDENCE_CASES_MISSING",
+      "requiredCases": {
+        "schemaVersion": "1",
+        "id": "shared-identity-v1",
+        "identityKind": "gametest_resource",
+        "minimumTests": 2,
+        "cases": [
+          {
+            "className": "",
+            "name": "camp:a"
+          },
+          {
+            "className": "",
+            "name": "camp:b"
+          }
+        ],
+        "sha256": "d9f96b57757c0e30a650fa2b99f90a421efec08e230e7995b6c8ea3da2e31ee6"
+      }
+    },
+    {
+      "name": "required_skipped_despite_extra_passing_case",
+      "xml": "<testsuite><testcase classname=\"host\" name=\"camp:a\"></testcase><testcase classname=\"host\" name=\"camp:b\"><skipped/></testcase><testcase classname=\"host\" name=\"camp:other\"></testcase></testsuite>",
+      "minimumTests": 2,
+      "expectedCoreCode": "GAMETEST_REQUIRED_CASES_MISSING",
+      "expectedOfflineCode": "EVIDENCE_CASES_MISSING",
+      "requiredCases": {
+        "schemaVersion": "1",
+        "id": "shared-identity-v1",
+        "identityKind": "gametest_resource",
+        "minimumTests": 2,
+        "cases": [
+          {
+            "className": "",
+            "name": "camp:a"
+          },
+          {
+            "className": "",
+            "name": "camp:b"
+          }
+        ],
+        "sha256": "d9f96b57757c0e30a650fa2b99f90a421efec08e230e7995b6c8ea3da2e31ee6"
+      }
+    },
+    {
+      "name": "unicode_manifest_digest_and_java_sort",
+      "xml": "<testsuite><testcase classname=\"\" name=\"A\"></testcase><testcase classname=\"😀\" name=\"B\"></testcase><testcase classname=\"x\" name=\" \"></testcase></testsuite>",
+      "minimumTests": 3,
+      "expectedCoreCode": "GAMETEST_PASSED",
+      "expectedOfflineCode": "passed",
+      "acceptanceExecuted": 3,
+      "requiredCases": {
+        "schemaVersion": "1",
+        "id": "shared-identity-v1",
+        "identityKind": "junit_tuple",
+        "minimumTests": 3,
+        "cases": [
+          {
+            "className": "",
+            "name": "A"
+          },
+          {
+            "className": "😀",
+            "name": "B"
+          },
+          {
+            "className": "x",
+            "name": " "
+          }
+        ],
+        "sha256": "f251880c099094981998876773c33749798bd62d31b65889035478c4a528318b"
+      }
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "generatorId": "neoforge-26.3",
+  "capturedAt": "2026-10-12T04:47:13.9251294Z",
+  "versions": {
+    "minecraft": "26.3",
+    "gradle": "9.6.0",
+    "loader": "26.3.0.76",
+    "buildPlugin": "2.0.148"
+  },
+  "packVersion": {
+    "resourceMajor": 97,
+    "resourceMinor": 1,
+    "dataMajor": 121,
+    "dataMinor": 0,
+    "source": "version.json in the SHA-1-verified Mojang 26.3 client JAR"
+  },
+  "workspaceJava": {
+    "vendor": "JetBrains s.r.o.",
+    "runtimeVersion": "25.0.3+1-b329.124",
+    "javaRelease": 25,
+    "javaSha256": "92250af03f8ad1f4ed4567b3490ce25a8475110aaca05219feeeeb4ca87af877"
+  },
+  "productJava": {
+    "vendor": "JetBrains s.r.o.",
+    "runtimeVersion": "25.0.3+1-b329.124",
+    "javaRelease": 25,
+    "javaSha256": "92250af03f8ad1f4ed4567b3490ce25a8475110aaca05219feeeeb4ca87af877"
+  },
+  "gradleDistribution": {
+    "url": "https://services.gradle.org/distributions/gradle-9.6.0-bin.zip",
+    "upstreamSha256": "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01",
+    "checksumUrl": "https://services.gradle.org/distributions/gradle-9.6.0-bin.zip.sha256"
+  },
+  "wrapperFiles": {
+    "gradle/wrapper/gradle-wrapper.properties": "3f14aa46a23703efc202fddc446ddf66e773ac5056354ddc010e201ec9553390",
+    "gradle/wrapper/gradle-wrapper.jar": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
+  },
+  "generatorSource": {
+    "repository": "https://github.com/Lotulune/Copperbench",
+    "commit": "99f95e1d7ea0e919342414572e31f6dd6e5c4429",
+    "license": "GPL-3.0 with inherited upstream section 7 permissions and trademark terms",
+    "scope": "Copperbench maintained template and backend baseline; probe source bytes are pinned separately"
+  },
+  "artifacts": [
+    {
+      "file": "mojang-26.3.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/702fe59163c6ee6578607daa85811d9bc9c7cc40/26.3.json",
+      "fetchedAt": "2026-10-12T04:31:17.3254751Z",
+      "size": 44992,
+      "upstreamSha1": "702fe59163c6ee6578607daa85811d9bc9c7cc40",
+      "localSha256": "5998ba33a2f9d2424b4b0c78ea3f46759ba3f411ff9b92191ff6b8f679ccfd54"
+    },
+    {
+      "file": "minecraft-26.3-client.jar",
+      "url": "https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar",
+      "fetchedAt": "2026-10-12T04:33:08.8945917Z",
+      "size": 41483720,
+      "upstreamSha1": "e877b6a07acd633fb3bb475002175cec036e7b87",
+      "localSha256": "4508d006323f24fa02876310c192d739af56516eb259000ac50f0909a68c9a2d"
+    },
+    {
+      "file": "moddev-gradle-2.0.148.jar",
+      "url": "https://maven.neoforged.net/releases/net/neoforged/moddev-gradle/2.0.148/moddev-gradle-2.0.148.jar",
+      "fetchedAt": "2026-10-12T04:41:51.1546205Z",
+      "size": 1550640,
+      "upstreamSha1": "143f83a22af5a2aa0eca650b08dbae26800ebeba",
+      "localSha256": "e4cab1e28fcede52101ffc5bb5052fe8a4dd41b699992c52c8ec1c267e306017"
+    },
+    {
+      "file": "neoforge-26.3.0.76-universal.jar",
+      "url": "https://maven.neoforged.net/releases/net/neoforged/neoforge/26.3.0.76/neoforge-26.3.0.76-universal.jar",
+      "fetchedAt": "2026-10-12T04:41:55.7478644Z",
+      "size": 7128126,
+      "upstreamSha1": "163993fbd027998d8d1a951f28ed5b344d96b6b6",
+      "localSha256": "02620022710df8f62038839b1743ef32033579762831b8b0bb84caee5b3b99de"
+    }
+  ],
+  "projectFiles": {
+    "build.gradle": "20e3f281b3b4bcf2ff4c0606466c4cf157aa657ad6ea0b7acdec825c3a7d8c07",
+    "settings.gradle": "98e79b4cef630908d025a4adaa5f381f11447de5916a684fce94e3b8bd7adbee",
+    "src/main/java/dev/copperbench/probe/NeoForgeEnvironmentProbe.java": "4003724af651a7fb4a77182f35cf881b4b05752678d4e116e47689c6ae511c1a",
+    "src/main/resources/META-INF/neoforge.mods.toml": "5784fab76f4c6282202da0593e71aa8a9a32342937775e32bfdab710ef33ad73"
+  },
+  "upstreamReference": {
+    "repository": "https://github.com/MCreator/MCreator",
+    "tag": "2026.3.41718",
+    "commit": "0a4c3c1ceffe202437e9ea143229fa3bf5e1a07e",
+    "generatorTree": "4f0c34033e7df98233f4a0e3a3530d67eb0faba2",
+    "license": "GPL-3.0 with upstream section 7 permissions and trademark terms",
+    "licenseSha256": "77f0599ce0b19210a9c4ecad21f6634499d3129c9465ab65849aa5a9dfcf81ac",
+    "scope": "Reference only; host was not upgraded; exact NeoForge pin advances EAP 26.3.0.71-beta to verified Maven artifact 26.3.0.76"
+  },
+  "javaDistribution": {
+    "url": "https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-25.0.3-windows-x64-b329.124.tar.gz",
+    "checksumUrl": "https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-25.0.3-windows-x64-b329.124.tar.gz.checksum",
+    "upstreamSha512": "240ab1444cf5941936ab174686002a6b57806071dad4bd6ba55a970ab360b63a0434d5d38450bad50e8e69c9a591a70f428d9519b748c3ce1043a3a162a6e309",
+    "releaseCommit": "aa719f98f3da6028d3ae1daef4f99aa642b8c1fe",
+    "archiveDownloadedThisRun": false,
+    "installedRuntimeEvidence": "release metadata, JCEF module membership and measured java.exe SHA-256; not a fresh archive install"
+  },
+  "dependencyGraph": {
+    "gradle.lockfile": "b3d77145b1b294691b6d48276d0f21e69239cdc83d49c83185214ea124afee69",
+    "gradle/verification-metadata.xml": "1aff690175e356698efdf872927ed4f73cc7377d3b14d1bdd5ada3c0911ca235"
+  },
+  "pluginMarkerPoms": {
+    "coordinate": "net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:2.0.148",
+    "reviewedAt": "2026-10-13",
+    "gradlePluginPortalSha256": "39600c18afe266b9fc74ffd2aa90c36d1adf9a1fb85266b56fc4ff5c14c5e6ff",
+    "neoForgeRepositorySha256": "d57ef48bbfe0d0bcf86ad92eba7f767c45862dd73d047cb2812a467bfcb96aca",
+    "dependency": "net.neoforged:moddev-gradle:2.0.148",
+    "evidence": "ticket-29: independent original POM downloads; NeoForge published SHA-256; identity and dependency XML comparison"
+  },
+  "coldMetadataQualification": [
+    {
+      "group": "org.apache.groovy",
+      "name": "groovy-bom",
+      "version": "4.0.27",
+      "file": "groovy-bom-4.0.27.module",
+      "sha256": "d6c2254c8347b84cda84caf74914a187c2f377e4284e8d8bb3f901521810aa8b",
+      "upstreamChecksumAlgorithm": "sha256",
+      "upstreamPublishedChecksumMatched": true
+    },
+    {
+      "group": "org.junit",
+      "name": "junit-bom",
+      "version": "5.13.1",
+      "file": "junit-bom-5.13.1.module",
+      "sha256": "33c07ab9724790a6e5859ba07d69117ac530439724545a81c4179e3272c75de8",
+      "upstreamChecksumAlgorithm": "sha256",
+      "upstreamPublishedChecksumMatched": true
+    },
+    {
+      "group": "org.junit",
+      "name": "junit-bom",
+      "version": "5.13.4",
+      "file": "junit-bom-5.13.4.module",
+      "sha256": "e959288fde1b1b050d9bc082fc786789128da5d2853091468fca504104bdf400",
+      "upstreamChecksumAlgorithm": "sha256",
+      "upstreamPublishedChecksumMatched": true
+    },
+    {
+      "group": "org.junit",
+      "name": "junit-bom",
+      "version": "5.14.2",
+      "file": "junit-bom-5.14.2.module",
+      "sha256": "5d26f4440392326dd2483cf490143eea1495d5095459a0b9651a7b1b38e24ebf",
+      "upstreamChecksumAlgorithm": "sha256",
+      "upstreamPublishedChecksumMatched": true
+    },
+    {
+      "group": "org.springframework",
+      "name": "spring-framework-bom",
+      "version": "5.3.39",
+      "file": "spring-framework-bom-5.3.39.module",
+      "sha256": "f88b40e2a50333b40b42f181eee272b75ec75dd8666cb145bd90b15b97e183e3",
+      "upstreamChecksumAlgorithm": "sha1",
+      "upstreamPublishedChecksumMatched": true
+    }
+  ],
+  "assetDownloadJava": {
+    "javaRelease": 25,
+    "taskType": "net.neoforged.nfrtgradle.DownloadAssets",
+    "reason": "ModDev 2.0.148 defaults this helper to Java 21; exact 26.3 workspace supplies Java 25 only.",
+    "qualification": "p263-ticket-29-windows-installed-downloadAssets-java25"
+  }
+}

@@ -31,4 +31,18 @@ public final class McpWorkspaceEntryAdapter {
 	public QueryResult query(Query query) {
 		return delegate.query(query);
 	}
+
+	public com.google.gson.JsonObject acceptance(java.util.UUID requestId, java.util.UUID workspaceId, com.google.gson.JsonObject request) {
+		return delegate.acceptance(requestId, workspaceId, request);
+	}
+	/** Versioned preview extension, using the same immutable caller permissions. */
+	public com.google.gson.JsonObject preview(java.util.UUID requestId, java.util.UUID workspaceId, com.google.gson.JsonObject request) {
+		return delegate.preview(requestId, workspaceId, request);
+	}
+
+	/** Read-only version-copy upgrade planning with per-request negotiation. */
+	public com.google.gson.JsonObject versionCopyUpgrade(java.util.UUID requestId, java.util.UUID workspaceId, com.google.gson.JsonObject request) {
+		return delegate.versionCopyUpgrade(requestId, workspaceId, request);
+	}
+
 }

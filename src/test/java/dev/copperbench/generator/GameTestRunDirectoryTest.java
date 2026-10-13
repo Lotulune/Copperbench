@@ -41,6 +41,22 @@ class GameTestRunDirectoryTest {
         assertTrue(selected.startsWith(root));
     }
 
+    @Test void serverHasItsOwnEvidencePointerAndRejectsAnUnsafeShortCache() throws Exception {
+        Path root = temp.resolve("a".repeat(80)).resolve("b".repeat(40));
+        Files.createDirectories(root); Files.writeString(root.resolve("native.java"), "server bytes");
+        UUID taskId = UUID.randomUUID();
+        Path target = GameTestRunDirectory.select(root, taskId, "run_server", WINDOWS, temp.resolve("cache"));
+        var snapshot = WorkspaceExecutionSnapshot.capture(root, target, UUID.randomUUID(), 1, Clock.systemUTC(), () -> false);
+        GameTestRunDirectory.record(root, taskId, "run_server", snapshot);
+        Path record = root.resolve(".copperbench/task-runs/run_server").resolve(taskId.toString()).resolve("execution-location.json");
+        assertEquals(target.toString(), JsonParser.parseString(Files.readString(record)).getAsJsonObject().get("executionRoot").getAsString());
+        assertFalse(Files.exists(root.resolve(".copperbench/task-runs/run_gametest")));
+        var failure = assertThrows(WorkspaceExecutionSnapshot.SnapshotException.class,
+                () -> GameTestRunDirectory.select(root, UUID.randomUUID(), "run_server", WINDOWS, root));
+        assertEquals("SERVER_PATH_TOO_LONG", failure.code());
+        assertEquals(snapshot.sha256(), WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+    }
+
     @Test void excessiveCacheDepthFailsBeforeCreatingAnything() {
         Path deep = temp.resolve("long".repeat(45));
         var failure = assertThrows(GameTestSupport.TestSetupException.class, () ->

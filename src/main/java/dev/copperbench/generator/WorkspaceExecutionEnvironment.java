@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.generator.fabric.Fabric1211Generator;
 import dev.copperbench.generator.neoforge.NeoForge1211Generator;
 import dev.copperbench.platform.RuntimePlatform;
+import dev.copperbench.tracks.VersionTrackCatalog;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -15,17 +16,31 @@ public final class WorkspaceExecutionEnvironment {
 
     /** Describes a built-in backend without opening a workspace, starting tasks or creating files. */
     public static JsonObject describe(Path root, Path distribution, String generator) {
-        return switch (generator == null ? "" : generator) {
-            case "fabric-1.21.1" -> fabric(root, distribution, Fabric1211Generator.Profile.FABRIC_1211);
-            case "fabric-26.1.2" -> fabric(root, distribution, Fabric1211Generator.Profile.FABRIC_261);
-            case "fabric-26.2" -> fabric(root, distribution, Fabric1211Generator.Profile.FABRIC_262);
-            case "fabric-1.20.1" -> fabric(root, distribution, Fabric1211Generator.Profile.FABRIC_1201);
-            case "neoforge-1.21.1" -> neoForge(root, distribution, NeoForge1211Generator.Profile.NEOFORGE_1211);
-            case "neoforge-26.1.2" -> neoForge(root, distribution, NeoForge1211Generator.Profile.NEOFORGE_261);
-            case "neoforge-26.2" -> neoForge(root, distribution, NeoForge1211Generator.Profile.NEOFORGE_262);
-            case "neoforge-1.20.1" -> neoForge(root, distribution, NeoForge1211Generator.Profile.NEOFORGE_1201);
-            default -> new JsonObject();
-        };
+        return describe(root, distribution, generator, VersionTrackCatalog.official());
+    }
+
+    /**
+     * Describes an exact registered backend, including targets outside the display tracks.
+     * @param root workspace root, without opening it
+     * @param distribution product distribution root
+     * @param generator exact persisted generator ID
+     * @param catalog registry with the caller's display selection
+     * @return the backend environment, or an empty object for an unknown ID
+     */
+    public static JsonObject describe(Path root, Path distribution, String generator, VersionTrackCatalog catalog) {
+        return catalog.findRegistration(generator).map(registration -> switch (registration.profile()) {
+            case Fabric1211Generator.Profile profile -> fabric(root, distribution, profile);
+            case NeoForge1211Generator.Profile profile -> neoForge(root, distribution, profile);
+            case VersionTrackCatalog.PendingProfile profile -> {
+                JsonObject pending = new JsonObject();
+                pending.addProperty("generatorId", profile.generatorId());
+                pending.addProperty("minecraftVersion", profile.minecraftVersion());
+                pending.addProperty("reasonCode", "PREVIEW_NATIVE_OPERATION_UNVERIFIED");
+                pending.addProperty("backendReady", false);
+                yield pending;
+            }
+            default -> throw new IllegalArgumentException("Unsupported registered execution profile: " + generator);
+        }).orElseGet(JsonObject::new);
     }
 
     /** Describes the Fabric profile used by the actual task backend. */

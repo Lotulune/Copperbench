@@ -15,7 +15,7 @@ final class WorkspaceTaskRecords {
         Files.createDirectories(path.getParent());
         JsonObject record = new JsonObject(); record.addProperty("workspaceId", workspaceId.toString());
         record.add("task", task.deepCopy());
-        record.add("diagnostics", new Gson().toJsonTree(diagnostics));
+        record.add("diagnostics", dev.copperbench.core.contract.UiCore.wireGson().toJsonTree(diagnostics));
         JsonArray entries = new JsonArray();
         for (JsonObject entry : logs.stream().skip(Math.max(0, logs.size() - 10000)).toList()) {
             entries.add(safeLog(entry));

@@ -24,6 +24,12 @@ public final class VerifiedArtifactExporter {
         Path artifact = checkedFile(verification, "artifactPath", "artifactSha256");
         Path report = checkedFile(verification, "reportPath", "reportSha256");
         JsonObject acceptance = validateAcceptance(verification, report);
+        if (task.has(RequiredCaseEvidence.TASK_FIELD)) RequiredCaseEvidence.validate(task, verification, report);
+        else if ((verification.has("environment") && verification.getAsJsonObject("environment").has("minecraftVersion")
+                && "26.3".equals(verification.getAsJsonObject("environment").get("minecraftVersion").getAsString()))
+                || (verification.has("verificationPath") && Files.exists(Path.of(verification.get("verificationPath").getAsString())
+                        .resolveSibling("required-cases-frozen.json"))))
+            throw new VerificationException("VERIFIED_REQUIRED_CASES_MISSING: This task cannot be promoted from legacy evidence.");
         boolean current = verification.has("sourceSnapshot") && verification.getAsJsonObject("sourceSnapshot").get("sha256")
                 .getAsString().equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
         if (!current && !allowHistorical) throw new VerificationException("VERIFICATION_INPUT_CHANGED: Explicitly select historical export or rerun acceptance.");
@@ -76,6 +82,21 @@ public final class VerifiedArtifactExporter {
         coverage.addProperty("shortfall", Math.max(0, required - observed));
         coverage.addProperty("status", "sufficient"); // Raw acceptance has already passed validation.
         portable.add("coverage", coverage);
+        if (task.has(RequiredCaseEvidence.TASK_FIELD)) {
+            JsonObject recorded = task.getAsJsonObject(RequiredCaseEvidence.TASK_FIELD);
+            JsonObject requiredEvidence = new JsonObject();
+            requiredEvidence.addProperty("schemaVersion", "1");
+            requiredEvidence.add("manifest", recorded.getAsJsonObject("binding").get("manifest").deepCopy());
+            requiredEvidence.add("coverage", recorded.get("coverage").deepCopy());
+            JsonObject binding = new JsonObject();
+            JsonObject original = recorded.getAsJsonObject("binding");
+            for (String key : new String[]{"taskId", "workspaceId", "workspaceRevision"}) binding.add(key, original.get(key).deepCopy());
+            binding.add("sourceSha256", original.getAsJsonObject("sourceSnapshot").get("sha256").deepCopy());
+            binding.add("environment", environment.deepCopy());
+            binding.add("frozenSha256", recorded.get("frozenSha256").deepCopy());
+            requiredEvidence.add("binding", binding);
+            portable.add("requiredCases", requiredEvidence);
+        }
         Files.writeString(destination.resolve("verification.json"), portable.toString() + "\n", StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
         JsonObject result = receipt.deepCopy();
         result.addProperty("exportDirectory", destination.toString());

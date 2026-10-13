@@ -675,6 +675,7 @@ public class Generator implements IGenerator, Closeable {
 	}
 
 	public void loadOrCreateGradleCaches() throws GradleCacheImportFailedException {
+		if (!generatorConfiguration.requiresMinecraftSourceIndex()) return;
 		File cacheFile = new File(workspace.getFolderManager().getWorkspaceCacheDir(), "generatorGradleCache");
 		if (cacheFile.isFile()) {
 			String cache = FileIO.readFileToString(cacheFile);
@@ -696,6 +697,7 @@ public class Generator implements IGenerator, Closeable {
 	}
 
 	public void reloadGradleCaches() {
+		if (!generatorConfiguration.requiresMinecraftSourceIndex()) return;
 		LOG.info("Reloading generator Gradle cache");
 
 		this.generatorGradleCache = new GeneratorGradleCache(this);

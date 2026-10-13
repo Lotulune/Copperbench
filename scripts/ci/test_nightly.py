@@ -44,7 +44,7 @@ class NightlyEvidenceTest(unittest.TestCase):
         self.assertEqual('failed', result['status'])
         states = {row['gate']: row['status'] for row in result['gates']}
         self.assertEqual('failed', states.pop('sdk-windows'))
-        self.assertEqual(13, len(states))
+        self.assertEqual(15, len(states))
         self.assertEqual({'passed'}, set(states.values()))
 
     def test_success_requires_complete_current_artifacts(self):
@@ -125,7 +125,7 @@ class NightlyEvidenceTest(unittest.TestCase):
             capture_output=True, env={**os.environ, 'GITHUB_STEP_SUMMARY': str(self.root/'summary.md')})
         self.assertNotEqual(0, result.returncode)
         summary = json.loads(target.read_text())
-        self.assertEqual(14, len(summary['gates']))
+        self.assertEqual(16, len(summary['gates']))
         self.assertIn('unavailable', summary['jobsError'])
         self.assertTrue(all(row['status'] == 'failed' for row in summary['gates']))
 

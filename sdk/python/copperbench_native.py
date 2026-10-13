@@ -235,12 +235,14 @@ class Workspace:
         return value
 
     def _call(self, kind: str, operation: str, payload: dict[str, Any],
-              expected_revision: int | None = None) -> dict[str, Any]:
+              expected_revision: int | None = None, *, schema_version: str | None = None) -> dict[str, Any]:
         with self._lock:
             if self._closed:
                 raise NativeApiError("Workspace is closed", "NATIVE_SESSION_CLOSED")
             request_id = str(uuid.uuid4())
             request = {"id": request_id, "kind": kind, "operation": operation, "payload": payload}
+            if schema_version is not None:
+                request["schemaVersion"] = schema_version
             if kind == "command":
                 revision = self.revision if expected_revision is None else expected_revision
                 if type(revision) is not int or revision < 0:
@@ -285,9 +287,15 @@ class Workspace:
                 self.revision = revision
             return result
 
-    def query(self, operation: str, **payload: Any) -> dict[str, Any]:
-        """Query Core using its operation name and payload fields; returns the Core envelope."""
-        return self._call("query", operation, payload)
+    def query(self, operation: str, *, schema_version: str | None = None, **payload: Any) -> dict[str, Any]:
+        """Query Core. Editors explicitly request 1.1; pass schema_version='1.0' for the frozen projection."""
+        version = schema_version or ("1.1" if operation == "get_mod_element_editor" else "1.0")
+        if version not in ("1.0", "1.1") or (version == "1.1" and operation != "get_mod_element_editor"):
+            raise ValueError("Schema 1.1 is available only for get_mod_element_editor")
+        result = self._call("query", operation, payload, schema_version=version)
+        if operation == "get_mod_element_editor" and result.get("schemaVersion") != version:
+            raise NativeApiError("Core did not return the requested query schema", "NATIVE_INVALID_RESPONSE", result)
+        return result
 
     def negotiate_schema(self, supported_versions: Sequence[str], *, client_name: str = "python",
                          client_version: str = "1") -> dict[str, Any]:
@@ -455,6 +463,90 @@ class Workspace:
     def export_verified_artifact(self, task_id: str, *, allow_historical: bool = False) -> dict[str, Any]:
         """Start a hash-verified export of the selected acceptance artifact; wait for its terminal task."""
         return self.command("export_workspace", verifiedTaskId=task_id, allowHistorical=allow_historical)
+
+    def version_copy_upgrade(self, operation: str = "preview", *, target_generator_id: str | None = None,
+                             supported_versions: tuple[str, ...] = ("1",), output_name: str | None = None,
+                             plan_id: str | None = None, expected_revision: int | None = None,
+                             task_authorization_id: str | None = None) -> dict[str, Any]:
+        """Version 1 is read-only. Explicit version 2 executes a reviewed plan once, with target authority."""
+        arguments: dict[str, Any] = {"supportedVersions": list(supported_versions)}
+        for key, value in (("targetGeneratorId", target_generator_id), ("outputName", output_name),
+                           ("planId", plan_id), ("expectedRevision", expected_revision),
+                           ("taskAuthorizationId", task_authorization_id)):
+            if value is not None:
+                arguments[key] = value
+        result = self._call("version_copy_upgrade", operation, arguments)
+        if result.get("contract") != "version_copy_upgrade" or result.get("selectedVersion") not in supported_versions:
+            raise NativeApiError("Version copy upgrade contract was not negotiated", "INVALID_RESPONSE", result)
+        return result
+
+    def preview(self, operation: str, *, generator_id: str | None = None,
+                command: str | None = None, workspace_folder_path: str | None = None,
+                expected_revision: int | None = None, supported_versions: tuple[str, ...] = ("1",),
+                payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Choose or revoke a scoped preview; every command still rechecks Core authority and evidence."""
+        arguments: dict[str, Any] = {"supportedVersions": list(supported_versions)}
+        if generator_id is not None:
+            arguments["generatorId"] = generator_id
+        if command is not None:
+            arguments["command"] = command
+        if workspace_folder_path is not None:
+            arguments["workspaceFolderPath"] = workspace_folder_path
+        if payload is not None:
+            arguments["payload"] = dict(payload)
+        if operation in {"opt_in", "revoke", "command"}:
+            revision = self.revision if expected_revision is None else expected_revision
+            if type(revision) is not int or revision < 0:
+                raise ValueError("expected_revision must be a nonnegative integer")
+            arguments["expectedRevision"] = revision
+        if operation == "command" and self.task_authorization_id and command in self._task_authorized_operations:
+            arguments.setdefault("payload", {}).setdefault("taskAuthorizationId", self.task_authorization_id)
+        result = self._call("preview", operation, arguments)
+        if result.get("contract") != "preview_targets" or result.get("selectedVersion") not in supported_versions:
+            raise NativeApiError("Preview contract was not negotiated", "INVALID_RESPONSE", result)
+        return result
+
+    def acceptance(self, operation: str, *, expected_revision: int | None = None,
+                   supported_versions: Sequence[str] = ("1",), diagnostic_versions: Sequence[str] | None = None,
+                   **payload: Any) -> dict[str, Any]:
+        """Use the required_cases contract with explicit version negotiation on every request.
+
+        run/export keep the existing permission, revision and authorization rules.
+        A legacy task is returned as legacy_scope and cannot be exported by this contract.
+        """
+        request: dict[str, Any] = {"supportedVersions": list(supported_versions), "payload": payload}
+        if diagnostic_versions is not None:
+            request["diagnosticVersions"] = list(diagnostic_versions)
+        if operation in {"run", "export"}:
+            revision = self.revision if expected_revision is None else expected_revision
+            if type(revision) is not int or revision < 0:
+                raise ValueError("expected_revision must be a nonnegative integer")
+            request["expectedRevision"] = revision
+            if operation == "run" and self.task_authorization_id:
+                payload.setdefault("taskAuthorizationId", self.task_authorization_id)
+        result = self._call("acceptance", operation, request)
+        if result.get("contract") != "required_cases" or result.get("selectedVersion") not in supported_versions:
+            raise NativeApiError("Required-case contract was not negotiated", "NATIVE_INVALID_RESPONSE", result)
+        diagnostics = result.get("coverageDiagnostics")
+        if diagnostic_versions is not None and (not isinstance(diagnostics, dict) or diagnostics.get("schemaVersion") not in diagnostic_versions):
+            raise NativeApiError("Acceptance diagnostic contract was not negotiated", "NATIVE_INVALID_RESPONSE", result)
+        return result
+
+    def get_acceptance_diagnostics(self, task_id: str) -> dict[str, Any]:
+        """Read recorded acceptance reasons and parameters; no mutation or new task is started."""
+        return self.acceptance("get", diagnostic_versions=("1",), taskId=task_id)["coverageDiagnostics"]
+
+    def required_case_manifests(self) -> list[dict[str, Any]]:
+        return self.acceptance("catalog")["manifests"]
+
+    def run_required_cases(self, manifest: dict[str, Any], *, expected_revision: int | None = None) -> dict[str, Any]:
+        return self.acceptance("run", expected_revision=expected_revision, requiredCases=manifest)
+
+    def get_required_case_evidence(self, task_id: str) -> dict[str, Any]:
+        return self.acceptance("get", taskId=task_id)
+
+    def export_required_case_artifact(self, task_id: str, *, allow_historical: bool = False) -> dict[str, Any]:
+        return self.acceptance("export", verifiedTaskId=task_id, allowHistorical=allow_historical)
 
     def get_context(self) -> dict[str, Any]:
         return self._call('context', 'get', {})['data']

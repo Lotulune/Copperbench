@@ -21,3 +21,7 @@
 .gametest-verification code { overflow-wrap: anywhere; }
 .gametest-verification summary { cursor: pointer; min-height: 26px; }
 .gametest-verification .test-failure { white-space: pre-wrap; color: var(--badge-red); }
+.acceptance-summary { min-width: 0; }
+.acceptance-summary p { margin: 6px 0; }
+.acceptance-summary li { overflow-wrap: anywhere; }
+.acceptance-summary summary:focus-visible { outline: 2px solid var(--focus-ring, var(--text-primary)); outline-offset: 2px; }

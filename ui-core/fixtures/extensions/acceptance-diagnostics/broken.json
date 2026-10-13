@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1",
+  "taskId": "33333333-3333-4333-8333-333333333333",
+  "evidenceScope": "required_cases",
+  "inputScope": "unverified",
+  "required": 6,
+  "minimumTests": 6,
+  "uniqueExecuted": null,
+  "shortfall": null,
+  "duplicates": [],
+  "missingCases": [
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t01"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t02"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t03"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t04"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t11"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t12"
+    }
+  ],
+  "state": "report_unavailable",
+  "reasonCode": "GAMETEST_REPORT_INVALID"
+}

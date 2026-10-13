@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "validate": "node scripts/validate.mjs",
-    "test": "node --test tests/schema.test.mjs"
+    "test": "node --test tests/schema.test.mjs tests/preview-extension.test.mjs tests/acceptance-diagnostics.test.mjs tests/version-copy-upgrade.test.mjs tests/editor-version.test.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",
