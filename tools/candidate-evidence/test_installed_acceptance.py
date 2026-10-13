@@ -190,5 +190,15 @@ class InstalledAcceptanceTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'failed run'): gate.collect_portable(run)
         self.assertFalse((run / 'portable-check').exists())
 
+    def test_reconnect_counts_integrated_setup_and_rejects_duplicate_or_unclean_sessions(self):
+        for level,count in [('G1',3),('G2',4)]:
+            native={'sessions':[{'pid':100+i,'exitCode':0} for i in range(count)]}
+            gate.verify_native_reconnect(native,level)
+            for altered in (native['sessions'][:-1], native['sessions']+[{'pid':200,'exitCode':0}],
+                            native['sessions'][:-1]+[native['sessions'][0]],
+                            native['sessions'][:-1]+[{'pid':200,'exitCode':1}]):
+                with self.subTest(level=level,sessions=altered), self.assertRaisesRegex(ValueError,'distinct, cleanly closed'):
+                    gate.verify_native_reconnect({'sessions':altered},level)
+
 
 if __name__ == '__main__': unittest.main()

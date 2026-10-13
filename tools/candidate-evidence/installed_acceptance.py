@@ -509,6 +509,15 @@ def collect_portable(run):
     print(json.dumps({'status':result['status'],'path':str(output),'selectedTaskId':identities[0][0]}))
 
 
+def verify_native_reconnect(native, level):
+    ce.require(level in ('G1','G2'), 'Unknown Native qualification level')
+    expected = 3 if level == 'G1' else 4
+    sessions = native['sessions']
+    ce.require(len(sessions) == expected and len({s['pid'] for s in sessions}) == expected
+               and all(s.get('exitCode') == 0 for s in sessions),
+               'Native qualification requires distinct, cleanly closed processes for every phase')
+
+
 def finalize_cell(cold,warm,out):
     ce.require(not out.exists(),'Choose a new cell directory');out.mkdir()
     read=lambda path:json.loads(path.read_text(encoding='utf-8'))
@@ -528,7 +537,7 @@ def finalize_cell(cold,warm,out):
     for folder,r in ((cold,c),(warm,w)):
         native=read(folder/'result.json');assert native['status']=='passed'
         assert required_negatives.issubset({g['label'] for g in native['negativeGates']})
-        assert len(native['sessions'])==3 and len({s['pid'] for s in native['sessions']})==3 and all(s['exitCode']==0 for s in native['sessions'])
+        verify_native_reconnect(native,binding['level'])
         assert read(folder/'read-only-check.json')['status']=='passed'
         assert read(folder/'native-create.json')['status']=='committed'
         assert read(folder/'native-create-rejected.json')['code']=='USER_APPROVAL_REQUIRED'
@@ -556,6 +565,9 @@ def finalize_cell(cold,warm,out):
                       'duplicate-current','duplicate-historical','jar-tamper','xml-tamper','external-source-conflict','changed-input','missing-export','cache-inventory'):
             add(prefix+'-'+label,'original_receipt',folder/(label+'.json'))
         add(prefix+'-default-create-rejected','original_receipt',folder/'default-create-rejected.stdout')
+        if binding['level']=='G2':
+            for source in sorted(folder.glob('scoped-*.json')):
+                add(prefix+'-'+source.stem,'original_receipt',source)
     add('prepared-product','identity',Path(c['preparedProduct']))
 
     check_ids={
@@ -570,6 +582,11 @@ def finalize_cell(cold,warm,out):
         'read_only':['cold-read-only-check','cold-native-create-rejected','cold-default-create-rejected','warm-read-only-check'],
         'cache_conditions':['cold-installed-run','warm-installed-run','cold-cache-inventory','warm-cache-inventory'],
     }
+    if binding['level']=='G2':
+        for kind in ('item','block','recipe','function','code'):
+            check_ids[kind]=['cold-scoped-contract-'+kind,'cold-scoped-elements',
+                             'cold-thirteen-case-acceptance','warm-native-result']
+        check_ids['thirteen_required_cases']=check_ids['required_cases']
     receipt={k:binding[k] for k in ('candidateId','cell','generatorId','level','observedArtifacts','artifactSha256')}
     receipt.update(schemaVersion='1',kind='candidate-cell-evidence',status='passed',
                    checks={k:{'status':'passed','evidenceIds':v} for k,v in check_ids.items()},evidence=files,
