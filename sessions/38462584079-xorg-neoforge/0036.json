@@ -1,0 +1,10 @@
+{
+  "operation": "attach",
+  "arguments": {
+    "window_id": "12583160",
+    "game_dir": "/home/runner/work/_temp/installed-work/cold/workspaces/camp-kit/run",
+    "focus": true
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 36
+}
