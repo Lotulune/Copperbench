@@ -1,0 +1,43 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-shapeless-recipe",
+    "actions": [
+      {
+        "type": "click",
+        "x": 391,
+        "y": 374,
+        "button": "left",
+        "frame_id": "08d71268-f6a5-4b45-97ec-14d516d926d1"
+      },
+      {
+        "type": "click",
+        "x": 498,
+        "y": 126,
+        "button": "left",
+        "frame_id": "08d71268-f6a5-4b45-97ec-14d516d926d1"
+      },
+      {
+        "type": "click",
+        "x": 463,
+        "y": 374,
+        "button": "left",
+        "frame_id": "08d71268-f6a5-4b45-97ec-14d516d926d1"
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 162,
+        "button": "left",
+        "frame_id": "08d71268-f6a5-4b45-97ec-14d516d926d1"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 23
+}
