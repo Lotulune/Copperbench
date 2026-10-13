@@ -1,0 +1,55 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "537d2587-c6dd-40b6-bffc-fdbf14f85132",
+    "action_id": "configure-exact-peaceful-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 400,
+        "y": 115,
+        "frame_id": "52da3132-cced-4bd1-b2b6-b90710a3a93e"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "ctrl",
+          "a"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "text",
+        "text": "P263-neo-wayland-38437219227"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 150
+      },
+      {
+        "type": "click",
+        "x": 426,
+        "y": 228,
+        "frame_id": "52da3132-cced-4bd1-b2b6-b90710a3a93e"
+      },
+      {
+        "type": "click",
+        "x": 426,
+        "y": 228,
+        "frame_id": "52da3132-cced-4bd1-b2b6-b90710a3a93e"
+      },
+      {
+        "type": "click",
+        "x": 426,
+        "y": 284,
+        "frame_id": "52da3132-cced-4bd1-b2b6-b90710a3a93e"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 400
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 7
+}
