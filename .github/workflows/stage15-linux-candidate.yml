@@ -8,6 +8,11 @@ on:
         type: choice
         default: none
         options: [none, fabric, neoforge, neoforge-graph]
+      p263_level:
+        description: "Required Camp Kit qualification manifest"
+        type: choice
+        default: G1
+        options: [G1, G2]
   pull_request:
     branches:
       - main
@@ -24,6 +29,7 @@ on:
       - "tools/candidate-evidence/**"
       - "tools/portable-evidence/**"
       - "examples/camp-kit-native/**"
+      - "examples/camp-kit-scoped/**"
       - "plugins/generator-fabric-26.3/**"
       - "plugins/generator-neoforge-26.3/**"
       - "src/gradleBridge/**"
@@ -163,7 +169,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: stage15-linux-${{ github.ref }}-${{ inputs.p263_loader || 'none' }}
+  group: stage15-linux-${{ github.ref }}-${{ inputs.p263_loader || 'none' }}-${{ inputs.p263_level || 'G1' }}
   cancel-in-progress: true
 
 jobs:
@@ -290,12 +296,13 @@ jobs:
       - name: Build portable and deb candidates
         env:
           P263_LOADER: ${{ inputs.p263_loader || 'none' }}
+          P263_LEVEL: ${{ inputs.p263_level || 'G1' }}
         run: |
           if [ "$P263_LOADER" = "none" ]; then
             bash ./gradlew --no-daemon exportLinuxCandidate
           else
             python3 tools/candidate-evidence/package_candidate.py --platform ubuntu \
-              --loader "$P263_LOADER" --output build/p263-candidate
+              --loader "$P263_LOADER" --level "$P263_LEVEL" --output build/p263-candidate
           fi
 
       - name: Upload scoped candidate with all ten cells initially not_run

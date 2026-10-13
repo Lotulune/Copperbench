@@ -221,6 +221,19 @@ class CandidateTest(unittest.TestCase):
         self.assertTrue(all(a['path'].startswith('build/export/linux64/sdk/') for a in plan['assets'] if a['role'] in candidate.SDK_ROLES))
         self.assertIn('exportLinuxCandidate', plan['commands'][0])
 
+    def test_g2_plan_requires_both_linux_desktops_and_does_not_inherit_g1(self):
+        folder = self.repo / 'src/main/resources'; folder.mkdir(parents=True)
+        (folder / 'mcreator.conf').write_text('product.name=Copperbench\nproduct.version=0.1.4\n', encoding='utf-8')
+        plan = package_candidate.plan(self.repo, 'ubuntu', ['fabric'], 'G2')
+        self.assertEqual(['fabric:G2:ubuntu'], plan['scopes'])
+        self.assertEqual({'install:ubuntu:fabric', 'client:xorg:fabric', 'client:wayland:fabric'},
+                         set(candidate.required_cells(plan['scopes'][0])))
+        self.assertEqual('unavailable', plan['availability']['fabric:G1:ubuntu-xorg'])
+        self.assertEqual('unavailable', plan['availability']['neoforge:G2:ubuntu'])
+        self.assertIn('G2', plan['commands'][1])
+        with self.assertRaisesRegex(ValueError, 'level'):
+            package_candidate.plan(self.repo, 'ubuntu', ['fabric'], 'G3')
+
     def test_old_receipt_or_changed_original_binding_cannot_be_rebound(self):
         self.freeze(); receipt = self.receipt(); path = self.output / 'install.json'
         receipt['candidateId'] = 'sha256:' + '0' * 64; candidate.write(path, receipt)

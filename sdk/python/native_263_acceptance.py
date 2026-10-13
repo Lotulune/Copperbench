@@ -1,4 +1,4 @@
-"""Real six-case exact-target 26.3 Native gate. Negative record injection is explicitly marked as a fixture."""
+"""Real exact-target 26.3 G1/G2 Native gate. Negative record injection is explicitly marked as a fixture."""
 from __future__ import annotations
 import copy
 import hashlib
@@ -17,7 +17,12 @@ config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 evidence = Path(config["evidence"])
 root = Path(config["workspace"]).parent
 target = config.get("generatorId", "fabric-26.3")
-source_path = "src/main/java/dev/copperbench/campkit/RecoveryProbe.java"
+level = config.get("level", "G1")
+assert level in ("G1", "G2"), level
+minimum = 6 if level == "G1" else 13
+manifest_id = "camp-kit-native-v1" if level == "G1" else "camp-kit-scoped-v1"
+case_label = "six-case-acceptance" if level == "G1" else "thirteen-case-acceptance"
+source_path = "src/main/java/dev/copperbench/campkit/" + ("RecoveryProbe.java" if level == "G1" else "parts/BundleMath.java")
 receipts = []
 record = {"status": "running", "generatorId": target, "sessions": [], "tasks": [], "negativeGates": []}
 started = time.monotonic()
@@ -104,7 +109,7 @@ def run_cases(workspace, label):
     task = terminal(workspace, label, acceptance(workspace, "run", requiredCases=manifest))
     verification = task["verification"]
     assert verification["status"] == "passed" and verification["mode"] == "packaged_jar"
-    assert verification["acceptanceExecuted"] == 6 and verification["minimumTests"] == 6
+    assert verification["acceptanceExecuted"] == minimum and verification["minimumTests"] == minimum
     assert {case["name"] for case in verification["cases"] if case["scope"] == "acceptance"} == expected_ids
     proof = workspace.get_required_case_evidence(task["id"])
     save(label + "-required-cases", proof)
@@ -132,20 +137,20 @@ def reject_export(workspace, label, task_id, code, historical=False, detail=None
 
 
 def duplicate_record(accepted):
-    """Negative recovery fixture with six raw XML rows sharing one identity and a matching report hash."""
+    """Negative recovery fixture with enough raw rows but only one independent identity."""
     original = json.loads((root / ".copperbench/task-records" / (accepted["id"] + ".json")).read_text(encoding="utf-8"))
     injected = copy.deepcopy(original)
     task_id = str(uuid.uuid4())
     injected["task"]["id"] = task_id
     case = copy.deepcopy(next(case for case in accepted["verification"]["cases"] if case["scope"] == "acceptance"))
     suite = ET.Element("testsuite")
-    for _ in range(6):
+    for _ in range(minimum):
         ET.SubElement(suite, "testcase", {"name": case["name"], "classname": case["className"]})
     report = root / ".copperbench/p263-negative/duplicate.xml"
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_bytes(ET.tostring(suite))
-    injected["task"]["verification"].update(reportPath=str(report), reportSha256=sha(report), discovered=6,
-            executed=6, passed=6, failed=0, skipped=0, frameworkTests=0, acceptanceExecuted=6, cases=[case] * 6)
+    injected["task"]["verification"].update(reportPath=str(report), reportSha256=sha(report), discovered=minimum,
+            executed=minimum, passed=minimum, failed=0, skipped=0, frameworkTests=0, acceptanceExecuted=minimum, cases=[case] * minimum)
     (root / ".copperbench/task-records" / (task_id + ".json")).write_text(json.dumps(injected), encoding="utf-8")
     save("duplicate-negative-record-fixture", injected)
     shutil.copy2(report, evidence / "duplicate-negative.xml")
@@ -153,13 +158,21 @@ def duplicate_record(accepted):
 
 
 try:
+    if level == "G2":
+        from scoped_263_setup import setup, verify_reopened
+        with open_workspace() as workspace:
+            reject("scoped-no-opt-in", "PREVIEW_OPT_IN_REQUIRED", lambda: command(workspace, "create_mod_element", elementType="item", name="trail_kit"))
+            preview(workspace, "opt_in")
+            scoped_elements = setup(workspace, root, command, terminal, save)
+        closed(workspace)
     correct = (root / source_path).read_text(encoding="utf-8")
     expression = "return count / 16 + (count % 16 == 0 ? 0 : 1);"
     assert correct.count(expression) == 1
     with open_workspace() as workspace:
-        manifest = next(m for m in workspace.required_case_manifests() if m["id"] == "camp-kit-native-v1")
-        expected_ids = {"copperbench_camp_kit:t" + number for number in ("01", "02", "03", "04", "11", "12")}
-        assert manifest["minimumTests"] == 6 and {case["name"] for case in manifest["cases"]} == expected_ids
+        manifest = next(m for m in workspace.required_case_manifests() if m["id"] == manifest_id)
+        numbers = (1, 2, 3, 4, 11, 12) if level == "G1" else range(1, 14)
+        expected_ids = {f"copperbench_camp_kit:t{number:02d}" for number in numbers}
+        assert manifest["minimumTests"] == minimum and {case["name"] for case in manifest["cases"]} == expected_ids
         save("manifest", manifest)
         reject("no-opt-in", "PREVIEW_OPT_IN_REQUIRED", lambda: command(workspace, "build_workspace"))
         preview(workspace, "opt_in")
@@ -169,10 +182,10 @@ try:
         reject("old-revision", "WORKSPACE_REVISION_CONFLICT", lambda: preview(workspace, "command", command="build_workspace", expected_revision=old_revision))
         failed = terminal(workspace, "controlled-compile-failure", command(workspace, "build_workspace"), "failed", "JAVA_COMPILE_ERROR")
         failed_receipt = json.loads((evidence / "controlled-compile-failure.json").read_text(encoding="utf-8"))
-        assert "RecoveryProbe.java" in json.dumps(failed_receipt) and "missing_p263_symbol" in json.dumps(failed_receipt)
+        assert Path(source_path).name in json.dumps(failed_receipt) and "missing_p263_symbol" in json.dumps(failed_receipt)
         edit(workspace, correct)
         terminal(workspace, "repaired-build", command(workspace, "build_workspace"))
-        accepted = run_cases(workspace, "six-case-acceptance")
+        accepted = run_cases(workspace, case_label)
         export(workspace, "verified-export", accepted)
     closed(workspace)
 
@@ -204,7 +217,7 @@ try:
         reject("sdk-timeout", "NATIVE_TASK_TIMEOUT", lambda: workspace.wait_task(pending["task"]["id"], timeout=0.01, poll_interval=0.001))
         save("cancel-request", workspace.cancel_task(pending["task"]["id"]))
         terminal(workspace, "cancelled-build", pending, "cancelled")
-        # Explicit external negative input preparation; no receipt is fabricated for this real five-case host run.
+        # Explicit external omission fixture; this executes the remaining real host cases.
         required_file = root / "src/gametest/resources/data/copperbench_camp_kit/test_instance/t12.json"
         omitted = required_file.with_suffix(".disabled")
         required_file.rename(omitted)
@@ -212,13 +225,13 @@ try:
             missing = terminal(workspace, "required-case-missing", acceptance(workspace, "run", requiredCases=manifest), "failed", "GAMETEST_REQUIRED_CASES_MISSING")
             proof = workspace.get_required_case_evidence(missing["id"])
             save("required-case-missing-proof", proof)
-            assert proof["requiredCases"]["coverage"]["uniqueExecuted"] == 5
+            assert proof["requiredCases"]["coverage"]["uniqueExecuted"] == minimum - 1
             assert proof["requiredCases"]["coverage"]["missingCases"] == [{"className": "", "name": "copperbench_camp_kit:t12"}]
             reject_export(workspace, "missing-export", missing["id"], "VERIFIED_ARTIFACT_UNAVAILABLE")
         finally:
             omitted.rename(required_file)
         assert read(workspace)["content"] == correct
-        final_task = run_cases(workspace, "final-six-case-acceptance")
+        final_task = run_cases(workspace, "final-" + case_label)
         final_export = export(workspace, "final-export", final_task)
         for name in ("verified-mod.jar", "gametest-results.xml", "verification.json"):
             shutil.copy2(Path(final_export["exportDirectory"]) / name, evidence / ("final-" + name))
@@ -228,11 +241,13 @@ try:
 
     with open_workspace() as workspace:
         preview(workspace, "opt_in")
+        if level == "G2":
+            verify_reopened(workspace, root, scoped_elements, save)
         final_restored = workspace.get_task(final_task["id"])["data"]["task"]
         assert final_restored["restoredFromHistory"]
         record["reopenedExport"] = export(workspace, "final-reopened-export", final_restored)
     closed(workspace)
-    assert len({s["pid"] for s in record["sessions"]}) == 3
+    assert len({s["pid"] for s in record["sessions"]}) == (3 if level == "G1" else 4)
     save("responses", receipts)
     checked = subprocess.run(["node", "ui-core/scripts/validate-preview-evidence.mjs", str(evidence / "responses.json")], cwd=config["cwd"], capture_output=True, text=True, encoding="utf-8")
     (evidence / "schema-validation.log").write_text(checked.stdout + checked.stderr, encoding="utf-8")

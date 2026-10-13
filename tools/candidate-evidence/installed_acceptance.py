@@ -94,7 +94,7 @@ def prepare(candidate, destination, record_path, platform):
     archive = candidate / archives[0]['path']; before = sha(archive); started = time.monotonic()
     product, count = extract_product(archive, destination, platform)
     ce.require(sha(archive) == before, 'Package changed during extraction')
-    observed, asset_files = {}, {}
+    observed, asset_files, levels = {}, {}, {}
     for asset in metadata['assets']:
         role = asset['role']
         if role in ('package', 'portable_package', 'sample'):
@@ -109,8 +109,18 @@ def prepare(candidate, destination, record_path, platform):
         ce.require(path.is_file() and path.stat().st_size == asset['bytes'] and sha(path) == asset['sha256'],
                    'Installed asset mismatch: ' + asset['id'])
         if role == 'sample':
-            for item in ce.read(path)['files']:
-                payload = ce.member(product / 'examples/camp-kit-native' / asset['generatorId'], item['path'])
+            loader = asset['generatorId'].split('-')[0]
+            scope_levels = {ce.scope_parts(scope)[1] for scope in metadata['scopes']
+                            if ce.scope_parts(scope)[0] == loader
+                            and (ce.scope_parts(scope)[2] == 'windows') == (platform == 'windows')}
+            ce.require(len(scope_levels) == 1, 'Sample needs exactly one selected qualification level')
+            level = next(iter(scope_levels)); levels[asset['generatorId']] = level
+            inventory = ce.read(path)
+            ce.require(inventory['requiredCaseManifestId'] == ('camp-kit-native-v1' if level == 'G1' else 'camp-kit-scoped-v1'),
+                       'Sample manifest does not match the selected qualification level')
+            sample_root = product / ('examples/camp-kit-native' if level == 'G1' else 'examples/camp-kit-scoped') / asset['generatorId']
+            for item in inventory['files']:
+                payload = ce.member(sample_root, item['path'])
                 ce.require(payload.stat().st_size == item['bytes'] and sha(payload) == item['sha256'],
                            'Installed sample mismatch: ' + item['path'])
         observed[asset['id']] = asset['sha256']; asset_files[asset['id']] = str(path)
@@ -120,7 +130,7 @@ def prepare(candidate, destination, record_path, platform):
         ce.require(path.is_file() and os.access(path, os.X_OK), 'Missing executable: ' + label)
     record = {'status': 'prepared', 'scope': 'portable_package_extraction_and_hashes_only',
               'platform': platform, 'candidateId': metadata['candidateId'], 'productRoot': str(product),
-              'observedArtifacts': observed, 'assetFiles': asset_files, 'candidatePath': str(candidate),
+              'observedArtifacts': observed, 'assetFiles': asset_files, 'levels': levels, 'candidatePath': str(candidate),
               'packageSha256': before, 'files': count, 'elapsedSeconds': round(time.monotonic() - started, 3),
               'installedApiAcceptance': 'not_run', 'clientAcceptance': 'not_run'}
     ce.write(record_path, record)
@@ -276,6 +286,8 @@ def collect_raw_logs(evidence, run_root, home, cache, product):
 def run_installed(prepared_path, generator, mode, evidence, run_root, platform, cold_receipt=None,
                   proxy_host=None, proxy_port=None, cache_root=None):
     repo=ROOT; prepared=ce.read(prepared_path); product=Path(prepared['productRoot'])
+    level=prepared.get('levels',{}).get(generator,'G1')
+    ce.require(level in ('G1','G2'), 'Unknown prepared qualification level')
     ce.require(generator in ('fabric-26.3','neoforge-26.3') and mode in ('cold','warm'), 'Unknown run target')
     ce.require(prepared['platform']==platform, 'Prepared product belongs to another platform')
     ce.require(not evidence.exists() and not run_root.exists(), 'Choose fresh run and evidence directories')
@@ -316,8 +328,11 @@ def run_installed(prepared_path, generator, mode, evidence, run_root, platform, 
         for identifier,path in prepared['assetFiles'].items():
             assert sha(path)==record['observedArtifacts'][identifier],identifier
             if identifier.endswith('-sample'):
+                sample_generator=identifier.removesuffix('-sample')
+                sample_level=prepared.get('levels',{}).get(sample_generator,'G1')
+                sample_root='examples/camp-kit-native' if sample_level=='G1' else 'examples/camp-kit-scoped'
                 for item in json.loads(Path(path).read_text(encoding='utf-8'))['files']:
-                    payload=product/'examples/camp-kit-native'/identifier.removesuffix('-sample')/item['path']
+                    payload=product/sample_root/sample_generator/item['path']
                     assert payload.stat().st_size==item['bytes'] and sha(payload)==item['sha256']
         if prior:
             inventory_path=Path(prior['cacheInventory'])
@@ -376,15 +391,18 @@ def run_installed(prepared_path, generator, mode, evidence, run_root, platform, 
                 assert created['status']=='committed',created
                 workspace_file=Path(created['data']['workspaceFile'])
             assert workspace._process.poll()==0
-            fixture=product/'examples/camp-kit-native'/generator
+            fixture=product/('examples/camp-kit-native' if level=='G1' else 'examples/camp-kit-scoped')/generator
             for path in sorted(fixture.rglob('*')):
                 if path.is_file():
                     target=destination/path.relative_to(fixture); target.parent.mkdir(parents=True,exist_ok=True); assert not target.exists(); shutil.copy2(path,target)
-            entry=destination/'src/main/java/dev/copperbench/campkit/CopperbenchCampKitMod.java'
-            raw=entry.read_bytes(); marker=b'// Start of user code block mod init'; assert raw.count(marker)==1
-            call=b'CampKitContent.initialize();' if generator.startswith('fabric') else b'CampKitContent.initialize(modBus);'
-            entry.write_bytes(raw.replace(marker,marker+b'\n        '+call))
-            save('manual-native-fixture-preparation',{'source':str(fixture),'entry':str(entry),'entrySha256':sha(entry),'scope':'External native sample authoring before the protected SDK edit/build workflow'})
+            if level=='G1':
+                entry=destination/'src/main/java/dev/copperbench/campkit/CopperbenchCampKitMod.java'
+                raw=entry.read_bytes(); marker=b'// Start of user code block mod init'; assert raw.count(marker)==1
+                call=b'CampKitContent.initialize();' if generator.startswith('fabric') else b'CampKitContent.initialize(modBus);'
+                entry.write_bytes(raw.replace(marker,marker+b'\n        '+call))
+                save('manual-native-fixture-preparation',{'source':str(fixture),'entry':str(entry),'entrySha256':sha(entry),'scope':'External native sample authoring before the protected SDK edit/build workflow'})
+            else:
+                save('structured-fixture-preparation',{'source':str(fixture),'scope':'Independent host test sources only; all five mod element kinds are authored by the installed Native SDK'})
             with copperbench_native.Workspace.open(workspace_file,launcher=launcher,cwd=product,task_authorization_id=grant['id'],startup_timeout=180,request_timeout=180) as workspace:
                 workspace.task_authorization_id=None
                 before_read_only=source_inventory(destination); before_revision=workspace.revision
@@ -411,7 +429,7 @@ def run_installed(prepared_path, generator, mode, evidence, run_root, platform, 
         assert text.count(marker)==1
         active=evidence/'native_263_acceptance.py'; active.write_text(text.replace(marker,'cwd=config["schemaValidatorRoot"], capture_output=True'),encoding='utf-8')
         record.update(bundledHarnessSha256=sha(driver),activeHarnessSha256=sha(active),externalSchemaValidationRoot=str(repo),workspace=str(workspace_file))
-        config={'workspace':str(workspace_file),'generatorId':generator,'evidence':str(evidence),'cwd':str(product),'launcher':[str(launcher)],'taskAuthorizationId':grant['id'],'schemaValidatorRoot':str(repo)}
+        config={'workspace':str(workspace_file),'generatorId':generator,'level':level,'evidence':str(evidence),'cwd':str(product),'launcher':[str(launcher)],'taskAuthorizationId':grant['id'],'schemaValidatorRoot':str(repo)}
         config_path=evidence/'config.json'; config_path.write_text(json.dumps(config,indent=2)+'\n',encoding='utf-8')
         save('installed-run',record)
         with (evidence/'native-driver.log').open('wb') as log:
@@ -425,7 +443,7 @@ def run_installed(prepared_path, generator, mode, evidence, run_root, platform, 
         assert all(selected_current[key]==selected_historical[key] for key in ('taskId','artifactSha256','sourceSha256'))
         selected_artifacts={key:value for key,value in prepared['observedArtifacts'].items() if not key.endswith(('-generator','-sample')) or key.startswith(generator+'-')}
         save('run-binding',{'candidateId':prepared['candidateId'],'cell':'install:'+platform+':'+generator.split('-')[0],
-             'generatorId':generator,'level':'G1','observedArtifacts':selected_artifacts,'artifactSha256':selected_current['artifactSha256'],
+             'generatorId':generator,'level':level,'observedArtifacts':selected_artifacts,'artifactSha256':selected_current['artifactSha256'],
              'selectedAcceptanceTaskId':selected_current['taskId'],'cacheMode':mode,'nativeResultSha256':sha(evidence/'result.json')})
         retained=[]
         for relative in ('wrapper/dists','caches/modules-2/files-2.1','caches/fabric-loom/26.3','caches/fabric-loom/minecraftMaven','caches/neoformruntime'):
@@ -500,6 +518,8 @@ def finalize_cell(cold,warm,out):
     assert w['successfulColdReceiptSha256']==ce.sha(cold/'installed-run.json')
     assert c['candidateId']==w['candidateId'] and c['generatorId']==w['generatorId'] and c['gradleHome']==w['gradleHome']
     binding=read(cold/'run-binding.json');warm_binding=read(warm/'run-binding.json')
+    case_label='six-case-acceptance' if binding['level']=='G1' else 'thirteen-case-acceptance'
+    assert binding['level']==warm_binding['level']
     assert binding['artifactSha256']==warm_binding['artifactSha256']
     prepared=read(Path(c['preparedProduct']));candidate=Path(prepared['candidatePath']);metadata=ce.verify(candidate)
     assert metadata['candidateId']==c['candidateId']
@@ -532,7 +552,7 @@ def finalize_cell(cold,warm,out):
         for kind in ('current','historical'):
             add(prefix+'-portable-'+kind,'portable_'+kind if prefix=='cold' else 'supporting_portable',folder/'portable-check'/('portable-'+kind+'.zip'))
         for label in ('environment','native-create','native-create-rejected','read-only-check','initial-build','controlled-compile-failure','repaired-build',
-                      'six-case-acceptance','verified-export','reopened-export','explicit-historical','final-reopened-export','required-case-missing-proof',
+                      case_label,'verified-export','reopened-export','explicit-historical','final-reopened-export','required-case-missing-proof',
                       'duplicate-current','duplicate-historical','jar-tamper','xml-tamper','external-source-conflict','changed-input','missing-export','cache-inventory'):
             add(prefix+'-'+label,'original_receipt',folder/(label+'.json'))
         add(prefix+'-default-create-rejected','original_receipt',folder/'default-create-rejected.stdout')
@@ -542,7 +562,7 @@ def finalize_cell(cold,warm,out):
         'installed_identity':['prepared-product','cold-environment','cold-doctor','cold-binding'],
         'native_create':['cold-native-create','warm-native-create'],
         'build_failure_repair':['cold-initial-build','cold-controlled-compile-failure','cold-repaired-build','warm-native-result'],
-        'required_cases':['cold-six-case-acceptance','cold-required-case-missing-proof','warm-native-result'],
+        'required_cases':['cold-'+case_label,'cold-required-case-missing-proof','warm-native-result'],
         'verified_export':['cold-verified-export','cold-explicit-historical','cold-portable-current','cold-portable-historical'],
         'offline_verification':['cold-offline-result','warm-offline-result','cold-portable-current','cold-portable-historical'],
         'process_reconnect':['cold-native-result','cold-final-reopened-export','warm-native-result'],

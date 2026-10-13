@@ -1451,10 +1451,14 @@ public final class WorkspaceApplicationService {
 			if (!reason.isEmpty())
 				return failed(command, state.revision(), diagnostic(reason, "diagnostic." + reason.toLowerCase(Locale.ROOT),
 						"Preview operation rejected: " + reason, null, null));
-			return executeAllowed(command, context);
+			// Cancellation waits for a worker which may still need the workspace store.
+			// Keep access checks coordinated, but release the store before waiting for cleanup.
+			return command.operation() == Operation.CANCEL_TASK ? null : executeAllowed(command, context);
 		});
 		CommandOutcome failure = checkFailure(command, coordinated);
-		return failure == null ? coordinated.value() : failure;
+		if (failure != null) return failure;
+		return coordinated.value() == null && command.operation() == Operation.CANCEL_TASK
+				? cancelTask(command) : coordinated.value();
 	}
 
 	private CommandOutcome executeAllowed(Command command, RequestContext context) {
@@ -2308,32 +2312,25 @@ public final class WorkspaceApplicationService {
 		} catch (RuntimeException exception) {
 			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
 		}
-		TransactionResult<TaskMutation> check;
-		try {
-			check = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
-				JsonObject task = tasks.cancel(command.workspaceId(), taskId).orElse(null);
-				return new TaskMutation(task, task == null ? 0 : state.nextEventSequence());
-			});
-		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command, "TASK_CANCEL_FAILED",
-					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null,
-					exception));
-		}
+		var check = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> true);
 		CommandOutcome rejected = checkFailure(command, check);
-		if (rejected != null)
-			return rejected;
+		if (rejected != null) return rejected;
 		try {
-			JsonObject task = check.value().task();
+			JsonObject task = tasks.cancel(command.workspaceId(), taskId).orElse(null);
 			if (task == null)
 				return failed(command, check.revision(), diagnostic("TASK_NOT_FOUND", "diagnostic.task_not_found",
 						"The requested task does not exist.", "/taskId", null));
+			// Content may advance while process cleanup runs. Observe its current revision atomically.
+			var observation = store.nextEventSequence(command.workspaceId());
+			rejected = checkFailure(command, observation);
+			if (rejected != null) return rejected;
 			JsonObject eventPayload = new JsonObject();
 			eventPayload.add("task", task.deepCopy());
-			Event event = event(command, check.revision(), check.value().sequence(), "task_completed", eventPayload);
-			return new CommandOutcome(result(command, "cancelled", check.revision(), task, JsonNull.INSTANCE,
+			Event event = event(command, observation.revision(), observation.value(), "task_completed", eventPayload);
+			return new CommandOutcome(result(command, "cancelled", observation.revision(), task, JsonNull.INSTANCE,
 					List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 		} catch (RuntimeException exception) {
-			return failed(command, check.revision(), failureDiagnostic(command, "TASK_CANCEL_FAILED",
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command, "TASK_CANCEL_FAILED",
 					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null,
 					exception));
 		}
