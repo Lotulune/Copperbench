@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "respawn-after-preparation-transport-delay",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 284,
+        "frame_id": "19ac6a77-f633-4f43-9a8e-3b9f4c6180a5"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 16
+}
