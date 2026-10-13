@@ -1,0 +1,17 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "expectation": "Actual Xorg player subset passed: exact world-name entry, a manual attempt to add one Trail Kit to a full stack of 16 retained 16+1; stick above string yielded two Trail Kits and taking the output consumed the materials; keyboard movement and mouse look changed the view; right-click placed one Camp Post and reduced its count from 2 to 1. The GNOME focus-loss probe rejected movement before execution with FOCUS_LOST and no held input. Preparation commands and two pre-test slime deaths are not gameplay evidence. Save/reopen remain to verify.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-e307e3d5-9d9a-45d7-a7cd-b85ebdcc7a4b.png",
+      "frame-0b9b2b53-be43-4822-8e0c-f1f50efc76d3.png",
+      "frame-3e34290c-56b9-46ad-a7ee-a0bb53a8e0c2.png",
+      "frame-efd6f812-240c-4d17-96e1-239205aa2492.png"
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 31
+}
