@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-place-post",
+    "actions": [
+      {
+        "type": "hold",
+        "buttons": [
+          "right"
+        ],
+        "duration_ms": 90
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 20
+}
