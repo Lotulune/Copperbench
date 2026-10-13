@@ -1,0 +1,14 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "expectation": "GNOME overview caused real foreground loss; check_focus_loss receipt confirms FOCUS_LOST before input, no held keys/buttons. Attached actions and pre-focus pause screenshot locate the probe.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-e69f0685-d48b-44b8-8888-ce2f8cf9a47a.png"
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 44
+}
