@@ -1,0 +1,24 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "action_id": "wfG2-place-carried-paper",
+    "actions": [
+      {
+        "type": "click",
+        "x": 462,
+        "y": 162,
+        "frame_id": "fbc91072-20d4-47d2-a321-4cb9fe31157a",
+        "button": "left",
+        "settle_ms": 300,
+        "duration_ms": 80
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 34
+}
