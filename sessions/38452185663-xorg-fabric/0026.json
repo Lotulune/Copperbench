@@ -1,0 +1,52 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-execute-function-query-score",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/function copperbench_camp_kit:camp_signal"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 200
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 140
+      },
+      {
+        "type": "text",
+        "text": "/scoreboard players get camp_probe camp_count"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 26
+}
