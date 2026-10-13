@@ -1,0 +1,63 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-prepare-kit-stick",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/give @s copperbench_camp_kit:trail_kit 17"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      },
+      {
+        "type": "text",
+        "text": "/give @s minecraft:stick 1"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 14
+}
