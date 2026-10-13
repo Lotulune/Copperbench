@@ -1,0 +1,43 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "action_id": "xn-shaped-recipe",
+    "actions": [
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "button": "left",
+        "frame_id": "499fe1c1-620e-4d5c-86e4-60a31333ab72"
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 126,
+        "button": "left",
+        "frame_id": "499fe1c1-620e-4d5c-86e4-60a31333ab72"
+      },
+      {
+        "type": "click",
+        "x": 391,
+        "y": 374,
+        "button": "left",
+        "frame_id": "499fe1c1-620e-4d5c-86e4-60a31333ab72"
+      },
+      {
+        "type": "click",
+        "x": 462,
+        "y": 162,
+        "button": "left",
+        "frame_id": "499fe1c1-620e-4d5c-86e4-60a31333ab72"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 16
+}
