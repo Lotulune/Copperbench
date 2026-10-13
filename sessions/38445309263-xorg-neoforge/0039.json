@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "a2b753cb-1cba-4497-9ce3-6db652e872cc",
+    "action_id": "xn-reopen-pause",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "escape"
+        ],
+        "duration_ms": 70
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 39
+}
