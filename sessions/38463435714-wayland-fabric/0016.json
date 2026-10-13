@@ -1,0 +1,52 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "action_id": "wfG2-prepare-string-post",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/give @s minecraft:string 1"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      },
+      {
+        "type": "text",
+        "text": "/give @s copperbench_camp_kit:camp_post 2"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      }
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 16
+}
