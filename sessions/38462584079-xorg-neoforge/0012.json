@@ -1,0 +1,15 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-load-wait",
+    "actions": [
+      {
+        "type": "wait",
+        "duration_ms": 1800
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 12
+}
