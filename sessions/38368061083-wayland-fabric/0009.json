@@ -1,0 +1,15 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "bb21416f-4c03-4358-a335-70bc2d99aadd",
+    "expectation": "Native Wayland Minecraft responds to menu pointer and keyboard actions",
+    "verdict": "unverified",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-dc0f4051-3939-43c0-85ee-18bf5649c184.png",
+      "frame-b45cb70f-c8a2-4de3-8a39-a8b2d8962ae3.png"
+    ]
+  },
+  "sessionKey": "38368061083-wayland-fabric",
+  "sequence": 9
+}
