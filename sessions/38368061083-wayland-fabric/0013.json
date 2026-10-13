@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "37a85a7e-3319-4084-91c5-c8c7d3893ada",
+    "action_id": "welcome-after-focus-rebind-001",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 449,
+        "frame_id": "939e4f7d-8436-4bfa-8fe8-affa9e4325ba",
+        "button": "left"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38368061083-wayland-fabric",
+  "sequence": 13
+}
