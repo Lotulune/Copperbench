@@ -50,7 +50,7 @@ async function main() {
   child.on('exit', code => {exitCode = code ?? 1;});
   child.on('error', error => {console.error(error.message); exitCode = 1;});
   const deadline = Date.now()+90*60*1000;
-  let sequence=1, ready=false;
+  let sequence=1, ready=false, lastActivity=Date.now();
   while (exitCode === null && Date.now()<deadline && !stopped) {
     if (!ready && await exists(path.join(evidence,'ready.json'))) {
       await artifact.uploadArtifact('p263-client-ready',[path.join(evidence,'ready.json')],evidence,{retentionDays:14});
@@ -60,7 +60,7 @@ async function main() {
     const number=String(sequence).padStart(4,'0');
     const responseDir=path.join(evidence,'responses',number);
     if (await exists(path.join(responseDir,'response.json'))) {
-      await upload(`p263-client-${number}`,responseDir);sequence++;continue;
+      await upload(`p263-client-${number}`,responseDir);sequence++;lastActivity=Date.now();continue;
     }
     const requestFile=path.join(evidence,'requests',`${number}.json`);
     if (!(await exists(requestFile))) {
@@ -77,9 +77,11 @@ async function main() {
           throw new Error('Request is outside this session or operation scope');
         await fs.writeFile(requestFile+'.tmp',body);
         await fs.rename(requestFile+'.tmp',requestFile);
+        lastActivity=Date.now();
       }
     }
-    await pause(4000);
+    // One planner services several desktops; idle sessions must not exhaust the repository API budget.
+    await pause(await exists(requestFile) ? 1000 : Date.now()-lastActivity>45000 ? 60000 : 8000);
   }
   if (exitCode===null) {
     await abort();
