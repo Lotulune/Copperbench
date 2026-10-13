@@ -1,0 +1,23 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "expectation": "G2 player acceptance: actual movement and turn; manual merge preserves cap 16+1; shaped recipe yields 2 and consumes stick/string; shapeless yields 3 and consumes flint/paper; actual post placement decrements 2 to 1; function executes once, camp_probe/camp_count equals 11 and gold_block at 12 80 12 is confirmed by read-only query. Give commands were preparation only. One preparation batch timed out after inputs completed; it was not replayed.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-ff74fbe5-f2b5-4d82-8b6f-d76b7963552b.png",
+      "frame-84269f3a-60ba-45e7-b794-ff5adb8fa846.png",
+      "frame-e2ea499f-2593-47a8-8579-504c9ada28fc.png",
+      "frame-a428932a-8008-4d98-8ccb-e8fc141222de.png",
+      "frame-2891ea3a-e1c2-4d8f-8468-5529f6bd64a8.png",
+      "frame-ce61e2b9-860c-40ee-98b7-3ad36fa60d45.png",
+      "frame-76de10fe-7ef5-4c82-a34d-0b2cc5ed4e77.png",
+      "frame-4becad3a-4b3f-454e-a163-659dcf0674f4.png",
+      "frame-6b4b97d6-4037-4d14-8295-908948ea6972.png",
+      "frame-b8e7fbe6-3265-48da-b16f-e7109d7d3149.png"
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 32
+}
