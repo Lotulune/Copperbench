@@ -1,0 +1,37 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4ead76ed-a1bb-4c23-8747-311c13d5dea4",
+    "action_id": "review-exact-world-name",
+    "actions": [
+      {
+        "type": "click",
+        "x": 390,
+        "y": 116,
+        "frame_id": "82fb08b7-a798-4a27-aa9f-8809fb7e8e72"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 150
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "ctrl",
+          "a"
+        ],
+        "duration_ms": 80
+      },
+      {
+        "type": "text",
+        "text": "P263-neoforge-wayland-38426026727"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 700
+      }
+    ]
+  },
+  "sessionKey": "38426026727-wayland-neoforge",
+  "sequence": 11
+}
