@@ -1,0 +1,20 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "bd5e70cb-560c-42f1-a57b-e1a9ccc388da",
+    "action_id": "xnG2-superflat",
+    "actions": [
+      {
+        "type": "click",
+        "x": 267,
+        "y": 88,
+        "frame_id": "23fa874e-3386-43b7-b54b-49ad7c95f3e9",
+        "button": "left",
+        "settle_ms": 100,
+        "duration_ms": 60
+      }
+    ]
+  },
+  "sessionKey": "38462584079-xorg-neoforge",
+  "sequence": 10
+}
