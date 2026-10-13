@@ -23,19 +23,22 @@ export default class ValidationObserver extends Extension {
     }
 
     State() {
-        const blocked = Main.overview.visible || Main.screenShield.active;
+        const shieldActive = Main.screenShield?.active ?? false;
+        const blocked = Main.overview.visible || shieldActive;
         const windows = global.get_window_actors().map(actor => {
             const window = actor.meta_window;
             const rect = window.get_frame_rect();
             return {window_id: String(window.get_stable_sequence()), pid: window.get_pid(),
                 title: window.get_title(), client_type: window.get_client_type(),
+                native_wayland: window.get_client_type() === Meta.WindowClientType.WAYLAND,
                 focused: !blocked && window.has_focus(),
                 visible: actor.visible && !window.minimized && window.located_on_workspace(global.workspace_manager.get_active_workspace()),
                 rect: {left: rect.x, top: rect.y, width: rect.width, height: rect.height}};
         });
         return JSON.stringify({windows, pointer: global.get_pointer().slice(0, 2),
             emergency: this._emergency, emergencyReserved: this._action !== 0,
-            overview: Main.overview.visible, screenShield: Main.screenShield.active});
+            overview: Main.overview.visible, screenShield: shieldActive,
+            screenShieldAvailable: Main.screenShield !== null});
     }
 
     Arm() {
@@ -55,7 +58,7 @@ export default class ValidationObserver extends Extension {
     Focus(identifier) {
         const matches = global.get_window_actors().map(actor => actor.meta_window)
             .filter(window => String(window.get_stable_sequence()) === identifier);
-        if (matches.length !== 1 || Main.screenShield.active) return false;
+        if (matches.length !== 1 || Main.screenShield?.active) return false;
         Main.overview.hide();
         matches[0].activate(global.get_current_time());
         return matches[0].has_focus();

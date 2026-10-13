@@ -2,6 +2,7 @@
 import json, os
 from pathlib import Path
 import subprocess
+import sys
 from gi.repository import Gio, GLib
 
 evidence=Path(os.environ['P263_DESKTOP_EVIDENCE'])
@@ -22,5 +23,19 @@ result=subprocess.run(['gnome-screenshot','--file='+str(evidence/'desktop.png')]
 (evidence/'screenshot.stderr').write_bytes(result.stderr)
 (evidence/'screenshot-result.json').write_text(json.dumps({'exitCode':result.returncode,
     'fileCreated':(evidence/'desktop.png').is_file(),'scope':'actual GNOME screenshot, no input sent'})+'\n',encoding='utf-8')
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'minecraft-control-bridge/src'))
+if os.environ['P263_DESKTOP']=='wayland':
+    from gnome_backend import GnomeWaylandBackend
+    backend=GnomeWaylandBackend()
+else:
+    from minecraft_control_bridge.backends.x11 import X11Backend
+    backend=X11Backend()
+try:
+    backend.arm()
+    (evidence/'adapter-probe.json').write_text(json.dumps({'status':'armed_without_input',
+        'platform':backend.platform,'windows':backend.list_windows(),
+        'emergencyPressed':backend.emergency_pressed(),'scope':'No input sent; actual player validation remains required'})+'\n',encoding='utf-8')
+finally:
+    backend.close()
 # Closing this connection ends the temporary inspection session; no input lease is retained.
 bus.flush_sync(None)

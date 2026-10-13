@@ -9,6 +9,7 @@ on:
       - tools/candidate-evidence/qualify_cloud_desktop*.sh
       - tools/candidate-evidence/inspect_gnome_session.py
       - tools/candidate-evidence/gnome-observer/**
+      - tools/candidate-evidence/gnome_backend.py
 
 permissions:
   contents: read
@@ -28,7 +29,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends gnome-shell gnome-session-bin \
             gnome-settings-daemon gnome-screenshot dbus-x11 xserver-xorg-core \
-            xserver-xorg-video-dummy xauth x11-utils mesa-utils
+            xserver-xorg-video-dummy xauth x11-utils mesa-utils python3-pil python3-xlib
       - name: Inspect the real compositor and control interfaces
         env:
           P263_DESKTOP: ${{ matrix.session }}

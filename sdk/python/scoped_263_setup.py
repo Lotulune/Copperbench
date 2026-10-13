@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 
 
+def editor_values(response):
+    """The code contract stores its source bundle outside ordinary .mod.json definitions."""
+    return {field['path']:field['value'] for section in response['data']['sections'] for field in section['fields']}
+
+
 def setup(workspace, root: Path, command, terminal, save):
     """Caller owns preview selection, task authority, lifecycle and acceptance evidence."""
     ids = {}
@@ -69,9 +74,13 @@ def setup(workspace, root: Path, command, terminal, save):
                                    'scope':'Explicit external edit, then Native metadata update and regeneration'})
     snapshot = {}
     for name,identifier in ids.items():
-        save('scoped-editor-' + name, workspace.query('get_mod_element_editor', elementId=identifier))
-        file = root/'elements'/(name + '.mod.json')
-        snapshot[name] = {'elementId':identifier, 'definition':json.loads(file.read_text(encoding='utf-8'))['definition']}
+        editor = workspace.query('get_mod_element_editor', elementId=identifier)
+        save('scoped-editor-' + name, editor)
+        if name == 'recovery_probe':
+            snapshot[name] = {'elementId':identifier, 'storage':'code_source_bundle', 'values':editor_values(editor)}
+        else:
+            file = root/'elements'/(name + '.mod.json')
+            snapshot[name] = {'elementId':identifier, 'storage':'definition', 'definition':json.loads(file.read_text(encoding='utf-8'))['definition']}
     save('scoped-elements', snapshot)
     return snapshot
 
@@ -79,8 +88,12 @@ def setup(workspace, root: Path, command, terminal, save):
 def verify_reopened(workspace, root: Path, expected, save):
     """Requery all five kinds after a new Native process, preserving serialized definitions."""
     for name, prior in expected.items():
-        save('scoped-reopened-' + name, workspace.query('get_mod_element_editor', elementId=prior['elementId']))
-        stored = json.loads((root/'elements'/(name+'.mod.json')).read_text(encoding='utf-8'))['definition']
-        assert stored == prior['definition'], name
+        editor = workspace.query('get_mod_element_editor', elementId=prior['elementId'])
+        save('scoped-reopened-' + name, editor)
+        if prior['storage'] == 'code_source_bundle':
+            assert editor_values(editor) == prior['values'], name
+        else:
+            stored = json.loads((root/'elements'/(name+'.mod.json')).read_text(encoding='utf-8'))['definition']
+            assert stored == prior['definition'], name
     stamp = root/'src/main/java/dev/copperbench/campkit/parts/PreservationStamp.java'
     assert b'VALUE = 41' in stamp.read_bytes()
