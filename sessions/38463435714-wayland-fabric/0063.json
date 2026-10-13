@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "84fbca66-bbd2-4bf8-98a5-9efa9d876064",
+    "action_id": "wfG2-pause-second",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "escape"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 450
+      }
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 63
+}
