@@ -1,0 +1,16 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "2c2c17aa-a44f-4e25-aff4-3c49e8bf2cb0",
+    "expectation": "Visual persistence subset: the second client PID 14314 entered the reviewed exact world P263-fabric-wayland-38378587219, retained the placed Camp Post and the selected slot, and showed Trail Kit stacks 16, 1 and 2 plus one remaining Camp Post. Comparison is against the separately preserved first-process screenshots. Serialized NBT comparison and focus-loss qualification are not asserted by this visual verdict.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-c632150a-5b3d-4b01-ac53-90710c0202f0.png",
+      "frame-dd936d5c-e26d-4d77-82c1-82e520e7679c.png",
+      "frame-fbbb1ae3-e828-404d-82c2-f64356a18a63.png"
+    ]
+  },
+  "sessionKey": "38378587219-wayland-fabric",
+  "sequence": 54
+}
