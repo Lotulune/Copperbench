@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "72964871-7499-48a9-be68-3a66ba653f23",
+    "action_id": "xn-first-quit-game",
+    "actions": [
+      {
+        "type": "click",
+        "x": 526,
+        "y": 395,
+        "button": "left",
+        "frame_id": "c70ac048-d521-474d-be6a-188c9025dfbb"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 27
+}
