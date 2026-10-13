@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "action_id": "xn-world-tab",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 27,
+        "button": "left",
+        "frame_id": "db7da5b2-3e15-46be-9ae2-3110766f68b0"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 8
+}
