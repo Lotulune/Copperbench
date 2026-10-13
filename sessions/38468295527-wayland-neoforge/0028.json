@@ -1,0 +1,37 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "7da98d26-1d03-416f-9021-63cab64e9b74",
+    "action_id": "wnG2-score-query",
+    "actions": [
+      {
+        "type": "text",
+        "text": "/scoreboard players get camp_probe camp_count"
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "enter"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 240
+      },
+      {
+        "type": "hold",
+        "keys": [
+          "t"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38468295527-wayland-neoforge",
+  "sequence": 28
+}
