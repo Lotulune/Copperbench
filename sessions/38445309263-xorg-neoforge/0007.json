@@ -1,0 +1,48 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "action_id": "xn-exact-world-settings",
+    "actions": [
+      {
+        "type": "hold",
+        "keys": [
+          "ctrl",
+          "a"
+        ],
+        "duration_ms": 60
+      },
+      {
+        "type": "text",
+        "text": "P263-neo-xorg-38445309263"
+      },
+      {
+        "type": "click",
+        "x": 425,
+        "y": 228,
+        "button": "left",
+        "frame_id": "1a55f802-e2eb-4665-a426-a6c8c19c7b51"
+      },
+      {
+        "type": "click",
+        "x": 425,
+        "y": 228,
+        "button": "left",
+        "frame_id": "1a55f802-e2eb-4665-a426-a6c8c19c7b51"
+      },
+      {
+        "type": "click",
+        "x": 425,
+        "y": 284,
+        "button": "left",
+        "frame_id": "1a55f802-e2eb-4665-a426-a6c8c19c7b51"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 150
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 7
+}
