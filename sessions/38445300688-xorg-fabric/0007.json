@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "f5394b07-e665-412f-9a47-ee7412693633",
+    "action_id": "xf-resume-select-exact-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 373,
+        "y": 137,
+        "button": "left",
+        "frame_id": "ae562af6-d48f-4d4f-ae55-c59d9d20e434"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 160
+      }
+    ]
+  },
+  "sessionKey": "38445300688-xorg-fabric",
+  "sequence": 7
+}
