@@ -72,5 +72,11 @@ gdbus call --session --dest org.gnome.Mutter.DisplayConfig \
   --method org.gnome.Mutter.DisplayConfig.GetCurrentState > "$evidence/display-state.txt"
 ps -p "$shell_pid" -o pid,args > "$evidence/compositor-process.txt"
 if [ "$desktop" = xorg ]; then glxinfo -B > "$evidence/opengl.txt"; fi
+if [ "$desktop" = wayland ]; then
+  mapfile -t sockets < <(find "$XDG_RUNTIME_DIR" -maxdepth 1 -type s -name 'wayland-*')
+  test "${#sockets[@]}" -eq 1
+  export WAYLAND_DISPLAY="$(basename "${sockets[0]}")" GDK_BACKEND=wayland
+fi
+python3 tools/candidate-evidence/inspect_gnome_session.py
 printf '{"status":"interfaces_observed","desktop":"%s","displayBackend":"%s","clientAcceptance":"not_run","formalSupportClaim":false}\n' \
   "$desktop" "$XDG_SESSION_TYPE" > "$evidence/result.json"
