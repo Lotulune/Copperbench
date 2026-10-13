@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "657dde32-0335-4139-9c9a-bdd1c2acc360",
+    "action_id": "nf-wayland-reopen-world-list",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 204,
+        "button": "left",
+        "frame_id": "3f0fd26d-5ca9-4bd4-abce-1b33e3421f32"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 500
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 30
+}
