@@ -1,0 +1,36 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "537d2587-c6dd-40b6-bffc-fdbf14f85132",
+    "action_id": "nf-wayland-manual-cap16",
+    "actions": [
+      {
+        "type": "click",
+        "x": 319,
+        "y": 374,
+        "button": "left",
+        "frame_id": "d05645c5-a583-4091-ae31-999982eece10"
+      },
+      {
+        "type": "click",
+        "x": 283,
+        "y": 374,
+        "button": "left",
+        "frame_id": "d05645c5-a583-4091-ae31-999982eece10"
+      },
+      {
+        "type": "click",
+        "x": 319,
+        "y": 374,
+        "button": "left",
+        "frame_id": "d05645c5-a583-4091-ae31-999982eece10"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 170
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 16
+}
