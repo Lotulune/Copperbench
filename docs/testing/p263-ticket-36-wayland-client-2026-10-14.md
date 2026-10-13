@@ -8,7 +8,7 @@ Date: 2026-10-14 (Asia/Tokyo). Result: passed for this G1 preview cell. Player/p
 | Mod JAR SHA-256 | `85efba8002bf9ebf16a109a4b955a3a3bc34d43ddb103649761d01af442723d8` |
 | Primary installation receipt SHA-256 | `afd59bcf7311c4a617314ffbe23a297ca6bd91bc7ee46c3372e595804ad25e94` |
 | Supplement installation receipt SHA-256 | `b50e3208f83361bca234b4fe3443a71e766fa17602a06b27e4c00f71e5d37c2c` |
-| Client receipt SHA-256 | `3ae788456388983e97cb22df9a166f2ed16b7fd3929f4c4e44b546ccd49ce146` |
+| Client receipt SHA-256 | `d06dcfb9dc721456ad4bcd851cbc578fcc4d49fbd9b4d6e94891f67036e36edf` |
 | World | `P263-fabric-wayland-38378587219` |
 | Player / reopened / focus-only PIDs | `11498` / `14314` / `11268` |
 
@@ -24,6 +24,6 @@ Evidence roots under `output/p263-remaining/`:
 
 - `cloud/fabric-g1-wayland-player-run/`: original player run, installation evidence and both world snapshots.
 - `cloud/fabric-g1-wayland-focus-run/`: original focus supplement, its installation evidence and desktop diagnostics.
-- `wayland-fabric-g1-client-cell/`: 87 hashed evidence entries, both world archives, `cell.json` and the passing client cell in `evaluation.json`.
+- `wayland-fabric-g1-client-cell-v2/`: 87 hashed evidence entries, both world archives, `cell.json` and the passing client cell in `evaluation.json`. The game-directory string is copied directly from the original Linux bridge session. The earlier derived receipt reconstructed that path with Windows separators and is superseded; its original bytes and all raw evidence are preserved.
 
 The candidate evaluator rehashed the complete frozen artifact and accepted the exact installation/client linkage. Other missing candidate cells remain `not_run` in this selected evaluation. Visible sample texture/model/localization gaps are outside this behavior pass. No Xorg, G2 or formal release claim follows from this result.

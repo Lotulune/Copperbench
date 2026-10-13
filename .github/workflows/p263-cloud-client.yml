@@ -16,6 +16,11 @@ on:
         required: true
         type: choice
         options: [xorg, wayland]
+      resume_run:
+        description: Optional prior same-candidate client run with an archived first-save world; validate only its reopen
+        required: false
+        default: ''
+        type: string
   push:
     branches: [codex/p263-unique-cases]
     paths: [.github/workflows/p263-cloud-client.yml]
@@ -57,6 +62,13 @@ jobs:
           run-id: ${{ inputs.candidate_run }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@v8
+        if: inputs.resume_run != ''
+        with:
+          name: p263-client-evidence
+          run-id: ${{ inputs.resume_run }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/resume-client-evidence
       - name: Revalidate the frozen installation in this fresh runner
         env:
           P263_LOADER: ${{ inputs.loader }}
@@ -68,6 +80,7 @@ jobs:
         env:
           P263_LOADER: ${{ inputs.loader }}
           P263_DESKTOP: ${{ inputs.desktop }}
+          P263_RESUME_RUN: ${{ inputs.resume_run }}
         run: |
           python3 - <<'PY'
           import json,os
@@ -80,6 +93,8 @@ jobs:
                   'installationCell':str(root/'installed-evidence/cell/cell.json'),
                   'prepared':str(root/'installed-evidence/prepared-product.json'),
                   'worldName':world_name}
+          if os.environ['P263_RESUME_RUN']:
+              config.update(resumeRun=int(os.environ['P263_RESUME_RUN']),resumeEvidence=str(root/'resume-client-evidence'))
           (root/'client-config.json').write_text(json.dumps(config,indent=2)+'\n',encoding='utf-8')
           PY
       - name: Keep the installed Native lifecycle and reviewed desktop actions alive

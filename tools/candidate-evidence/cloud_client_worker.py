@@ -24,11 +24,13 @@ def save(path,value):
 
 product=Path(prior['productRoot']);workspace_file=Path(prior['workspace']);root=workspace_file.parent
 desktop=os.environ['P263_DESKTOP'];started=time.monotonic()
+validation_scope='supplementary_reopen_only' if config.get('resumeEvidence') else 'full_lifecycle'
+required_attempts=1 if validation_scope=='supplementary_reopen_only' else 2
 record={'status':'preparing','candidateId':cell['candidateId'],'generatorId':prior['generatorId'],
         'cell':'client:'+desktop+':'+prior['generatorId'].split('-')[0],
         'artifactSha256':cell['artifactSha256'],'level':cell['level'],'desktop':desktop,
         'installationReceiptSha256':h.sha(config['installationCell']),'observedArtifacts':cell['observedArtifacts'],
-        'workspace':str(workspace_file),'worldName':config['worldName'],'runs':[],
+        'workspace':str(workspace_file),'worldName':config['worldName'],'validationScope':validation_scope,'runs':[],
         'controller':'task-local bounded engine; not a registered MCP connection'}
 engine=None;workspace=None;task_id=None;attempt=0;interrupted=False
 def interrupt(signum, frame):
@@ -46,6 +48,9 @@ try:
     record['artifactPath']=str(jars[0])
     source_files=[p for directory in ('src','elements','gradle') for p in (root/directory).rglob('*') if p.is_file()]
     record['sourceBefore']={p.relative_to(root).as_posix():h.sha(p) for p in source_files}
+    if validation_scope=='supplementary_reopen_only':
+        from cloud_client_resume import prepare_resume
+        save(out/'resume-binding.json',prepare_resume(config,record,root,out))
     home=out/'product-home';home.mkdir()
     env=h.run_environment(product,home,Path(prior['gradleHome']),out,'ubuntu')
     # The process still needs this exact desktop socket, while product data/cache remain isolated.
@@ -86,7 +91,7 @@ try:
     engine=Engine(backend)
     def launch():
         global attempt,task_id
-        assert task_id is None and attempt<2
+        assert task_id is None and attempt<required_attempts
         attempt+=1
         accepted=workspace.preview('command',generator_id=prior['generatorId'],command='run_client',payload={})['core']
         assert accepted['status']=='accepted',accepted
@@ -112,7 +117,7 @@ try:
                 assert state=='succeeded',task_result
                 assert h.sha(jars[0])==cell['artifactSha256']
                 task_id=None
-                record['status']='awaiting-reopen' if attempt==1 else 'awaiting-review'
+                record['status']='awaiting-reopen' if attempt<required_attempts else 'awaiting-review'
                 save(out/'session.json',record)
         request_path=requests/f'{sequence:04d}.json'
         if not request_path.exists():time.sleep(0.1);continue
@@ -181,16 +186,21 @@ try:
                 assert name==config['worldName'],'Only the exact named test world is eligible'
                 source=(root/'run/saves'/name).resolve()
                 assert source.is_relative_to(root/'run/saves') and source.is_dir()
-                target=out/('world-after-first-save' if attempt==1 else 'world-after-reopen')
+                target=out/('world-after-first-save' if attempt==1 and validation_scope=='full_lifecycle' else 'world-after-reopen')
                 shutil.copytree(source,target)
                 result={'status':'archived','world':name,'path':str(target),'attempt':attempt}
             elif operation=='finish':
                 scope=arguments.get('scope','full_lifecycle')
-                assert scope in ('full_lifecycle','supplementary_focus_only')
+                assert scope in ('full_lifecycle','supplementary_focus_only','supplementary_reopen_only')
                 assert task_id is None and engine.session is None
                 assert attempt==(2 if scope=='full_lifecycle' else 1)
                 if scope=='supplementary_focus_only':
                     assert read(out/'run-1-focus-loss.json')['status']=='passed'
+                elif scope=='supplementary_reopen_only':
+                    assert validation_scope==scope and (out/'resume-binding.json').is_file()
+                    assert (out/'world-after-reopen/level.dat').is_file()
+                else:
+                    assert validation_scope=='full_lifecycle'
                 record['validationScope']=scope
                 result={'status':'lifecycle-completed','validationScope':scope}
                 (out/'finish.signal').write_text('planner reviewed finish\n',encoding='utf-8')
