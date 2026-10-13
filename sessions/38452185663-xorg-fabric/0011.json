@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-create-world-once",
+    "actions": [
+      {
+        "type": "click",
+        "x": 266,
+        "y": 448,
+        "button": "left",
+        "frame_id": "aec7663d-3856-4888-99f0-64eac14fd25c"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 11
+}
