@@ -102,7 +102,7 @@
   "dependencyGraph": {
     "gradle.lockfile": "b3d77145b1b294691b6d48276d0f21e69239cdc83d49c83185214ea124afee69",
     "gradle/verification-metadata.xml": "56db4e6d4668b2f547e05cc605246384364dd916f5aa70183d3131c5010444e3",
-    "gradle/linux.lockfile": "178ae37a69c1f3f8e8a1ea572c4fc1e6dd3eebfb7764dd368bccca34dcb2bbf9"
+    "gradle/linux.lockfile": "4ea6fdbbeaf6e6fb720a90472431d3ba36c680bfffa3d540286c3eed887a0737"
   },
   "pluginMarkerPoms": {
     "coordinate": "net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:2.0.148",
@@ -325,5 +325,13 @@
         "sha256": "f8690711c842de5aa15759459b8294fd682e452441b063bd7f902710db801804"
       }
     ]
+  },
+  "linuxClientRuntimeLockDelta": {
+    "coordinate": "net.neoforged:DevLaunch:1.0.2",
+    "configuration": "runtimeClasspath",
+    "verificationMetadataChanged": false,
+    "source": "Actual installed run_client failed because this already-verified component was missing from the Linux runtime lock",
+    "evidenceRun": "https://github.com/Lotulune/Copperbench/actions/runs/38368054764",
+    "validation": "pending new frozen candidate client launch"
   }
 }

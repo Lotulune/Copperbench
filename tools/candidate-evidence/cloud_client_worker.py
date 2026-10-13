@@ -110,6 +110,8 @@ try:
         answer={'requestSha256':hashlib.sha256(request_bytes).hexdigest(),'sequence':sequence,'operation':operation}
         try:
             if operation in ('doctor','list_windows'):result=getattr(engine,operation)()
+            elif operation=='status':
+                result={'session':record,'activeTask':read(out/'active-task.json') if (out/'active-task.json').exists() else None}
             elif operation=='attach':
                 selected=backend.window(arguments['window_id']);pid=selected['pid']
                 process_cwd=Path(f'/proc/{pid}/cwd').resolve()

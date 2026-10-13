@@ -7,7 +7,7 @@ let artifact;
 const evidence = process.env.P263_CLIENT_EVIDENCE;
 const desktopEvidence = process.env.P263_DESKTOP_EVIDENCE;
 const key = `${process.env.GITHUB_RUN_ID}-${process.env.P263_DESKTOP}-${process.env.P263_LOADER}`;
-const allowed = new Set(['doctor','list_windows','attach','observe','step','record_verification',
+const allowed = new Set(['doctor','list_windows','status','attach','observe','step','record_verification',
                          'stop','detach','reopen','archive_world','finish']);
 let child, stopped = false, exitCode = null;
 async function exists(file) {try {await fs.access(file); return true;} catch {return false;}}

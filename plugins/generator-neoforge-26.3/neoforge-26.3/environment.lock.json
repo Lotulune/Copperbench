@@ -101,7 +101,8 @@
   },
   "dependencyGraph": {
     "gradle.lockfile": "e1d16cab8b0178cddd3bc9e5595ab41ede960c25b90c26531f7ce5c28567eab0",
-    "gradle/verification-metadata.xml": "1aff690175e356698efdf872927ed4f73cc7377d3b14d1bdd5ada3c0911ca235"
+    "gradle/verification-metadata.xml": "56db4e6d4668b2f547e05cc605246384364dd916f5aa70183d3131c5010444e3",
+    "gradle/linux.lockfile": "4ea6fdbbeaf6e6fb720a90472431d3ba36c680bfffa3d540286c3eed887a0737"
   },
   "environmentProbeDependencyGraph": {
     "gradle.lockfile": "b3d77145b1b294691b6d48276d0f21e69239cdc83d49c83185214ea124afee69",
@@ -174,5 +175,12 @@
     "taskType": "net.neoforged.nfrtgradle.DownloadAssets",
     "reason": "ModDev 2.0.148 defaults this helper to Java 21; exact 26.3 workspace supplies Java 25 only.",
     "qualification": "p263-ticket-29-windows-installed-downloadAssets-java25"
+  },
+  "linuxClientRuntimeLockDelta": {
+    "coordinate": "net.neoforged:DevLaunch:1.0.2",
+    "configuration": "runtimeClasspath",
+    "verificationMetadataChanged": false,
+    "evidenceRun": "https://github.com/Lotulune/Copperbench/actions/runs/38368054764",
+    "validation": "pending new frozen candidate client launch"
   }
 }
