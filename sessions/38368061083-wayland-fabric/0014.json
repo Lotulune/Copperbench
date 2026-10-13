@@ -1,0 +1,15 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "37a85a7e-3319-4084-91c5-c8c7d3893ada",
+    "expectation": "Native Wayland welcome menu reacts after one controlled focus rebind; repeated screenshots show no transition despite input receipts",
+    "verdict": "unverified",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-939e4f7d-8436-4bfa-8fe8-affa9e4325ba.png",
+      "frame-028fd152-7bee-448c-99c9-0ce31f4b4681.png"
+    ]
+  },
+  "sessionKey": "38368061083-wayland-fabric",
+  "sequence": 14
+}
