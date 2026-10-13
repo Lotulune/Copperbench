@@ -1,0 +1,23 @@
+{
+  "operation": "record_verification",
+  "arguments": {
+    "session_id": "ffe43ce3-2676-4f52-b3d5-7f6a881a4712",
+    "expectation": "Native Wayland Fabric G2: player moved and visibly turned; cap16+1 manual merge held; shaped2 was taken, merged on inventory close then manually split into 1+2; shapeless3 was taken and inputs consumed; post2 became1 after actual right-click placement; function ran once, score11 and gold(12,80,12) confirmed. Pointer-confirmation interruptions retained and not replayed; following actions used reviewed current screenshots. Mouse turn temporarily did not change scene after inventory; menu Back to Game restored capture and frame-e2cfb9c2 demonstrates actual turn. Software-Mesa distant horizon rendering artifact is visible in early scene frames.",
+    "verdict": "passed",
+    "evidence_refs": [
+      "actions.jsonl",
+      "frame-53b56bd4-5bf3-41a8-9357-7dc59d9339e2.png",
+      "frame-e80b2ea1-c69f-4dba-bc38-c3c2dc5b314b.png",
+      "frame-fc54dd79-1d29-450a-9290-9d4cfa98fc4e.png",
+      "frame-3443caa9-0fa8-42d2-b73e-70f18ff6a184.png",
+      "frame-e2cfb9c2-dbc8-4eac-8ee3-617be2192b47.png",
+      "frame-70ed902c-83d3-4bae-8067-c33f43d252fb.png",
+      "frame-b88ed258-7332-46a8-b9e7-22133382b24f.png",
+      "frame-75216906-f58c-4f84-a451-cf9a0184e93e.png",
+      "frame-7c9a54a0-1737-41f6-89a1-841e988522f2.png",
+      "frame-0d9f7397-d608-438c-9751-f838e3203c5a.png"
+    ]
+  },
+  "sessionKey": "38463435714-wayland-fabric",
+  "sequence": 41
+}
