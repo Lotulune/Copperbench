@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "913bd6c5-78bf-411d-84f0-a4d932e7e201",
+    "action_id": "wn-resume-select-original-world",
+    "actions": [
+      {
+        "type": "click",
+        "x": 373,
+        "y": 137,
+        "button": "left",
+        "frame_id": "77966989-f681-48ae-ae6b-f176596d63b5"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 160
+      }
+    ]
+  },
+  "sessionKey": "38451371385-wayland-neoforge",
+  "sequence": 7
+}
