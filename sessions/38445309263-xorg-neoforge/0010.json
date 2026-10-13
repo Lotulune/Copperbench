@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "4372d8a1-9f0b-463e-bf65-faa923b01c02",
+    "action_id": "xn-create-world-once",
+    "actions": [
+      {
+        "type": "click",
+        "x": 266,
+        "y": 448,
+        "button": "left",
+        "frame_id": "04800979-3a96-4cc8-be41-63d7a299af99"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38445309263-xorg-neoforge",
+  "sequence": 10
+}
