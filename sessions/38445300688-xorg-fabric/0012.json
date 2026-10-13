@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "f5394b07-e665-412f-9a47-ee7412693633",
+    "action_id": "xf-resume-save-title",
+    "actions": [
+      {
+        "type": "click",
+        "x": 425,
+        "y": 347,
+        "button": "left",
+        "frame_id": "ba85392b-d433-4cbc-af81-5d79ac3ed78c"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38445300688-xorg-fabric",
+  "sequence": 12
+}
