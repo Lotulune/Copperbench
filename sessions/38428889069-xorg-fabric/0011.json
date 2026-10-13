@@ -1,0 +1,21 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "947c29c2-fb6c-4b8c-9a09-54a2c748547f",
+    "action_id": "review-world-settings",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 25,
+        "frame_id": "2a4ef66d-671c-4824-bb72-b8a2e865b7df"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 600
+      }
+    ]
+  },
+  "sessionKey": "38428889069-xorg-fabric",
+  "sequence": 11
+}
