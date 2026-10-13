@@ -49,7 +49,10 @@ try:
     # The process still needs this exact desktop socket, while product data/cache remain isolated.
     for key in ('XDG_RUNTIME_DIR','DISPLAY','XAUTHORITY','WAYLAND_DISPLAY','DBUS_SESSION_BUS_ADDRESS','XDG_SESSION_TYPE'):
         if key in os.environ:env[key]=os.environ[key]
-    env['SDL_VIDEODRIVER']='wayland' if desktop=='wayland' else 'x11'
+    env['SDL_VIDEO_DRIVER']='wayland' if desktop=='wayland' else 'x11'
+    if desktop=='xorg':env['SDL_VIDEO_FORCE_EGL']='1'
+    record['renderingRequest']={'sdlVideoDriver':env['SDL_VIDEO_DRIVER'],
+                                'forceEgl':desktop=='xorg','softwareMesa':env.get('LIBGL_ALWAYS_SOFTWARE')=='1'}
     env['GDK_BACKEND']='wayland' if desktop=='wayland' else 'x11'
     for key in list(env):
         if key.startswith(('ACTIONS_','INPUT_')) or key in ('GITHUB_TOKEN','GH_TOKEN'):env.pop(key)
