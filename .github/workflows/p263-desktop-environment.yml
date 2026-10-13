@@ -1,0 +1,35 @@
+name: P263 cloud desktop environment qualification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        session: [xorg, wayland]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the disposable GNOME desktop dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gnome-shell gnome-session-bin \
+            gnome-settings-daemon gnome-screenshot dbus-x11 xserver-xorg-core \
+            xserver-xorg-video-dummy xauth x11-utils mesa-utils
+      - name: Inspect the real compositor and control interfaces
+        env:
+          P263_DESKTOP: ${{ matrix.session }}
+        run: bash tools/candidate-evidence/qualify_cloud_desktop.sh "$P263_DESKTOP" "$RUNNER_TEMP/desktop-evidence"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: p263-gnome-${{ matrix.session }}-environment
+          path: ${{ runner.temp }}/desktop-evidence/
+          if-no-files-found: error
+          retention-days: 14
