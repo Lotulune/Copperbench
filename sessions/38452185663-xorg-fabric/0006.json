@@ -1,0 +1,22 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "207c8a32-3c3d-428f-a2b8-b229b72ecb9a",
+    "action_id": "xfg2-open-singleplayer",
+    "actions": [
+      {
+        "type": "click",
+        "x": 426,
+        "y": 235,
+        "button": "left",
+        "frame_id": "1647c583-7f9f-4f22-bd19-ba0de0023c6c"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 1500
+      }
+    ]
+  },
+  "sessionKey": "38452185663-xorg-fabric",
+  "sequence": 6
+}
