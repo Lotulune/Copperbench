@@ -8,6 +8,7 @@ on:
       - .github/workflows/p263-desktop-environment.yml
       - tools/candidate-evidence/qualify_cloud_desktop*.sh
       - tools/candidate-evidence/inspect_gnome_session.py
+      - tools/candidate-evidence/gnome-observer/**
 
 permissions:
   contents: read

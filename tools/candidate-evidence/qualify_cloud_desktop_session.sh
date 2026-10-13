@@ -13,6 +13,10 @@ export XDG_RUNTIME_DIR="${RUNNER_TEMP:?}/p263-desktop-runtime"
 mkdir -m 700 "$XDG_RUNTIME_DIR"
 export XDG_CURRENT_DESKTOP=GNOME
 export LIBGL_ALWAYS_SOFTWARE=1
+extension="$HOME/.local/share/gnome-shell/extensions/copperbench-validation@local"
+mkdir -p "$extension"
+cp tools/candidate-evidence/gnome-observer/{metadata.json,extension.js} "$extension/"
+gsettings set org.gnome.shell enabled-extensions "['copperbench-validation@local']"
 if [ "$desktop" = xorg ]; then
   export DISPLAY=:99 XDG_SESSION_TYPE=x11
   export XAUTHORITY="$XDG_RUNTIME_DIR/xauthority"
@@ -78,5 +82,7 @@ if [ "$desktop" = wayland ]; then
   export WAYLAND_DISPLAY="$(basename "${sockets[0]}")" GDK_BACKEND=wayland
 fi
 python3 tools/candidate-evidence/inspect_gnome_session.py
+gdbus call --session --dest org.gnome.Shell --object-path /dev/copperbench/ValidationObserver \
+  --method dev.copperbench.ValidationObserver.State > "$evidence/window-observer-state.txt"
 printf '{"status":"interfaces_observed","desktop":"%s","displayBackend":"%s","clientAcceptance":"not_run","formalSupportClaim":false}\n' \
   "$desktop" "$XDG_SESSION_TYPE" > "$evidence/result.json"
