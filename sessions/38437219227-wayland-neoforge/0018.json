@@ -1,0 +1,29 @@
+{
+  "operation": "step",
+  "arguments": {
+    "session_id": "537d2587-c6dd-40b6-bffc-fdbf14f85132",
+    "action_id": "nf-wayland-take-crafted-kit",
+    "actions": [
+      {
+        "type": "click",
+        "x": 574,
+        "y": 146,
+        "button": "left",
+        "frame_id": "11f3b9b9-2181-43d4-8cc6-c98375fba3ef"
+      },
+      {
+        "type": "click",
+        "x": 355,
+        "y": 374,
+        "button": "left",
+        "frame_id": "11f3b9b9-2181-43d4-8cc6-c98375fba3ef"
+      },
+      {
+        "type": "wait",
+        "duration_ms": 180
+      }
+    ]
+  },
+  "sessionKey": "38437219227-wayland-neoforge",
+  "sequence": 18
+}
