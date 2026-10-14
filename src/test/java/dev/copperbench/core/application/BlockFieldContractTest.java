@@ -40,6 +40,24 @@ class BlockFieldContractTest {
         assertEquals("FIELD_ALIAS_CONFLICT", BlockFieldContract.validate(values).code());
     }
 
+    @Test void lightFieldsAcceptConstantsAndRejectOutOfRangeOrTruncatedValues() {
+        assertTrue(BlockFieldContract.writable("/lightOpacity"));
+        assertTrue(BlockFieldContract.writable("/fields/luminance/fixedValue"));
+        assertNull(BlockFieldContract.validate(JsonParser.parseString("{\"luminance\":15,\"lightOpacity\":0}").getAsJsonObject()));
+        assertNull(BlockFieldContract.validate(JsonParser.parseString("{\"fields\":{\"luminance\":{\"fixedValue\":7}}}").getAsJsonObject()));
+        assertIssue("{\"luminance\":16}", "FIELD_VALUE_OUT_OF_RANGE", "/luminance");
+        assertIssue("{\"luminance\":1.5}", "FIELD_VALUE_OUT_OF_RANGE", "/luminance");
+        assertIssue("{\"luminance\":{\"fixedValue\":-1}}", "FIELD_VALUE_OUT_OF_RANGE", "/luminance/fixedValue");
+        assertIssue("{\"luminance\":\"15\"}", "FIELD_TYPE_INVALID", "/luminance");
+        assertIssue("{\"luminance\":null}", "FIELD_TYPE_INVALID", "/luminance");
+        assertIssue("{\"lightOpacity\":16}", "FIELD_VALUE_OUT_OF_RANGE", "/lightOpacity");
+        assertIssue("{\"lightOpacity\":0.5}", "FIELD_VALUE_OUT_OF_RANGE", "/lightOpacity");
+        var values = JsonParser.parseString("{\"luminance\":{\"fixedValue\":3},\"fields\":{\"luminance\":{\"fixedValue\":9}}}").getAsJsonObject();
+        BlockFieldContract.reconcileEditedAliases(values, JsonParser.parseString("[{\"path\":\"/fields/luminance/fixedValue\",\"value\":9}]").getAsJsonArray());
+        assertFalse(values.has("luminance"));
+        assertNull(BlockFieldContract.validate(values));
+    }
+
     private void assertIssue(String json, String code, String path) {
         var issue = BlockFieldContract.validate(JsonParser.parseString(json).getAsJsonObject());
         assertNotNull(issue); assertEquals(code, issue.code()); assertEquals(path, issue.path());

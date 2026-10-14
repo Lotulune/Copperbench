@@ -87,6 +87,8 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 
 `Workspace.open` 启动一个持续运行的本地 Java 核心进程，通过私有 stdin/stdout 管道直接调用 Core。它不创建 HTTP 端口，不启动 MCP，不读取 MCP 连接文件，也不要求 MCP token。Java 仍使用 Copperbench 自带的运行时；这不是把整个 Java 引擎嵌入 CPython 内存空间。
 
+创建 `tool`、`livingentity` 或 `specialentity` 前可查询 `get_mod_element_field_contract` 获取默认值和必填字段。工具可使用默认镐配置；生物需要工作区内已导入的 `mobModelTexture`（文件名含 `.png`），船等特殊实体需要 `entityTexture`（资源名；贴图选择器传入的 `.png` 文件名会自动规范化）。缺少贴图返回 `FIELD_REQUIRED`，找不到资源返回 `FIELD_REFERENCE_INVALID`。方块发光使用 `luminance`（例如 `15` 或 `{"fixedValue":15}`），遮光使用 `lightOpacity`；固定值均为 `0..15` 的整数，`lightValue` 不是当前字段名。
+
 独立打开采用独占写锁。如果桌面编辑器或另一个脚本已打开该工作区，会返回 `WORKSPACE_WRITE_LOCKED`。需要操作桌面当前工作区时，使用上面的 `Workspace.connect(...)`，也可选择 MCP 客户端。
 
 ## 修改与任务

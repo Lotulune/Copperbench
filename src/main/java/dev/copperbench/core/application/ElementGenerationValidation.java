@@ -11,7 +11,7 @@ import net.mcreator.generator.mapping.NameMapper;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 
-/** Generation checks for native item/recipe definitions, using the same input fields and defaults as Core. */
+/** Generation checks for native definitions, using the same input fields and defaults as Core. */
 public final class ElementGenerationValidation {
     private ElementGenerationValidation() {}
     public static boolean nativeDefinitions(WorkspaceState workspace) {
@@ -20,9 +20,10 @@ public final class ElementGenerationValidation {
     }
 
     public static BlockFieldContract.Issue validate(String type, JsonObject raw, Set<String> elementNames) {
+        var creationIssue = ElementFieldContract.validateCreation(type, raw);
+        if (creationIssue != null) return creationIssue;
         JsonObject values = BlockFieldContract.merged(raw);
-        GeneratableElement defaults = type.equals("item") ? StructuredElementDefaults.item(null, null, "") :
-                StructuredElementDefaults.recipe(null, null, "");
+        GeneratableElement defaults = StructuredElementDefaults.forType(type, null, null, "");
         JsonObject effective = ElementFieldCodec.gson().toJsonTree(defaults).getAsJsonObject();
         for (var entry : values.entrySet()) effective.add(entry.getKey(), entry.getValue());
         try {

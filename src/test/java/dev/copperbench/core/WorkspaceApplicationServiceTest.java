@@ -686,6 +686,7 @@ class WorkspaceApplicationServiceTest {
 		for (String type : types) {
 			Fixture fixture = fixture();
 			JsonObject initialValues = new JsonObject();
+			if (type.equals("specialentity")) initialValues.addProperty("entityTexture", "creator_boat");
 			if (type.equals("plant")) {
 				initialValues.addProperty("texture", "minecraft:poppy");
 				initialValues.addProperty("suspiciousStewEffect", "SPEED");

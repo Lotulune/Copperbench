@@ -13,7 +13,7 @@ public final class BlockFieldContract {
     private BlockFieldContract() {}
 
     public static final Set<String> DEFINITION_FIELDS = Collections.unmodifiableSet(new LinkedHashSet<>(List.of(
-            "hardness", "resistance", "rotationMode", "enablePitch", "boundingBoxes", "isNotColidable",
+            "hardness", "resistance", "lightOpacity", "luminance", "rotationMode", "enablePitch", "boundingBoxes", "isNotColidable",
             "hasInventory", "inventorySize", "inventoryStackSize", "inventoryDropWhenDestroyed",
             "inventoryComparatorPower", "inventoryInSlotIDs", "inventoryOutSlotIDs", "openGUIOnRightClick",
             "guiBoundTo", "texture", "textureTop", "textureLeft", "textureFront", "textureRight", "textureBack",
@@ -47,9 +47,11 @@ public final class BlockFieldContract {
         changes.forEach(change -> paths.add(change.getAsJsonObject().get("path").getAsString()));
         Set<String> aliases = new HashSet<>(DEFINITION_FIELDS); aliases.addAll(PRODUCT_FIELDS);
         for (String name : aliases) {
-            if (paths.contains("/" + name) && !paths.contains("/fields/" + name) && !paths.contains("/fields")
+            boolean top = paths.stream().anyMatch(p -> p.equals("/" + name) || p.startsWith("/" + name + "/"));
+            boolean nested = paths.stream().anyMatch(p -> p.equals("/fields/" + name) || p.startsWith("/fields/" + name + "/"));
+            if (top && !nested && !paths.contains("/fields")
                     && values.has("fields") && values.get("fields").isJsonObject()) values.getAsJsonObject("fields").remove(name);
-            if (paths.contains("/fields/" + name) && !paths.contains("/" + name)) values.remove(name);
+            if (nested && !top) values.remove(name);
         }
         // Product adapters consume these canonical top-level keys; retain equal legacy aliases for old readers.
         JsonObject merged = merged(values);
@@ -79,6 +81,15 @@ public final class BlockFieldContract {
             if (value.isJsonNull()) {
                 if (name.equals("guiBoundTo")) continue;
                 return new Issue("FIELD_TYPE_INVALID", path, "Supply a non-null " + type.getSimpleName() + " value.");
+            }
+            if (name.equals("luminance")) {
+                var issue = GenericFieldInputContract.validate(field, value, path);
+                if (issue != null) return issue;
+                JsonElement fixed = value.isJsonObject() ? value.getAsJsonObject().get("fixedValue") : value;
+                if (fixed != null && !fixed.isJsonNull() && (!isIntegerInStorageRange(fixed, int.class)
+                        || fixed.getAsInt() < 0 || fixed.getAsInt() > 15))
+                    return new Issue("FIELD_VALUE_OUT_OF_RANGE", path + (value.isJsonObject() ? "/fixedValue" : ""),
+                            "Light level must be an integer between 0 and 15.");
             }
             if (type == boolean.class && !(value.isJsonPrimitive() && value.getAsJsonPrimitive().isBoolean())
                     || type == String.class && !(value.isJsonPrimitive() && value.getAsJsonPrimitive().isString())
@@ -202,10 +213,16 @@ public final class BlockFieldContract {
                 if (name.equals("renderType")) defaultValue = 10;
                 if (name.equals("texture")) defaultValue = "minecraft:stone";
                 if (name.equals("transparencyType")) defaultValue = "SOLID";
+                if (name.equals("luminance")) defaultValue = new net.mcreator.element.parts.procedure.NumberProcedure(null, 0);
                 field.add("default", new Gson().toJsonTree(defaultValue));
             } catch (IllegalAccessException exception) { throw new IllegalStateException(exception); }
             Numeric range = reflected.getAnnotation(Numeric.class);
             if (range != null) { field.addProperty("min", range.min()); field.addProperty("max", range.max()); }
+            if (name.equals("luminance")) {
+                field.add("inputSchema", FieldInputProjection.schema(reflected));
+                field.addProperty("min", 0); field.addProperty("max", 15);
+                field.addProperty("condition", "Fixed light levels are integers from 0 to 15.");
+            }
             LimitedOptions options = reflected.getAnnotation(LimitedOptions.class);
             if (options != null) {
                 JsonArray choices = new JsonArray();

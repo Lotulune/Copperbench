@@ -33,7 +33,7 @@ final class FieldContractProjection {
         contracts.add("code", CodeFieldContract.capabilities());
         contracts.add("procedure", ProcedureFieldContract.capabilities());
         // The compatibility table only advertises complete creation contracts.
-        for (String type : List.of("item", "recipe")) {
+        for (String type : List.of("item", "recipe", "tool", "livingentity", "specialentity")) {
             JsonObject contract = ElementFieldContract.discover(type, generatorId);
             if (contract.get("complete").getAsBoolean()) contracts.add(type, contract);
         }
