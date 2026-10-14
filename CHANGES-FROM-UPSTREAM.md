@@ -14,6 +14,9 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Dispatch Core bridge requests in order off Chromium's message-router thread, prune non-asset directories from resource listing, and reject dependency snapshots with newer workspace inputs before hashing contents or loading unusable vanilla catalogs.
+- Compare recovery points with the working tree without staging files or writing Git objects during history/health reads; stop comparing a recovery point at its first changed input.
+- Reuse desktop-compatible request IDs for preview capability and version-copy queries on JCEF origins without `crypto.randomUUID`.
 - Snapshot conditional base/global generator targets before element mutations, reject failed base generation, and disambiguate Fabric model-layer registration so failed element probes cannot poison later builds.
 - Register 26.3 exact targets behind per-operation preview negotiation; keep workspace-scoped opt-in separate from permissions, protected approval, EULA and published support.
 

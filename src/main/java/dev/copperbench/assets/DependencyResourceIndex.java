@@ -37,8 +37,9 @@ final class DependencyResourceIndex {
             String snapshotText = Files.readString(manifest);
             JsonObject snapshot = JsonParser.parseString(snapshotText).getAsJsonObject();
             if (!"available".equals(snapshot.get("state").getAsString())) return unavailable("runtime_dependency_snapshot_incomplete");
-            if (!generator.equals(snapshot.get("generator").getAsString()) || !snapshot.get("inputSha256").getAsString()
-                    .equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> Thread.currentThread().isInterrupted())))
+            if (!generator.equals(snapshot.get("generator").getAsString()) || !WorkspaceExecutionSnapshot.matchesFingerprint(
+                    root, snapshot.get("inputSha256").getAsString(), Files.getLastModifiedTime(manifest),
+                    () -> Thread.currentThread().isInterrupted()))
                 return unavailable("runtime_dependency_snapshot_stale");
             var artifacts = snapshot.getAsJsonArray("artifacts");
             if (artifacts == null || artifacts.size() > 4096) return unavailable("runtime_dependency_snapshot_invalid");

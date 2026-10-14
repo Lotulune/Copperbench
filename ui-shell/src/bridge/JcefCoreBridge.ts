@@ -161,7 +161,7 @@ export class JcefCoreBridge implements CoreBridge {
 
   public async previewVersionCopyUpgrade(workspaceId: string, targetGeneratorId: string): Promise<import('../types/contract').VersionCopyUpgradeResult> {
     const result = await this.invoke<import('../types/contract').VersionCopyUpgradeResult>({
-      messageType: 'version_copy_upgrade', requestId: crypto.randomUUID(), workspaceId,
+      messageType: 'version_copy_upgrade', requestId: safeRandomUUID(), workspaceId,
       request: { supportedVersions: ['1'], operation: 'preview', targetGeneratorId }
     });
     if (result.contract !== 'version_copy_upgrade' || result.selectedVersion !== '1')
@@ -171,7 +171,7 @@ export class JcefCoreBridge implements CoreBridge {
 
   public async versionCopyUpgradeV2(workspaceId: string, request: import('../types/contract').VersionCopyUpgradeV2Request): Promise<import('../types/contract').VersionCopyUpgradeResult> {
     const result = await this.invoke<import('../types/contract').VersionCopyUpgradeResult>({
-      messageType: 'version_copy_upgrade', requestId: crypto.randomUUID(), workspaceId,
+      messageType: 'version_copy_upgrade', requestId: safeRandomUUID(), workspaceId,
       request: { ...request, supportedVersions: ['2'] }
     });
     if (result.contract !== 'version_copy_upgrade' || result.selectedVersion !== '2')
@@ -181,7 +181,7 @@ export class JcefCoreBridge implements CoreBridge {
 
   public async sendPreview(workspaceId: string, request: import('../types/contract').PreviewRequest): Promise<import('../types/contract').PreviewResult> {
     const result = await this.invoke<import('../types/contract').PreviewResult>({
-      messageType: 'preview', requestId: crypto.randomUUID(), workspaceId, request
+      messageType: 'preview', requestId: safeRandomUUID(), workspaceId, request
     });
     if (result.contract !== 'preview_targets' || result.selectedVersion !== '1')
       throw new Error(tr("预览能力协商失败，请更新客户端。"));

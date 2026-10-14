@@ -18,7 +18,9 @@ import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.dircache.DirCacheCheckout;
+import org.eclipse.jgit.dircache.DirCacheIterator;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectInserter;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -28,6 +30,8 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
+import org.eclipse.jgit.treewalk.WorkingTreeIterator;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.IOException;
@@ -70,15 +74,43 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 	}
 
 	@Override public synchronized String currentRecoveryPointId() throws LocalHistoryException {
-		try (ObjectInserter inserter = git.getRepository().newObjectInserter()) {
+		try {
 			if (git.getRepository().resolve(Constants.HEAD) == null) return null;
-			ObjectId currentTree = currentWorkTree(inserter);
+			DirCache index = git.getRepository().readDirCache();
+			Set<ObjectId> inspected = new LinkedHashSet<>();
 			for (RevCommit commit : git.log().call()) {
-				if (commit.getTree().getId().equals(currentTree)) return commit.getName();
+				if (inspected.add(commit.getTree().getId()) && matchesWorkTree(commit, index)) return commit.getName();
 			}
 			return null;
 		} catch (Exception exception) {
 			throw new LocalHistoryException("Could not resolve the current recovery point", exception);
+		}
+	}
+
+	private boolean matchesWorkTree(RevCommit commit, DirCache index) throws IOException {
+		// Status/health queries must not stage files, acquire index.lock or insert new Git objects.
+		// Stop at the first difference instead of compressing every unrelated workspace file.
+		try (TreeWalk walk = new TreeWalk(git.getRepository())) {
+			walk.addTree(commit.getTree());
+			FileTreeIterator working = new FileTreeIterator(git.getRepository());
+			walk.addTree(working);
+			int indexTree = walk.addTree(new DirCacheIterator(index));
+			while (walk.next()) {
+				FileMode saved = walk.getFileMode(0), current = walk.getFileMode(1);
+				WorkingTreeIterator entry = walk.getTree(1, WorkingTreeIterator.class);
+				if (saved == FileMode.MISSING && (current == FileMode.MISSING
+						|| entry != null && entry.isEntryIgnored() && walk.getFileMode(indexTree) == FileMode.MISSING))
+					continue;
+				if (walk.isSubtree()) {
+					if (current != FileMode.TREE || saved != FileMode.MISSING && saved != FileMode.TREE) return false;
+					walk.enterSubtree();
+					continue;
+				}
+				// configure() disables executable-bit tracking, matching the existing add/restore behavior.
+				if ((saved.getBits() & FileMode.TYPE_MASK) != (current.getBits() & FileMode.TYPE_MASK)
+						|| !walk.idEqual(0, 1)) return false;
+			}
+			return true;
 		}
 	}
 
