@@ -30,7 +30,12 @@ export function validateHeader(auth, tag) {
       && tag === 'v0.1.4-linux-stable'
       && auth.candidateSourceCommit === 'aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f'
       && auth.candidateWorkflowRunId === '37391113672';
-    requireValue(approved013 || approved014, 'Maintenance authorization is limited to the approved 0.1.3 and 0.1.4 candidates');
+    const approved015 = auth.acceptancePolicy === 'maintenance-ci-0.1.5'
+      && tag === 'v0.1.5-linux-stable'
+      && auth.candidateSourceCommit === '7c9bc2160efe3c1bf89522c0214558a42f51969d'
+      && auth.candidateWorkflowRunId === '38568121386';
+    requireValue(approved013 || approved014 || approved015,
+      'Maintenance authorization is limited to the approved 0.1.3, 0.1.4 and 0.1.5 candidates');
     requireValue(auth.formalSupportClaim === false && auth.fullInstalledAcceptance === 'not-repeated'
       && auth.maintenanceApproval?.approved === true && auth.maintenanceApproval?.releaseTag === tag,
       'Maintenance publication requires explicit approval and an honest installed-acceptance classification');
@@ -103,6 +108,8 @@ function validateMaintenanceCi(auth, root, tag) {
     'Verify deb candidate layout', 'Freeze Linux candidate metadata',
     'Attest Linux candidate provenance', 'Upload Linux candidate artifacts'
   ];
+  if (auth.acceptancePolicy === 'maintenance-ci-0.1.5')
+    requiredSteps.push('Verify graphical installer package and render its bilingual wizard');
   for (const name of requiredSteps) requireValue(job.steps?.some(step => step.name === name
     && step.status === 'completed' && step.conclusion === 'success'), `Maintenance candidate CI step did not pass: ${name}`);
   requireValue(auth.acceptedEvidence === undefined && auth.legacyPreferencesMigration === undefined,

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.4-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:7bc4cfcea7942930a0f24084dedcd3585e7319563c06856ed50f2f55b89c9715",
+  "candidateSourceCommit": "aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f",
+  "candidateWorkflowRunId": "37391113672",
+  "debSha256": "0460c27bb26927ef8240265775b6f071a49614119043ef21c4616f285c4512d4",
+  "portableSha256": "e141762c65e2c8c309eef0be3b3c5f64f422bcd590c1158a2dda443f8ae181ae",
+  "validationReportPath": "docs/testing/product-shell-linux-release-0.1.4.md",
+  "validationReportSha256": "636cc08eb6eb417d7c3ea375e833b5d5f7b216630905535bed80bfe73ddbaa1e",
+  "acceptancePolicy": "maintenance-ci-0.1.4",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.4-linux-stable",
+    "date": "2026-10-06",
+    "scope": "Owner explicitly approved publishing this Linux 0.1.4 candidate using its passed CI without repeating full installed acceptance; retain signatures, provenance, hashes and draft download verification."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-10-06/linux-014/candidate-run.json",
+      "sha256": "e2ea44c39a9481ac4e7fcc5e72425a6e623fc69725c2bb59f55345cebd5143f6"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-10-06/linux-014/candidate-jobs.json",
+      "sha256": "a2e0d655e92b5bfd31e41d6a64d65fad39f49464752da908b8ccbbeac9c7ec52"
+    }
+  }
+}
