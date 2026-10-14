@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,35 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.4",
-      "linuxTag": "v0.1.4-linux-stable",
-      "status": "public-stable",
-      "linuxStatus": "public-stable",
+      "tag": "v0.1.5",
+      "linuxTag": "v0.1.5-linux-stable",
+      "status": "ready",
+      "linuxStatus": "candidate-pending",
       "decision": "approved",
-      "decisionDate": "2026-10-06",
-      "scope": "Windows 11 x64 and Linux x86_64 0.1.4 Product Shell releases are public. Linux exact-candidate publication is recorded under linuxMaintenanceRelease.",
-      "sourcePolicy": "Signed latest-main Windows tag and existing protected packaging workflow. Historical stable gates and snapshot retain their original source and binary scope; they are not fresh 0.1.4 installed or gameplay acceptance.",
-      "developmentEvidence": "docs/testing/product-shell-release-0.1.4.md",
-      "integrationReport": "docs/testing/product-shell-release-0.1.4.md",
-      "releaseCommit": "aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f",
-      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4",
-      "publishedAt": "2026-10-06T00:35:06Z",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/37392359625",
-      "releaseWorkflowConclusion": "success",
-      "assetProof": "evidence/maintenance/2026-10-06/publication-0.1.4/windows-public-verification.json",
-      "sourceVerification": {
-        "sourceCommit": "aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f",
-        "requiredCi": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/37391113372"
-        },
-        "documentation": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/37391168449"
-        },
-        "installedPackageAcceptance": "not-repeated",
-        "fullGameplayAcceptance": "not-repeated"
-      }
+      "decisionDate": "2026-10-14",
+      "scope": "Owner requested integration, push and new Windows/Linux installer publication for the bug fixes, first-success improvements and bilingual offline installer.",
+      "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.5.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.5.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-14/publication-0.1.5/previous-release-state.json"
     },
     "linuxMaintenanceRelease": {
       "tag": "v0.1.4-linux-stable",
@@ -134,12 +116,12 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352304576"
     },
     "releaseContract": {
-      "tag": "v0.1.4",
-      "purpose": "product-shell-release",
-      "sourcePolicy": "Windows is built from its signed release commit. Linux promotes the unchanged candidate from the same product source under its separately signed tag and owner-approved CI acceptance scope.",
+      "tag": "v0.1.5",
+      "purpose": "first-success-maintenance-release",
+      "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.4"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.5"
     },
     "betaRelease": {
       "historical": true,
