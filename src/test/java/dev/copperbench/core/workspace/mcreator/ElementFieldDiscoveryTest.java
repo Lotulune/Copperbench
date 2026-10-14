@@ -53,7 +53,8 @@ class ElementFieldDiscoveryTest {
                 contracts.put(type, contract);
                 Set<String> paths = new HashSet<>();
                 contract.getAsJsonArray("fields").forEach(f -> paths.add(f.getAsJsonObject().get("path").getAsString()));
-                for (String name : ElementMappingSupport.fields(type)) assertTrue(paths.contains("/" + name), name);
+                for (String name : ElementMappingSupport.fields(type))
+                    if (PreviewElementFields.writable(generator, type, name)) assertTrue(paths.contains("/" + name), name);
                 Path evidence = Path.of("build/reports/m1-discovery", generator + "-" + type + ".json");
                 Files.createDirectories(evidence.getParent()); Files.writeString(evidence, UiCore.wireGson().toJson(observed));
             }

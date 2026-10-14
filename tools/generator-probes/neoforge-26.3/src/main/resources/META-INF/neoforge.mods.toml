@@ -1,0 +1,22 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="GPL-3.0-or-later"
+
+[[mods]]
+modId="copperbench_environment_probe"
+version="1.0.0"
+displayName="Copperbench Environment Probe"
+
+[[dependencies.copperbench_environment_probe]]
+modId="neoforge"
+type="required"
+versionRange="[26.3.0.76]"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.copperbench_environment_probe]]
+modId="minecraft"
+type="required"
+versionRange="[26.3]"
+ordering="NONE"
+side="BOTH"

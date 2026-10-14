@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1",
+  "taskId": "33333333-3333-4333-8333-333333333333",
+  "evidenceScope": "required_cases",
+  "inputScope": "unverified",
+  "required": 6,
+  "minimumTests": 6,
+  "uniqueExecuted": 6,
+  "shortfall": 0,
+  "duplicates": [],
+  "missingCases": [
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t12"
+    }
+  ],
+  "state": "required_cases_missing",
+  "reasonCode": "GAMETEST_REQUIRED_CASES_MISSING"
+}

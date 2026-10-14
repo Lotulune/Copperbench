@@ -40,6 +40,7 @@ final class MCreatorGenerationPreparation {
     static boolean needsDependencies(Workspace workspace) {
         if (workspace.getGenerator() == null || dev.copperbench.tracks.VersionTrackCatalog.official()
                 .findGenerator(workspace.getWorkspaceSettings().getCurrentGenerator()).isEmpty()) return false;
+        if (!workspace.getGeneratorConfiguration().requiresMinecraftSourceIndex()) return false;
         Path root = workspace.getWorkspaceFolder().toPath();
         if (!Files.isRegularFile(root.resolve("build.gradle")) || !Files.isRegularFile(root.resolve("gradle/wrapper/gradle-wrapper.jar"))) return false;
         var cache = workspace.getGenerator().getGradleCache();

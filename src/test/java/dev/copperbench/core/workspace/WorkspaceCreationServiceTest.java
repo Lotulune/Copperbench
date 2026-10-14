@@ -46,15 +46,42 @@ class WorkspaceCreationServiceTest {
 		assertTrue(WorkspaceCreationService.failureDetail(new RuntimeException("x".repeat(9000))).length() <= 4001);
 	}
 
+	@Test @org.junit.jupiter.api.condition.EnabledOnOs(org.junit.jupiter.api.condition.OS.WINDOWS)
+	void failedCreationCleanupRemovesReadOnlyGitObjectsAndPreservesOutsideFiles() throws Exception {
+		Path outside = temporaryFolder.resolve("outside.txt");
+		Files.writeString(outside, "outside workspace");
+		var outsideAttributes = Files.getFileAttributeView(outside, java.nio.file.attribute.DosFileAttributeView.class);
+		outsideAttributes.setReadOnly(true);
+		try {
+			for (boolean preserve : List.of(false, true)) {
+				Path workspace = temporaryFolder.resolve("failed-" + preserve);
+				Path gitObject = workspace.resolve(".mcreator/localHistory/objects/ab/cdef");
+				Files.createDirectories(gitObject.getParent());
+				Files.writeString(gitObject, "created history object");
+				Files.getFileAttributeView(gitObject, java.nio.file.attribute.DosFileAttributeView.class).setReadOnly(true);
+				Files.writeString(workspace.resolve("build.gradle"), "created build file");
+				WorkspaceCreationService.cleanupPartialWorkspace(workspace, preserve);
+				assertEquals(preserve, Files.exists(workspace));
+				if (preserve) {
+					try (var children = Files.list(workspace)) { assertEquals(0, children.count()); }
+				}
+				assertEquals("outside workspace", Files.readString(outside));
+				assertTrue(outsideAttributes.readAttributes().isReadOnly());
+			}
+		} finally {
+			outsideAttributes.setReadOnly(false);
+		}
+	}
+
 	private final WorkspaceCreationService service = new WorkspaceCreationService();
 
 	@BeforeAll static void initializeUpstreamRuntimeForPersistenceTest() throws Exception {
 		McreatorTestRuntime.ensureInitialized();
 	}
 
-	@Test void listGeneratorsCoversAllFourTracksAndBothLoaders() {
+	@Test void legacyCreationCatalogListsExecutableDisplayTargetsOnly() {
 		List<JsonObject> generators = service.listGenerators();
-		assertEquals(9, generators.size());
+		assertEquals(7, generators.size());
 		for (JsonObject generator : generators) {
 			assertNotNull(generator.get("generatorId").getAsString());
 			assertNotNull(generator.get("loader").getAsString());
@@ -64,8 +91,7 @@ class WorkspaceCreationServiceTest {
 			assertNotNull(generator.get("workspaceGeneratorName").getAsString());
 		}
 		// 每个轨道 × 加载器组合都出现在目录里
-		for (String expected : new String[] { "fabric-26.2", "neoforge-26.2", "fabric-26.1.2",
-				"neoforge-26.1.2", "fabric-1.21.1", "neoforge-1.21.1", "fabric-1.20.1", "neoforge-1.20.1" })
+		for (String expected : new String[] { "fabric-26.2", "neoforge-26.2", "fabric-1.21.1", "neoforge-1.21.1", "fabric-1.20.1", "neoforge-1.20.1" })
 			assertTrue(generators.stream().anyMatch(g -> expected.equals(g.get("generatorId").getAsString())),
 					"Missing generator " + expected);
 		JsonObject resourcePack = generators.stream()
@@ -77,7 +103,7 @@ class WorkspaceCreationServiceTest {
 	@Test void projectionExposesSuggestedWorkspaceFoldersRoot() {
 		JsonObject projection = service.toProjection();
 		assertEquals("1.0", projection.get("schemaVersion").getAsString());
-		assertEquals(9, projection.getAsJsonArray("generators").size());
+		assertEquals(7, projection.getAsJsonArray("generators").size());
 		assertTrue(projection.get("suggestedWorkspaceFoldersRoot").getAsString().contains("MCreatorWorkspaces"));
 	}
 

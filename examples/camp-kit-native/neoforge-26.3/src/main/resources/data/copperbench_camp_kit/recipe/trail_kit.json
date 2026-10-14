@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["S", "T"],
+  "key": {"S": "minecraft:stick", "T": "minecraft:string"},
+  "result": {"id": "copperbench_camp_kit:trail_kit", "count": 2}
+}

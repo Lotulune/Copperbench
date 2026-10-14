@@ -173,6 +173,8 @@ public final class BlockFieldContract {
     }
 
     public static JsonObject capabilities(String generatorId) {
+        if (dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generatorId))
+            return previewCapabilities(generatorId);
         JsonObject result = new JsonObject();
         result.addProperty("contractVersion", 1);
         result.addProperty("generatorId", generatorId);
@@ -218,6 +220,54 @@ public final class BlockFieldContract {
             fields.add(field);
         }
         result.add("fields", fields);
+        return result;
+    }
+
+    private static JsonObject previewCapabilities(String generatorId) {
+        Set<String> scope = dev.copperbench.tracks.PreviewCapabilityCatalog.official().fields(generatorId, "block");
+        JsonObject result = new JsonObject();
+        result.addProperty("contractVersion", 1); result.addProperty("generatorId", generatorId);
+        result.addProperty("supported", !scope.isEmpty()); result.addProperty("unknownFields", "preserve_read_only");
+        result.addProperty("internalNamePattern", "^[a-z][a-z0-9_]{0,63}$");
+        if (scope.isEmpty()) result.addProperty("reason", "This target has no verified structured block fields.");
+        JsonArray fields = new JsonArray();
+        Block defaults = StructuredElementDefaults.block(null, null, "");
+        for (String name : scope.stream().sorted().toList()) {
+            JsonObject descriptor = new JsonObject();
+            descriptor.addProperty("name", name); descriptor.addProperty("path", "/" + name);
+            descriptor.addProperty("compatibilityPath", "/fields/" + name);
+            descriptor.addProperty("writable", !name.equals("name"));
+            if (PRODUCT_FIELDS.contains(name)) {
+                descriptor.addProperty("type", "String"); descriptor.add("inputSchema", FieldInputProjection.typed("string"));
+                if (name.equals("description")) descriptor.addProperty("default", "");
+                else descriptor.addProperty("defaultFrom", name.equals("name") ? "payload.name" : "readable_payload_name");
+            } else {
+                Field reflected = field(name);
+                descriptor.addProperty("type", reflected.getType().getSimpleName());
+                JsonObject schema = PreviewElementFields.inputSchema(generatorId, reflected); descriptor.add("inputSchema", schema);
+                try { descriptor.add("default", ElementFieldCodec.gson().toJsonTree(reflected.get(defaults), reflected.getGenericType())); }
+                catch (IllegalAccessException error) { throw new IllegalStateException(error); }
+                Numeric range = reflected.getAnnotation(Numeric.class);
+                if (range != null) { descriptor.addProperty("min", range.min()); descriptor.addProperty("max", range.max()); }
+                LimitedOptions options = reflected.getAnnotation(LimitedOptions.class);
+                if (options != null) {
+                    JsonArray choices = new JsonArray();
+                    for (int index = 0; index < options.value().length; index++) {
+                        JsonElement value = reflected.getType() == int.class ? new JsonPrimitive(index) : new JsonPrimitive(options.value()[index]);
+                        if (schema.has("enum") && !schema.getAsJsonArray("enum").asList().contains(value)) continue;
+                        JsonObject choice = new JsonObject(); choice.add("value", value);
+                        choice.addProperty("label", options.value()[index]); choices.add(choice);
+                    }
+                    descriptor.add("options", choices);
+                }
+            }
+            fields.add(descriptor);
+        }
+        result.add("fields", fields);
+        if (!scope.isEmpty()) result.add("minimalExample", JsonParser.parseString("""
+                {"elementType":"block","name":"camp_post","initialValues":{"texture":"minecraft:oak_log",
+                "hardness":3,"resistance":6,"rotationMode":5,"maxStackSize":16,"rarity":"UNCOMMON"}}
+                """));
         return result;
     }
 }

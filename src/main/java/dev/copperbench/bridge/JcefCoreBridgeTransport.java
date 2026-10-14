@@ -200,7 +200,7 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 		if (!envelope.has("messageType") || !envelope.get("messageType").isJsonPrimitive())
 			return;
 		String messageType = envelope.get("messageType").getAsString();
-		if (!"command".equals(messageType) && !"query".equals(messageType))
+		if (!"command".equals(messageType) && !"query".equals(messageType) && !"acceptance".equals(messageType) && !"preview".equals(messageType) && !"version_copy_upgrade".equals(messageType))
 			return;
 		if (!envelope.has("workspaceId") || !envelope.get("workspaceId").isJsonPrimitive())
 			throw new IllegalArgumentException("Missing bridge property: workspaceId");

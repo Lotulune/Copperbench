@@ -72,6 +72,9 @@ public final class NativeApiSession {
             id = request.get("id").getAsString();
             UUID requestId = UUID.fromString(id);
             String name = request.get("operation").getAsString();
+            if (request.has("schemaVersion") && !"query".equals(request.get("kind").getAsString())
+                    && !UiCore.SCHEMA_VERSION.equals(request.get("schemaVersion").getAsString()))
+                throw new IllegalArgumentException("Schema 1.1 is available only for editor queries");
             if ("handshake".equals(request.get("kind").getAsString())) {
                 JsonObject payload = request.getAsJsonObject("payload").deepCopy();
                 payload.addProperty("requestId", id);
@@ -89,6 +92,18 @@ public final class NativeApiSession {
                 response.add("result", context.dispatch(name, request.getAsJsonObject("payload")));
                 return response;
             }
+            if (java.util.Set.of("acceptance", "preview", "version_copy_upgrade").contains(request.get("kind").getAsString())) {
+                JsonObject extension = request.getAsJsonObject("payload").deepCopy();
+                extension.addProperty("operation", name);
+                JsonObject response = new JsonObject();
+                response.addProperty("id", id);
+                response.add("result", switch (request.get("kind").getAsString()) {
+                    case "preview" -> adapter.preview(requestId, workspaceId, extension);
+                    case "version_copy_upgrade" -> adapter.versionCopyUpgrade(requestId, workspaceId, extension);
+                    default -> adapter.acceptance(requestId, workspaceId, extension);
+                });
+                return response;
+            }
             Operation operation = UiCore.wireGson().fromJson(request.get("operation"), Operation.class);
             if (operation == null) throw new IllegalArgumentException("Unknown operation: " + name);
             JsonObject payload = request.has("payload") ? request.getAsJsonObject("payload").deepCopy() : new JsonObject();
@@ -96,7 +111,8 @@ public final class NativeApiSession {
             response.addProperty("id", id);
             switch (request.get("kind").getAsString()) {
                 case "query" -> response.add("result", UiCore.wireGson().toJsonTree(
-                        adapter.query(Query.of(requestId, workspaceId, operation, payload))));
+                        adapter.query(new Query("query", request.has("schemaVersion") ? request.get("schemaVersion").getAsString() : UiCore.SCHEMA_VERSION,
+                                requestId, workspaceId, operation, payload))));
                 case "command" -> {
                     long revision = request.get("expectedRevision").getAsBigDecimal().longValueExact();
                     if (!payload.has("clientMutationId")) payload.addProperty("clientMutationId", id);

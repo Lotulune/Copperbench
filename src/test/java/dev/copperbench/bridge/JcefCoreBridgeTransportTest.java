@@ -226,6 +226,22 @@ class JcefCoreBridgeTransportTest {
 		assertTrue(callback.failureMessage.contains("different workspace"));
 	}
 
+	@Test void acceptanceExtensionUsesTheSameWorkspaceBoundary() {
+		for (String target : List.of(WORKSPACE_ID.toString(), "22222222-2222-4222-8222-222222222222")) {
+			JsonObject envelope = new JsonObject();
+			envelope.addProperty("messageType", "acceptance");
+			envelope.addProperty("requestId", idSupplier.get().toString());
+			envelope.addProperty("workspaceId", target);
+			envelope.add("request", JsonParser.parseString("{\"supportedVersions\":[\"1\"],\"operation\":\"catalog\"}"));
+			TestQueryCallback callback = new TestQueryCallback();
+			assertTrue(transport.onQuery(null, null, 1, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, callback));
+			callback.await();
+			if (target.equals(WORKSPACE_ID.toString()))
+				assertEquals("1", JsonParser.parseString(callback.successResponse).getAsJsonObject().get("selectedVersion").getAsString());
+			else assertEquals(400, callback.failureCode);
+		}
+	}
+
 	@Test
 	void rejectsQueriesWhenTransportIsClosed() {
 		transport.close();
@@ -296,6 +312,35 @@ class JcefCoreBridgeTransportTest {
 		String escaped = JcefCoreBridgeTransport.generateBootstrapScript(WORKSPACE_ID, "bridge:'\\line:");
 		assertTrue(escaped.contains("window.__COPPERBENCH_QUERY_PREFIX__ = \"bridge:"));
 		assertFalse(escaped.contains("window.__COPPERBENCH_QUERY_PREFIX__ = 'bridge:"));
+	}
+
+	@Test void previewExtensionRetainsWorkspaceBinding() {
+		JsonObject envelope = new JsonObject(); envelope.addProperty("messageType", "preview");
+		envelope.addProperty("workspaceId", WORKSPACE_ID.toString()); envelope.addProperty("requestId", UUID.randomUUID().toString());
+		envelope.add("request", JsonParser.parseString("{\"operation\":\"catalog\",\"supportedVersions\":[\"1\"]}"));
+		TestQueryCallback matching = new TestQueryCallback();
+		transport.onQuery(null, null, 1, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, matching);
+		matching.await();
+		assertNotNull(matching.successResponse);
+		assertEquals(10, JsonParser.parseString(matching.successResponse).getAsJsonObject().getAsJsonArray("targets").size());
+		envelope.addProperty("workspaceId", UUID.randomUUID().toString());
+		TestQueryCallback wrong = new TestQueryCallback();
+		transport.onQuery(null, null, 2, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, wrong);
+		assertNull(wrong.successResponse); assertEquals(400, wrong.failureCode);
+	}
+
+	@Test void versionCopyUpgradeExtensionCannotReadAnotherWorkspace() {
+		JsonObject envelope = new JsonObject(); envelope.addProperty("messageType", "version_copy_upgrade");
+		envelope.addProperty("workspaceId", WORKSPACE_ID.toString()); envelope.addProperty("requestId", UUID.randomUUID().toString());
+		envelope.add("request", JsonParser.parseString("{\"operation\":\"negotiate\",\"supportedVersions\":[\"1\"]}"));
+		TestQueryCallback matching = new TestQueryCallback();
+		transport.onQuery(null, null, 1, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, matching);
+		matching.await();
+		assertNotNull(matching.successResponse); assertTrue(matching.successResponse.contains("version_copy_upgrade"));
+		envelope.addProperty("workspaceId", UUID.randomUUID().toString());
+		TestQueryCallback wrong = new TestQueryCallback();
+		transport.onQuery(null, null, 2, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, wrong);
+		assertNull(wrong.successResponse); assertEquals(400, wrong.failureCode);
 	}
 
 	private static WorkspaceState sampleWorkspace() {

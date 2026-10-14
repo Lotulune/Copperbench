@@ -29,6 +29,53 @@ function toolResult(payload, metadata = {}) {
   return { content: [{ type: 'text', text: JSON.stringify(payload) }], ...metadata };
 }
 
+test('editor schema is selected explicitly and cannot silently downgrade', async () => {
+  const sent = [];
+  let downgrade = false;
+  const sdk = client(async (_, request) => {
+    const args = JSON.parse(request.body).params.arguments; sent.push(args);
+    return reply(request, toolResult({ status: 'succeeded', schemaVersion: downgrade ? '1.0' : args.schemaVersion }));
+  });
+  assert.equal((await sdk.readModElement('element')).schemaVersion, '1.1');
+  assert.equal((await sdk.readModElement('element', '1.0')).schemaVersion, '1.0');
+  assert.deepEqual(sent.map(a => a.schemaVersion), ['1.1', '1.0']);
+  downgrade = true;
+  await assert.rejects(sdk.readModElement('element'), e => e.code === 'MCP_TOOL_RESULT_INVALID');
+});
+
+test('required-case mutations negotiate a separate version and carry nested authority without retries', async () => {
+  const sent = [];
+  const sdk = client(async (_, request) => {
+    sent.push(JSON.parse(request.body));
+    return reply(request, toolResult({ status: 'accepted', contract: 'required_cases', selectedVersion: '1' }));
+  }, { taskAuthorizationId: 'authority' });
+  const manifest = { sha256: 'a'.repeat(64), cases: [{ className: '原始', name: 'raw#identity' }] };
+  await sdk.acceptance('run', { requiredCases: manifest }, 7);
+  assert.deepEqual(sent[0].params.arguments, { operation: 'run', supportedVersions: ['1'], expectedRevision: 7,
+    payload: { requiredCases: manifest, taskAuthorizationId: 'authority' } });
+  await sdk.acceptance('export', { verifiedTaskId: 'task' }, 7);
+  assert.equal('taskAuthorizationId' in sent[1].params.arguments.payload, false);
+  assert.equal(sent.length, 2);
+  let attempts = 0;
+  const broken = client(async () => { attempts++; throw new TypeError('fetch failed'); });
+  await assert.rejects(() => broken.acceptance('run', { requiredCases: manifest }, 7));
+  assert.equal(attempts, 1);
+});
+
+test('diagnostic reads preserve machine parameters and never attach mutation authority', async () => {
+  const sent = [];
+  const summary = { schemaVersion: '1', required: 6, uniqueExecuted: 5, shortfall: 1,
+    duplicates: [], missingCases: [{ className: '', name: 'camp:t12' }] };
+  const sdk = client(async (_, request) => {
+    sent.push(JSON.parse(request.body));
+    return reply(request, toolResult({ status: 'succeeded', contract: 'required_cases', selectedVersion: '1', coverageDiagnostics: summary }));
+  }, { taskAuthorizationId: 'authority' });
+  assert.deepEqual(await sdk.getAcceptanceDiagnostics('task'), summary);
+  assert.deepEqual(sent[0].params.arguments, { operation: 'get', supportedVersions: ['1'], diagnosticVersions: ['1'], payload: { taskId: 'task' } });
+  summary.schemaVersion = '99';
+  await assert.rejects(() => sdk.getAcceptanceDiagnostics('task'), error => error.code === 'INVALID_RESPONSE');
+});
+
 test('generation preview preserves unknown and conflict observations as read results', async () => {
   for (const status of ['ready', 'conflicted', 'unknown']) {
     const sent = [];
@@ -283,4 +330,59 @@ test('plain MCP input-validation errors preserve their reason and raw result wit
     });
     assert.equal(calls, 1);
   }
+});
+
+test('preview selection binds the exact target without changing authority and is never retried', async () => {
+  const sent = [];
+  const sdk = client(async (_, request) => {
+    sent.push(JSON.parse(request.body));
+    return reply(request, toolResult({ status: 'succeeded', contract: 'preview_targets', selectedVersion: '1' }));
+  }, { taskAuthorizationId: 'authority' });
+  await sdk.preview('opt_in', { generatorId: 'fabric-26.3', expectedRevision: 3, workspaceFolderPath: 'D:/new-target' });
+  assert.deepEqual(sent[0].params.arguments, { operation: 'opt_in', generatorId: 'fabric-26.3',
+    expectedRevision: 3, workspaceFolderPath: 'D:/new-target', supportedVersions: ['1'] });
+  await sdk.preview('command', { generatorId: 'fabric-26.3', expectedRevision: 3, command: 'build_workspace' });
+  assert.deepEqual(sent[1].params.arguments.payload, { taskAuthorizationId: 'authority' });
+  await sdk.preview('command', { generatorId: 'fabric-26.3', expectedRevision: 3,
+    command: 'update_workspace_file', payload: { relativePath: 'src/main/java/Manual.java' } });
+  assert.equal(sent[2].params.arguments.payload.taskAuthorizationId, 'authority');
+  await sdk.preview('command', { generatorId: 'fabric-26.3', expectedRevision: 3,
+    command: 'cancel_task', payload: { taskId: 'example' } });
+  assert.deepEqual(sent[3].params.arguments.payload, { taskId: 'example' });
+  let attempts = 0;
+  const broken = client(async () => { attempts++; throw new TypeError('lost response'); });
+  await assert.rejects(() => broken.preview('revoke', { generatorId: 'fabric-26.3', expectedRevision: 3 }));
+  assert.equal(attempts, 1);
+});
+
+
+test('version copy upgrade preserves target without mutation authority or retries', async () => {
+  const sent = [];
+  const sdk = client(async (_, request) => {
+    sent.push(JSON.parse(request.body));
+    return reply(request, toolResult({ status: 'succeeded', contract: 'version_copy_upgrade', selectedVersion: '1' }));
+  }, { taskAuthorizationId: 'authority' });
+  await sdk.versionCopyUpgrade('preview', 'fabric-26.3');
+  assert.equal(sent[0].params.name, 'version_copy_upgrade');
+  assert.deepEqual(sent[0].params.arguments, { operation: 'preview', targetGeneratorId: 'fabric-26.3', supportedVersions: ['1'] });
+  await assert.rejects(() => sdk.versionCopyUpgrade('preview', 'fabric-26.3', ['99']), error => error.code === 'INVALID_RESPONSE');
+  let attempts = 0;
+  const broken = client(async () => { attempts++; throw new TypeError('lost response'); });
+  await assert.rejects(() => broken.versionCopyUpgrade('preview', 'fabric-26.3'));
+  assert.equal(attempts, 1);
+});
+
+test('version 2 execution binds exact plan and target authority without retrying', async () => {
+  const sent = [];
+  const sdk = client(async (_, request) => {
+    sent.push(JSON.parse(request.body));
+    return reply(request, toolResult({ status: 'succeeded', contract: 'version_copy_upgrade', selectedVersion: '2' }));
+  });
+  const options = { outputName: 'new-copy', planId: 'a'.repeat(64), expectedRevision: 7, taskAuthorizationId: 'grant' };
+  await sdk.versionCopyUpgrade('execute', 'fabric-26.3', ['2'], options);
+  assert.deepEqual(sent[0].params.arguments, { operation: 'execute', targetGeneratorId: 'fabric-26.3', supportedVersions: ['2'], ...options });
+  let attempts = 0;
+  const broken = client(async () => { attempts++; throw new TypeError('lost response'); });
+  await assert.rejects(() => broken.versionCopyUpgrade('execute', 'fabric-26.3', ['2'], options));
+  assert.equal(attempts, 1);
 });

@@ -1,0 +1,965 @@
+{
+  "contract": "version_copy_upgrade",
+  "schemaVersion": "1",
+  "requestId": "cff520b6-35fc-4285-98bd-b17db3737203",
+  "workspaceId": "b8dcdc27-f266-4da4-b920-21611b65f853",
+  "diagnostics": [],
+  "selectedVersion": "1",
+  "revision": 2,
+  "status": "succeeded",
+  "plan": {
+    "ruleVersion": "26.2-to-26.3-preview-v1",
+    "sourceWorkspaceId": "b8dcdc27-f266-4da4-b920-21611b65f853",
+    "sourceRevision": 2,
+    "sourceGeneratorId": "fabric-26.2",
+    "targetGeneratorId": "fabric-26.3",
+    "sourceFingerprint": "b31b638d339d3814e468560b6f5ebe63308de00cfb1bc9968f646cd1da79be31",
+    "copyOnly": true,
+    "executionAvailable": false,
+    "worldPolicy": "excluded_requires_separate_authorization",
+    "recovery": "continue_using_unchanged_source",
+    "sourceUnchanged": true,
+    "entries": [
+      {
+        "path": "/workspace/metadata",
+        "sourceValue": {
+          "variable_elements": [],
+          "sound_elements": [],
+          "tag_elements": {},
+          "tab_element_order": {},
+          "language_map": {
+            "en_us": {}
+          },
+          "foldersRoot": {
+            "name": "~",
+            "children": []
+          },
+          "mcreatorVersion": 202600299999,
+          "dev.copperbench": {
+            "schemaVersion": 1,
+            "workspaceId": "b8dcdc27-f266-4da4-b920-21611b65f853",
+            "revision": 2
+          },
+          "metadata": {
+            "files": [
+              "src/main/java/net/mcreator/upgrade_source/mixin/RepairItemRecipeMixin.java",
+              "src/main/java/net/mcreator/upgrade_source/mixin/ServerPlayerMixin.java",
+              "src/main/java/net/mcreator/upgrade_source/init/UpgradeSourceModItems.java",
+              "src/main/java/net/mcreator/upgrade_source/event/MiscEvents.java",
+              "src/main/java/net/mcreator/upgrade_source/event/ItemEvents.java",
+              "src/main/java/net/mcreator/upgrade_source/mixin/PlayerMixin.java",
+              "src/main/java/net/mcreator/upgrade_source/mixin/CommandsMixin.java",
+              "src/main/resources/fabric.mod.json",
+              "src/main/java/net/mcreator/upgrade_source/UpgradeSourceModClient.java",
+              "src/main/java/net/mcreator/upgrade_source/mixin/ExperienceOrbMixin.java",
+              "src/main/resources/META-INF/upgrade_source.classtweaker",
+              "src/main/java/net/mcreator/upgrade_source/mixin/BlockItemMixin.java",
+              "src/main/java/net/mcreator/upgrade_source/event/PlayerEvents.java",
+              "src/main/java/net/mcreator/upgrade_source/mixin/LivingEntityMixin.java",
+              "src/main/java/net/mcreator/upgrade_source/UpgradeSourceMod.java",
+              "src/main/java/net/mcreator/upgrade_source/event/LivingEntityEvents.java",
+              "src/main/java/net/mcreator/upgrade_source/mixin/ItemStackMixin.java",
+              "src/main/resources/pack.mcmeta",
+              "src/main/java/net/mcreator/upgrade_source/mixin/BoneMealItemMixin.java",
+              "src/main/java/net/mcreator/upgrade_source/event/BlockEvents.java",
+              "src/main/resources/upgrade_source.mixins.json"
+            ]
+          }
+        },
+        "disposition": "manual",
+        "reasonCode": "UNKNOWN_METADATA_PRESERVED",
+        "targetMeaning": "Preserve workspace metadata and unknown fields without interpreting plugin behavior.",
+        "recovery": "Recover the exact metadata from the original workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/generator",
+        "sourceValue": "fabric-26.2",
+        "disposition": "convertible",
+        "reasonCode": "EXACT_TARGET_SELECTED",
+        "targetMeaning": "Use fabric-26.3 only in a new workspace; generated code requires proven conversion rules.",
+        "recovery": "Reopen the original fabric-26.2 workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/workspace/settings/dependants",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.dependants for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/dependencies",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.dependencies for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/mcreatorDependencies",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.mcreatorDependencies for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/modName",
+        "sourceValue": "Upgrade Source",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.modName for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/modid",
+        "sourceValue": "upgrade_source",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.modid for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/requiredMods",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.requiredMods for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/serverSideOnly",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.serverSideOnly for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/workspace/settings/version",
+        "sourceValue": "1.0.0",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review workspace.version for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/identity",
+        "sourceValue": {
+          "internalName": "trail_kit",
+          "registryName": "trail_kit",
+          "source": "generator_definition",
+          "namespace": "upgrade_source",
+          "resourceId": "upgrade_source:trail_kit",
+          "id": "38fdff39-9fdc-4671-9339-e976c1f52168",
+          "ownership": "generated"
+        },
+        "disposition": "convertible",
+        "reasonCode": "IDENTITY_PRESERVED",
+        "targetMeaning": "Keep internalName, registryName, element UUID and source ownership unchanged.",
+        "recovery": "Continue using the source element.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/animation",
+        "sourceValue": "eat",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.animation for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/animations",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.animations for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/attackSpeed",
+        "sourceValue": 1.6,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.attackSpeed for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/attributeModifiers",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.attributeModifiers for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/compostingLayers",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.compostingLayers for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/creativeTabs",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.creativeTabs for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/customModelName",
+        "sourceValue": "Normal",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.customModelName for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/customProperties",
+        "sourceValue": {},
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.customProperties for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/damageCount",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.damageCount for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/damageOnCrafting",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.damageOnCrafting for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/damageVsEntity",
+        "sourceValue": 0.0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.damageVsEntity for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/destroyAnyBlock",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.destroyAnyBlock for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/enableMeleeDamage",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.enableMeleeDamage for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/enableRanged",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.enableRanged for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/enchantability",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.enchantability for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/fuelBurnTime",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.fuelBurnTime for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/guiBoundTo",
+        "sourceValue": "",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.guiBoundTo for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/immuneToFire",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.immuneToFire for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/inventorySize",
+        "sourceValue": 9,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.inventorySize for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/inventoryStackSize",
+        "sourceValue": 99,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.inventoryStackSize for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/isAlwaysEdible",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.isAlwaysEdible for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/isFood",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.isFood for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/isMeat",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.isMeat for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/isMusicDisc",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.isMusicDisc for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/isPiglinCurrency",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.isPiglinCurrency for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/musicDiscAnalogOutput",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.musicDiscAnalogOutput for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/musicDiscDescription",
+        "sourceValue": "",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.musicDiscDescription for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/musicDiscLengthInTicks",
+        "sourceValue": 100,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.musicDiscLengthInTicks for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/name",
+        "sourceValue": "Trail Kit",
+        "disposition": "convertible",
+        "reasonCode": "METADATA_PRESERVED",
+        "targetMeaning": "Preserve this creator metadata value unchanged.",
+        "recovery": "Recover the exact original value from the source.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/nutritionalValue",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.nutritionalValue for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/projectileDisableAmmoCheck",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.projectileDisableAmmoCheck for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/providedBannerPatterns",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.providedBannerPatterns for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/rangedItemChargesPower",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.rangedItemChargesPower for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/rarity",
+        "sourceValue": "COMMON",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.rarity for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/renderType",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.renderType for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/repairItems",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.repairItems for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/saturation",
+        "sourceValue": 0.30000001192092896,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.saturation for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/shootConstantly",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.shootConstantly for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/stackSize",
+        "sourceValue": 16,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.stackSize for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/states",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.states for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/stayInGridWhenCrafting",
+        "sourceValue": false,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.stayInGridWhenCrafting for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/texture",
+        "sourceValue": "minecraft:barrier",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.texture for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/toolType",
+        "sourceValue": 1.0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.toolType for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/unknownUpgradeField",
+        "sourceValue": "retain-exactly",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.unknownUpgradeField for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/fields/useDuration",
+        "sourceValue": 0,
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review item.useDuration for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/38fdff39-9fdc-4671-9339-e976c1f52168/definitionEnvelope",
+        "sourceValue": {
+          "_fv": 89,
+          "plugin.example": {
+            "future": [
+              1,
+              "中文"
+            ]
+          }
+        },
+        "disposition": "manual",
+        "reasonCode": "UNKNOWN_METADATA_PRESERVED",
+        "targetMeaning": "Preserve these raw metadata fields without interpretation; review any plugin behavior before execution.",
+        "recovery": "Recover the exact values from the source definition.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/identity",
+        "sourceValue": {
+          "internalName": "manual_probe",
+          "registryName": "manual_probe",
+          "source": "generator_definition",
+          "id": "5b6a14e9-6348-40af-9ca9-9435730dec8a",
+          "ownership": "manual"
+        },
+        "disposition": "convertible",
+        "reasonCode": "IDENTITY_PRESERVED",
+        "targetMeaning": "Keep internalName, registryName, element UUID and source ownership unchanged.",
+        "recovery": "Continue using the source element.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/fields/code",
+        "sourceValue": "// External manual source 中文\r\n",
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review code.code for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/fields/codeFiles",
+        "sourceValue": [],
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review code.codeFiles for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/fields/description",
+        "sourceValue": "",
+        "disposition": "convertible",
+        "reasonCode": "METADATA_PRESERVED",
+        "targetMeaning": "Preserve this creator metadata value unchanged.",
+        "recovery": "Recover the exact original value from the source.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/fields/displayName",
+        "sourceValue": "Manual Probe",
+        "disposition": "convertible",
+        "reasonCode": "METADATA_PRESERVED",
+        "targetMeaning": "Preserve this creator metadata value unchanged.",
+        "recovery": "Recover the exact original value from the source.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/fields/name",
+        "sourceValue": "manual_probe",
+        "disposition": "convertible",
+        "reasonCode": "METADATA_PRESERVED",
+        "targetMeaning": "Preserve this creator metadata value unchanged.",
+        "recovery": "Recover the exact original value from the source.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/fields/sourceFingerprints",
+        "sourceValue": {
+          "$primary": "ec6293ca396b5f340957a4409e09dbbb776b3428180cbf60d5630b18d31594b8"
+        },
+        "disposition": "manual",
+        "reasonCode": "FIELD_RULE_UNPROVEN",
+        "targetMeaning": "Review code.sourceFingerprints for 26.3. The value is retained; no semantic conversion rule is proven.",
+        "recovery": "Keep using the original workspace until this field is resolved.",
+        "evidence": "spec:D8,D11"
+      },
+      {
+        "path": "/elements/5b6a14e9-6348-40af-9ca9-9435730dec8a/sourceMetadata",
+        "sourceValue": {
+          "dev.copperbench.elementId": "5b6a14e9-6348-40af-9ca9-9435730dec8a",
+          "files": [
+            "src/main/java/net/mcreator/upgrade_source/manual_probe.java"
+          ],
+          "dev.copperbench.codeFiles": []
+        },
+        "disposition": "manual",
+        "reasonCode": "UNKNOWN_METADATA_PRESERVED",
+        "targetMeaning": "Preserve the saved source ownership, file associations and unknown metadata without rewriting Java.",
+        "recovery": "Recover metadata and source bytes from the original workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/UpgradeSourceMod.java",
+        "sourceValue": {
+          "sha256": "f24aeff2629003150de6e7e06d7ab70217f848bab317123dbb3b35dba0a3f8c4",
+          "bytes": 2428
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/UpgradeSourceModClient.java",
+        "sourceValue": {
+          "sha256": "f6309bbbbed4ae46e74ed9e82136cdc9183a6f68720e2721d990e1c5c5fa0925",
+          "bytes": 453
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/event/BlockEvents.java",
+        "sourceValue": {
+          "sha256": "37d157e8c10881e529a68125087f1c44c6a4c8e64b68f287394c87beac16130c",
+          "bytes": 1154
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/event/ItemEvents.java",
+        "sourceValue": {
+          "sha256": "28365032dce039043ecca0cd5e45e6aee1eeffc0ca4a9153e4053389833e9ea4",
+          "bytes": 614
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/event/LivingEntityEvents.java",
+        "sourceValue": {
+          "sha256": "13d0663e278df73d488fe69941f003506459e61c35ad002d366303f16c898e1c",
+          "bytes": 3774
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/event/MiscEvents.java",
+        "sourceValue": {
+          "sha256": "ed273b74509971d30b481967415e6d66659f3c16c61f8f783d49ab85e0260894",
+          "bytes": 528
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/event/PlayerEvents.java",
+        "sourceValue": {
+          "sha256": "61934a6bdbd8c92f480785735ba36eaa8d22ab4cd99f6fedcc6be7725e0097b4",
+          "bytes": 1416
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/init/UpgradeSourceModItems.java",
+        "sourceValue": {
+          "sha256": "b68c3a842ed1e307698e4a7cbce437da7c88df8d09181323e1b8c63a3aa3ba09",
+          "bytes": 671
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/manual_probe.java",
+        "sourceValue": {
+          "sha256": "ec6293ca396b5f340957a4409e09dbbb776b3428180cbf60d5630b18d31594b8",
+          "bytes": 34
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/BlockItemMixin.java",
+        "sourceValue": {
+          "sha256": "77dd323c023717f3a0a931bada121990e07526d3c2adbd931f6805ea004ef0e5",
+          "bytes": 785
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/BoneMealItemMixin.java",
+        "sourceValue": {
+          "sha256": "86501e9df3d3294c199cdbc58b24f49c0712082fb8fb760542cb531c5677bf18",
+          "bytes": 701
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/CommandsMixin.java",
+        "sourceValue": {
+          "sha256": "2a09ecdbbe9ef5a1ea7ce0f99cf465f03d46ae4a5d71d8aa5ad0b5bbbe2284a5",
+          "bytes": 450
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/ExperienceOrbMixin.java",
+        "sourceValue": {
+          "sha256": "828265d62feb722320580efc2b235c5ca7e737cd24634569550692288916e82f",
+          "bytes": 480
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/ItemStackMixin.java",
+        "sourceValue": {
+          "sha256": "3bbf4be40eda89d3a64a38a0da45cd2b2fa3eb78a0e4e5c66d2f1527daa634aa",
+          "bytes": 965
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/LivingEntityMixin.java",
+        "sourceValue": {
+          "sha256": "18d24890bf119dda42a5337377674f160754d5e0b98cc235694978ab1f8422b3",
+          "bytes": 3721
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/PlayerMixin.java",
+        "sourceValue": {
+          "sha256": "eadf52d0a7be195101ad65cef53b4f16bf0876af7d6080294f4925e530f363dd",
+          "bytes": 715
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/RepairItemRecipeMixin.java",
+        "sourceValue": {
+          "sha256": "71a6ec50966de33c43e757df36ca6c0cac09f92befe9a33b566b38c4f2505b26",
+          "bytes": 735
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/java/net/mcreator/upgrade_source/mixin/ServerPlayerMixin.java",
+        "sourceValue": {
+          "sha256": "5434660235ecb90400bed234d30cad4c49ecb3f994c7483cbc876db5a55d0306",
+          "bytes": 444
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/resources/META-INF/upgrade_source.classtweaker",
+        "sourceValue": {
+          "sha256": "f1fe64e05ead5ba2e5eab6e25c7ae1b8ceedd390b89350024043141120b98f93",
+          "bytes": 890
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/resources/assets/upgrade_source/lang/en_us.json",
+        "sourceValue": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/resources/fabric.mod.json",
+        "sourceValue": {
+          "sha256": "e8b79790ca68b7ad36a23ffbe062a24c19788777c8990556285118eba6214ef1",
+          "bytes": 640
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/resources/pack.mcmeta",
+        "sourceValue": {
+          "sha256": "45317e78922b3e38d091a28e3b2a697d7f042abaf431e9a8666f80872a33dc92",
+          "bytes": 91
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      },
+      {
+        "path": "/files/src/main/resources/upgrade_source.mixins.json",
+        "sourceValue": {
+          "sha256": "4528e7410290c8b433260cd06aca86499ebdae46be6ca3075f36caba8d036bcf",
+          "bytes": 468
+        },
+        "disposition": "manual",
+        "reasonCode": "FILE_SEMANTICS_UNPROVEN",
+        "targetMeaning": "Review this file against the target APIs and resources. Preserve manual ownership; no automatic rewrite is proven.",
+        "recovery": "Recover the exact original file from the source workspace.",
+        "evidence": "spec:D11"
+      }
+    ],
+    "counts": {
+      "convertible": 7,
+      "manual": 81,
+      "unsupported": 0
+    },
+    "planId": "e132f87583aa4a635c982628bfec8d410911e2c1b016fdfc886f3a8ca34c1aac"
+  }
+}

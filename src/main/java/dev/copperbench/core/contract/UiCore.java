@@ -11,10 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Java representation of the frozen UI-Core v1.0 envelopes. */
+/** Frozen UI-Core 1.0 envelopes and the separately selected editor-query version 1.1. */
 public final class UiCore {
 
 	public static final String SCHEMA_VERSION = "1.0";
+	public static final String EDITOR_SCHEMA_VERSION = "1.1";
 	private static final Gson WIRE_GSON = new GsonBuilder().serializeNulls().create();
 
 	private UiCore() {
@@ -208,12 +209,14 @@ public final class UiCore {
 			Objects.requireNonNull(workspaceId);
 			Objects.requireNonNull(operation);
 			messageType = "query";
-			schemaVersion = SCHEMA_VERSION;
+			requireQueryVersion(schemaVersion, operation);
 			payload = payload == null ? new JsonObject() : payload.deepCopy();
 		}
 
 		public static Query of(UUID requestId, UUID workspaceId, Operation operation, JsonObject payload) {
-			return new Query("query", SCHEMA_VERSION, requestId, workspaceId, operation, payload);
+			// Local Java callers use the current operation model. Wire adapters preserve the requested version.
+			return new Query("query", operation == Operation.GET_MOD_ELEMENT_EDITOR ? EDITOR_SCHEMA_VERSION : SCHEMA_VERSION,
+					requestId, workspaceId, operation, payload);
 		}
 	}
 
@@ -235,10 +238,17 @@ public final class UiCore {
 			Operation operation, String status, long revision, JsonElement data, List<Diagnostic> diagnostics) {
 		public QueryResult {
 			messageType = "query_result";
-			schemaVersion = SCHEMA_VERSION;
+			requireQueryVersion(schemaVersion, operation);
 			data = copyOrNull(data);
 			diagnostics = diagnostics == null ? List.of() : List.copyOf(diagnostics);
 		}
+	}
+
+	/** Version 1.1 is an explicit editor-query opt-in, not a new version of every UI-Core operation. */
+	public static void requireQueryVersion(String version, Operation operation) {
+		if (!SCHEMA_VERSION.equals(version)
+				&& !(EDITOR_SCHEMA_VERSION.equals(version) && operation == Operation.GET_MOD_ELEMENT_EDITOR))
+			throw new IllegalArgumentException("Unsupported UI-Core schema version: " + version + " for " + operation);
 	}
 
 	public record Event(String messageType, String schemaVersion, UUID eventId, UUID workspaceId, long revision,
@@ -256,7 +266,12 @@ public final class UiCore {
 		}
 	}
 
-	public record RequestContext(Actor actor, PermissionProfile permission) {
+	public record RequestContext(Actor actor, PermissionProfile permission, boolean acceptanceExtension,
+			String previewGeneratorId) {
+		public RequestContext(Actor actor, PermissionProfile permission) { this(actor, permission, false, null); }
+		public RequestContext(Actor actor, PermissionProfile permission, boolean acceptanceExtension) {
+			this(actor, permission, acceptanceExtension, null);
+		}
 		public RequestContext {
 			Objects.requireNonNull(actor);
 			Objects.requireNonNull(permission);

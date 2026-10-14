@@ -1,0 +1,27 @@
+{
+  "contractVersion": 1,
+  "codeType": "string",
+  "codeFilesType": "array<{path: string, code: string}>",
+  "sourceFingerprintsType": "object<string,string>; use the fingerprints returned by the editor to detect external source changes",
+  "compatibilityPath": "/fields",
+  "pathNormalization": "Backslashes in relative bundle paths are treated as forward slashes on every platform.",
+  "scope": "Text and bundle input types; path ownership, duplicate physical paths and source fingerprints are still enforced by persistence. Valid text does not imply Java compilation or lifecycle execution.",
+  "generatorId": "fabric-26.3",
+  "supported": true,
+  "fields": [
+    "code",
+    "codeFiles",
+    "description",
+    "displayName",
+    "name",
+    "sourceFingerprints"
+  ],
+  "minimalExample": {
+    "elementType": "code",
+    "name": "manual_code",
+    "initialValues": {
+      "code": "",
+      "codeFiles": []
+    }
+  }
+}

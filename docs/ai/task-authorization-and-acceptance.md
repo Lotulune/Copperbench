@@ -143,6 +143,16 @@ Windows 工作区 Gradle 启动前会用选定的 JDK 单独检查本地通信�
 
 GameTest 在 Windows 的隔离目录过深时，自动改用 Copperbench 用户缓存下的 `task-runs/<taskId>`。源码快照、被测 JAR 和验收报告保留在该目录，原工作区的 `.copperbench/task-runs/run_gametest/<taskId>/execution-location.json` 记录位置与源码指纹。任务日志记录 `GAMETEST_SHORT_PATH`；若缓存路径本身也过深则返回 `GAMETEST_PATH_TOO_LONG`。清理缓存会删除其中的验收文件，需要留档时应先复制报告与被测产物。
 
+## 协商后的验收诊断
+
+Native 和 MCP 的 `acceptance` 读取支持独立诊断版本协商。发送 `operation: "get"`、`supportedVersions: ["1"]`、`diagnosticVersions: ["1"]` 和 `payload: {"taskId": "..."}`，得到外层 `coverageDiagnostics`。未请求该版本的旧响应不添加此字段，strict v1.0 的 task/verification 对象保持原样；此诊断请求不能用于执行 run 或 export。
+
+Python Native/MCP 客户端可调用 `get_acceptance_diagnostics(task_id)`，TypeScript 客户端可调用 `getAcceptanceDiagnostics(taskId)`。返回同一 Core 记录的机器状态与 `required`、`minimumTests`、`uniqueExecuted`、`shortfall`、`duplicates` 和 `missingCases`；不要解析英文 detail 决定业务分支。`required` 是固定清单的项数，`minimumTests` 是最低业务执行数；运行中或没有可用报告时，未知数量为 null。
+
+状态区分 running、report_unavailable、business_failed、no_business、duplicate、required_cases_missing、insufficient、passed_current_input 和 passed_historical_input。原始身份及缺项参数在中英文下保持相同；界面只翻译说明文字，不发起新的生成、构建、验收或导出。
+
+`inputScope` 明确标记 current_at_completion、current_at_export 或 historical_at_export。它描述已记录的时点，不替代下一次导出时的源码/JAR/XML复核。旧记录若未保存精确重复身份投影，报告无效时保留较宽的失败分类，不从被截断的展示名称或英文 detail 猜测身份。
+
 ## 已知运行限制
 
 Windows 的一般长路径支持仍有限制。GameTest 已提供上述短目录回退；原工作区构建、Server 和 Datagen 的深路径仍需要选用较短的工作区目录。该修复不构成 Windows 任意长路径支持的承诺。

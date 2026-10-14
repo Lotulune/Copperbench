@@ -1,0 +1,32 @@
+name: NeoForge native for @minecraft (@buildfileversion)
+status: experimental
+buildfileversion: '26.3.0.76'
+subversion: '1'
+requires_source_index: false
+
+gradle:
+  sync_task: help
+  run_client: runClient
+  run_server: runServer
+  export_file: "build/libs/modid-1.0.0.jar"
+
+source_root: "@WORKSPACEROOT/src/main/java"
+res_root: "@WORKSPACEROOT/src/main/resources"
+mod_assets_root: "@RESROOT/assets/@modid"
+mod_data_root: "@RESROOT/data/@modid"
+block_textures_dir: "@MODASSETSROOT/textures/block"
+item_textures_dir: "@MODASSETSROOT/textures/item"
+other_textures_dir: "@MODASSETSROOT/textures"
+
+base_templates:
+  - template: mod.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/@JavaModName.java"
+  - template: neoforge.mods.toml.ftl
+    usercodeComment: "#"
+    writer: file
+    name: "@RESROOT/META-INF/neoforge.mods.toml"
+
+language_file:
+  format: json
+  root_folder: "@MODASSETSROOT/lang/"
+  langfile_name: "@langname.json"

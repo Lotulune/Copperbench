@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/** Deterministic task gateway for adapters, fixtures and tests until generator ports are connected. */
+/** Deterministic task simulation for adapter/contract tests; never runs Gradle or verifies build artifacts. */
 public final class InMemoryWorkspaceTaskGateway implements WorkspaceTaskGateway {
 
 	private final Map<UUID, Map<UUID, JsonObject>> tasks = new LinkedHashMap<>();

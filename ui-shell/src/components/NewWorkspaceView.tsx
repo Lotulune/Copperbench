@@ -15,7 +15,8 @@ import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import {
   NewWorkspaceGeneratorCatalog,
-  NewWorkspaceGenerator,
+  PreviewTarget,
+  PreviewResult,
   CommandResult,
   Diagnostic
 } from '../types/contract';
@@ -59,12 +60,25 @@ const diagnosticField = (diagnostic: Diagnostic): WorkspaceFormField | null => {
  * - 提交走 create_workspace 命令（需要 userApproved 确认门）。
  * - 诊断展示 Core 返回的稳定代码，不在 UI 重新实现域校验。
  */
+const operationLabel = (operation: string): string => ({
+  create_workspace: tr("创建工作区"), update_workspace_file: tr("编辑源码"), validate_workspace: tr("校验工作区"),
+  generate_workspace: tr("生成工程"), build_workspace: tr("构建模组"), run_client: tr("启动客户端"),
+  run_server: tr("启动服务器"), run_datagen: tr("生成数据"), run_gametest: tr("运行验收"),
+  prepare_game_tests: tr("准备验收"), export_workspace: tr("导出模组")
+}[operation] ?? operation);
+
 export const NewWorkspaceView: React.FC = () => {
-  const { listNewWorkspaceGenerators, createWorkspace, state } = useWorkbench();
+  const { listNewWorkspaceGenerators, createWorkspace, previewTargets, state } = useWorkbench();
 
   const [catalog, setCatalog] = useState<NewWorkspaceGeneratorCatalog | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [catalogReloadToken, setCatalogReloadToken] = useState(0);
+
+  const [previewResult, setPreviewResult] = useState<PreviewResult | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewPending, setPreviewPending] = useState(false);
+  const [choiceScope, setChoiceScope] = useState<{ generatorId: string; folder: string } | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [generatorId, setGeneratorId] = useState<string>('');
   const [modName, setModName] = useState('');
@@ -106,6 +120,27 @@ export const NewWorkspaceView: React.FC = () => {
     };
   }, [catalogReloadToken, listNewWorkspaceGenerators]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void previewTargets({ operation: 'catalog' }).then(result => {
+      if (cancelled) return;
+      if (result.status !== 'succeeded') throw new Error(t(result.diagnostics[0]?.message));
+      setPreviewResult(result); setPreviewError(null);
+    }).catch(error => { if (!cancelled) setPreviewError(String(error.message ?? error)); });
+    return () => { cancelled = true; };
+  }, [previewTargets, catalogReloadToken]);
+
+  const generators = useMemo(() => {
+    if (!catalog) return [];
+    const exact = previewResult?.targets;
+    if (!exact) return catalog.generators;
+    return [...exact.map(target => ({ generatorId: target.generatorId, loader: target.loader,
+      minecraftVersion: target.minecraftVersion, trackId: target.trackId, displayName: target.generatorId,
+      dynamic: target.trackId === 'latest_stable' || target.trackId === 'previous_stable',
+      available: target.available || target.previewRequired, workspaceGeneratorName: target.workspaceGeneratorName })),
+      ...catalog.generators.filter(item => !exact.some(target => target.generatorId === item.generatorId))];
+  }, [catalog, previewResult]);
+
   // 包名自动补全：未手动修改时跟随 modId（net.mcreator.<modid>，与 Swing 对话框一致）
   useEffect(() => {
     if (!packageTouched && modId) {
@@ -114,23 +149,22 @@ export const NewWorkspaceView: React.FC = () => {
   }, [modId, packageTouched]);
 
   const selectedGenerator = useMemo(
-    () => catalog?.generators.find((g) => g.generatorId === generatorId) ?? null,
-    [catalog, generatorId]
+    () => generators.find((g) => g.generatorId === generatorId) ?? null,
+    [generators, generatorId]
   );
   const isResourcePack = selectedGenerator?.loader === 'resource_pack';
 
   // 按 track 分组渲染（目录按 track 顺序返回）
   const groupedByTrack = useMemo(() => {
-    if (!catalog) return [];
-    return [...new Set(catalog.generators.map((generator) => generator.trackId))].map((id) => {
-      const generators = catalog.generators.filter((generator) => generator.trackId === id);
-      const minecraftVersion = generators[0]?.minecraftVersion;
+    return [...new Set(generators.map((generator) => generator.trackId))].filter(id => id !== 'advanced' || showAdvanced).map((id) => {
+      const group = generators.filter((generator) => generator.trackId === id);
+      const minecraftVersion = group[0]?.minecraftVersion;
       const label = id === 'resource_pack'
         ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
         : `Minecraft ${minecraftVersion}`;
-      return { id, label, generators };
+      return { id, label: id === 'advanced' ? tr("历史精确版本") : label, generators: group };
     });
-  }, [catalog]);
+  }, [generators, showAdvanced]);
 
   // 建议的完整工作区文件夹路径（跟随 modId）
   const suggestedFolder = useMemo(() => {
@@ -141,13 +175,42 @@ export const NewWorkspaceView: React.FC = () => {
 
   const effectiveFolder = workspaceFolder.trim() || suggestedFolder || '';
 
+  const previewTarget: PreviewTarget | undefined = previewResult?.targets?.find(target => target.generatorId === generatorId);
+  const isPreview = previewTarget?.previewRequired === true;
+  const chosen = isPreview && previewTarget.selected && choiceScope?.generatorId === generatorId && choiceScope.folder === effectiveFolder;
+  const createCapability = previewTarget?.capabilities.operations?.find(operation => operation.operation === 'create_workspace');
+  const previewCanCreate = !isPreview || (chosen && createCapability?.available === true);
+  const changePreview = async (enable: boolean) => {
+    if (previewPending) return;
+    setPreviewPending(true); setPreviewError(null);
+    try {
+      const response = await previewTargets({ operation: enable ? 'opt_in' : 'revoke', generatorId,
+        workspaceFolderPath: effectiveFolder });
+      if (response.status !== 'succeeded') throw new Error(t(response.diagnostics[0]?.message));
+      setPreviewResult(response);
+      setChoiceScope(enable ? { generatorId, folder: effectiveFolder } : null);
+    } catch (error) { setPreviewError(error instanceof Error ? error.message : String(error)); }
+    finally { setPreviewPending(false); }
+  };
+
+  useEffect(() => {
+    if (!choiceScope || (choiceScope.generatorId === generatorId && choiceScope.folder === effectiveFolder)) return;
+    const previous = choiceScope;
+    setChoiceScope(null);
+    void previewTargets({ operation: 'revoke', generatorId: previous.generatorId, workspaceFolderPath: previous.folder })
+      .then(response => {
+        if (response.status !== 'succeeded') throw new Error(t(response.diagnostics[0]?.message));
+        setPreviewResult(response);
+      }).catch(error => setPreviewError(String(error.message ?? error)));
+  }, [choiceScope, effectiveFolder, generatorId, previewTargets]);
+
   const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    if (!generatorId || !userApproved) return;
+    if (!generatorId || !userApproved || !previewCanCreate || previewPending) return;
     setSubmitting(true);
     setResult(null);
     try {
-      const res = await createWorkspace({
+      const form = {
         generatorId,
         modName: modName.trim(),
         modId: modId.trim(),
@@ -155,7 +218,13 @@ export const NewWorkspaceView: React.FC = () => {
         workspaceFolderPath: effectiveFolder,
         version: version.trim() || undefined,
         userApproved
-      });
+      };
+      const extension = isPreview ? await previewTargets({ operation: 'command', generatorId,
+        command: 'create_workspace', payload: form }) : null;
+      if (extension && !extension.core) {
+        setPreviewError(t(extension.diagnostics[0]?.message)); return;
+      }
+      const res = extension?.core ?? await createWorkspace(form);
       setResult(res);
       // 创建成功后请求宿主在新窗口打开该工作区（仅桌面宿主可用；浏览器预览环境跳过）。
       if (res.status === 'committed' && res.data?.workspaceFile) {
@@ -233,7 +302,7 @@ export const NewWorkspaceView: React.FC = () => {
   }, [rejected, result]);
 
   const canSubmit = generatorId !== '' && modName.trim() !== '' && modId.trim() !== '' &&
-    effectiveFolder !== '' && userApproved && !submitting;
+    effectiveFolder !== '' && userApproved && !submitting && !previewPending && previewCanCreate;
 
   return (
     <form
@@ -387,14 +456,14 @@ export const NewWorkspaceView: React.FC = () => {
                 {track.label}
               </div>
               <div className="new-workspace-generator-options">
-                {track.generators.map((g: NewWorkspaceGenerator) => {
+                {track.generators.map((g) => {
                   const isSel = generatorId === g.generatorId;
                   return (
                     <button
                       key={g.generatorId}
                       type="button"
                       data-testid={`generator-option-${g.generatorId}`}
-                      disabled={!g.available}
+                      disabled={!g.available || previewPending || submitting}
                       onClick={() => setGeneratorId(g.generatorId)}
                       aria-pressed={isSel}
                       title={g.available ? g.workspaceGeneratorName : tr("生成器插件未安装或未加载")}
@@ -426,6 +495,41 @@ export const NewWorkspaceView: React.FC = () => {
               </div>
             </div>
           ))}
+
+          <label className="preview-choice">
+            <input type="checkbox" checked={showAdvanced} onChange={event => setShowAdvanced(event.target.checked)} />
+            {tr("显示历史精确版本")}
+          </label>
+          {previewError && <div role="alert" data-testid="preview-error">{previewError}</div>}
+          {isPreview && previewTarget && (
+            <section className="preview-capabilities" data-testid="preview-capabilities" aria-busy={previewPending}>
+              <strong>{previewTarget.capabilities.supportStage === 'native_preview' ? tr("原生预览")
+                : previewTarget.capabilities.supportStage === 'scoped_support' ? tr("范围支持") : tr("已登记")}</strong>
+              <p>{previewTarget.capabilities.environmentQualified ? tr("依赖环境已验证") : tr("依赖环境尚未验证")}</p>
+              <label className="preview-choice">
+                <input data-testid="preview-opt-in" type="checkbox" checked={chosen}
+                  disabled={previewPending || !effectiveFolder || submitting}
+                  onChange={event => void changePreview(event.target.checked)} />
+                {tr("为此工作区和目标目录选择预览")}
+              </label>
+              {!effectiveFolder && <p>{tr("填写工作区目录后可选择预览。")}</p>}
+              <div role="status">{previewPending ? tr("正在更新预览选择…") : chosen ? tr("已选择预览，可随时撤回") : tr("尚未选择预览")}</div>
+              {createCapability && !createCapability.ready && <p data-testid="preview-readiness-reason">
+                {t({ key: `diagnostic.${createCapability.reasonCode.toLowerCase()}`, fallback: createCapability.reasonCode })}
+              </p>}
+              <ul>
+                {previewTarget.capabilities.operations?.map(operation => (
+                  <li key={operation.operation} data-testid={`preview-operation-${operation.operation}`}>
+                    {operationLabel(operation.operation)}：{operation.ready ? tr("已验证") : tr("尚未验证")}
+                  </li>
+                ))}
+              </ul>
+              <p>{tr("类型和字段范围")}</p>
+              <ul>{previewTarget.capabilities.elementTypes?.map(type => <li key={type.elementType}>
+                <code>{type.elementType}</code>：{type.supported ? type.fields.join(', ') : tr("尚未验证")}
+              </li>)}</ul>
+            </section>
+          )}
 
           {selectedGenerator && (
             <div className="new-workspace-selected-generator" data-testid="selected-generator-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px', color: 'var(--text-sub)' }}>

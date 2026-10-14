@@ -1,0 +1,1905 @@
+{
+  "date": "2026-10-14",
+  "tickets": [
+    {
+      "ticket": 1,
+      "title": "重复业务身份不能通过验收或已验证导出",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md",
+      "reportSha256": "8551c4e8b3e786fa9f831c64bcff402ff9cef5d068616775029d6095ce776f2e",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "同一原始身份重复六次、跨 suite 重复、匹配哈希的重复 XML 配旧 persisted passed，分别在解析与导出入口拒绝；allowHistorical 不能绕过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "原始 className/name 二元组、GameTest 完整资源身份与显式参数 ID 遵循 D5；不同类同名和不同显式变体通过，截断后的展示相同不产生误判。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "无 attempt 结构的重复报告失败；同任务先失败后成功不能掩盖失败，不增加独立数量；新任务重跑保留旧失败。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "0/1、5/6、6/6、7/6、框架项、全跳过及真实业务失败保持正确优先级；旧 M1 五个不同用例在 minimumTests=5 下通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "不向 strict v1.0 添字段；旧消费路径收到可理解的失败，未创建可信导出标记。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "保存旧实现失败、新实现通过的三类漏洞回归与合法对照结果；若原附件不可得，用明确重建的反例，不称为原复测文件。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-01-unique-cases-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "fcd156871eb584f64df5aa1e8625a0cfc8286251a5b5885cf355c9ec1ecfd61c"
+    },
+    {
+      "ticket": 2,
+      "title": "轨道轮换后旧工程仍按精确生成器打开",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-02-exact-generators-2026-10-12.md",
+      "reportSha256": "9df7831ffe8a3dd68c85d9a8c0ccc8e00f559f92efdd4fff54a3b0388a7d0632",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "先以原八个精确 ID 完成注册表预整理；findGenerator、firstPartyGenerator、环境解析与旧工程消费同一来源。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-02-exact-generators-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "测试展示分组移除 26.1.2 后，精确查询和旧工程重开仍正确；未知 ID 明确拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-02-exact-generators-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "原迁移只允许同版本、不同加载器，不能通过目录重构放开跨版本迁移。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-02-exact-generators-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "四条展示轨道与去重行为保持兼容，固定轨 Java 21/17 与旧输出身份不改变。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-02-exact-generators-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "原八轨道相关目录、打开/构建回归通过，记录真实执行范围；公共 API 变更补 Javadoc。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-02-exact-generators-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "27f499be7679f26fc2ec1ca8fc8d328bded071516b6b1e52956a87550c0e95be"
+    },
+    {
+      "ticket": 3,
+      "title": "Fabric 26.3 精确环境可复现并能报告就绪缺口",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md",
+      "reportSha256": "23290118821aa170b61aa0236dec4e781b8011b720219d140cd6f26f1bf41fdf",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "从原始元数据确认精确 Minecraft、工作区 Java 发行版/完整版本、加载器、API、构建插件/Gradle及包格式；附件数值只作为待核对候选。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "锁定来源 URL、获取时间、生成器提交、适用许可证和下载摘要；区分官方摘要与本地摘要，不使用 latest、+、SNAPSHOT 或宽 26.x 范围。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "在隔离探针中真实解析依赖并执行最小构建，记录网络/缓存/Java 条件；缺失依赖返回具体组件和原因。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "分别记录产品 JBR/JCEF 与工作区 Java；不能以能启动 Copperbench 推断工作区构建环境可用。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "Fabric 使用项目可维护且有适用许可的来源；未经许可的社区插件不能内置。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "保留正向探针与缺失/摘要不符/动态版本负向结果；无法获取必要来源时本票保持 blocked，不写推测的就绪结论。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-03-fabric-environment-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "7466ceb58f8f97725d9c4cfcd93e7f62640ad32f9fac510ccf4ed38e91fdb26f"
+    },
+    {
+      "ticket": 4,
+      "title": "NeoForge 26.3 精确环境可复现并能报告就绪缺口",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md",
+      "reportSha256": "5c160404b64b3bb6429e2581135190b3ec6b3933762c22c1e404971a32c53dfb",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "从原始元数据确认精确 Minecraft、工作区 Java 发行版/完整版本、加载器、API、构建插件/Gradle及包格式；附件数值只作为待核对候选。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "锁定来源 URL、获取时间、生成器提交、适用许可证和下载摘要；区分官方摘要与本地摘要，不使用 latest、+、SNAPSHOT 或宽 26.x 范围。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "在隔离探针中真实解析依赖并执行最小构建，记录网络/缓存/Java 条件；缺失依赖返回具体组件和原因。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "分别记录产品 JBR/JCEF 与工作区 Java；不能以能启动 Copperbench 推断工作区构建环境可用。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "审查 NeoForge/MCreator EAP 相关差异并记录择取提交；证明可接入现行宿主，不整体升级 MCreator。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "保留正向探针与缺失/摘要不符/动态版本负向结果；无法获取必要来源时本票保持 blocked，不写推测的就绪结论。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-04-neoforge-environment-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "ea315ad9f0c514fba9f5cef1d4b42cd8b7ccc311b07a82cb764007bf3828971d"
+    },
+    {
+      "ticket": 5,
+      "title": "验收必须执行冻结的必要用例清单",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md",
+      "reportSha256": "aeb0cdc5447b2ddb1ff24eca820562e808fd521440c3db2380346ea08d3e152c",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "冻结 requiredCases 的版本、原始身份与摘要，并绑定任务、宿主、输入快照、环境；启动后不能替换清单。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "新协商投影完整贯穿 Native/MCP/SDK 的请求、任务记录、恢复与导出；strict v1.0 原对象保持不变。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "固定 camp-kit-native-v1 的六项与 camp-kit-scoped-v1 的十三项；每条加载器独立验收；各类型固定子清单不能关闭整体 G2。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "漏掉必要用例但增加无关通过用例、篡改清单摘要、跳过 requiredCase、合并多次运行均拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "旧合法五项 M1 和旧记录可按旧范围使用；无清单证据不能晋级 26.3；01 的旧重复记录拒绝保持有效。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "从真实 Native 会话启动、持久化、重连及导出读取同一清单与结果，额外负向测试覆盖导出入口而非只测解析器。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-05-required-cases-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "7eb8c839cf47e605bed09805a57801a44800eb4f2c998e7550059edd2a0b213b"
+    },
+    {
+      "ticket": 6,
+      "title": "用户能发现 26.3 并显式选择已验证预览操作",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md",
+      "reportSha256": "b13e7769d06991aa9d7d1f072a9abdfc9e2202220a3147c8f1f86b468f17d6b9",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "登记 fabric-26.3/neoforge-26.3，展示 latest=26.3、previous=26.2；26.1.2 精确打开/高级入口可用；不改已有 generatorId。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "能力区分登记、原生预览、类型/字段支持与未就绪；03/04 尚未完成或证据缺失时保持具体不可用原因。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "opt-in 绑定工作区及精确目标；Native、MCP、Python/TypeScript 与 UI 使用同一按操作判定，未选择预览不能写入或启动。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "新扩展先协商；旧 v1.0 只读或明确拒绝新操作，不误报全面 supported；不简单放宽 generatable 为所有 PREVIEW。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "opt-in 不改变权限档位、审批策略、EULA 或受保护操作；权限/修订变化后重新判定，不缓存旧授权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "演示未就绪、明确选择、拒绝、允许和撤回状态；UI 仅呈现 Core，相关契约与受影响 UI 流程通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-06-preview-negotiation-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "637ddbfb6d47323aeb5a9cdad8c19abb216d8a77738bb905c839d14a34e8121a"
+    },
+    {
+      "ticket": 7,
+      "title": "Fabric 26.3 原生工程创建、构建并重开",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md",
+      "reportSha256": "257b2393b09438d7662f5aaf77e4caa91fa34d4b40b41cacff9878c682c10fa5",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "生成独立 Fabric 26.3 插件/输出身份，使用本路线冻结依赖；不是替换 26.2 的显示版本号。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "Native/SDK 与 UI 创建都消费统一能力判定；无 opt-in、只读或缺少环境时在副作用前拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "真实构建产生目标 26.3 JAR，重新启动产品后重开工作区、构建任务与原生源码；保留手写归属和未知字段。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "WorkspaceExecutionEnvironment、PluginWorkspaceLayout、受管 Gradle 任务正确区分工作区 Java；Linux wrapper 的 LF/执行位不丢失。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "旧修订、外部源码修改、取消/超时均产生正确冲突/任务终态，原八生成器相关保护不回退。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "专用服务端加载不引入客户端窗口/SDL 类；初始化、EULA 边界和就绪分别记录，不以退出码 0 冒充就绪。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-07-fabric-native-build-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "486b391f930e4d4b305c3f8d8146196fa17af6814bef6cc96288388b0c014076"
+    },
+    {
+      "ticket": 8,
+      "title": "NeoForge 26.3 原生工程创建、构建并重开",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md",
+      "reportSha256": "a0a604e9303b28c12fdd5e7f1bca3e32687d0f0975124e66363a0d5bc6b537f6",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "生成独立 NeoForge 26.3 插件/输出身份，使用本路线冻结依赖；不是替换 26.2 的显示版本号。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "Native/SDK 与 UI 创建都消费统一能力判定；无 opt-in、只读或缺少环境时在副作用前拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "真实构建产生目标 26.3 JAR，重新启动产品后重开工作区、构建任务与原生源码；保留手写归属和未知字段。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "WorkspaceExecutionEnvironment、PluginWorkspaceLayout、受管 Gradle 任务正确区分工作区 Java；Linux wrapper 的 LF/执行位不丢失。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "旧修订、外部源码修改、取消/超时均产生正确冲突/任务终态，原八生成器相关保护不回退。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "专用服务端加载不引入客户端窗口/SDL 类；初始化、EULA 边界和就绪分别记录，不以退出码 0 冒充就绪。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-08-neoforge-native-build-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "f8c5d74209639de6b16e702d7464e93f19e56b31e4bddde5c25b6ecb0aca7e91"
+    },
+    {
+      "ticket": 9,
+      "title": "Fabric 原生故障修复后验收并导出同一 JAR",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md",
+      "reportSha256": "86dc9efbea68fd28368db3aede5a0fec56225228e9f301a46ee31e9d1626385d",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "固定 camp-kit-native-v1；T01/T02/T03/T04/T11/T12 全部执行且通过，minimumTests=6，框架和编排不计数。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "被测最终 mod JAR 在独立宿主执行；测试预期独立编写；复制给导出器的正是该 JAR，记录摘要相等。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "编译故障可定位，修复经过现有写入与恢复规则；保留故障、修复、最终验收的各自记录。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "真实关闭旧生命周期进程、确认退出、启动新进程，读取持久化任务并重新导出；不把同一连接重用叫做重连。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "实测旧 revision、外部源码变更、手写所有权、JAR/XML 篡改、重复/缺项、历史导出、取消/超时拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "原始 XML、实际导出 verification.json、mod JAR、日志与工具链身份可取得；本票结果不替代客户端验收。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-09-fabric-native-acceptance-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "537df122ceb7583990da2f7f55bf5801353751c0ddd3d6dd8a9c1e4db1882318"
+    },
+    {
+      "ticket": 10,
+      "title": "NeoForge 原生故障修复后验收并导出同一 JAR",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md",
+      "reportSha256": "37f75d17e7042c4c5edf6274cf38a38393a2671e95f243df8450bff00cda27e1",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "固定 camp-kit-native-v1；T01/T02/T03/T04/T11/T12 全部执行且通过，minimumTests=6，框架和编排不计数。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "被测最终 mod JAR 在独立宿主执行；测试预期独立编写；复制给导出器的正是该 JAR，记录摘要相等。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "编译故障可定位，修复经过现有写入与恢复规则；保留故障、修复、最终验收的各自记录。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "真实关闭旧生命周期进程、确认退出、启动新进程，读取持久化任务并重新导出；不把同一连接重用叫做重连。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "实测旧 revision、外部源码变更、手写所有权、JAR/XML 篡改、重复/缺项、历史导出、取消/超时拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "原始 XML、实际导出 verification.json、mod JAR、日志与工具链身份可取得；本票结果不替代客户端验收。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-10-neoforge-native-acceptance-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "e2341c1bc72ef0372553d5f263d97b0d2731e509bc0fd042a12694de7006b5ad"
+    },
+    {
+      "ticket": 11,
+      "title": "从真实导出收集可携带证据目录",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md",
+      "reportSha256": "557ea629732258ab6c1fcd398148ab5550013c2107833227676a0142d4b1cb72",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "用现有 M1 真正创建导出，再从所选目录原样复制 verification.json；不把 API 回执重构为便携文件。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "manifest 记录相对成员、大小与摘要，关联任务、源码/输入、验收清单、已观测工具链和当前/历史范围。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "不推测缺失 Java/API 版本，不携带凭据、缓存、世界或未审阅绝对路径日志；保留原始验证文件字节。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "构建临时输出后原子形成完整目录；复制中改变 JAR/XML、缺失回执或失败时不留下成功标记。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "新旧便携版本有明确兼容状态；旧记录缺少清单不能被收集器提升为 26.3 通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "真实输出及失败输出检查都保存；已有 v1.0 API 顶层结构不变。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-11-portable-collection-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "afead391c4b33fc1586fa566106a3e35a98ae310e6891b3cf02e5785d7d01518"
+    },
+    {
+      "ticket": 12,
+      "title": "证据包在干净目录离线复核且拒绝篡改",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md",
+      "reportSha256": "54e189ba037e16d2b9009482991e664f8a58e01f01229a38234c620ace4f5465",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "重算文件大小/摘要、原始唯一业务身份、minimumTests 与 requiredCases；不信任 coverage 或 passed 标签。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "验证清单/输入/任务/JAR/XML绑定，区分当前输入导出、历史输入和旧证据；离线不声称了解接收者未提供的当前工作区。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "JAR、XML、数量、清单或 manifest 任一篡改分别拒绝，重复用例和必要用例遗漏不能靠同步改摘要绕过语义检查。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "拒绝绝对路径、..、重复归一化成员、符号链接、未知版本、截断/损坏、成员数/大小/压缩展开超限。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "失败有稳定非零结果且没有成功标记，临时文件可清理；未知版本不尝试猜测解析。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "至少一份 11 产出的真实证据在另一干净目录通过，负向测试独立运行；结论表述为完整性核验，不是生产者签名认证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-12-offline-verifier-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "5832e5d9b30e3b7de11cdf48182b1e07a70280be60272263758bed811ed99759"
+    },
+    {
+      "ticket": 13,
+      "title": "中英文任务结果明确显示重复、缺项和数量差额",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md",
+      "reportSha256": "7b146aaa587b56b06433fa7ab0f2bc0e07ce6e2e6439cfd605d899b334950fe8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "协商后的机器投影区分运行中、报告不可用、业务失败、无业务、重复、必要用例缺失、数量不足、当前通过和历史通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "Native/MCP/Python/TypeScript 与 UI 消费同一 required/uniqueExecuted/shortfall/duplicates/missingCases 语义。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "中英文显示相同参数；例：至少 6、执行 5、差 1；不解析英文 detail 作为机器条件。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "旧 v1.0 字段和宽泛 reasonCode 保持兼容，不向 strict 对象添加属性；旧端仍有可解释的失败。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "切换语言不改变 revision、任务或文件，不重发生成、构建、验收、导出命令。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md"
+        },
+        {
+          "number": 6,
+          "text": "0/1、5/6、6/6、7/6、全跳过、框架、真实失败、重复、缺项、陈旧/损坏与历史状态逐项检查。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-13-coverage-diagnostics-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "57815977c07afca1bc6841807c7d6d589aa87510cad1ce891a3dcbe4acc373e6"
+    },
+    {
+      "ticket": 14,
+      "title": "Fabric item 从字段发现到组件效果可验收",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-14-fabric-item-2026-10-12.md",
+      "reportSha256": "335b332caf2ab49808860839fe6f4eb9e83496bba71f5885f350aecad89cdfa0",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "发现、默认例与真实验证器一致；UI/SDK 能创建、修改、生成、重开样例，未知字段保留。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-14-fabric-item-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "仅公开本 spec 的 item 字段范围，模板存在但未验收字段保持限制；不宣称所有组件支持。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-14-fabric-item-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "独立宿主 T01/T02/T05/T06 执行通过；堆肥使用可控条件避免随机性，燃料断言实际消耗和燃烧。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-14-fabric-item-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "按已核对 26.3 组件/数据语义生成，非法引用或不支持值明确失败；不全局删除旧轨道 API。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-14-fabric-item-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "生成/重开/服务端运行证据与同一 JAR 绑定，受影响旧轨道 item 回归通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-14-fabric-item-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "e493654c2b0ddbb91094c82197a6ad27ce37b67ca70bdcfa2c7dd5ac89962144"
+    },
+    {
+      "ticket": 15,
+      "title": "NeoForge item 从字段发现到组件效果可验收",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-15-neoforge-item-2026-10-12.md",
+      "reportSha256": "186cf23f195c844c823880bb4374cf77d01bc1bc60bd732c4bcc8881548aa4c8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "发现、默认例与真实验证器一致；UI/SDK 能创建、修改、生成、重开样例，未知字段保留。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-15-neoforge-item-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "仅公开本 spec 的 item 字段范围，模板存在但未验收字段保持限制；不宣称所有组件支持。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-15-neoforge-item-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "独立宿主 T01/T02/T05/T06 执行通过；堆肥使用可控条件避免随机性，燃料断言实际消耗和燃烧。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-15-neoforge-item-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "按已核对 26.3 组件/数据语义生成，非法引用或不支持值明确失败；不全局删除旧轨道 API。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-15-neoforge-item-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "生成/重开/服务端运行证据与同一 JAR 绑定，受影响旧轨道 item 回归通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-15-neoforge-item-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "351fc6a0e41d437197375067c4e66e00b4bad54ff9ff2cd5bcfedda79edd9e7b"
+    },
+    {
+      "ticket": 16,
+      "title": "Fabric 简单 block 放置、状态与掉落重载可用",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-16-fabric-block-2026-10-12.md",
+      "reportSha256": "50c3f666472ff3a6130ce635723c8b1f457e4bbd60d17a5e3ea49ea43d3e5345",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用既有 block 契约补齐本次字段发现/默认例/约束；创建、编辑、生成及产品重开保持数据。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-16-fabric-block-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "T11 断言实际放置/基础状态，保存后重进保持预期；T10 验证原生 loot 数据重载后新引用有效。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-16-fabric-block-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "故意无效掉落引用明确失败，不能只检查 JSON 文件存在；该负向不凑业务数量。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-16-fabric-block-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "客户端/服务端类隔离成立，原轨道 block 模板不因 26.3 适配退化。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-16-fabric-block-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "能力只声明简单 block 已验证范围，不由 loot 数据检查宣称结构化 loot 元素支持。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-16-fabric-block-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "b4ecf8f51a5d4cfb167e1f6e005103c350f339841bf16340f3760e386bb99a5b"
+    },
+    {
+      "ticket": 17,
+      "title": "NeoForge 简单 block 放置、状态与掉落重载可用",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-17-neoforge-block-2026-10-12.md",
+      "reportSha256": "aa402790d7f7892a9ffd1773ee2d27dc8dca48884a23061a62c731457df0b97f",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用既有 block 契约补齐本次字段发现/默认例/约束；创建、编辑、生成及产品重开保持数据。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-17-neoforge-block-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "T11 断言实际放置/基础状态，保存后重进保持预期；T10 验证原生 loot 数据重载后新引用有效。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-17-neoforge-block-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "故意无效掉落引用明确失败，不能只检查 JSON 文件存在；该负向不凑业务数量。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-17-neoforge-block-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "客户端/服务端类隔离成立，原轨道 block 模板不因 26.3 适配退化。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-17-neoforge-block-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "能力只声明简单 block 已验证范围，不由 loot 数据检查宣称结构化 loot 元素支持。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-17-neoforge-block-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "1be48500f3c4ced2624987f5fc21d0b5d8425a3a9a79ae9e434293ba0e392374"
+    },
+    {
+      "ticket": 18,
+      "title": "Fabric 合成、烧炼与配方重载按真实语义生效",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-18-fabric-recipe-2026-10-12.md",
+      "reportSha256": "55fdd63c84622cfdb31f1e3c4880b834050f8241403f98f904da46bb20263c45",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "recipe 发现/默认例由真实验证器支持；CUSTOM 引用用 registryName 解析，internalName 不同也合法。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-18-fabric-recipe-2026-10-12.md"
+        },
+        {
+          "number": 2,
+          "text": "T03/T04 验证正确原料、输出数量及错误原料无结果；不只检查注册表包含配方。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-18-fabric-recipe-2026-10-12.md"
+        },
+        {
+          "number": 3,
+          "text": "T07/T08 验证普通炉、高炉/烟熏炉的实际 tick、速度与消耗，cookingtime/组件/Holder 语义有转换依据。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-18-fabric-recipe-2026-10-12.md"
+        },
+        {
+          "number": 4,
+          "text": "T09 在 reload 后读取新结果；无效引用明确失败并保留原始诊断。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-18-fabric-recipe-2026-10-12.md"
+        },
+        {
+          "number": 5,
+          "text": "结构化编辑、生成、重开和最终 JAR 运行一致；能力仅开放已覆盖配方字段/子类型，旧轨道回归通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-18-fabric-recipe-2026-10-12.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "74bb2cf9dbc4fe58c04e9d3db696c808762788e9cda9618e748b3da1da987973"
+    },
+    {
+      "ticket": 19,
+      "title": "NeoForge 合成、烧炼与配方重载按真实语义生效",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-19-neoforge-recipe-2026-10-13.md",
+      "reportSha256": "9b527828428ba938355500528b00ab0435e3762926d449df1159ce950e019876",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "recipe 发现/默认例由真实验证器支持；CUSTOM 引用用 registryName 解析，internalName 不同也合法。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-19-neoforge-recipe-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "T03/T04 验证正确原料、输出数量及错误原料无结果；不只检查注册表包含配方。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-19-neoforge-recipe-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "T07/T08 验证普通炉、高炉/烟熏炉的实际 tick、速度与消耗，cookingtime/组件/Holder 语义有转换依据。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-19-neoforge-recipe-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "T09 在 reload 后读取新结果；无效引用明确失败并保留原始诊断。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-19-neoforge-recipe-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "结构化编辑、生成、重开和最终 JAR 运行一致；能力仅开放已覆盖配方字段/子类型，旧轨道回归通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-19-neoforge-recipe-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "f7a7d33d8b413b11347653987e150a078816f16e5f55ba56a2f4fc8b447fb9ab"
+    },
+    {
+      "ticket": 20,
+      "title": "Fabric function 保存后能执行预期命令效果",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-20-fabric-function-2026-10-13.md",
+      "reportSha256": "5711e26ae2570326f3089ff84d5c0593c283ac7fe6e877d575b78c261875b01e",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用既有 function 专门入口提供本次字段、默认例和校验，不强制统一所有元素契约。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-20-fabric-function-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "内容保存、修改、生成与重开一致，未知字段保留；非法内容/引用提供可定位诊断。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-20-fabric-function-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "T13 断言生成函数执行后的独立状态变化，不以文件生成或命令返回成功代替效果。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-20-fabric-function-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "功能范围与 Core/SDK/UI 一致，只开放验证过的命令内容工作流。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-20-fabric-function-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "本路线最终 JAR 与报告绑定，受影响旧轨道 function 保存/生成回归通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-20-fabric-function-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "f7d84ceff9958d5621c0667659d5d7dec75244c67500bf7fa48b2d3c06f6818d"
+    },
+    {
+      "ticket": 21,
+      "title": "NeoForge function 保存后能执行预期命令效果",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-21-neoforge-function-2026-10-13.md",
+      "reportSha256": "9fc1becaf956f06afaa5f7c21d7da55dfc99ab8920deb183360ade636c71375f",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用既有 function 专门入口提供本次字段、默认例和校验，不强制统一所有元素契约。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-21-neoforge-function-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "内容保存、修改、生成与重开一致，未知字段保留；非法内容/引用提供可定位诊断。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-21-neoforge-function-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "T13 断言生成函数执行后的独立状态变化，不以文件生成或命令返回成功代替效果。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-21-neoforge-function-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "功能范围与 Core/SDK/UI 一致，只开放验证过的命令内容工作流。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-21-neoforge-function-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "本路线最终 JAR 与报告绑定，受影响旧轨道 function 保存/生成回归通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-21-neoforge-function-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "06436500ad704893a0caef070b1c4e0716bae5d6551adbb2639e8c02a0a59c64"
+    },
+    {
+      "ticket": 22,
+      "title": "Fabric 结构化 code 入口保留多文件手写内容",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-22-fabric-code-2026-10-13.md",
+      "reportSha256": "c8e168b9dbb8d0d73e677c1b348377d0fd206e7ac0e60af43e20f6925ac52c1f",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "现有 code 入口的字段/默认例与真实校验一致，支持本次多文件样例；不要求任意 Java 反向转换为可视化元素。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-22-fabric-code-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "metadata-only 修改不重放旧源码，重开刷新磁盘内容，外部编辑与手写归属在重新生成后保留。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-22-fabric-code-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "旧 revision、过期指纹和路径所有权冲突在写入前拒绝；接管仍需原来的显式授权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-22-fabric-code-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "注入编译故障并定位、显式修复、构建成功，T12 使用独立预期验证修复代码。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-22-fabric-code-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "各入口能力声明与实际范围相同，旧轨道手写源码保护回归保持通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-22-fabric-code-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "067d2fb4727eb4df4b7fa41dd4b234e3fd6b585254c2ed0eb322cb9577ec42b4"
+    },
+    {
+      "ticket": 23,
+      "title": "NeoForge 结构化 code 入口保留多文件手写内容",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-23-neoforge-code-2026-10-13.md",
+      "reportSha256": "17ecd83bdbe02e21991611c12d53930745ab7617a6359ddda158e6dbd2ab6012",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "现有 code 入口的字段/默认例与真实校验一致，支持本次多文件样例；不要求任意 Java 反向转换为可视化元素。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-23-neoforge-code-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "metadata-only 修改不重放旧源码，重开刷新磁盘内容，外部编辑与手写归属在重新生成后保留。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-23-neoforge-code-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "旧 revision、过期指纹和路径所有权冲突在写入前拒绝；接管仍需原来的显式授权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-23-neoforge-code-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "注入编译故障并定位、显式修复、构建成功，T12 使用独立预期验证修复代码。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-23-neoforge-code-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "各入口能力声明与实际范围相同，旧轨道手写源码保护回归保持通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-23-neoforge-code-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "877e276176104325bd0ba44e9ac918f696b4e64656490924dab222184d8c2bdf"
+    },
+    {
+      "ticket": 24,
+      "title": "26.2 工程可只读预览 26.3 复制升级",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md",
+      "reportSha256": "8f05d07da26eddad6dc4af2976bb57cb35f06f3ba9ea39a16301676f589a9d70",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "建立独立 Version Copy Upgrade 预览，保留原 Loader Migration 的同版本边界。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "捕获源指纹、精确目标和转换规则版本，显示原值、目标语义、恢复方式与限制依据。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "保留 internalName/registryName/UUID、未知字段和手写归属；尚无已证规则一律形成具体人工任务，不猜转换成功。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "Native/SDK/UI 从同一计划呈现；预览前后工程、运行目录及世界摘要一致，不创建目标。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "跨版本又跨加载器的请求被拆解提示或明确拒绝，不能静默同时执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "重复预览可重现，源变化产生新计划；本票无需等待所有结构化类型，只把未证规则列为未自动支持。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-24-copy-upgrade-preview-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "7d720e90febd6d54e0d633edc84466534d56c330bc0b0ae80197512b7b2cef44"
+    },
+    {
+      "ticket": 25,
+      "title": "Fabric 已证明的 26.2 工程复制升级到新目标",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md",
+      "reportSha256": "1c3893bfe9dda6768964aa3a69d97010b61baeaa72d7a03c307e978e20004a09",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "仅执行规则版本中已证明的字段/文件转换；存在阻断的人工任务时不标记升级完成，也不静默丢弃该部分。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "执行前重新验证源指纹、目标身份和空闲目录；过期计划、已存在目标、路径越界都在写入前拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "保留名称、UUID、未知字段与手写归属；源码语义未证明时只报告人工任务，不自动接管。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "执行前后源工程、旧运行目录和世界字节不变；目标失败保留明确失败状态，不能留成功标记。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "至少一个受限真实工程复制后可重开、构建、独立宿主验收和导出；反例验证失败恢复及源仍可使用。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "目标世界不自动取用原世界；测试需要世界副本时另取明确授权；回滚为继续使用源，不原地降级。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-25-fabric-copy-upgrade-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "770715b1b48787e3cee130dc41e3ab85b7979b5ff4c40a036101b3e4b2bdab97"
+    },
+    {
+      "ticket": 26,
+      "title": "NeoForge 已证明的 26.2 工程复制升级到新目标",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md",
+      "reportSha256": "3321c0d7b04dd82f2efd34500549c812597dfbf5651b4d80212d378207966308",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "仅执行规则版本中已证明的字段/文件转换；存在阻断的人工任务时不标记升级完成，也不静默丢弃该部分。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "执行前重新验证源指纹、目标身份和空闲目录；过期计划、已存在目标、路径越界都在写入前拒绝。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "保留名称、UUID、未知字段与手写归属；源码语义未证明时只报告人工任务，不自动接管。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "执行前后源工程、旧运行目录和世界字节不变；目标失败保留明确失败状态，不能留成功标记。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "至少一个受限真实工程复制后可重开、构建、独立宿主验收和导出；反例验证失败恢复及源仍可使用。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "目标世界不自动取用原世界；测试需要世界副本时另取明确授权；回滚为继续使用源，不原地降级。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-26-neoforge-copy-upgrade-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "f5afed0e1628825e0d08342d781d7cce8fd1157eb4585ade6cfbe5a5406a013c"
+    },
+    {
+      "ticket": 27,
+      "title": "候选冻结与 CI 按精确范围生成可复核清单",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md",
+      "reportSha256": "9a3a3ab90361c0585b6b18cfddcc23925f769486e14668c9a23eee9754666225",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "冻结 source commit/tree、应用 JAR/启动器/安装包、SDK/生成器摘要与样例清单；拒绝缺失或不匹配身份。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "支持按加载器和 G1/G2 范围选择候选；未就绪路线维持 unavailable，不要求另一加载器先完成。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "CI 按十个精确 Java ID 分开记录已就绪项，原八项不删除；新增两条 26.3 业务 job 独立保留成功/失败 XML、日志、mod JAR和实际便携回执。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "保持三个现有必需检查名称与 M1 路由，协议/来源/迁移负向检查按受影响范围触发，不制造重复 PR/push 运行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "安装四单元、客户端六单元有 passed/failed/blocked/not_run 与候选摘要；缺项不能被整表汇总成 passed。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "用既有可运行基线实际证明冻结/收集路径，负向验证错摘要、旧证据与未就绪范围拒绝；26.3 候选在 28–37 实际执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-27-candidate-evidence-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "ed87ff2a4c02eba8288fc6a3e19bac03c498912326f34efed600e1aad0f88b96"
+    },
+    {
+      "ticket": 28,
+      "title": "Windows 11 x64 安装候选通过 Fabric 原生 API 闭环",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md",
+      "reportSha256": "0425f5ea6c39253a5c246d858b3f19342f5993109c4036ed80be984b7bcc1f72",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "真实启动器/doctor 的应用、SDK、生成器和工具链身份与冻结值一致；使用安装产物，不拿源码会话代替。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "实际执行发现、创建、构建失败/修复、六项固定验收、同 JAR 导出、结束旧进程与新进程重连。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "真实导出的便携证据经离线核验通过，当前输入与历史输入分别验证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "复核重复/5 对 6 不足/必要用例缺失、外部源码变更和证据篡改拒绝，默认权限与只读路径不越权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "冷/暖缓存与网络条件分别记录；冷失败不冒充暖前提，不将临时网络修改描述为默认条件保证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "单元只在全部必需结果与身份完整时 passed；失败或环境受阻保留独立状态和日志，不宣称玩家验收。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-28-windows-fabric-installed-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "14e1005a74ea0424fa0afd6b5198315b788775d3c922fbda2d3df6213e57be53"
+    },
+    {
+      "ticket": 29,
+      "title": "Windows 11 x64 安装候选通过 NeoForge 原生 API 闭环",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md",
+      "reportSha256": "b9ebc5fef5a6f212fe6a8ed7654e2bd0eead5b9fbb25de38c8e56eb5a4e8941e",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "真实启动器/doctor 的应用、SDK、生成器和工具链身份与冻结值一致；使用安装产物，不拿源码会话代替。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "实际执行发现、创建、构建失败/修复、六项固定验收、同 JAR 导出、结束旧进程与新进程重连。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "真实导出的便携证据经离线核验通过，当前输入与历史输入分别验证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "复核重复/5 对 6 不足/必要用例缺失、外部源码变更和证据篡改拒绝，默认权限与只读路径不越权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "冷/暖缓存与网络条件分别记录；冷失败不冒充暖前提，不将临时网络修改描述为默认条件保证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "单元只在全部必需结果与身份完整时 passed；失败或环境受阻保留独立状态和日志，不宣称玩家验收。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-29-windows-neoforge-installed-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "370cacc456de3e4458d4b7badec6cfe6ee0f9a72bd3ed313e58848ec374255dd"
+    },
+    {
+      "ticket": 30,
+      "title": "Ubuntu 24.04 LTS x86_64 安装候选通过 Fabric 原生 API 闭环",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md",
+      "reportSha256": "254ef84bc3e3cc2431c88a5494e2771bb1584cb673aab5556c75a58c0e7d2cf7",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "真实启动器/doctor 的应用、SDK、生成器和工具链身份与冻结值一致；使用安装产物，不拿源码会话代替。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "实际执行发现、创建、构建失败/修复、六项固定验收、同 JAR 导出、结束旧进程与新进程重连。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "真实导出的便携证据经离线核验通过，当前输入与历史输入分别验证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "复核重复/5 对 6 不足/必要用例缺失、外部源码变更和证据篡改拒绝，默认权限与只读路径不越权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "冷/暖缓存与网络条件分别记录；冷失败不冒充暖前提，不将临时网络修改描述为默认条件保证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "单元只在全部必需结果与身份完整时 passed；失败或环境受阻保留独立状态和日志，不宣称玩家验收。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-30-ubuntu-fabric-installed-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "84b01b78d04aa4eca2cf90e77ee5cbc3c40c3720cdaa82fe80bd13a1b0376bb0"
+    },
+    {
+      "ticket": 31,
+      "title": "Ubuntu 24.04 LTS x86_64 安装候选通过 NeoForge 原生 API 闭环",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md",
+      "reportSha256": "a41327a0b253be12097ddb628e41ad12b5ae67687e962629efa2c202111402ca",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "真实启动器/doctor 的应用、SDK、生成器和工具链身份与冻结值一致；使用安装产物，不拿源码会话代替。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 2,
+          "text": "实际执行发现、创建、构建失败/修复、六项固定验收、同 JAR 导出、结束旧进程与新进程重连。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 3,
+          "text": "真实导出的便携证据经离线核验通过，当前输入与历史输入分别验证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 4,
+          "text": "复核重复/5 对 6 不足/必要用例缺失、外部源码变更和证据篡改拒绝，默认权限与只读路径不越权。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 5,
+          "text": "冷/暖缓存与网络条件分别记录；冷失败不冒充暖前提，不将临时网络修改描述为默认条件保证。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md"
+        },
+        {
+          "number": 6,
+          "text": "单元只在全部必需结果与身份完整时 passed；失败或环境受阻保留独立状态和日志，不宣称玩家验收。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-31-ubuntu-neoforge-installed-2026-10-13.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "7f6bf6045a37b14b273e049492ec9c0e1c6bb084d5971c01a79b4cc482e44a49"
+    },
+    {
+      "ticket": 32,
+      "title": "Windows 11 的 Fabric 客户端操作与保存重进通过",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-32-native-client-2026-10-14.md",
+      "reportSha256": "db8d6142aa63c647ada707807e53277295e1bdc7ee167cebe4adaff25c2f5695",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用本单元安装票相同候选与样例 JAR；核对目标进程、游戏目录和精确测试世界，保持生命周期会话。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "可用控制桥先 doctor/list/attach；从实际画面操作，重校准改变的菜单，不沿用旧坐标；工具不可用时报告阻断，不假装执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "实际完成合成、16+1 堆叠、物品/方块交互、文本输入和按键；保存截图与操作回执，准备命令不算玩家交互。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "验证焦点丢失停止、正常退出的进程/任务终态，再启动进入同一世界，核对玩家、物品与方块状态。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "SDL 窗口可见与实际可操作分别判断；控制未知画面或丢失焦点时停止。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "结尾 detach；记录实际截图、日志、输入/捕获时间、端到端耗时、工具次数、拒绝批次和实际 Jev 次数，不推导速度优势。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        },
+        {
+          "number": 7,
+          "text": "安装/原生/便携证据与本客户端单元全部通过后，仅该单元具备 G1 原生预览资格；未过或未跑单元不随之开放。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-32-native-client-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "3919b6db3db514076281ebc7d53c992adda7d1cae5c25c86513415ba8f2c410d"
+    },
+    {
+      "ticket": 33,
+      "title": "Windows 11 的 NeoForge 客户端操作与保存重进通过",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-33-native-client-2026-10-14.md",
+      "reportSha256": "59a9bab4f01794109b99454340156528a71f605179db4017cf82e4b0cbd917e8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用本单元安装票相同候选与样例 JAR；核对目标进程、游戏目录和精确测试世界，保持生命周期会话。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "可用控制桥先 doctor/list/attach；从实际画面操作，重校准改变的菜单，不沿用旧坐标；工具不可用时报告阻断，不假装执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "实际完成合成、16+1 堆叠、物品/方块交互、文本输入和按键；保存截图与操作回执，准备命令不算玩家交互。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "验证焦点丢失停止、正常退出的进程/任务终态，再启动进入同一世界，核对玩家、物品与方块状态。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "SDL 窗口可见与实际可操作分别判断；控制未知画面或丢失焦点时停止。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "结尾 detach；记录实际截图、日志、输入/捕获时间、端到端耗时、工具次数、拒绝批次和实际 Jev 次数，不推导速度优势。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        },
+        {
+          "number": 7,
+          "text": "安装/原生/便携证据与本客户端单元全部通过后，仅该单元具备 G1 原生预览资格；未过或未跑单元不随之开放。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-33-native-client-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "453ff3c9a2f6658ba9543098b9d3cd45f894d064e9c266ef23028d9f10a75d3f"
+    },
+    {
+      "ticket": 34,
+      "title": "Ubuntu GNOME Xorg 的 Fabric 客户端操作与保存重进通过",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md",
+      "reportSha256": "443f422f3a2feacaeca13f8b0aafe97a73926c97e12bbe9f7f68933900c51c37",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用本单元安装票相同候选与样例 JAR；核对目标进程、游戏目录和精确测试世界，保持生命周期会话。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "可用控制桥先 doctor/list/attach；从实际画面操作，重校准改变的菜单，不沿用旧坐标；工具不可用时报告阻断，不假装执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "实际完成合成、16+1 堆叠、物品/方块交互、文本输入和按键；保存截图与操作回执，准备命令不算玩家交互。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "验证焦点丢失停止、正常退出的进程/任务终态，再启动进入同一世界，核对玩家、物品与方块状态。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "SDL 窗口可见与实际可操作分别判断；控制未知画面或丢失焦点时停止。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "结尾 detach；记录实际截图、日志、输入/捕获时间、端到端耗时、工具次数、拒绝批次和实际 Jev 次数，不推导速度优势。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 7,
+          "text": "安装/原生/便携证据与本客户端单元全部通过后，仅该单元具备 G1 原生预览资格；未过或未跑单元不随之开放。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-34-xorg-client-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "85e9c0c97b2f9c740546650e26ed8fb59035b9eee97e6c99a51188d113c46266"
+    },
+    {
+      "ticket": 35,
+      "title": "Ubuntu GNOME Xorg 的 NeoForge 客户端操作与保存重进通过",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md",
+      "reportSha256": "f6db4201d48c374d577a04c8d2caf3c989f58e8533388eae59f278736bbb0735",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用本单元安装票相同候选与样例 JAR；核对目标进程、游戏目录和精确测试世界，保持生命周期会话。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "可用控制桥先 doctor/list/attach；从实际画面操作，重校准改变的菜单，不沿用旧坐标；工具不可用时报告阻断，不假装执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "实际完成合成、16+1 堆叠、物品/方块交互、文本输入和按键；保存截图与操作回执，准备命令不算玩家交互。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "验证焦点丢失停止、正常退出的进程/任务终态，再启动进入同一世界，核对玩家、物品与方块状态。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "SDL 窗口可见与实际可操作分别判断；控制未知画面或丢失焦点时停止。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "结尾 detach；记录实际截图、日志、输入/捕获时间、端到端耗时、工具次数、拒绝批次和实际 Jev 次数，不推导速度优势。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        },
+        {
+          "number": 7,
+          "text": "安装/原生/便携证据与本客户端单元全部通过后，仅该单元具备 G1 原生预览资格；未过或未跑单元不随之开放。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-35-xorg-client-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "f25732df5cf9ec89ed7315b6c0ddef69bbbd629402d2b68c1318845d5f1a61da"
+    },
+    {
+      "ticket": 36,
+      "title": "Ubuntu GNOME Wayland 的 Fabric 客户端操作与保存重进通过",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md",
+      "reportSha256": "cd882e719bd0945d628ec02030b6db86ef6eeeee53fbd3a90afd1429082e81b8",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用本单元安装票相同候选与样例 JAR；核对目标进程、游戏目录和精确测试世界，保持生命周期会话。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "可用控制桥先 doctor/list/attach；从实际画面操作，重校准改变的菜单，不沿用旧坐标；工具不可用时报告阻断，不假装执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "实际完成合成、16+1 堆叠、物品/方块交互、文本输入和按键；保存截图与操作回执，准备命令不算玩家交互。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "验证焦点丢失停止、正常退出的进程/任务终态，再启动进入同一世界，核对玩家、物品与方块状态。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "原生 Wayland 下分别验证观测、输入和焦点；Xvfb/Xorg 的通过不替代本单元，不关闭焦点保护。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "结尾 detach；记录实际截图、日志、输入/捕获时间、端到端耗时、工具次数、拒绝批次和实际 Jev 次数，不推导速度优势。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 7,
+          "text": "安装/原生/便携证据与本客户端单元全部通过后，仅该单元具备 G1 原生预览资格；未过或未跑单元不随之开放。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-36-wayland-client-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "82550735a2182223b985c358548cf0e681aeae0fdc7086e9afc2aeed28f5d031"
+    },
+    {
+      "ticket": 37,
+      "title": "Ubuntu GNOME Wayland 的 NeoForge 客户端操作与保存重进通过",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md",
+      "reportSha256": "b5a617e59315e986931934b22449388100568fa74efa106371b3e5dd3471114f",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "使用本单元安装票相同候选与样例 JAR；核对目标进程、游戏目录和精确测试世界，保持生命周期会话。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "可用控制桥先 doctor/list/attach；从实际画面操作，重校准改变的菜单，不沿用旧坐标；工具不可用时报告阻断，不假装执行。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "实际完成合成、16+1 堆叠、物品/方块交互、文本输入和按键；保存截图与操作回执，准备命令不算玩家交互。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "验证焦点丢失停止、正常退出的进程/任务终态，再启动进入同一世界，核对玩家、物品与方块状态。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "原生 Wayland 下分别验证观测、输入和焦点；Xvfb/Xorg 的通过不替代本单元，不关闭焦点保护。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "结尾 detach；记录实际截图、日志、输入/捕获时间、端到端耗时、工具次数、拒绝批次和实际 Jev 次数，不推导速度优势。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        },
+        {
+          "number": 7,
+          "text": "安装/原生/便携证据与本客户端单元全部通过后，仅该单元具备 G1 原生预览资格；未过或未跑单元不随之开放。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-37-wayland-client-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "253e2706a2e4f54df7efef1f41508cfbaa342187156b127b4b927c559dd25452"
+    },
+    {
+      "ticket": 38,
+      "title": "Windows 的 Fabric 五类范围支持形成冻结交付",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md",
+      "reportSha256": "56c898f738467a5e697d49ac3943404e468ef016d8471b2fc25aa7bea9e338b1",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "冻结包含本路线五类实现的 G2 候选；通过已完成票的固定验收流程重新执行，不能直接引用 G1 旧包摘要。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "camp-kit-scoped-v1 的 T01–T13 在最终 mod JAR 独立宿主通过，minimumTests=13；必要清单、生成/重开与字段范围一致。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "重新完成本平台安装 API、受影响玩家操作、保存重进与失败保护；Ubuntu 同时声明 Xorg/Wayland 时两种会话使用同一候选均通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "原八精确生成器相关回归通过，本路线的便携包在干净目录离线核验通过，成功/失败证据均有可取得索引。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "Core、SDK/UI、产品状态与发布说明只声明实际已证元素/字段/操作/平台；保留未跑/受阻单元、版本锁、限制和回滚方式。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "给出可审阅的发布候选及声明差异；真正上传或发布仍走已有授权流程，不修改历史证据或当前公开安装包的既有结论。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-38-windows-fabric-g2-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "ba5f47d571789990aa4eab0fb4e18d164029b111c0224b12baf404ba628fd643"
+    },
+    {
+      "ticket": 39,
+      "title": "Windows 的 NeoForge 五类范围支持形成冻结交付",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md",
+      "reportSha256": "52622cd7bc42741aa4a32989d3c2cc3a269c9e85c57ea588bc759e0171ea749a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "冻结包含本路线五类实现的 G2 候选；通过已完成票的固定验收流程重新执行，不能直接引用 G1 旧包摘要。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "camp-kit-scoped-v1 的 T01–T13 在最终 mod JAR 独立宿主通过，minimumTests=13；必要清单、生成/重开与字段范围一致。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "重新完成本平台安装 API、受影响玩家操作、保存重进与失败保护；Ubuntu 同时声明 Xorg/Wayland 时两种会话使用同一候选均通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "原八精确生成器相关回归通过，本路线的便携包在干净目录离线核验通过，成功/失败证据均有可取得索引。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "Core、SDK/UI、产品状态与发布说明只声明实际已证元素/字段/操作/平台；保留未跑/受阻单元、版本锁、限制和回滚方式。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "给出可审阅的发布候选及声明差异；真正上传或发布仍走已有授权流程，不修改历史证据或当前公开安装包的既有结论。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-39-windows-neoforge-g2-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "4c696813126edbafb8d2b2160430ad34f198d34e409f0131b34b6372f910e425"
+    },
+    {
+      "ticket": 40,
+      "title": "Ubuntu Xorg/Wayland 的 Fabric 五类范围支持形成冻结交付",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md",
+      "reportSha256": "381fd7cf0d7d3e4e71df490e70bfd1e1ffc285ce42c5595d81d03ce60a0fcae3",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "冻结包含本路线五类实现的 G2 候选；通过已完成票的固定验收流程重新执行，不能直接引用 G1 旧包摘要。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "camp-kit-scoped-v1 的 T01–T13 在最终 mod JAR 独立宿主通过，minimumTests=13；必要清单、生成/重开与字段范围一致。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "重新完成本平台安装 API、受影响玩家操作、保存重进与失败保护；Ubuntu 同时声明 Xorg/Wayland 时两种会话使用同一候选均通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "原八精确生成器相关回归通过，本路线的便携包在干净目录离线核验通过，成功/失败证据均有可取得索引。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "Core、SDK/UI、产品状态与发布说明只声明实际已证元素/字段/操作/平台；保留未跑/受阻单元、版本锁、限制和回滚方式。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "给出可审阅的发布候选及声明差异；真正上传或发布仍走已有授权流程，不修改历史证据或当前公开安装包的既有结论。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-40-ubuntu-fabric-g2-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "bfe1b3b8ca2951a4b9c8bf5d20bba12eaad92c69c7cf7941a6314eef80f75cc2"
+    },
+    {
+      "ticket": 41,
+      "title": "Ubuntu Xorg/Wayland 的 NeoForge 五类范围支持形成冻结交付",
+      "status": "done",
+      "report": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md",
+      "reportSha256": "b8ab89cb8ee6ecaf544d9ccff943a1e6215958ccbba589685ddbdb5105e8239a",
+      "criteria": [
+        {
+          "number": 1,
+          "text": "冻结包含本路线五类实现的 G2 候选；通过已完成票的固定验收流程重新执行，不能直接引用 G1 旧包摘要。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 2,
+          "text": "camp-kit-scoped-v1 的 T01–T13 在最终 mod JAR 独立宿主通过，minimumTests=13；必要清单、生成/重开与字段范围一致。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 3,
+          "text": "重新完成本平台安装 API、受影响玩家操作、保存重进与失败保护；Ubuntu 同时声明 Xorg/Wayland 时两种会话使用同一候选均通过。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 4,
+          "text": "原八精确生成器相关回归通过，本路线的便携包在干净目录离线核验通过，成功/失败证据均有可取得索引。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 5,
+          "text": "Core、SDK/UI、产品状态与发布说明只声明实际已证元素/字段/操作/平台；保留未跑/受阻单元、版本锁、限制和回滚方式。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md"
+        },
+        {
+          "number": 6,
+          "text": "给出可审阅的发布候选及声明差异；真正上传或发布仍走已有授权流程，不修改历史证据或当前公开安装包的既有结论。",
+          "status": "reviewed_passed",
+          "evidence": "docs/testing/p263-ticket-41-ubuntu-neoforge-g2-2026-10-14.md"
+        }
+      ],
+      "reviewScope": "Final evidence/status audit; execution dates and limits remain in the original report",
+      "originalIssueSha256": "4b6b6e93f8c17048ade9085e8977f77fbc9dcfab12887ff08602cd4e5152cd5d"
+    }
+  ],
+  "done": 41,
+  "criteriaReviewed": 241,
+  "formalSupportClaim": false
+}

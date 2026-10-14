@@ -79,6 +79,19 @@ public final class CodeFieldContract {
         result.addProperty("scope", "Text and bundle input types; path ownership, duplicate physical paths and source fingerprints are still enforced by persistence. Valid text does not imply Java compilation or lifecycle execution.");
         return result;
     }
+    /** Existing manual-source contract qualified for an exact preview target. */
+    public static JsonObject capabilities(String generatorId) {
+        JsonObject result = capabilities();
+        var fields = dev.copperbench.tracks.PreviewCapabilityCatalog.official().fields(generatorId, "code");
+        result.addProperty("generatorId", generatorId); result.addProperty("supported", !fields.isEmpty());
+        result.add("fields", new Gson().toJsonTree(fields.stream().sorted().toList()));
+        if (!fields.isEmpty()) {
+            JsonObject example = new JsonObject(); example.addProperty("elementType", "code"); example.addProperty("name", "manual_code");
+            JsonObject values = new JsonObject(); values.addProperty("code", ""); values.add("codeFiles", new JsonArray());
+            example.add("initialValues", values); result.add("minimalExample", example);
+        }
+        return result;
+    }
     private static boolean string(JsonElement value) { return value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isString(); }
     private static BlockFieldContract.Issue invalid(String path) { return issue("FIELD_TYPE_INVALID", path, "Expected a non-null string; numbers and booleans are not source text."); }
     private static BlockFieldContract.Issue issue(String code, String path, String reason) { return new BlockFieldContract.Issue(code, path, reason); }

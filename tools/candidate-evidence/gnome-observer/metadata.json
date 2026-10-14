@@ -1,0 +1,7 @@
+{
+  "uuid": "copperbench-validation@local",
+  "name": "Copperbench task window observer",
+  "description": "Window identity, focus and F8 evidence for a disposable validation desktop.",
+  "shell-version": ["46"],
+  "version": 1
+}

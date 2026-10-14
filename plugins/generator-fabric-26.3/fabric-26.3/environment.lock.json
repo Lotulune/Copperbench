@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "generatorId": "fabric-26.3",
+  "capturedAt": "2026-10-12T04:47:13.8898533Z",
+  "versions": {
+    "minecraft": "26.3",
+    "gradle": "9.6.0",
+    "loader": "0.19.5",
+    "buildPlugin": "1.17.21",
+    "fabricApi": "0.162.0+26.3"
+  },
+  "packVersion": {
+    "resourceMajor": 97,
+    "resourceMinor": 1,
+    "dataMajor": 121,
+    "dataMinor": 0,
+    "source": "version.json in the SHA-1-verified Mojang 26.3 client JAR"
+  },
+  "workspaceJava": {
+    "vendor": "JetBrains s.r.o.",
+    "runtimeVersion": "25.0.3+1-b329.124",
+    "javaRelease": 25,
+    "javaSha256": "92250af03f8ad1f4ed4567b3490ce25a8475110aaca05219feeeeb4ca87af877"
+  },
+  "productJava": {
+    "vendor": "JetBrains s.r.o.",
+    "runtimeVersion": "25.0.3+1-b329.124",
+    "javaRelease": 25,
+    "javaSha256": "92250af03f8ad1f4ed4567b3490ce25a8475110aaca05219feeeeb4ca87af877"
+  },
+  "gradleDistribution": {
+    "url": "https://services.gradle.org/distributions/gradle-9.6.0-bin.zip",
+    "upstreamSha256": "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01",
+    "checksumUrl": "https://services.gradle.org/distributions/gradle-9.6.0-bin.zip.sha256"
+  },
+  "wrapperFiles": {
+    "gradle/wrapper/gradle-wrapper.properties": "3f14aa46a23703efc202fddc446ddf66e773ac5056354ddc010e201ec9553390",
+    "gradle/wrapper/gradle-wrapper.jar": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
+  },
+  "generatorSource": {
+    "repository": "https://github.com/Lotulune/Copperbench",
+    "commit": "99f95e1d7ea0e919342414572e31f6dd6e5c4429",
+    "license": "GPL-3.0 with inherited upstream section 7 permissions and trademark terms",
+    "scope": "Copperbench maintained template and backend baseline; probe source bytes are pinned separately"
+  },
+  "artifacts": [
+    {
+      "file": "mojang-26.3.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/702fe59163c6ee6578607daa85811d9bc9c7cc40/26.3.json",
+      "fetchedAt": "2026-10-12T04:31:17.3254751Z",
+      "size": 44992,
+      "upstreamSha1": "702fe59163c6ee6578607daa85811d9bc9c7cc40",
+      "localSha256": "5998ba33a2f9d2424b4b0c78ea3f46759ba3f411ff9b92191ff6b8f679ccfd54"
+    },
+    {
+      "file": "minecraft-26.3-client.jar",
+      "url": "https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar",
+      "fetchedAt": "2026-10-12T04:33:08.8945917Z",
+      "size": 41483720,
+      "upstreamSha1": "e877b6a07acd633fb3bb475002175cec036e7b87",
+      "localSha256": "4508d006323f24fa02876310c192d739af56516eb259000ac50f0909a68c9a2d"
+    },
+    {
+      "file": "fabric-loader-0.19.5.jar",
+      "url": "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar",
+      "fetchedAt": "2026-10-12T04:41:48.0516821Z",
+      "size": 1984980,
+      "upstreamSha1": "ff9e65cffca4a67f31523e1807fe0855940fcbfa",
+      "localSha256": "93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695"
+    },
+    {
+      "file": "fabric-api-0.162.0+26.3.jar",
+      "url": "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.162.0+26.3/fabric-api-0.162.0+26.3.jar",
+      "fetchedAt": "2026-10-12T04:41:50.8857766Z",
+      "size": 1772377,
+      "upstreamSha1": "273cd2dcbd92d1559edcc91c9f23fee47f6ff93f",
+      "localSha256": "8626c189b702f466800b1c8ddac6203cf8a1e0bdaee75a5f9a33b18c2baa81b1"
+    },
+    {
+      "file": "fabric-loom-1.17.21.jar",
+      "url": "https://maven.fabricmc.net/net/fabricmc/fabric-loom/1.17.21/fabric-loom-1.17.21.jar",
+      "fetchedAt": "2026-10-12T04:41:51.4663198Z",
+      "size": 1411398,
+      "upstreamSha1": "0971f00d987dc10c381551ed8533bbbc768b9fe8",
+      "localSha256": "89c08938d865621172e3fb31036081399b2731a4971f599b42724b2509ff5b64"
+    }
+  ],
+  "projectFiles": {
+    "build.gradle": "c93bb29ff48cf75475600287d5eebbb43d9c46d61ce68d587d47665ee5cde3a2",
+    "settings.gradle": "c2e0de91cd0f74cfdf08a060754fc76bffd579489b3824cea0c58078039272d8",
+    "src/main/java/dev/copperbench/probe/FabricEnvironmentProbe.java": "44e06e2f4bd3c8ad7f5ffe86d848fd5c19531e034ef9a45cb881051ca9aa91e8",
+    "src/main/resources/fabric.mod.json": "9da90da98f349640d5b37aaddb23ca82f159d61174e3786e7211147c02a09135",
+    "gradle/normalize-local-minecraft.gradle": "13cdc56bc157bcd5f67dcea23fcc9c0853016d9225f79c4c2e2ca0562aa33f56"
+  },
+  "javaDistribution": {
+    "url": "https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-25.0.3-windows-x64-b329.124.tar.gz",
+    "checksumUrl": "https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-25.0.3-windows-x64-b329.124.tar.gz.checksum",
+    "upstreamSha512": "240ab1444cf5941936ab174686002a6b57806071dad4bd6ba55a970ab360b63a0434d5d38450bad50e8e69c9a591a70f428d9519b748c3ce1043a3a162a6e309",
+    "releaseCommit": "aa719f98f3da6028d3ae1daef4f99aa642b8c1fe",
+    "archiveDownloadedThisRun": false,
+    "installedRuntimeEvidence": "release metadata, JCEF module membership and measured java.exe SHA-256; not a fresh archive install"
+  },
+  "dependencyGraph": {
+    "gradle.lockfile": "6ceab4dd6522181598c897c8a6bfba1dbe8903436f07a7af777ac8712327b54b",
+    "gradle/verification-metadata.xml": "ab6c557e04bd3e90d9916e58520e97d6172689132d94fdc76fb6bc7033d12e05"
+  },
+  "localGeneratedArtifact": {
+    "coordinate": "net.minecraft:minecraft-merged-7e9a32a5b8:26.3",
+    "normalization": "sorted entries, 1980-01-02 local timestamp, STORED, no extra ZIP metadata; entry bytes retained",
+    "sha256": "d14dbbc7b2d6c18227e983617b8423e29099aec31c91623f47c20fe00f4af99f",
+    "reviewedAt": "2026-10-13",
+    "evidence": "ticket-28: all 34225 entry payloads match between independent cold output and the original qualification artifact"
+  }
+}

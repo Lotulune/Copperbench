@@ -24,6 +24,73 @@ const workspaceId = '11111111-1111-4111-8111-111111111111';
 const taskId = '44444444-4444-4444-8444-444444444444';
 const otherTaskId = '55555555-5555-4555-8555-555555555555';
 const revision = 10;
+
+test('preview and copy-upgrade requests work on desktop origins without crypto.randomUUID', async (t) => {
+  const cryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+  Object.defineProperty(globalThis, 'crypto', { value: {}, configurable: true });
+  t.after(() => {
+    if (cryptoDescriptor) Object.defineProperty(globalThis, 'crypto', cryptoDescriptor);
+    else Reflect.deleteProperty(globalThis, 'crypto');
+  });
+  const calls = [];
+  const bridge = new JcefCoreBridge({ workspaceId, onEvent() { return () => {}; }, invoke: async raw => {
+    const request = JSON.parse(raw); calls.push(request);
+    return JSON.stringify({ contract: request.messageType === 'preview' ? 'preview_targets' : 'version_copy_upgrade',
+      schemaVersion: '1', selectedVersion: request.request.supportedVersions[0], status: 'succeeded',
+      requestId: request.requestId, workspaceId, diagnostics: [] });
+  } });
+  t.after(() => bridge.dispose());
+  await bridge.sendPreview(workspaceId, { supportedVersions: ['1'], operation: 'catalog' });
+  await bridge.previewVersionCopyUpgrade(workspaceId, 'fabric-26.3');
+  await bridge.versionCopyUpgradeV2(workspaceId, { operation: 'preview', targetGeneratorId: 'fabric-26.3', outputName: 'copy' });
+  assert.deepEqual(calls.map(request => [request.messageType, request.request.supportedVersions]), [
+    ['preview', ['1']], ['version_copy_upgrade', ['1']], ['version_copy_upgrade', ['2']]
+  ]);
+  for (const request of calls) {
+    assert.equal(request.workspaceId, workspaceId);
+    assert.match(request.requestId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  }
+  assert.equal(new Set(calls.map(request => request.requestId)).size, calls.length);
+});
+
+test('editor schema 1.1 is explicit and a legacy response cannot populate the rich editor', async () => {
+  let downgrade = false;
+  const calls = [];
+  const bridge = new JcefCoreBridge({ workspaceId, onEvent() { return () => {}; }, invoke: async raw => {
+    const request = JSON.parse(raw); calls.push(request);
+    return JSON.stringify({ messageType: 'query_result', schemaVersion: downgrade ? '1.0' : request.schemaVersion,
+      requestId: request.requestId, workspaceId, operation: request.operation, status: 'succeeded', revision,
+      data: { element: { id: 'element' }, configuration: {}, sourceManagement: {} }, diagnostics: [] });
+  } });
+  const query = { messageType: 'query', schemaVersion: '1.1', requestId: randomUUID(), workspaceId,
+    operation: 'get_mod_element_editor', payload: { elementId: 'element' } };
+  assert.equal((await bridge.sendQuery(query)).schemaVersion, '1.1');
+  assert.equal(calls[0].schemaVersion, '1.1');
+  downgrade = true;
+  await assert.rejects(bridge.sendQuery({ ...query, requestId: randomUUID() }), /requested editor schema/);
+});
+
+test('acceptance diagnostics bind the nested Core workspace and never mutate the UI projection', async (t) => {
+  const calls = [];
+  let mismatch = '';
+  const summary = { schemaVersion: '1', taskId, state: 'insufficient', required: 6, minimumTests: 6,
+    uniqueExecuted: 5, shortfall: 1, duplicates: [], missingCases: [] };
+  const bridge = new JcefCoreBridge({ workspaceId, onEvent() { return () => {}; }, invoke: async raw => {
+    const request = JSON.parse(raw); calls.push(request);
+    return JSON.stringify({ contract: 'required_cases', schemaVersion: '1', selectedVersion: '1', status: 'succeeded',
+      requestId: mismatch === 'request' ? otherTaskId : request.requestId,
+      core: { workspaceId: mismatch === 'workspace' ? otherTaskId : workspaceId },
+      coverageDiagnostics: { ...summary, taskId: mismatch === 'task' ? otherTaskId : taskId } });
+  } });
+  t.after(() => bridge.dispose());
+  const before = structuredClone(bridge.getState());
+  assert.deepEqual(await bridge.readAcceptanceDiagnostics(workspaceId, taskId), summary);
+  assert.deepEqual(bridge.getState(), before);
+  assert.deepEqual(calls[0].request, { supportedVersions: ['1'], diagnosticVersions: ['1'], operation: 'get', payload: { taskId } });
+  for (mismatch of ['request', 'workspace', 'task'])
+    await assert.rejects(() => bridge.readAcceptanceDiagnostics(workspaceId, taskId));
+});
+
 const handshake = (supportedSchemaVersions = ['1.0']) => ({
   messageType: 'handshake', requestId: randomUUID(), supportedSchemaVersions,
   client: { id: 'production-bridge-test', version: '1.0' }
@@ -123,6 +190,54 @@ test('production bridge negotiates and loads workbench, elements, and history', 
   assert.equal(f.bridge.getState().workbench.workspace.name, 'Copper Trails');
   assert.deepEqual(f.invocations.map((request) => request.operation ?? request.messageType),
     ['handshake', 'get_workbench', 'list_mod_elements', 'get_history']);
+});
+
+for (const [operation, command] of [['run', 'run_gametest'], ['export', 'export_workspace']]) {
+  test(`nested preview acceptance ${operation} updates tasks and polls completion`, async (t) => {
+    const f = await fixture(t);
+    const invoke = f.host.invoke;
+    const started = { ...task(), kind: operation === 'run' ? 'run_gametest' : 'export' };
+    const completed = { ...task('succeeded'), kind: started.kind };
+    f.host.invoke = async raw => {
+      const request = JSON.parse(raw);
+      if (request.messageType !== 'preview') return invoke(raw);
+      return JSON.stringify({ contract: 'preview_targets', schemaVersion: '1', selectedVersion: '1',
+        requestId: request.requestId, workspaceId, status: 'accepted', diagnostics: [],
+        acceptance: { contract: 'required_cases', schemaVersion: '1', selectedVersion: '1', requestId: request.requestId,
+          status: 'accepted', core: { messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
+            workspaceId, operation: command, status: 'accepted', newRevision: revision, task: started, diagnostics: [] } } });
+    };
+    f.readTask(() => projection(completed, [log(1)]));
+    await f.bridge.sendPreview(workspaceId, { supportedVersions: ['1'], operation: 'acceptance', generatorId: 'fabric-26.3',
+      payload: { supportedVersions: ['1'], operation, expectedRevision: revision, payload: {} } });
+    assert.deepEqual(f.bridge.getState().tasks[taskId], started);
+    await new Promise(resolve => setTimeout(resolve, 600));
+    assert.deepEqual(f.bridge.getState().tasks[taskId], completed);
+    assert.equal(f.bridge.getState().taskLogs[taskId][0].sequence, 1);
+    assert.equal(f.taskQueries().length, 1);
+  });
+}
+
+test('nested preview acceptance rejects mismatched receipts without changing state', async (t) => {
+  const f = await fixture(t);
+  let mismatch = '';
+  f.host.invoke = async raw => {
+    const request = JSON.parse(raw);
+    return JSON.stringify({ contract: 'preview_targets', schemaVersion: '1', selectedVersion: '1',
+      requestId: request.requestId, workspaceId, status: 'accepted', diagnostics: [],
+      acceptance: { contract: 'required_cases', schemaVersion: '1', selectedVersion: mismatch === 'version' ? '2' : '1',
+        requestId: mismatch === 'request' ? otherTaskId : request.requestId,
+        status: 'accepted', core: { messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
+          workspaceId: mismatch === 'workspace' ? otherTaskId : workspaceId,
+          operation: mismatch === 'operation' ? 'run_client' : 'run_gametest', status: 'accepted',
+          newRevision: mismatch === 'revision' ? -1 : revision, task: task(), diagnostics: [] } } });
+  };
+  const before = structuredClone(f.bridge.getState());
+  for (mismatch of ['version', 'request', 'workspace', 'operation', 'revision']) {
+    await assert.rejects(f.bridge.sendPreview(workspaceId, { supportedVersions: ['1'], operation: 'acceptance', generatorId: 'fabric-26.3',
+      payload: { supportedVersions: ['1'], operation: 'run', expectedRevision: revision, payload: {} } }));
+    assert.deepEqual(f.bridge.getState(), before);
+  }
 });
 
 test('incompatible schema stops initial projection queries', async (t) => {

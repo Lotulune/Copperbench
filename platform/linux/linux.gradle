@@ -9,7 +9,7 @@ tasks.register('prepareLinuxGradleDistPool') {
         def downloadRoot = file('build/tmp/linux-gradle-dists')
         poolRoot.mkdirs()
         downloadRoot.mkdirs()
-        ['9.7.0', '9.6.1', '8.8'].each { version ->
+        ['9.7.0', '9.6.1', '9.6.0', '8.8'].each { version ->
             def distName = "gradle-${version}-bin"
             def readyRoot = new File(poolRoot, "${distName}/bundled")
             def launcher = new File(readyRoot, "gradle-${version}/bin/gradle")

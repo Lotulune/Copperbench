@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "1",
+  "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+  "status": "not_run",
+  "cells": [
+    {
+      "cell": "install:windows:fabric",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "passed",
+      "reason": "",
+      "receiptSha256": "41adcbc0261d3f675e9aa61c2b37f1e1fdc9c2f54f765001ef09ad10a9a39e36"
+    },
+    {
+      "cell": "install:windows:neoforge",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "install:ubuntu:fabric",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "install:ubuntu:neoforge",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "client:windows:fabric",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "passed",
+      "reason": "",
+      "receiptSha256": "c18ee693933c96ee10c05aca0678fc729515fc57ffe9a10698249cc65d5f73b4"
+    },
+    {
+      "cell": "client:windows:neoforge",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "client:xorg:fabric",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "client:xorg:neoforge",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "client:wayland:fabric",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    },
+    {
+      "cell": "client:wayland:neoforge",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "status": "not_run",
+      "reason": "No selected receipt"
+    }
+  ],
+  "scopes": [
+    {
+      "scope": "fabric:G1:windows",
+      "cells": [
+        "install:windows:fabric",
+        "client:windows:fabric"
+      ],
+      "evidenceComplete": true,
+      "qualificationEligible": true
+    },
+    {
+      "scope": "neoforge:G1:windows",
+      "cells": [
+        "install:windows:neoforge",
+        "client:windows:neoforge"
+      ],
+      "evidenceComplete": false,
+      "qualificationEligible": false
+    }
+  ],
+  "formalSupportClaim": false,
+  "producerAuthenticated": false,
+  "scope": "evidence_binding_and_completeness_only"
+}

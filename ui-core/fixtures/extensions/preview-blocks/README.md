@@ -1,0 +1,1 @@
+These fixtures are actual Fabric263BlockTest UI/Core projections. Only element identity and timestamp were normalized; source-management paths were omitted. The new-editor projection comes from empty initialValues. The existing specialized block field contract is retained; browser transport is mocked and runtime evidence is separate.

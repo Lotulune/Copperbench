@@ -12,7 +12,9 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -136,5 +138,39 @@ class WorkspacePersistenceFoundationTest {
 			assertEquals(firstId, created.workspaceId());
 			assertEquals(firstId, reopened.workspaceId());
 		}
+	}
+
+	@Test void openingExistingMetadataPreservesExactBytesAndModificationTime() throws Exception {
+		Path workspaceFile = temporaryDirectory.resolve("unchanged.mcreator");
+		java.util.UUID workspaceId = java.util.UUID.fromString("11111111-1111-4111-8111-111111111122");
+		String original = "{ \"upstream\": {\"opaque\":true}, \"dev.copperbench\": {"
+				+ "\"schemaVersion\":1,\"workspaceId\":\"" + workspaceId
+				+ "\",\"revision\":7,\"plugin.future\":{\"nested\":[1,2]}} }\r\n";
+		Files.writeString(workspaceFile, original, StandardCharsets.UTF_8);
+		Files.setLastModifiedTime(workspaceFile, FileTime.fromMillis(1_600_000_000_000L));
+		FileTime modified = Files.getLastModifiedTime(workspaceFile);
+		ProductMetadataManager manager = new ProductMetadataManager(new UnknownFieldPreservingJsonStore());
+
+		try (WorkspaceFileLease lease = WorkspaceFileLease.tryAcquire(temporaryDirectory).orElseThrow()) {
+			ProductMetadataManager.Metadata reopened = manager.loadOrCreate(workspaceFile, () -> {
+				throw new AssertionError("An existing workspace must not request a replacement identity");
+			}, lease);
+			assertEquals(workspaceId, reopened.workspaceId());
+			assertEquals(7, reopened.revision());
+		}
+		assertArrayEquals(original.getBytes(StandardCharsets.UTF_8), Files.readAllBytes(workspaceFile));
+		assertEquals(modified, Files.getLastModifiedTime(workspaceFile));
+	}
+
+	@Test void anEmptyReplacementStillCreatesAMissingProductNamespace() throws Exception {
+		Path workspaceFile = temporaryDirectory.resolve("missing-namespace.mcreator");
+		Files.writeString(workspaceFile, "{\"upstream\":17}", StandardCharsets.UTF_8);
+		UnknownFieldPreservingJsonStore store = new UnknownFieldPreservingJsonStore();
+
+		store.updateProductMetadata(workspaceFile, metadata -> metadata);
+
+		JsonObject stored = store.read(workspaceFile);
+		assertEquals(new JsonObject(), stored.get(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE));
+		assertEquals(17, stored.get("upstream").getAsInt());
 	}
 }

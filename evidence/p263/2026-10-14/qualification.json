@@ -1,0 +1,871 @@
+{
+  "schemaVersion": "1",
+  "date": "2026-10-14",
+  "kind": "dated_p263_review_index",
+  "evidenceRoot": "evidence/p263-remaining",
+  "pairs": [
+    {
+      "ticket": 32,
+      "cell": "client:windows:fabric",
+      "level": "G1",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "candidateDirectory": "candidates/windows-38377909493/G1/frozen",
+      "source": {
+        "commit": "545a713382ec3155be4b51fa18042f2cefabc0b0",
+        "gitTree": "41d81210256a782395cb29ec20e469b11cbc317a",
+        "workingTreeSha256": "57ba15e6e3bf38e2fa902a689fb29fe11356ca386ce07afd0ad223ccfe015dd4",
+        "dirty": false
+      },
+      "clientReceipt": "windows-fabric-g1-client-cell/cell.json",
+      "clientReceiptSha256": "c18ee693933c96ee10c05aca0678fc729515fc57ffe9a10698249cc65d5f73b4",
+      "installationReceipt": "windows-g1-fabric-installed-direct/cell/cell.json",
+      "installationReceiptSha256": "41adcbc0261d3f675e9aa61c2b37f1e1fdc9c2f54f765001ef09ad10a9a39e36",
+      "artifactSha256": "85efba8002bf9ebf16a109a4b955a3a3bc34d43ddb103649761d01af442723d8",
+      "observedArtifacts": {
+        "fabric-26.3-generator": "e4d6baa38add7c67e8f9d3c46a835fc75796e4cc794837c02bbd70e3a9721eee",
+        "fabric-26.3-sample": "d8106c857a75e0cf6ce8d22149ac07dba055ca676ed1c7858a56cf95488205b7",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "windows-application": "107ad790000a0197f394b95f3a5e19053a024fca01175fde828b04d264d139fc",
+        "windows-launcher": "dbad6ecba896062e4d10f511cecfac34cc3ddb394ce429da2fc3c33b0bd62c50",
+        "windows-package": "2291a307a2e748f212d4142f0451b4f6da2953ff0236fa66fbd0d61b123882ff",
+        "windows-portable-package": "f28568ce66136263f3735bc0262feca9b6ec0af45416aa96f6b5af2d9175dea9"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "windows-fabric-g1-client-cell-evaluation.json",
+      "evaluationSha256": "cf61f174b50e877d1ebc9c200eaf588201c311ed78d8db845ad8b459ff9925d3",
+      "originalEvaluationSha256": "cf61f174b50e877d1ebc9c200eaf588201c311ed78d8db845ad8b459ff9925d3",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G1:windows",
+          "cells": [
+            "install:windows:fabric",
+            "client:windows:fabric"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        },
+        {
+          "scope": "neoforge:G1:windows",
+          "cells": [
+            "install:windows:neoforge",
+            "client:windows:neoforge"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "G1 preview cell only; missing sample models/textures and localization remain visible.",
+        "Original interrupted and cancelled attempts are preserved separately and do not count as passes.",
+        "The prior unused second client exited at the title; the separately bound supplementary run supplies the actual saved-world reopen.",
+        "Default launch player UUID/appearance changed; singleplayer serialized position, inventory, rotation and game mode persisted."
+      ]
+    },
+    {
+      "ticket": 33,
+      "cell": "client:windows:neoforge",
+      "level": "G1",
+      "candidateId": "sha256:16b82f6aeaf0bf8af5784a5444e83353d6bb0f2ef3a0a402d22e0614f357a193",
+      "candidateDirectory": "candidates/windows-38377909493/G1/frozen",
+      "source": {
+        "commit": "545a713382ec3155be4b51fa18042f2cefabc0b0",
+        "gitTree": "41d81210256a782395cb29ec20e469b11cbc317a",
+        "workingTreeSha256": "57ba15e6e3bf38e2fa902a689fb29fe11356ca386ce07afd0ad223ccfe015dd4",
+        "dirty": false
+      },
+      "clientReceipt": "windows-neoforge-g1-client-cell/cell.json",
+      "clientReceiptSha256": "5229eb397af527a0f144b5961a6a8dbd5447cfe7d4fd7e6409f4a7084a80c74b",
+      "installationReceipt": "windows-g1-neoforge-installed-proxy/cell/cell.json",
+      "installationReceiptSha256": "535e4b8fd4828aba9f7489e9a58b881f5fc1ee10e73bfb246cda00a83bd3eb6e",
+      "artifactSha256": "59cb2a585035747188778325006a2fb91b1459e95da9cff64a74bcf4c6cd5e42",
+      "observedArtifacts": {
+        "neoforge-26.3-generator": "cc0ec61621b11c1f208b3aa8eb1b318ec9c63602607601663298b22a474d16e0",
+        "neoforge-26.3-sample": "5a9b9273551b0a825862f9e8904d587a0bff32afa732050023e7206248dc5033",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "windows-application": "107ad790000a0197f394b95f3a5e19053a024fca01175fde828b04d264d139fc",
+        "windows-launcher": "dbad6ecba896062e4d10f511cecfac34cc3ddb394ce429da2fc3c33b0bd62c50",
+        "windows-package": "2291a307a2e748f212d4142f0451b4f6da2953ff0236fa66fbd0d61b123882ff",
+        "windows-portable-package": "f28568ce66136263f3735bc0262feca9b6ec0af45416aa96f6b5af2d9175dea9"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "windows-neoforge-g1-client-cell-evaluation.json",
+      "evaluationSha256": "fbdae247a1626d4aadc61fb5cc6e3c69ca2cfe643ece923df8d6a626a187c1c2",
+      "originalEvaluationSha256": "fbdae247a1626d4aadc61fb5cc6e3c69ca2cfe643ece923df8d6a626a187c1c2",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G1:windows",
+          "cells": [
+            "install:windows:fabric",
+            "client:windows:fabric"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        },
+        {
+          "scope": "neoforge:G1:windows",
+          "cells": [
+            "install:windows:neoforge",
+            "client:windows:neoforge"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        }
+      ],
+      "limitations": [
+        "G1 preview only. Missing sample textures/models and some localization remain visible; visual asset quality is not claimed.",
+        "Unsuccessful or interrupted prior attempts are preserved separately and not counted as passes."
+      ]
+    },
+    {
+      "ticket": 34,
+      "cell": "client:xorg:fabric",
+      "level": "G1",
+      "candidateId": "sha256:d7baeec4304b79ed0900395a9a60be95f76e390a950dad61d1d4b090dc41e6cf",
+      "candidateDirectory": "candidates/ubuntu-fabric-g1-38363106468/frozen",
+      "source": {
+        "commit": "88cf8496613fa4d73365d860804488d556e3d39b",
+        "gitTree": "211a4709e568543f79c2eaf7feb4ae61db275f5d",
+        "workingTreeSha256": "b46b91704586e5801d75163538a7f177e4dd5542459db6a0e84f9362a3d40f1e",
+        "dirty": false
+      },
+      "clientReceipt": "xorg-fabric-g1-client-cell/cell.json",
+      "clientReceiptSha256": "c69adfa0eea0ee27984ee822bbe2e0f3bb26b8bd7ee7a4d4e98c0a0322cd54df",
+      "installationReceipt": "cloud/fabric-g1-xorg-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "51901eff0222f43b1bff3aeb6361b368758c0b6416b72adf7c80d4c1cc3c913e",
+      "artifactSha256": "85efba8002bf9ebf16a109a4b955a3a3bc34d43ddb103649761d01af442723d8",
+      "observedArtifacts": {
+        "fabric-26.3-generator": "e4d6baa38add7c67e8f9d3c46a835fc75796e4cc794837c02bbd70e3a9721eee",
+        "fabric-26.3-sample": "b4446c97fef516359231d61382cfe4e443853452f1193d4c2ec4b5d0b10e733a",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "7279acf48633d1c4f7c22946159aa8da7e144dbd1bc81843ca2d1fb76c7af8a8",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "cc1dd2412ce8173d0ca7daf3c9800487e96d1a3a6e6778bb05ffb0659b6451a9",
+        "ubuntu-portable-package": "a88f8596b36fd448a8b5f3b0fa391139e58e5f84e73e33a2b227c8c4e5daf4ed"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "xorg-fabric-g1-client-cell-evaluation.json",
+      "evaluationSha256": "a05f5a940d11cdd069fb552a5d212199f5567de0359b89efe6ac638d7196719d",
+      "originalEvaluationSha256": "a05f5a940d11cdd069fb552a5d212199f5567de0359b89efe6ac638d7196719d",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G1:ubuntu-wayland",
+          "cells": [
+            "install:ubuntu:fabric",
+            "client:wayland:fabric"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        },
+        {
+          "scope": "fabric:G1:ubuntu-xorg",
+          "cells": [
+            "install:ubuntu:fabric",
+            "client:xorg:fabric"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "G1 preview retains missing sample textures/models and localization; visual asset quality is not claimed.",
+        "Original full run timed out during its second lifecycle. Only its succeeded first lifecycle and player evidence count; a separately bound same-candidate archived-world reopen supplies the normal second exit. Original failure retained.",
+        "Fabric development player UUID/appearance changed; all seven serialized gameplay state checks matched."
+      ]
+    },
+    {
+      "ticket": 35,
+      "cell": "client:xorg:neoforge",
+      "level": "G1",
+      "candidateId": "sha256:65dbd37b779ff7259273c498f0830646809ef6506f9b2b30d296b0ccfacc24e6",
+      "candidateDirectory": "candidates/ubuntu-neoforge-g1-38371179293/frozen",
+      "source": {
+        "commit": "f29b4e193ed72d7cc60ab199687ffada32adeb74",
+        "gitTree": "c617eb7685e0720a4d3df2a41a0ba6d453206999",
+        "workingTreeSha256": "4cb85f72b680acce703b7a9242c3d99ed53bf2b7cd4df410848fcd8140d13037",
+        "dirty": false
+      },
+      "clientReceipt": "xorg-neoforge-g1-client-cell/cell.json",
+      "clientReceiptSha256": "f161d1fd4caa6f236e3180d9957accb0643b793f8b52ba83ceae6271fc0c5698",
+      "installationReceipt": "cloud/neoforge-g1-xorg-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "02287dd87329baab2db2b6b310dcb05e452f5f769a74a2883b6333fd1858a67b",
+      "artifactSha256": "59cb2a585035747188778325006a2fb91b1459e95da9cff64a74bcf4c6cd5e42",
+      "observedArtifacts": {
+        "neoforge-26.3-generator": "cc0ec61621b11c1f208b3aa8eb1b318ec9c63602607601663298b22a474d16e0",
+        "neoforge-26.3-sample": "7294cb63118d6362c16cb09347c3d27b9d5ada61feb61d3fb4333c280d85b080",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "b50b41a9e1ce28500aeae6c53ff067299e817cb7cfafd14ae7ab84c7fafcaa55",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "07319ec6cd096ba108427977f4f052af380d406c54e66f86e519a1df714aec89",
+        "ubuntu-portable-package": "08d10c98ca01d1f63d5dad3cfe73994041d7bdec38cc4c8eb2d29ae98e96b765"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "xorg-neoforge-g1-client-cell-evaluation.json",
+      "evaluationSha256": "2f0a730896e684fb09a9917b8f86d2377283c94c878d23880009b04ec12d7b8f",
+      "originalEvaluationSha256": "2f0a730896e684fb09a9917b8f86d2377283c94c878d23880009b04ec12d7b8f",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "neoforge:G1:ubuntu-wayland",
+          "cells": [
+            "install:ubuntu:neoforge",
+            "client:wayland:neoforge"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        },
+        {
+          "scope": "neoforge:G1:ubuntu-xorg",
+          "cells": [
+            "install:ubuntu:neoforge",
+            "client:xorg:neoforge"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "G1 preview retains missing sample textures/models and localization; visual asset quality is not claimed."
+      ]
+    },
+    {
+      "ticket": 36,
+      "cell": "client:wayland:fabric",
+      "level": "G1",
+      "candidateId": "sha256:d7baeec4304b79ed0900395a9a60be95f76e390a950dad61d1d4b090dc41e6cf",
+      "candidateDirectory": "candidates/ubuntu-fabric-g1-38363106468/frozen",
+      "source": {
+        "commit": "88cf8496613fa4d73365d860804488d556e3d39b",
+        "gitTree": "211a4709e568543f79c2eaf7feb4ae61db275f5d",
+        "workingTreeSha256": "b46b91704586e5801d75163538a7f177e4dd5542459db6a0e84f9362a3d40f1e",
+        "dirty": false
+      },
+      "clientReceipt": "wayland-fabric-g1-client-cell-v2/cell.json",
+      "clientReceiptSha256": "d06dcfb9dc721456ad4bcd851cbc578fcc4d49fbd9b4d6e94891f67036e36edf",
+      "installationReceipt": "cloud/fabric-g1-wayland-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "afd59bcf7311c4a617314ffbe23a297ca6bd91bc7ee46c3372e595804ad25e94",
+      "artifactSha256": "85efba8002bf9ebf16a109a4b955a3a3bc34d43ddb103649761d01af442723d8",
+      "observedArtifacts": {
+        "fabric-26.3-generator": "e4d6baa38add7c67e8f9d3c46a835fc75796e4cc794837c02bbd70e3a9721eee",
+        "fabric-26.3-sample": "b4446c97fef516359231d61382cfe4e443853452f1193d4c2ec4b5d0b10e733a",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "7279acf48633d1c4f7c22946159aa8da7e144dbd1bc81843ca2d1fb76c7af8a8",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "cc1dd2412ce8173d0ca7daf3c9800487e96d1a3a6e6778bb05ffb0659b6451a9",
+        "ubuntu-portable-package": "a88f8596b36fd448a8b5f3b0fa391139e58e5f84e73e33a2b227c8c4e5daf4ed"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "wayland-fabric-g1-client-cell-v2-evaluation.json",
+      "evaluationSha256": "c75a2457f61dd5c3e14ab21bf3c131465ce8b0b04d94e3342a77bdd9f87eda02",
+      "originalEvaluationSha256": "c75a2457f61dd5c3e14ab21bf3c131465ce8b0b04d94e3342a77bdd9f87eda02",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G1:ubuntu-wayland",
+          "cells": [
+            "install:ubuntu:fabric",
+            "client:wayland:fabric"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        },
+        {
+          "scope": "fabric:G1:ubuntu-xorg",
+          "cells": [
+            "install:ubuntu:fabric",
+            "client:xorg:fabric"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "G1 preview only. Missing sample textures/models and some localization remain visible; visual asset quality is not claimed.",
+        "Unsuccessful or interrupted prior attempts are preserved separately and not counted as passes.",
+        "Focus was checked in a separately bound same-candidate run; its fresh installation receipt is included and independently evaluated.",
+        "The Fabric development launch changed player UUID/appearance; the singleplayer position, rotation, inventory, selected slot, game mode and placed block all persisted."
+      ]
+    },
+    {
+      "ticket": 37,
+      "cell": "client:wayland:neoforge",
+      "level": "G1",
+      "candidateId": "sha256:65dbd37b779ff7259273c498f0830646809ef6506f9b2b30d296b0ccfacc24e6",
+      "candidateDirectory": "candidates/ubuntu-neoforge-g1-38371179293/frozen",
+      "source": {
+        "commit": "f29b4e193ed72d7cc60ab199687ffada32adeb74",
+        "gitTree": "c617eb7685e0720a4d3df2a41a0ba6d453206999",
+        "workingTreeSha256": "4cb85f72b680acce703b7a9242c3d99ed53bf2b7cd4df410848fcd8140d13037",
+        "dirty": false
+      },
+      "clientReceipt": "wayland-neoforge-g1-client-cell/cell.json",
+      "clientReceiptSha256": "2aa8054b22a346564f82cec476eadb4f09c710b91232ca99813cfafd931b2b8f",
+      "installationReceipt": "cloud/neoforge-g1-wayland-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "212a7bfcdc20dda8e04c533d3dd6f01e84a4fae160625cc6cd067a73ee2b7536",
+      "artifactSha256": "59cb2a585035747188778325006a2fb91b1459e95da9cff64a74bcf4c6cd5e42",
+      "observedArtifacts": {
+        "neoforge-26.3-generator": "cc0ec61621b11c1f208b3aa8eb1b318ec9c63602607601663298b22a474d16e0",
+        "neoforge-26.3-sample": "7294cb63118d6362c16cb09347c3d27b9d5ada61feb61d3fb4333c280d85b080",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "b50b41a9e1ce28500aeae6c53ff067299e817cb7cfafd14ae7ab84c7fafcaa55",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "07319ec6cd096ba108427977f4f052af380d406c54e66f86e519a1df714aec89",
+        "ubuntu-portable-package": "08d10c98ca01d1f63d5dad3cfe73994041d7bdec38cc4c8eb2d29ae98e96b765"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "wayland-neoforge-g1-client-cell-evaluation.json",
+      "evaluationSha256": "7553718c6d2cd9fee86aea433149f671ea73dd9d7c8cc8a4edebe210c4d897ef",
+      "originalEvaluationSha256": "7553718c6d2cd9fee86aea433149f671ea73dd9d7c8cc8a4edebe210c4d897ef",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "neoforge:G1:ubuntu-wayland",
+          "cells": [
+            "install:ubuntu:neoforge",
+            "client:wayland:neoforge"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        },
+        {
+          "scope": "neoforge:G1:ubuntu-xorg",
+          "cells": [
+            "install:ubuntu:neoforge",
+            "client:xorg:neoforge"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "G1 preview retains missing sample textures/models and localization; visual asset quality is not claimed.",
+        "Original full run timed out during its second lifecycle. Only its succeeded first lifecycle and player evidence count; a separately bound same-candidate archived-world reopen supplies the normal second exit. Original failure retained.",
+        "Real focus rejection comes from a separately bound same-candidate focus-only run, not the player run."
+      ]
+    },
+    {
+      "ticket": 38,
+      "cell": "client:windows:fabric",
+      "level": "G2",
+      "candidateId": "sha256:4cb9fecc20384c22a7e610302b53c1a9775a7952a6f00ceac92ef7af2baa682a",
+      "candidateDirectory": "candidates/windows-38377909493/G2/frozen",
+      "source": {
+        "commit": "545a713382ec3155be4b51fa18042f2cefabc0b0",
+        "gitTree": "41d81210256a782395cb29ec20e469b11cbc317a",
+        "workingTreeSha256": "57ba15e6e3bf38e2fa902a689fb29fe11356ca386ce07afd0ad223ccfe015dd4",
+        "dirty": false
+      },
+      "clientReceipt": "windows-fabric-g2-client-cell-v2/cell.json",
+      "clientReceiptSha256": "7ab6bdf6ae67f3eff9160f43e2afe614ebd13d5f67941a6d756648051471d544",
+      "installationReceipt": "windows-g2-fabric-installed-direct/cell/cell.json",
+      "installationReceiptSha256": "ff7e960fbafbfbca4f7e0e7a8108fd3d7b0ed78270230c38c442bc1e6165b541",
+      "artifactSha256": "d77a9e64dad8913d72089ac3264675c0d21d26723f5f925ef149f8c09907fe6a",
+      "observedArtifacts": {
+        "fabric-26.3-generator": "e4d6baa38add7c67e8f9d3c46a835fc75796e4cc794837c02bbd70e3a9721eee",
+        "fabric-26.3-sample": "3cf37b7151c09876e27184b70fe19255c21f78fb99297a42a2688603b2be3067",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "windows-application": "107ad790000a0197f394b95f3a5e19053a024fca01175fde828b04d264d139fc",
+        "windows-launcher": "cdbaa6d518d3714a273f5294f661c11deb336c606ec841624b8cf865c95396da",
+        "windows-package": "1cac58d60ec65ab18dd76fc65ca31cd95c45ee61464c0770302c566236d21760",
+        "windows-portable-package": "febc6eb75ce1c0868fead570315b420a0a3c5d2d3c4467dc84772d21c0bb119b"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "windows-fabric-g2-client-cell-v2-evaluation.json",
+      "evaluationSha256": "be52acb44d3246d4608434d031f5bca00a2c65488ff9f3fdc19fc375352d604c",
+      "originalEvaluationSha256": "be52acb44d3246d4608434d031f5bca00a2c65488ff9f3fdc19fc375352d604c",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G2:windows",
+          "cells": [
+            "install:windows:fabric",
+            "client:windows:fabric"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        },
+        {
+          "scope": "neoforge:G2:windows",
+          "cells": [
+            "install:windows:neoforge",
+            "client:windows:neoforge"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "Fabric development player UUID/appearance changed; restored gameplay state is evaluated separately from this development account identity."
+      ]
+    },
+    {
+      "ticket": 39,
+      "cell": "client:windows:neoforge",
+      "level": "G2",
+      "candidateId": "sha256:4cb9fecc20384c22a7e610302b53c1a9775a7952a6f00ceac92ef7af2baa682a",
+      "candidateDirectory": "candidates/windows-38377909493/G2/frozen",
+      "source": {
+        "commit": "545a713382ec3155be4b51fa18042f2cefabc0b0",
+        "gitTree": "41d81210256a782395cb29ec20e469b11cbc317a",
+        "workingTreeSha256": "57ba15e6e3bf38e2fa902a689fb29fe11356ca386ce07afd0ad223ccfe015dd4",
+        "dirty": false
+      },
+      "clientReceipt": "windows-neoforge-g2-client-cell-v2/cell.json",
+      "clientReceiptSha256": "f6adddecb2a02cf37e50bf40eb77c2b02d07c5fad214b5d50e7a279bfde6f48d",
+      "installationReceipt": "windows-g2-neoforge-installed-proxy/cell/cell.json",
+      "installationReceiptSha256": "4eecb24556466da95fff640ab35fc8eb6e6681a6567ac637cbd75febdce81c81",
+      "artifactSha256": "7c4d640185bd944006b53f76ff72fbdd0575ebaf4494d6f49d562fe8b87a435a",
+      "observedArtifacts": {
+        "neoforge-26.3-generator": "cc0ec61621b11c1f208b3aa8eb1b318ec9c63602607601663298b22a474d16e0",
+        "neoforge-26.3-sample": "019814af156cc0d2d1c4d081f582a8e5c2eaf595a2985957494769e4df7b4a5a",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "windows-application": "107ad790000a0197f394b95f3a5e19053a024fca01175fde828b04d264d139fc",
+        "windows-launcher": "cdbaa6d518d3714a273f5294f661c11deb336c606ec841624b8cf865c95396da",
+        "windows-package": "1cac58d60ec65ab18dd76fc65ca31cd95c45ee61464c0770302c566236d21760",
+        "windows-portable-package": "febc6eb75ce1c0868fead570315b420a0a3c5d2d3c4467dc84772d21c0bb119b"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "windows-neoforge-g2-client-cell-v2-evaluation.json",
+      "evaluationSha256": "42b758a5a4fc8ac9161ff4c0f034e2ff2d2b7c03db0a74549f0dae61c9ee259c",
+      "originalEvaluationSha256": "42b758a5a4fc8ac9161ff4c0f034e2ff2d2b7c03db0a74549f0dae61c9ee259c",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G2:windows",
+          "cells": [
+            "install:windows:fabric",
+            "client:windows:fabric"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        },
+        {
+          "scope": "neoforge:G2:windows",
+          "cells": [
+            "install:windows:neoforge",
+            "client:windows:neoforge"
+          ],
+          "evidenceComplete": true,
+          "qualificationEligible": true
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt."
+      ]
+    },
+    {
+      "ticket": 40,
+      "cell": "client:xorg:fabric",
+      "level": "G2",
+      "candidateId": "sha256:5af68d4a7690efa0038675bab96987d888bb624f1b8550cfcb74a1a14006203c",
+      "candidateDirectory": "candidates/ubuntu-fabric-g2-38369155468/frozen",
+      "source": {
+        "commit": "12642d68c0f7c041d478eadbd6cf6853b7988044",
+        "gitTree": "e65f4838cc973479aff1d0dcd2968204ca5b8d5c",
+        "workingTreeSha256": "0a2a5575a78a353084f20ad8617d3ac6d67571aad43693f67ca3a628630d9620",
+        "dirty": false
+      },
+      "clientReceipt": "xorg-fabric-g2-client-cell/cell.json",
+      "clientReceiptSha256": "acf614bc8f002ef57a42a305a83ed339705691e28c55fd23c0d8543d4bf787aa",
+      "installationReceipt": "cloud/fabric-g2-xorg-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "5bf2eaf265f5ea74225c4a07e1d35dcf4f1363729868eb9a5f0732e520398551",
+      "artifactSha256": "d77a9e64dad8913d72089ac3264675c0d21d26723f5f925ef149f8c09907fe6a",
+      "observedArtifacts": {
+        "fabric-26.3-generator": "e4d6baa38add7c67e8f9d3c46a835fc75796e4cc794837c02bbd70e3a9721eee",
+        "fabric-26.3-sample": "2fba66c8d4eef14192547f812db1f637284e3c3ad9e75c4062f69c6cc62b3e90",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "b50b41a9e1ce28500aeae6c53ff067299e817cb7cfafd14ae7ab84c7fafcaa55",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "0c5aa2ee993e09cba2bef4a148190bbe99b359716760626487c5d435180d0143",
+        "ubuntu-portable-package": "c62b0951f670e8dad58e491437f43fa60defd0b0959ebfcd592a54387541664c"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "xorg-fabric-g2-client-cell-evaluation.json",
+      "evaluationSha256": "a5070a317fb7e22f028c77aaac4f4669792fef3841fa295701e8397eb3035546",
+      "originalEvaluationSha256": "a5070a317fb7e22f028c77aaac4f4669792fef3841fa295701e8397eb3035546",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G2:ubuntu",
+          "cells": [
+            "install:ubuntu:fabric",
+            "client:xorg:fabric",
+            "client:wayland:fabric"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "Fabric development player UUID/appearance changed; restored gameplay state is evaluated separately from this development account identity.",
+        "Strict final-position equality failed and remains failed in the original report. The original second-login log exactly matches the first-save position; the other six serialized checks match. This receipt accepts restoration at load and does not claim both final saved positions are equal."
+      ]
+    },
+    {
+      "ticket": 40,
+      "cell": "client:wayland:fabric",
+      "level": "G2",
+      "candidateId": "sha256:5af68d4a7690efa0038675bab96987d888bb624f1b8550cfcb74a1a14006203c",
+      "candidateDirectory": "candidates/ubuntu-fabric-g2-38369155468/frozen",
+      "source": {
+        "commit": "12642d68c0f7c041d478eadbd6cf6853b7988044",
+        "gitTree": "e65f4838cc973479aff1d0dcd2968204ca5b8d5c",
+        "workingTreeSha256": "0a2a5575a78a353084f20ad8617d3ac6d67571aad43693f67ca3a628630d9620",
+        "dirty": false
+      },
+      "clientReceipt": "wayland-fabric-g2-client-cell/cell.json",
+      "clientReceiptSha256": "13e2fd0c1d3cb693faccac27155f19ac1aec514bc21cdc1e4d0b30a3038e7304",
+      "installationReceipt": "cloud/fabric-g2-wayland-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "4cc796a7938195987ceef49f84d5b64ca0ce354d8d163bdf94f664ff1fcc855d",
+      "artifactSha256": "d77a9e64dad8913d72089ac3264675c0d21d26723f5f925ef149f8c09907fe6a",
+      "observedArtifacts": {
+        "fabric-26.3-generator": "e4d6baa38add7c67e8f9d3c46a835fc75796e4cc794837c02bbd70e3a9721eee",
+        "fabric-26.3-sample": "2fba66c8d4eef14192547f812db1f637284e3c3ad9e75c4062f69c6cc62b3e90",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "b50b41a9e1ce28500aeae6c53ff067299e817cb7cfafd14ae7ab84c7fafcaa55",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "0c5aa2ee993e09cba2bef4a148190bbe99b359716760626487c5d435180d0143",
+        "ubuntu-portable-package": "c62b0951f670e8dad58e491437f43fa60defd0b0959ebfcd592a54387541664c"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "wayland-fabric-g2-client-cell-evaluation.json",
+      "evaluationSha256": "9d7646d413d24beb416471a09ce1988f4b0b72d49e2080e0b53009f1949e575f",
+      "originalEvaluationSha256": "9d7646d413d24beb416471a09ce1988f4b0b72d49e2080e0b53009f1949e575f",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "fabric:G2:ubuntu",
+          "cells": [
+            "install:ubuntu:fabric",
+            "client:xorg:fabric",
+            "client:wayland:fabric"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "Fabric development player UUID/appearance changed; restored gameplay state is evaluated separately from this development account identity.",
+        "Strict final-position equality failed and remains failed in the original report. The original second-login log exactly matches the first-save position; the other six serialized checks match. This receipt accepts restoration at load and does not claim both final saved positions are equal.",
+        "Early frames show distant-horizon rendering artifacts in this software-Mesa runner; their cause is not established, and general GPU/visual quality is not qualified."
+      ]
+    },
+    {
+      "ticket": 41,
+      "cell": "client:xorg:neoforge",
+      "level": "G2",
+      "candidateId": "sha256:25c777914cbea3ce14fe59c0f9a03a79613d7c03cd3f7631ebd480ec894121d8",
+      "candidateDirectory": "candidates/ubuntu-neoforge-g2-38371185225/frozen",
+      "source": {
+        "commit": "f29b4e193ed72d7cc60ab199687ffada32adeb74",
+        "gitTree": "c617eb7685e0720a4d3df2a41a0ba6d453206999",
+        "workingTreeSha256": "4cb85f72b680acce703b7a9242c3d99ed53bf2b7cd4df410848fcd8140d13037",
+        "dirty": false
+      },
+      "clientReceipt": "xorg-neoforge-g2-client-cell/cell.json",
+      "clientReceiptSha256": "8ffadb6b62b3970aab889ae792aa708161bff8a2f9dc6a90fd3e8ae9b1380840",
+      "installationReceipt": "cloud/neoforge-g2-xorg-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "dbb526085bf5db129f0679727e9311cd807e2d3387edfe4162d4e2d8e3ecb8d2",
+      "artifactSha256": "7c4d640185bd944006b53f76ff72fbdd0575ebaf4494d6f49d562fe8b87a435a",
+      "observedArtifacts": {
+        "neoforge-26.3-generator": "cc0ec61621b11c1f208b3aa8eb1b318ec9c63602607601663298b22a474d16e0",
+        "neoforge-26.3-sample": "900965e855bcbd447cbcb283a9f80fa06ccfd39ad7e3c5dcb4a7e11c6618bfbf",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "b50b41a9e1ce28500aeae6c53ff067299e817cb7cfafd14ae7ab84c7fafcaa55",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "22c8b49978e8bd13a1f8f2c61699ef160f4bcfae2e91694cd050377c444ffb74",
+        "ubuntu-portable-package": "08d10c98ca01d1f63d5dad3cfe73994041d7bdec38cc4c8eb2d29ae98e96b765"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "xorg-neoforge-g2-client-cell-evaluation.json",
+      "evaluationSha256": "e9bfc34eb8e0aab22f57f67b3b89fd069d2b1c4741d2d7ac70cbe2dc75a4ace3",
+      "originalEvaluationSha256": "e9bfc34eb8e0aab22f57f67b3b89fd069d2b1c4741d2d7ac70cbe2dc75a4ace3",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "neoforge:G2:ubuntu",
+          "cells": [
+            "install:ubuntu:neoforge",
+            "client:xorg:neoforge",
+            "client:wayland:neoforge"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt."
+      ]
+    },
+    {
+      "ticket": 41,
+      "cell": "client:wayland:neoforge",
+      "level": "G2",
+      "candidateId": "sha256:25c777914cbea3ce14fe59c0f9a03a79613d7c03cd3f7631ebd480ec894121d8",
+      "candidateDirectory": "candidates/ubuntu-neoforge-g2-38371185225/frozen",
+      "source": {
+        "commit": "f29b4e193ed72d7cc60ab199687ffada32adeb74",
+        "gitTree": "c617eb7685e0720a4d3df2a41a0ba6d453206999",
+        "workingTreeSha256": "4cb85f72b680acce703b7a9242c3d99ed53bf2b7cd4df410848fcd8140d13037",
+        "dirty": false
+      },
+      "clientReceipt": "wayland-neoforge-g2-client-cell/cell.json",
+      "clientReceiptSha256": "097cd01118a4385da87976bba890c262da7bb23b218244f6f61f959ca275079f",
+      "installationReceipt": "cloud/neoforge-g2-wayland-player-run/installed/cell/cell.json",
+      "installationReceiptSha256": "52c1d969375801ea5a544b043931f52a6c351fa1161b2984b8fd5c5c06e9a480",
+      "artifactSha256": "7c4d640185bd944006b53f76ff72fbdd0575ebaf4494d6f49d562fe8b87a435a",
+      "observedArtifacts": {
+        "neoforge-26.3-generator": "cc0ec61621b11c1f208b3aa8eb1b318ec9c63602607601663298b22a474d16e0",
+        "neoforge-26.3-sample": "900965e855bcbd447cbcb283a9f80fa06ccfd39ad7e3c5dcb4a7e11c6618bfbf",
+        "python-mcp": "269d6de44417e90427ac10db6131fd9bd4f1bd2103de39afc9726c797bfb2389",
+        "python-native": "f2ca93424532a574963934defbd3a66ce6e3aea624a02db5a33fbfbd312634ca",
+        "typescript": "3db201cdc8925152d8eb32c212654970763917d1466dd501985f868dd97f7a89",
+        "ubuntu-application": "b50b41a9e1ce28500aeae6c53ff067299e817cb7cfafd14ae7ab84c7fafcaa55",
+        "ubuntu-launcher": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+        "ubuntu-package": "22c8b49978e8bd13a1f8f2c61699ef160f4bcfae2e91694cd050377c444ffb74",
+        "ubuntu-portable-package": "08d10c98ca01d1f63d5dad3cfe73994041d7bdec38cc4c8eb2d29ae98e96b765"
+      },
+      "pairBindingStatus": "passed",
+      "evaluation": "wayland-neoforge-g2-client-cell-evaluation.json",
+      "evaluationSha256": "f9a31a6e026f9f1d4dc0b31ee7125dfd9c2fd4e2d1a9bd2a18967e6eabcc49be",
+      "originalEvaluationSha256": "f9a31a6e026f9f1d4dc0b31ee7125dfd9c2fd4e2d1a9bd2a18967e6eabcc49be",
+      "rawEvaluatorOverallStatus": "not_run",
+      "rawEvaluatorScopes": [
+        {
+          "scope": "neoforge:G2:ubuntu",
+          "cells": [
+            "install:ubuntu:neoforge",
+            "client:xorg:neoforge",
+            "client:wayland:neoforge"
+          ],
+          "evidenceComplete": false,
+          "qualificationEligible": false
+        }
+      ],
+      "limitations": [
+        "No merge or formal publication is implied by this client receipt.",
+        "Early frames show distant-horizon rendering artifacts in this software-Mesa runner; their cause is not established, and general GPU/visual quality is not qualified."
+      ]
+    }
+  ],
+  "g2Scopes": [
+    {
+      "ticket": 38,
+      "scope": "fabric:G2:windows",
+      "candidateId": "sha256:4cb9fecc20384c22a7e610302b53c1a9775a7952a6f00ceac92ef7af2baa682a",
+      "artifactSha256": "d77a9e64dad8913d72089ac3264675c0d21d26723f5f925ef149f8c09907fe6a",
+      "reviewedQualification": "passed_with_documented_limits",
+      "cells": [
+        "client:windows:fabric"
+      ],
+      "basis": "existing_evaluator_complete_scope_and_reviewed_player_evidence",
+      "formalSupportClaim": false,
+      "published": false
+    },
+    {
+      "ticket": 39,
+      "scope": "neoforge:G2:windows",
+      "candidateId": "sha256:4cb9fecc20384c22a7e610302b53c1a9775a7952a6f00ceac92ef7af2baa682a",
+      "artifactSha256": "7c4d640185bd944006b53f76ff72fbdd0575ebaf4494d6f49d562fe8b87a435a",
+      "reviewedQualification": "passed_with_documented_limits",
+      "cells": [
+        "client:windows:neoforge"
+      ],
+      "basis": "existing_evaluator_complete_scope_and_reviewed_player_evidence",
+      "formalSupportClaim": false,
+      "published": false
+    },
+    {
+      "ticket": 40,
+      "scope": "fabric:G2:ubuntu",
+      "candidateId": "sha256:5af68d4a7690efa0038675bab96987d888bb624f1b8550cfcb74a1a14006203c",
+      "artifactSha256": "d77a9e64dad8913d72089ac3264675c0d21d26723f5f925ef149f8c09907fe6a",
+      "reviewedQualification": "passed_with_documented_limits",
+      "cells": [
+        "client:xorg:fabric",
+        "client:wayland:fabric"
+      ],
+      "basis": "strict_pair_checks_and_reviewed_same_candidate_desktop_coverage",
+      "formalSupportClaim": false,
+      "published": false
+    },
+    {
+      "ticket": 41,
+      "scope": "neoforge:G2:ubuntu",
+      "candidateId": "sha256:25c777914cbea3ce14fe59c0f9a03a79613d7c03cd3f7631ebd480ec894121d8",
+      "artifactSha256": "7c4d640185bd944006b53f76ff72fbdd0575ebaf4494d6f49d562fe8b87a435a",
+      "reviewedQualification": "passed_with_documented_limits",
+      "cells": [
+        "client:xorg:neoforge",
+        "client:wayland:neoforge"
+      ],
+      "basis": "strict_pair_checks_and_reviewed_same_candidate_desktop_coverage",
+      "formalSupportClaim": false,
+      "published": false
+    }
+  ],
+  "offlineReviews": [
+    {
+      "ticket": 38,
+      "results": "windows-g2-fabric-offline-review-final/results.json",
+      "sha256": "9af2740f5b49ce45b9459c43f9853e27c53fb5d5027d389f6cfc7f2b8be2b331",
+      "validPassed": 4,
+      "tamperedRejected": 2
+    },
+    {
+      "ticket": 39,
+      "results": "windows-g2-neoforge-offline-review-final/results.json",
+      "sha256": "2c9dd22d22c219262d3803bb327e265e64bed8c0b3f859efd6fbe4563cf70959",
+      "validPassed": 4,
+      "tamperedRejected": 2
+    },
+    {
+      "ticket": 40,
+      "results": "fabric-g2-order-fixed-offline-review/results.json",
+      "sha256": "066d7ec0bb8a6abfeb0b3159ed629e128ded2d08318f47b9e9fde11f9c4e9ad3",
+      "validPassed": 4,
+      "tamperedRejected": 2
+    },
+    {
+      "ticket": 41,
+      "results": "neoforge-g2-order-fixed-offline-review/results.json",
+      "sha256": "cf7cfd8f92f47ac99c7f1723a117c4e253f8281dbdf3851964df133ac8a2e9c5",
+      "validPassed": 4,
+      "tamperedRejected": 2
+    }
+  ],
+  "reusedRegression": [
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.core.application.PreviewAccessTest.xml",
+      "sha256": "25b7e513cceaa04fe3be61a582f89e3accaf608625fc2a8ada9448f03c77ed41",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.core.application.WorkspaceTaskEventTest.xml",
+      "sha256": "3d67388e2f775bc43b74869e3e200786ff015d392a22b7c1c04c5a43d81141cc",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.fabric.Fabric1201GeneratorTest.xml",
+      "sha256": "9b840eaf624bdae15f2f1b1ff1bb55b90782c1a68ce59757575fa72201e6a675",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.fabric.Fabric1211GeneratorTest.xml",
+      "sha256": "cabb07e56b1a689dea6b5df0f3173195b8ea8c0b1333ddeda0b668f4955ebfa0",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.fabric.Fabric261GeneratorTest.xml",
+      "sha256": "a7059b42b9d1488fb7f36ce53cd5581affa5a7d4493991aaf05268b58ad0056c",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.fabric.Fabric262GeneratorTest.xml",
+      "sha256": "dbcb006c92104af9e19505cb64ad884af4d1e755a4ae71f894aa14b806ad650a",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.neoforge.NeoForge1201GeneratorTest.xml",
+      "sha256": "b160deb9f9a3adeb00624f58eeb20204669862b2a7a5da32fd6540fcf35fb7c2",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest.xml",
+      "sha256": "c36a72b2b3e64dfacff005691abf9f5c1e2d38622a3cc845bf7c95309d26470d",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.neoforge.NeoForge261GeneratorTest.xml",
+      "sha256": "3ef43457f9f35caa1dc502d723550bd81a4526a4aa933ec6044e1531a965c409",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.generator.neoforge.NeoForge262GeneratorTest.xml",
+      "sha256": "d56fa8a1b8ef812220b076563ddc9e758594ce95f7f1c5c74e3572d415a4f933",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.headless.NativeApiSessionTest.xml",
+      "sha256": "76eb37d1f30e309c3d2627dad406964df7849c243eee4bc938ceb8eed8acef59",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "cancellation-and-legacy-test-results/TEST-dev.copperbench.tracks.ExactGeneratorWorkspaceTest.xml",
+      "sha256": "68552271fbf49694cbd34e0add7614e393e7f72c08c18ca2f43d24360d7d6e50",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "regressionSource": "2026-10-13 execution; not rerun during documentation closeout",
+  "formalSupportClaim": false,
+  "producerAuthenticated": false,
+  "published": false,
+  "method": "Original evaluator unchanged. Each selected client is bound to its actual installation. Ubuntu coverage is a separate review across two strict pairs, not a synthetic installation receipt or automatic whole-matrix pass.",
+  "unavailableAndUnselectedCells": "Preserved as not_run in each original and reproduced evaluation."
+}

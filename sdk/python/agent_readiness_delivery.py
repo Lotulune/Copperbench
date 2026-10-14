@@ -17,6 +17,7 @@ import sys
 import time
 import traceback
 import uuid
+import xml.etree.ElementTree as ET
 from copperbench_native import Workspace
 
 config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
@@ -252,7 +253,21 @@ try:
                      "frameworkTests": 0, "acceptanceExecuted": 0, "cases": []})
         reject_export(workspace, "zero-tests-export", empty_id, "VERIFIED_ACCEPTANCE_INVALID")
 
+        # Recreate a legacy passed record whose six XML nodes are one business identity.
+        duplicate_case = copy.deepcopy(verify["cases"][0])
+        duplicate_suite = ET.Element("testsuite")
+        for _ in range(6):
+            ET.SubElement(duplicate_suite, "testcase", {"name": duplicate_case["name"],
+                                                       "classname": duplicate_case["className"]})
+        duplicate_id = inject_recovered_record(accepted["id"], "duplicate-tests",
+                    ET.tostring(duplicate_suite, encoding="unicode"), 6,
+                    {"discovered": 6, "executed": 6, "passed": 6, "failed": 0, "skipped": 0,
+                     "frameworkTests": 0, "acceptanceExecuted": 6,
+                     "cases": [copy.deepcopy(duplicate_case) for _ in range(6)]})
+        reject_export(workspace, "duplicate-current-export", duplicate_id, "VERIFIED_ACCEPTANCE_INVALID")
+
         update_code(workspace, code_id, correct_code + "\n// Changed input after acceptance.\n")
+        reject_export(workspace, "duplicate-historical-export", duplicate_id, "VERIFIED_ACCEPTANCE_INVALID", historical=True)
         reject_export(workspace, "source-changed", accepted["id"], "VERIFICATION_INPUT_CHANGED")
         historical = terminal(workspace, "explicit-historical-export",
                               workspace.export_verified_artifact(accepted["id"], allow_historical=True))

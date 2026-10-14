@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1",
+  "taskId": "33333333-3333-4333-8333-333333333333",
+  "evidenceScope": "minimum_only_legacy",
+  "inputScope": "unverified",
+  "required": 0,
+  "minimumTests": 1,
+  "uniqueExecuted": 0,
+  "shortfall": 1,
+  "duplicates": [],
+  "missingCases": [],
+  "state": "no_business",
+  "reasonCode": "GAMETEST_NO_TESTS"
+}

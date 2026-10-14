@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:copperbench:version-copy-upgrade:1",
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceValue": {},
+        "disposition": {
+          "enum": [
+            "convertible",
+            "manual",
+            "unsupported"
+          ]
+        },
+        "reasonCode": {
+          "type": "string"
+        },
+        "targetMeaning": {
+          "type": "string"
+        },
+        "recovery": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sourceValue",
+        "disposition",
+        "reasonCode",
+        "targetMeaning",
+        "recovery",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "plan": {
+      "type": "object",
+      "properties": {
+        "ruleVersion": {
+          "type": "string"
+        },
+        "sourceWorkspaceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sourceRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sourceGeneratorId": {
+          "enum": [
+            "fabric-26.2",
+            "neoforge-26.2"
+          ]
+        },
+        "targetGeneratorId": {
+          "enum": [
+            "fabric-26.3",
+            "neoforge-26.3"
+          ]
+        },
+        "sourceFingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "planId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "copyOnly": {
+          "const": true
+        },
+        "sourceUnchanged": {
+          "const": true
+        },
+        "executionAvailable": {
+          "const": false
+        },
+        "worldPolicy": {
+          "const": "excluded_requires_separate_authorization"
+        },
+        "recovery": {
+          "const": "continue_using_unchanged_source"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entry"
+          }
+        },
+        "counts": {
+          "type": "object",
+          "properties": {
+            "convertible": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "manual": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unsupported": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "convertible",
+            "manual",
+            "unsupported"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "ruleVersion",
+        "sourceWorkspaceId",
+        "sourceRevision",
+        "sourceGeneratorId",
+        "targetGeneratorId",
+        "sourceFingerprint",
+        "planId",
+        "copyOnly",
+        "sourceUnchanged",
+        "executionAvailable",
+        "worldPolicy",
+        "recovery",
+        "entries",
+        "counts"
+      ],
+      "additionalProperties": false
+    },
+    "request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "supportedVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "operation": {
+              "const": "negotiate"
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "operation"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "supportedVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "operation": {
+              "const": "preview"
+            },
+            "targetGeneratorId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "operation",
+            "targetGeneratorId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "contract": {
+          "const": "version_copy_upgrade"
+        },
+        "schemaVersion": {
+          "const": "1"
+        },
+        "selectedVersion": {
+          "const": "1"
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "workspaceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "enum": [
+            "succeeded",
+            "rejected"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "executionAvailable": {
+          "const": false
+        },
+        "plan": {
+          "$ref": "#/$defs/plan"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "contract",
+        "schemaVersion",
+        "requestId",
+        "workspaceId",
+        "status",
+        "diagnostics"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "succeeded"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "selectedVersion"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "plan"
+                ],
+                "not": {
+                  "required": [
+                    "executionAvailable"
+                  ],
+                  "properties": {
+                    "executionAvailable": {}
+                  }
+                },
+                "properties": {
+                  "plan": {}
+                }
+              },
+              {
+                "required": [
+                  "executionAvailable"
+                ],
+                "not": {
+                  "required": [
+                    "plan"
+                  ],
+                  "properties": {
+                    "plan": {}
+                  }
+                },
+                "properties": {
+                  "executionAvailable": {}
+                }
+              }
+            ],
+            "properties": {
+              "selectedVersion": {}
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "plan"
+              ],
+              "properties": {
+                "plan": {}
+              }
+            },
+            "properties": {
+              "diagnostics": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

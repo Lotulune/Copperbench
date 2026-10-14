@@ -315,6 +315,20 @@ final class WorkspacePlanEngine {
 		WorkspaceApplicationService shadow = new WorkspaceApplicationService(shadowStore, tasks,
 				WorkspaceMutationGateway.noOp(), null, null, null, clock, plannedIdSupplier, false);
 		RequestContext simulationContext = new RequestContext(UiCore.Actor.HEADLESS, PermissionProfile.WORKSPACE);
+		String generator = base.generator().has("id") ? base.generator().get("id").getAsString() : "";
+		if (dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generator)) {
+			JsonObject recovery = new JsonObject(); recovery.add("operations", operations);
+			if (!PreviewAccess.configurationRecoveryPlan(recovery, base))
+				return Simulation.failed(diagnostic("PREVIEW_OPERATION_UNSUPPORTED", "diagnostic.preview_operation_unsupported",
+						"Only reviewed block configuration recovery can use workspace plans on this preview target."));
+			// This choice exists only in the disposable, no-op shadow store. Applying the signed plan
+			// still checks the real session's choice, permission, revision and durable fingerprints.
+			JsonObject choice = new JsonObject(); choice.addProperty("operation", "opt_in");
+			choice.addProperty("generatorId", generator); choice.addProperty("expectedRevision", base.revision());
+			JsonArray versions = new JsonArray(); versions.add("1"); choice.add("supportedVersions", versions);
+			shadow.preview(base.id(), UUID.randomUUID(), choice, simulationContext);
+			simulationContext = new RequestContext(UiCore.Actor.HEADLESS, PermissionProfile.WORKSPACE, false, generator);
+		}
 		for (JsonElement raw : operations) {
 			JsonObject item = raw.getAsJsonObject();
 			Operation operation = parseOperation(item.get("operation").getAsString());

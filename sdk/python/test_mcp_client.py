@@ -57,6 +57,117 @@ def fail(kind):
 
 
 class McpClientReliabilityTest(unittest.TestCase):
+    def test_editor_schema_selection_is_explicit_and_checked(self):
+        calls = []
+        def transport(request, **_):
+            args = json.loads(request.data)['params']['arguments']; calls.append(args)
+            return reply(request, tool_result({'schemaVersion': args['schemaVersion'], 'status': 'succeeded'}))
+        client = CopperbenchClient('http://127.0.0.1:61999/mcp', 'fixture-token', 'workspace')
+        with patch('urllib.request.urlopen', side_effect=transport):
+            self.assertEqual('1.1', client.read_mod_element('element')['schemaVersion'])
+            self.assertEqual('1.0', client.read_mod_element('element', schema_version='1.0')['schemaVersion'])
+        self.assertEqual(['1.1', '1.0'], [a['schemaVersion'] for a in calls])
+        with patch.object(client, 'call_tool', return_value={'schemaVersion': '1.0'}):
+            with self.assertRaises(CopperbenchError): client.read_mod_element('element')
+
+    def test_version_copy_execution_is_sent_once_with_bound_plan_and_explicit_authority(self):
+        sent = []
+        def transport(request, **_):
+            sent.append(json.loads(request.data))
+            return reply(request, tool_result({'status': 'succeeded', 'contract': 'version_copy_upgrade', 'selectedVersion': '2'}))
+        with patch('urllib.request.urlopen', transport):
+            self.client().version_copy_upgrade('execute', target_generator_id='fabric-26.3', supported_versions=('2',),
+                output_name='new-copy', plan_id='a' * 64, expected_revision=7, task_authorization_id='grant')
+        self.assertEqual({'operation': 'execute', 'supportedVersions': ['2'], 'targetGeneratorId': 'fabric-26.3',
+            'outputName': 'new-copy', 'planId': 'a' * 64, 'expectedRevision': 7, 'taskAuthorizationId': 'grant'}, sent[0]['params']['arguments'])
+        def interrupted(request, **_):
+            sent.append(json.loads(request.data)); return fail('connection_reset')
+        with patch('urllib.request.urlopen', interrupted):
+            self.assert_code('MCP_TRANSPORT_FAILED', lambda: self.client().version_copy_upgrade('execute', supported_versions=('2',), output_name='new-copy'))
+        self.assertEqual(2, len(sent))
+
+    def test_version_copy_upgrade_preserves_target_and_never_retries_or_adds_authority(self):
+        sent = []
+        def transport(request, **_):
+            sent.append(json.loads(request.data))
+            return reply(request, tool_result({'status': 'succeeded', 'contract': 'version_copy_upgrade', 'selectedVersion': '1'}))
+        with patch('urllib.request.urlopen', transport):
+            self.client(task_authorization_id='authority').version_copy_upgrade(target_generator_id='neoforge-26.3')
+        self.assertEqual('version_copy_upgrade', sent[0]['params']['name'])
+        self.assertEqual({'supportedVersions': ['1'], 'operation': 'preview', 'targetGeneratorId': 'neoforge-26.3'}, sent[0]['params']['arguments'])
+        def interrupted(request, **_):
+            sent.append(json.loads(request.data)); return fail('connection_reset')
+        with patch('urllib.request.urlopen', interrupted):
+            self.assert_code('MCP_TRANSPORT_FAILED', lambda: self.client().version_copy_upgrade(target_generator_id='neoforge-26.3'))
+        self.assertEqual(2, len(sent))
+
+    def test_preview_keeps_scoped_choice_and_mutations_never_retry(self):
+        sent = []
+        def transport(request, **_):
+            sent.append(json.loads(request.data))
+            return reply(request, tool_result({'status': 'accepted', 'contract': 'preview_targets', 'selectedVersion': '1'}))
+        with patch('urllib.request.urlopen', transport):
+            self.client(task_authorization_id='authority').preview('command', generator_id='fabric-26.3',
+                command='build_workspace', expected_revision=3, payload={'scope': 'workspace'})
+        self.assertEqual('preview', sent[0]['params']['name'])
+        args = sent[0]['params']['arguments']
+        self.assertEqual('fabric-26.3', args['generatorId'])
+        self.assertEqual(['1'], args['supportedVersions'])
+        self.assertEqual('authority', args['payload']['taskAuthorizationId'])
+        with patch('urllib.request.urlopen', transport):
+            self.client(task_authorization_id='authority').preview('command', generator_id='fabric-26.3',
+                command='update_workspace_file', expected_revision=3, payload={'relativePath': 'src/main/java/Manual.java'})
+            self.client(task_authorization_id='authority').preview('command', generator_id='fabric-26.3',
+                command='cancel_task', expected_revision=3, payload={'taskId': 'example'})
+        self.assertEqual('authority', sent[1]['params']['arguments']['payload']['taskAuthorizationId'])
+        self.assertNotIn('taskAuthorizationId', sent[2]['params']['arguments']['payload'])
+        def interrupted(request, **_):
+            sent.append(json.loads(request.data)); return fail('connection_reset')
+        with patch('urllib.request.urlopen', interrupted):
+            self.assert_code('MCP_TRANSPORT_FAILED', lambda: self.client().preview('opt_in',
+                generator_id='fabric-26.3', expected_revision=0))
+        self.assertEqual(4, len(sent))
+
+    def test_required_case_negotiation_keeps_authority_inside_existing_command_payload(self):
+        sent = []
+        def transport(request, **_):
+            sent.append(json.loads(request.data))
+            return reply(request, tool_result({'status': 'accepted', 'contract': 'required_cases', 'selectedVersion': '1'}))
+        with patch('urllib.request.urlopen', transport):
+            self.client(task_authorization_id='authority').acceptance('run', expected_revision=7, requiredCases={'sha256': 'a' * 64})
+            self.client(task_authorization_id='authority').acceptance('export', expected_revision=7, verifiedTaskId='task')
+        self.assertEqual(2, len(sent))
+        self.assertNotIn('taskAuthorizationId', sent[1]['params']['arguments']['payload'])
+        self.assertEqual('acceptance', sent[0]['params']['name'])
+        self.assertEqual({'operation': 'run', 'supportedVersions': ['1'], 'expectedRevision': 7,
+                          'payload': {'requiredCases': {'sha256': 'a' * 64}, 'taskAuthorizationId': 'authority'}},
+                         sent[0]['params']['arguments'])
+
+    def test_diagnostic_read_preserves_parameters_and_rejects_unnegotiated_response(self):
+        sent = []
+        summary = {'schemaVersion': '1', 'required': 6, 'uniqueExecuted': 5, 'shortfall': 1,
+                   'duplicates': [], 'missingCases': [{'className': '', 'name': 'camp:t12'}]}
+        def transport(request, **_):
+            sent.append(json.loads(request.data))
+            return reply(request, tool_result({'status': 'succeeded', 'contract': 'required_cases', 'selectedVersion': '1',
+                                              'coverageDiagnostics': summary}))
+        with patch('urllib.request.urlopen', transport):
+            client = self.client(task_authorization_id='authority')
+            self.assertEqual(summary, client.get_acceptance_diagnostics('task'))
+            self.assertEqual({'operation': 'get', 'supportedVersions': ['1'], 'diagnosticVersions': ['1'],
+                              'payload': {'taskId': 'task'}}, sent[0]['params']['arguments'])
+            summary['schemaVersion'] = '99'
+            self.assert_code('INVALID_RESPONSE', lambda: client.get_acceptance_diagnostics('task'))
+
+    def test_required_case_mutation_is_never_replayed_after_transport_loss(self):
+        sent = []
+        def transport(request, **_):
+            sent.append(json.loads(request.data))
+            return fail('connection_reset')
+        with patch('urllib.request.urlopen', transport):
+            self.assert_code('MCP_TRANSPORT_FAILED', lambda: self.client().acceptance('run', expected_revision=0, requiredCases={}))
+        self.assertEqual(1, len(sent))
+
     def client(self, **options):
         return CopperbenchClient("http://127.0.0.1:61999/mcp", "fixture-token", "workspace",
                                  retry_backoff_seconds=0, **options)

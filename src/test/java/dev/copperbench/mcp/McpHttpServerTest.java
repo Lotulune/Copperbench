@@ -56,6 +56,72 @@ class McpHttpServerTest {
 		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
 	}
 
+	@Test void editorHttpVersionSelectionPreservesFrozenDefaultAndRejectsUnknownVersions() throws Exception {
+		var tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		var token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		try (var history = JGitLocalHistoryService.open(workspace, CLOCK);
+				var server = CopperbenchMcpServer.start(new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+						Set.of("http://localhost:5173"), CLOCK), tokens, adapter(history, workspace),
+						new JsonLineAuditLog(workspace.resolve(".copperbench/automation-audit.jsonl")))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			String session = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173")
+					.headers().firstValue("mcp-session-id").orElseThrow();
+			post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(), session, "http://localhost:5173");
+			var create = JsonParser.parseString("{\"elementType\":\"item\",\"name\":\"versioned_item\",\"initialValues\":{\"displayName\":\"Versioned item\"},\"expectedRevision\":0}").getAsJsonObject();
+			var created = modelingCall(endpoint, session, token.value(), "create_mod_element", create);
+			assertEquals("committed", created.get("status").getAsString(), created::toString);
+			var arguments = new JsonObject();
+			arguments.add("elementId", created.getAsJsonObject("data").getAsJsonObject("element").get("id"));
+			var legacy = modelingCall(endpoint, session, token.value(), "read_mod_element", arguments);
+			assertEquals("1.0", legacy.get("schemaVersion").getAsString());
+			assertFalse(legacy.getAsJsonObject("data").has("configuration"));
+			arguments.addProperty("schemaVersion", "1.1");
+			var rich = modelingCall(endpoint, session, token.value(), "read_mod_element", arguments);
+			assertEquals("1.1", rich.get("schemaVersion").getAsString());
+			assertTrue(rich.getAsJsonObject("data").has("configuration"));
+			assertEquals(legacy.get("revision"), rich.get("revision"));
+			arguments.addProperty("schemaVersion", "99");
+			var rejected = post(endpoint, "{\"jsonrpc\":\"2.0\",\"id\":91,\"method\":\"tools/call\",\"params\":{\"name\":\"read_mod_element\",\"arguments\":" + arguments + "}}",
+					token.value(), session, "http://localhost:5173");
+			String rejectedData = rejected.body().lines().filter(line -> line.startsWith("data: ")).findFirst().orElseThrow().substring(6);
+			var rejectedBody = JsonParser.parseString(rejectedData).getAsJsonObject();
+			assertTrue(rejectedBody.has("error") || rejectedBody.getAsJsonObject("result").get("isError").getAsBoolean(), rejected::body);
+			var ordinary = modelingCall(endpoint, session, token.value(), "get_workspace", new JsonObject());
+			assertEquals("1.0", ordinary.get("schemaVersion").getAsString());
+			var evidence = new com.google.gson.JsonArray(); evidence.add(legacy); evidence.add(rich);
+			Path folder = Path.of("output/p263-27"); Files.createDirectories(folder);
+			Files.writeString(folder.resolve("mcp-http-editor.json"), evidence.toString());
+			Files.writeString(folder.resolve("mcp-http-editor-rejected.sse"), rejected.body());
+		}
+	}
+
+	@Test void versionCopyUpgradeHttpPreviewKeepsSourceBytesStableAndAuditsOutsideIt(@TempDir Path workspace) throws Exception {
+		UUID id = WORKSPACE_ID;
+		Files.writeString(workspace.resolve("source.mcreator"), "{\"workspaceSettings\":{\"currentGenerator\":\"fabric-26.2\"}}");
+		var store = new RevisionedWorkspaceStore();
+		store.register(new WorkspaceState(id, "Copy Source", "mod", 0, false,
+				JsonParser.parseString("{\"id\":\"fabric-26.2\"}").getAsJsonObject(), new JsonObject(), List.of()));
+		var service = new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, UUID::randomUUID),
+				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), null, null, ignored -> workspace, CLOCK, UUID::randomUUID);
+		var tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5)); var token = tokens.issue(id, PermissionProfile.READ_ONLY);
+		try (var server = CopperbenchMcpServer.start(new McpServerConfiguration(0, id, PermissionProfile.READ_ONLY, Set.of("http://localhost:5173"), CLOCK),
+				tokens, new McpWorkspaceEntryAdapter(service, PermissionProfile.READ_ONLY), new JsonLineAuditLog(workspace.resolve(".copperbench/automation-audit.jsonl")))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			String session = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173").headers().firstValue("mcp-session-id").orElseThrow();
+			String before = dev.copperbench.migration.WorkspaceTreeHasher.hash(workspace);
+			String request = "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"version_copy_upgrade\",\"arguments\":{\"operation\":\"preview\",\"supportedVersions\":[\"1\"],\"targetGeneratorId\":\"fabric-26.3\"}}}";
+			var first = toolResult(post(endpoint, request, token.value(), session, "http://localhost:5173"));
+			var second = toolResult(post(endpoint, request, token.value(), session, "http://localhost:5173"));
+			assertEquals("succeeded", first.get("status").getAsString(), first.toString()); assertEquals(first.get("plan"), second.get("plan"));
+			assertEquals(before, dev.copperbench.migration.WorkspaceTreeHasher.hash(workspace));
+			Path audit = net.mcreator.io.UserFolderManager.getConfigFolder().toPath().resolve("version-copy-upgrade-audit").resolve(id + ".jsonl");
+			assertFalse(audit.toAbsolutePath().startsWith(workspace.toAbsolutePath())); assertTrue(Files.readString(audit).contains("version_copy_upgrade"));
+			assertFalse(Files.readString(audit).contains(token.value()));
+			Path evidence = Path.of("output/p263-24"); Files.createDirectories(evidence);
+			Files.writeString(evidence.resolve("mcp-http-preview.json"), first.toString()); Files.copy(audit, evidence.resolve("mcp-upgrade-audit.jsonl"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+		}
+	}
+
 	@Test void externalAgentCanPreviewAndApplyReferenceSafeAssetMove() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Copper Trails\"}");
 		Path model = workspace.resolve("assets/coppertrails/models/block/copper_lamp.json");
@@ -453,7 +519,7 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			JsonObject generators = toolResult(generatorsResult);
 			assertEquals("succeeded", generators.get("status").getAsString());
-			assertEquals(9, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
+			assertEquals(7, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
 			assertTrue(generators.getAsJsonObject("data").getAsJsonArray("generators").toString()
 					.contains("resourcepack-1.21.1"));
 
@@ -587,6 +653,69 @@ class McpHttpServerTest {
 			assertEquals(200, response.statusCode());
 			assertFalse(response.body().contains("Copper Trails"));
 			assertTrue(response.body().contains("AUDIT_LOG_UNAVAILABLE"));
+		}
+	}
+
+	@Test void requiredCaseDiscoveryUsesSeparateNegotiationAndCannotElevateReadOnlyPermission() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{}");
+		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.READ_ONLY);
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				CopperbenchMcpServer server = CopperbenchMcpServer.start(
+						new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.READ_ONLY, Set.of("http://localhost:5173"), CLOCK),
+						tokens, adapter(history).withPermissionProfile(PermissionProfile.READ_ONLY),
+						new JsonLineAuditLog(workspace.resolve(".copperbench/acceptance-audit.jsonl")))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			String session = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173")
+					.headers().firstValue("mcp-session-id").orElseThrow();
+			JsonObject request = JsonParser.parseString("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"acceptance\",\"arguments\":{\"operation\":\"catalog\",\"supportedVersions\":[\"1\"]}}}").getAsJsonObject();
+			JsonObject catalog = toolResult(post(endpoint, request.toString(), token.value(), session, "http://localhost:5173"));
+			assertEquals("1", catalog.get("selectedVersion").getAsString());
+			assertEquals(2, catalog.getAsJsonArray("manifests").size());
+			JsonObject previewRequest = request.deepCopy(); previewRequest.getAsJsonObject("params").addProperty("name", "preview");
+			JsonObject preview = toolResult(post(endpoint, previewRequest.toString(), token.value(), session, "http://localhost:5173"));
+			assertEquals("preview_targets", preview.get("contract").getAsString());
+			assertEquals(10, preview.getAsJsonArray("targets").size());
+			java.nio.file.Files.createDirectories(java.nio.file.Path.of("output/p263-06"));
+			java.nio.file.Files.writeString(java.nio.file.Path.of("output/p263-06/mcp-wire.json"), "[" + preview + "]");
+			JsonObject arguments = request.getAsJsonObject("params").getAsJsonObject("arguments");
+			arguments.addProperty("operation", "run"); arguments.addProperty("expectedRevision", 0);
+			JsonObject payload = new JsonObject(); payload.add("requiredCases", catalog.getAsJsonArray("manifests").get(0));
+			arguments.add("payload", payload);
+			JsonObject denied = toolResult(post(endpoint, request.toString(), token.value(), session, "http://localhost:5173"));
+			assertTrue(denied.toString().contains("PERMISSION_DENIED"), denied.toString());
+		}
+	}
+
+	@Test void acceptanceDiagnosticsUseTheSameReadOnlyCoreProjectionOverMcp() throws Exception {
+		var store = new RevisionedWorkspaceStore();
+		store.register(new WorkspaceState(WORKSPACE_ID, "Diagnostics", "diagnostics", 0, false,
+				JsonParser.parseString("{\"id\":\"fabric-1.21.1\",\"loader\":\"fabric\",\"minecraftVersion\":\"1.21.1\",\"state\":\"ready\"}").getAsJsonObject(), new JsonObject(), List.of()));
+		var tasks = new InMemoryWorkspaceTaskGateway(CLOCK, UUID::randomUUID);
+		var task = tasks.start(WORKSPACE_ID, dev.copperbench.core.contract.UiCore.Operation.RUN_GAMETEST, new JsonObject());
+		var service = new WorkspaceApplicationService(store, tasks, CLOCK, UUID::randomUUID);
+		var tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		var token = tokens.issue(WORKSPACE_ID, PermissionProfile.READ_ONLY);
+		try (var server = CopperbenchMcpServer.start(
+				new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.READ_ONLY, Set.of("http://localhost:5173"), CLOCK),
+				tokens, new McpWorkspaceEntryAdapter(service, PermissionProfile.READ_ONLY),
+				new JsonLineAuditLog(workspace.resolve(".copperbench/diagnostics-audit.jsonl")))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			String session = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173")
+					.headers().firstValue("mcp-session-id").orElseThrow();
+			var request = JsonParser.parseString("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"acceptance\",\"arguments\":{\"operation\":\"get\",\"supportedVersions\":[\"1\"],\"diagnosticVersions\":[\"1\"],\"payload\":{}}}}").getAsJsonObject();
+			var arguments = request.getAsJsonObject("params").getAsJsonObject("arguments");
+			arguments.getAsJsonObject("payload").add("taskId", task.get("id"));
+			var response = toolResult(post(endpoint, request.toString(), token.value(), session, "http://localhost:5173"));
+			var direct = service.acceptance(WORKSPACE_ID, UUID.randomUUID(), arguments,
+					new dev.copperbench.core.contract.UiCore.RequestContext(dev.copperbench.core.contract.UiCore.Actor.MCP, PermissionProfile.READ_ONLY));
+			assertEquals(direct.get("coverageDiagnostics"), response.get("coverageDiagnostics"));
+			assertEquals("running", response.getAsJsonObject("coverageDiagnostics").get("state").getAsString());
+			assertTrue(response.getAsJsonObject("coverageDiagnostics").get("uniqueExecuted").isJsonNull());
+			assertEquals(0, store.read(WORKSPACE_ID).orElseThrow().revision());
+			assertEquals(1, tasks.active(WORKSPACE_ID).size());
+			Files.createDirectories(Path.of("output/p263-13"));
+			Files.writeString(Path.of("output/p263-13/mcp-read.json"), response.toString());
 		}
 	}
 

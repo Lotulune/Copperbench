@@ -87,7 +87,7 @@ public final class WorkspaceCreationService {
 					GradleUtils.getGradleSyncLauncher(workspace.getGeneratorConfiguration(), connection).run();
 				}
 				try {
-					workspace.getGenerator().reloadGradleCaches();
+					if (workspace.getGeneratorConfiguration().requiresMinecraftSourceIndex()) workspace.getGenerator().reloadGradleCaches();
 				} catch (RuntimeException exception) {
 					throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_CACHE_FAILED", exception);
 				}
@@ -103,6 +103,16 @@ public final class WorkspaceCreationService {
 
 	private static Path javaExecutable(Path javaHome) {
 		return javaHome.resolve("bin").resolve(RuntimePlatform.current().javaExecutableName());
+	}
+
+	/** Prepares a reserved 26.3 copy after Core has checked its plan, source and authority. */
+	public void prepareVersionCopy(Workspace workspace) {
+		String generatorId = workspace.getWorkspaceSettings().getCurrentGenerator();
+		if (!List.of("fabric-26.3", "neoforge-26.3").contains(generatorId))
+			throw new IllegalArgumentException("Version copy requires an exact 26.3 generator.");
+		WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
+		GradleUtils.updateMCreatorBuildFile(workspace);
+		setupJavaWorkspace(workspace, generatorId);
 	}
 
 	private static final class WorkspaceBaseGenerationException extends RuntimeException {
@@ -171,10 +181,16 @@ public final class WorkspaceCreationService {
 	 */
 	public CreationResult create(String generatorId, String modName, String modId, String packageName,
 			String workspaceFolderPath, String version) {
+		return create(generatorId, modName, modId, packageName, workspaceFolderPath, version, false);
+	}
+
+	/** Called after the Core preview/authority gate; the ordinary overload continues to reject previews. */
+	public CreationResult create(String generatorId, String modName, String modId, String packageName,
+			String workspaceFolderPath, String version, boolean selectedPreview) {
 		Objects.requireNonNull(generatorId);
 		Objects.requireNonNull(modName);
 		Objects.requireNonNull(modId);
-		List<String> diagnostics = validateCreation(generatorId, modName, modId, packageName, workspaceFolderPath);
+		List<String> diagnostics = validateCreation(generatorId, modName, modId, packageName, workspaceFolderPath, selectedPreview);
 		if (!diagnostics.isEmpty())
 			return new CreationResult(false, null, generatorId, diagnostics);
 
@@ -224,6 +240,12 @@ public final class WorkspaceCreationService {
 	 */
 	public List<String> validateCreation(String generatorId, String modName, String modId, String packageName,
 			String workspaceFolderPath) {
+		return validateCreation(generatorId, modName, modId, packageName, workspaceFolderPath, false);
+	}
+
+	/** Read-only backend preflight. selectedPreview is an internal Core decision, never a form field. */
+	public List<String> validateCreation(String generatorId, String modName, String modId, String packageName,
+			String workspaceFolderPath, boolean selectedPreview) {
 		Objects.requireNonNull(generatorId);
 		Objects.requireNonNull(modName);
 		Objects.requireNonNull(modId);
@@ -237,10 +259,25 @@ public final class WorkspaceCreationService {
 			diagnostics.add("WORKSPACE_FOLDER_NOT_EMPTY");
 
 		VersionTrackCatalog.CapabilityDecision decision = catalog.decision(generatorId);
-		if (!isResourcePackGenerator(generatorId) && !decision.generatable())
+		if (!isResourcePackGenerator(generatorId) && !decision.generatable()
+				&& !(selectedPreview && catalog.requiresPreview(generatorId) && catalog.findRegistration(generatorId)
+				.map(entry -> !(entry.profile() instanceof VersionTrackCatalog.PendingProfile)).orElse(false)))
 			diagnostics.add("UNSUPPORTED_GENERATOR");
 		else if (generatorConfiguration(generatorId) == null)
 			diagnostics.add("GENERATOR_NOT_INSTALLED");
+		if (diagnostics.isEmpty() && selectedPreview && catalog.requiresPreview(generatorId)) {
+			try {
+				int release = catalog.findGenerator(generatorId).orElseThrow().javaRelease();
+				Path javaHome = BundledJdkLocator.locate(distributionRoot, release);
+				java.util.Properties metadata = new java.util.Properties();
+				try (var input = Files.newInputStream(javaHome.resolve("release"))) { metadata.load(input); }
+				String version = metadata.getProperty("JAVA_VERSION", "").replace("\"", "");
+				if (Runtime.Version.parse(version).feature() != release)
+					diagnostics.add("PREVIEW_WORKSPACE_JAVA_UNSUPPORTED");
+			} catch (IOException | IllegalArgumentException | IllegalStateException exception) {
+				diagnostics.add("BUNDLED_JDK_MISSING");
+			}
+		}
 
 		return List.copyOf(diagnostics);
 	}
@@ -270,13 +307,21 @@ public final class WorkspaceCreationService {
 		return safe.length() > 4000 ? safe.substring(0, 4000) + "…" : safe;
 	}
 
-	private static void cleanupPartialWorkspace(Path workspaceFolder, boolean preserveWorkspaceFolder)
+	static void cleanupPartialWorkspace(Path workspaceFolder, boolean preserveWorkspaceFolder)
 			throws IOException {
 		Path normalized = workspaceFolder.toAbsolutePath().normalize();
 		if (!Files.exists(normalized)) return;
 		try (var paths = Files.walk(normalized)) {
 			for (Path path : paths.sorted(java.util.Comparator.reverseOrder()).toList()) {
 				if (preserveWorkspaceFolder && path.equals(normalized)) continue;
+				// JGit creates read-only loose objects. Windows cannot delete those
+				// files until the flag is cleared, even after history has been closed.
+				if (RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS
+						&& Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+					var attributes = Files.getFileAttributeView(path, java.nio.file.attribute.DosFileAttributeView.class,
+							java.nio.file.LinkOption.NOFOLLOW_LINKS);
+					if (attributes != null && attributes.readAttributes().isReadOnly()) attributes.setReadOnly(false);
+				}
 				Files.deleteIfExists(path);
 			}
 		}

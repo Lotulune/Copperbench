@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:block",
+  "pools": [{
+    "condition": { "type": "minecraft:survives_explosion" },
+    "rolls": 1,
+    "entries": [{ "type": "minecraft:item", "name": "${modid}:${registryname}" }]
+  }]
+}

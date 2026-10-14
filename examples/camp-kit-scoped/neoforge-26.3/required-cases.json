@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1",
+  "id": "camp-kit-scoped-v1",
+  "identityKind": "gametest_resource",
+  "minimumTests": 13,
+  "cases": [
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t01"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t02"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t03"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t04"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t05"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t06"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t07"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t08"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t09"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t10"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t11"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t12"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t13"
+    }
+  ],
+  "sha256": "7497bdcbbd3e516acb35b3f2632fb7d72973ecdff4faea7c3550dec764e6e3cd"
+}

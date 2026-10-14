@@ -34,6 +34,8 @@ const englishElements: Record<ModElementType, string> = {
 };
 
 const englishValues: Record<string, string> = {
+  Crafting: 'Crafting', Smelting: 'Furnace', Blasting: 'Blast furnace', Smoking: 'Smoker',
+  none: 'None', log: 'Pillar axis (X/Y/Z)',
   succeeded: 'Completed', committed: 'Saved', queued: 'Queued', running: 'Running', failed: 'Failed', cancelled: 'Cancelled',
   read_only: 'Read only', workspace: 'Workspace read/write', full_access: 'Full access',
   run_client: 'Test client', run_server: 'Test server', run_gametest: 'GameTest', run_datagen: 'Data generation',
@@ -48,6 +50,8 @@ function readableIdentifier(value: string): string {
 }
 
 const labels: Record<string, string> = {
+  'Crafting': '合成', 'Smelting': '熔炉烧炼', 'Blasting': '高炉烧炼', 'Smoking': '烟熏炉烹饪',
+  'none': '无', 'log': '柱形轴向（X/Y/Z）',
   'CREATE': '新增', 'IDENTICAL': '内容相同', 'REPLACE': '替换',
   'MODEL': '模型', 'TEXTURE': '纹理', 'ANIMATION': '动画', 'LANGUAGE': '语言', 'SOUND': '音效', 'RESOURCE_PACK': '资源包',
   'model': '模型', 'texture': '纹理', 'animation': '动画', 'sound': '音效', 'resource_pack': '资源包',

@@ -39,6 +39,10 @@ public final class GeneratorElementCapabilityCatalog {
 	public static Decision decision(String generatorId, String elementType) {
 		String generator = generatorId == null ? "" : generatorId;
 		String type = elementType == null ? "" : elementType;
+		if (dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generator)
+				&& dev.copperbench.tracks.PreviewCapabilityCatalog.official().fields(generator, type).isEmpty())
+			return unsupported(generator, type, "PREVIEW_ELEMENT_UNVERIFIED",
+					"Consult negotiated preview capabilities for verified element and field scope.");
 		if (ElementCoverageCatalog.BEDROCK_ADDON_NOT_APPLICABLE.contains(type))
 			return unsupported(generator, type, "BEDROCK_ADDON_NOT_APPLICABLE",
 					"Bedrock add-on types are outside the Stage 11 Java catalog.");
