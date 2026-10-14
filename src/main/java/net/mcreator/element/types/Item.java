@@ -70,6 +70,9 @@ import java.util.stream.Collectors;
 	public MItemBlock recipeRemainder;
 	public boolean destroyAnyBlock;
 	public boolean immuneToFire;
+	// Bounded 26.3 components; older generator contracts do not expose these inputs.
+	@Numeric(init = 0, min = 0, max = 128000, step = 1) public int fuelBurnTime;
+	@Numeric(init = 0, min = 0, max = 7, step = 1) public int compostingLayers;
 	public boolean isPiglinCurrency;
 	@ModElementReference public List<MItemBlock> repairItems;
 

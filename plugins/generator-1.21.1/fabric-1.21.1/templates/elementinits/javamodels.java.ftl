@@ -35,10 +35,10 @@ package ${package}.init;
 
 	public static void clientLoad() {
 		<#list javamodels as model>
-		EntityModelLayerRegistry.registerModelLayer(${model.getReadableName()}.LAYER_LOCATION, ${model.getReadableName()}::createBodyLayer);
+		net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry.registerModelLayer(${model.getReadableName()}.LAYER_LOCATION, ${model.getReadableName()}::createBodyLayer);
 		</#list>
 		<#list specialentities as entity>
-		EntityModelLayerRegistry.registerModelLayer(${entity.getModElement().getRegistryNameUpper()}_LAYER_LOCATION, <#if entity.isBoatChestVariant()>ChestBoat<#else>Boat</#if>Model::createBodyModel);
+		net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry.registerModelLayer(${entity.getModElement().getRegistryNameUpper()}_LAYER_LOCATION, <#if entity.isBoatChestVariant()>ChestBoat<#else>Boat</#if>Model::createBodyModel);
 		</#list>
 	}
 }

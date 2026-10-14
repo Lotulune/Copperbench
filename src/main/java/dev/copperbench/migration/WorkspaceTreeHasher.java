@@ -23,7 +23,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 
-/** Deterministic SHA-256 of a workspace tree, excluding Git metadata and OS junk. */
+/** Deterministic SHA-256 of workspace bytes, excluding Git metadata, the live writer lease and OS junk. */
 public final class WorkspaceTreeHasher {
 
 	private WorkspaceTreeHasher() {
@@ -50,6 +50,8 @@ public final class WorkspaceTreeHasher {
 
 	static boolean excluded(Path root, Path path) {
 		Path relative = root.relativize(path);
+		// This empty IPC lease is mandatory-locked on Windows; it is not source or world content.
+		if (normalize(relative).equals(".copperbench/workspace.write.lock")) return true;
 		for (Path part : relative) {
 			String name = part.toString();
 			if (name.equals(".git") || name.equalsIgnoreCase(".DS_Store") || name.equals("Thumbs.db")

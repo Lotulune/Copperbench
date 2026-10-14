@@ -46,6 +46,8 @@ const OverlayWorkbench = React.lazy(() => import('./OverlayWorkbench').then((mod
   default: module.OverlayWorkbench
 })));
 
+import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
+
 const COMMON_TYPES = ['all', 'block', 'item', 'procedure', 'recipe'] as const;
 
 type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
@@ -207,6 +209,7 @@ export const ModElementsWorkbench: React.FC = () => {
         }}
       >
         <header className="elements-header">
+          <WorkspacePreviewChoice />
           <div className="elements-title-row">
             <div className="elements-title"><h1>{uiText('模组元素', 'Mod elements')}</h1>
               <span className="elements-count">{state.elements.length}</span>

@@ -52,22 +52,25 @@ public final class Fabric1211Generator {
 
 	public record Profile(String generatorId, String minecraftVersion, String loaderVersion, String loomVersion,
 			String fabricApiVersion, int javaRelease, String readyMarker, boolean modernResourceLocation,
-			boolean unobfuscated) {
+			boolean unobfuscated) implements dev.copperbench.generator.JavaGeneratorProfile {
 		public static final Profile FABRIC_1211 = new Profile("fabric-1.21.1", "1.21.1", "0.19.3", "1.17.19",
 				"0.116.15+1.21.1", 21, "COPPERBENCH_STAGE3_READY", true, false);
 		public static final Profile FABRIC_261 = new Profile("fabric-26.1.2", "26.1.2", "0.19.3", "1.17.19",
 				"0.155.2+26.1.2", 25, "COPPERBENCH_STAGE7_FABRIC261_READY", true, true);
 		public static final Profile FABRIC_262 = new Profile("fabric-26.2", "26.2", "0.19.3", "1.17.19",
 				"0.158.0+26.2", 25, "COPPERBENCH_STAGE7_FABRIC262_READY", true, true);
+		public static final Profile FABRIC_263 = new Profile("fabric-26.3", "26.3", "0.19.5", "1.17.21",
+				"0.162.0+26.3", 25, "COPPERBENCH_P263_FABRIC_INITIALIZED", true, true);
 		public static final Profile FABRIC_1201 = new Profile("fabric-1.20.1", "1.20.1", "0.15.11", "1.7.4",
 				"0.92.2+1.20.1", 17, "COPPERBENCH_STAGE7_FABRIC1201_READY", false, false);
 
 		/**
 		 * Loom 1.7.4 ships with Gradle 8.8 (fabric-loom 1.7 branch wrapper).
-		 * Newer tracks share Gradle 9.7.0 with the New Workspace generator plugins.
+		 * The 26.3 environment freezes Gradle 9.6.0; other newer tracks retain 9.7.0.
 		 */
 		public String gradleWrapperZip() {
-			return javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.7.0-bin.zip";
+			return minecraftVersion.equals("26.3") ? "gradle-9.6.0-bin.zip"
+					: javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.7.0-bin.zip";
 		}
 
 		public String jdkRelativePath() {
@@ -126,6 +129,8 @@ public final class Fabric1211Generator {
 			if (dev.copperbench.core.application.ElementGenerationValidation.nativeDefinitions(workspace)
 					&& dev.copperbench.core.application.ElementFieldContract.supports(element.type()))
 				throw new IllegalArgumentException("Native item/recipe definitions require preparation by the workspace plugin generator.");
+			if (element.type().equals("recipe") && fields(element).has("recipeType"))
+				throw new IllegalArgumentException("Definition-based recipes require the workspace's plugin generator.");
 		}
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
@@ -162,6 +167,8 @@ public final class Fabric1211Generator {
 			JsonObject values = fields(element);
 			String base = "/elements/" + element.id() + "/values/fields";
 			try {
+                var scopeIssue = dev.copperbench.core.application.PreviewElementFields.validateGeneration(profile.generatorId(), element.type(), values);
+                if (scopeIssue != null) { issues.add(issue(scopeIssue.code(), scopeIssue.message(), base + scopeIssue.path(), element)); continue; }
 				if (nativeDefinitions
 						&& dev.copperbench.core.application.ElementFieldContract.supports(element.type())) {
 					var definitionIssue = dev.copperbench.core.application.ElementGenerationValidation.validate(element.type(), values, elementNames);
@@ -229,6 +236,10 @@ public final class Fabric1211Generator {
 
 	private static void validateRecipe(JsonObject values, Set<String> availableResults, String base, Element element,
 			List<ValidationIssue> issues) {
+		if (values.has("recipeType")) {
+			validateDefinitionRecipe(values, base, element, issues);
+			return;
+		}
 		String result = string(values, "result", "");
 		if (!availableResults.contains(result))
 			issues.add(issue("FABRIC_RECIPE_RESULT_MISSING", "Recipe result must reference a block or item.",
@@ -243,6 +254,44 @@ public final class Fabric1211Generator {
 				!row.isJsonPrimitive() || row.getAsString().isEmpty() || row.getAsString().length() > 3))
 			issues.add(issue("FABRIC_RECIPE_PATTERN_INVALID", "Recipe pattern must contain one to three rows of up to three symbols.",
 					base + "/pattern", element));
+	}
+
+	private static void validateDefinitionRecipe(JsonObject values, String base,
+			Element element, List<ValidationIssue> issues) {
+		for (var field : net.mcreator.element.types.Recipe.class.getFields()) {
+			if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || !values.has(field.getName())) continue;
+			var invalid = dev.copperbench.core.application.GenericFieldInputContract.validate(field,
+					values.get(field.getName()), base + "/" + field.getName());
+			if (invalid != null) {
+				issues.add(issue(invalid.code(), invalid.message(), invalid.path(), element));
+				return;
+			}
+		}
+		String type = string(values, "recipeType", "");
+		List<String> required = switch (type) {
+			case "Crafting" -> List.of("recipeReturnStack");
+			case "Smelting" -> List.of("smeltingInputStack", "smeltingReturnStack");
+			case "Blasting" -> List.of("blastingInputStack", "blastingReturnStack");
+			case "Smoking" -> List.of("smokingInputStack", "smokingReturnStack");
+			case "Stone cutting" -> List.of("stoneCuttingInputStack", "stoneCuttingReturnStack");
+			case "Campfire cooking" -> List.of("campfireCookingInputStack", "campfireCookingReturnStack");
+			case "Smithing" -> List.of("smithingInputStack", "smithingInputAdditionStack", "smithingReturnStack");
+			case "Brewing" -> List.of("brewingInputStack", "brewingIngredientStack", "brewingReturnStack");
+			default -> List.of(); // The reflected LimitedOptions contract above reports invalid types.
+		};
+		for (String field : required) {
+			String reference = string(values, field, "");
+			if (reference.isBlank())
+				issues.add(issue("FABRIC_RECIPE_RESULT_MISSING", "Recipe must reference an available item or block.",
+						base + "/" + field, element));
+		}
+		if (type.equals("Crafting")) {
+			JsonArray slots = values.has("recipeSlots") && values.get("recipeSlots").isJsonArray()
+					? values.getAsJsonArray("recipeSlots") : new JsonArray();
+			if (slots.size() != 9 || slots.asList().stream().noneMatch(slot -> slot.isJsonPrimitive() && !slot.getAsString().isBlank()))
+				issues.add(issue("FABRIC_RECIPE_PATTERN_INVALID", "Crafting recipes need nine slots and at least one ingredient; use an empty string for an empty slot.",
+						base + "/recipeSlots", element));
+		}
 	}
 
 	private static ValidationIssue issue(String code, String message, String path, Element element) {

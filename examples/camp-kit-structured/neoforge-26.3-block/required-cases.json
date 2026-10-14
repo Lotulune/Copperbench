@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1",
+  "id": "camp-kit-block-v1",
+  "identityKind": "gametest_resource",
+  "minimumTests": 2,
+  "cases": [
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t10"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t11"
+    }
+  ],
+  "sha256": "a5f1def54659cbe4feabf5e8ba6554e996689e9359e750a998fd8a106ac51e2b"
+}

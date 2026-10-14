@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1",
+  "id": "camp-kit-code-v1",
+  "identityKind": "gametest_resource",
+  "minimumTests": 1,
+  "cases": [
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t12"
+    }
+  ],
+  "sha256": "907576949f1b9f3b2e29d1cdcac277975788e9003a36c35f8f60eababa4f4dad"
+}

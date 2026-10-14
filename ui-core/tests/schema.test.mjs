@@ -24,6 +24,31 @@ async function schema(name) {
   return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
 }
 
+test('required-case requests use a separate contract and remain invalid in frozen v1.0 commands', async () => {
+  const { ajv } = await createValidator();
+  const extensionSchema = JSON.parse(await readFile(new URL('../schemas/extensions/required-cases-v1.schema.json', import.meta.url), 'utf8'));
+  const validate = ajv.compile(extensionSchema);
+  const manifest = { schemaVersion: '1', id: 'test-v1', identityKind: 'junit_tuple', minimumTests: 1,
+    cases: [{ className: 'Original', name: 'required' }], sha256: 'a'.repeat(64) };
+  const request = { supportedVersions: ['1'], operation: 'run', expectedRevision: 0, payload: { requiredCases: manifest } };
+  assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  const oldCommand = ajv.getSchema('urn:ui-core:1.0:command');
+  assert.equal(oldCommand(operationRequest('command', 'run_gametest', { scope: 'workspace', requiredCases: manifest })), false);
+  for (const field of ['supportedVersions', 'expectedRevision', 'payload']) {
+    const incomplete = structuredClone(request); delete incomplete[field];
+    assert.equal(validate(incomplete), false, field);
+  }
+  const duplicate = structuredClone(request); duplicate.payload.requiredCases.cases.push({ ...manifest.cases[0] });
+  assert.equal(validate(duplicate), false);
+  assert.equal(validate({ supportedVersions: ['1'], operation: 'catalog', payload: {} }), true);
+  const response = ajv.getSchema('urn:copperbench:required-cases:1#/$defs/response');
+  const catalog = { contract: 'required_cases', schemaVersion: '1', requestId: operationProbeId,
+    status: 'succeeded', selectedVersion: '1', manifests: [manifest] };
+  assert.equal(response(catalog), true, JSON.stringify(response.errors));
+  catalog.schemaVersion = '99';
+  assert.equal(response(catalog), false);
+});
+
 test('creation discovery distinguishes availability and validates read-only paging', async () => {
   const { ajv } = await createValidator();
   const query = ajv.getSchema('urn:ui-core:1.0:query');

@@ -73,6 +73,10 @@ class PathSelectionTest(SelectionAssertions, unittest.TestCase):
             ("scripts/ci/select_checks.py", CHECKS),
             ("scripts/tests/test_ci_selection.py", CHECKS),
             ("new-runtime-layer/runtime.py", CHECKS),
+            ("tools/candidate-evidence/candidate_evidence.py", CHECKS),
+            ("tools/portable-evidence/copperbench_evidence.py", CHECKS),
+            ("ui-core/schemas/v1.1/editor.schema.json", CHECKS),
+            ("src/main/java/dev/copperbench/migration/VersionCopyUpgradeService.java", CHECKS),
         )
         for path, expected in cases:
             with self.subTest(path=path):
@@ -166,6 +170,12 @@ class WorkflowRoutingTest(unittest.TestCase):
         for path in ("README.md", "docs/testing/pr100-review-2026-10-11.md", "ui-shell/src/components/AssetPreview.tsx"):
             with self.subTest(unrelated_path=path):
                 self.assertFalse(any(fnmatch.fnmatchcase(path, pattern) for pattern in paths), path)
+
+    def test_candidate_boundaries_run_inside_existing_required_checks(self):
+        self.assertIn("python -m unittest discover -s tools/candidate-evidence -p 'test_*.py'", self.workflow)
+        self.assertIn("python -m unittest discover -s tools/portable-evidence -p 'test_*.py'", self.workflow)
+        self.assertIn("python -m unittest discover -s scripts/ci -p 'test_*.py'", self.workflow)
+        self.assertIn("Test scoped candidate filesystem boundaries on Windows", self.workflow)
 
     def step(self, name):
         match = re.search(

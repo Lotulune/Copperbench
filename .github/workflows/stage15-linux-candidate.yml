@@ -1,7 +1,18 @@
 name: Stage 15 Linux candidate
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      p263_loader:
+        description: "Run 26.3 G1 installed acceptance or qualify the Linux NeoForge dependency graph"
+        type: choice
+        default: none
+        options: [none, fabric, neoforge, neoforge-graph]
+      p263_level:
+        description: "Required Camp Kit qualification manifest"
+        type: choice
+        default: G1
+        options: [G1, G2]
   pull_request:
     branches:
       - main
@@ -15,6 +26,13 @@ on:
       - "platform/linux/**"
       - "platform/setup.gradle"
       - "platform/export.gradle"
+      - "tools/candidate-evidence/**"
+      - "tools/portable-evidence/**"
+      - "sdk/python/native_build_recovery_smoke.py"
+      - "examples/camp-kit-native/**"
+      - "examples/camp-kit-scoped/**"
+      - "plugins/generator-fabric-26.3/**"
+      - "plugins/generator-neoforge-26.3/**"
       - "src/gradleBridge/**"
       - "src/main/java/dev/copperbench/bridge/**"
       - "src/test/java/dev/copperbench/bridge/**"
@@ -152,11 +170,54 @@ permissions:
   contents: read
 
 concurrency:
-  group: stage15-linux-${{ github.ref }}
+  group: stage15-linux-${{ github.ref }}-${{ inputs.p263_loader || 'none' }}-${{ inputs.p263_level || 'G1' }}
   cancel-in-progress: true
 
 jobs:
+  neoforge-graph:
+    if: inputs.p263_loader == 'neoforge-graph'
+    name: Qualify NeoForge 26.3 Linux dependency graph
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Capture the actual Linux graph for review
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/p263-linux-neoforge-graph
+          cp tools/generator-probes/neoforge-26.3/gradle.lockfile build/p263-linux-neoforge-graph/windows-baseline.lockfile
+          bash ./gradlew --no-daemon --console=plain -p tools/generator-probes/neoforge-26.3 \
+            build dependencies --write-locks --write-verification-metadata sha256 \
+            2>&1 | tee build/p263-linux-neoforge-graph/qualification.log
+      - name: Retain graph and provenance even on failure
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p build/p263-linux-neoforge-graph
+          cp tools/generator-probes/neoforge-26.3/gradle/linux.lockfile build/p263-linux-neoforge-graph/linux.lockfile
+          cp tools/generator-probes/neoforge-26.3/gradle/verification-metadata.xml build/p263-linux-neoforge-graph/
+          git rev-parse HEAD > build/p263-linux-neoforge-graph/source-commit.txt
+          cp /etc/os-release build/p263-linux-neoforge-graph/os-release.txt
+          git diff -- tools/generator-probes/neoforge-26.3 > build/p263-linux-neoforge-graph/proposed-graph.patch
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: p263-neoforge-linux-graph
+          path: build/p263-linux-neoforge-graph/
+          if-no-files-found: error
+          retention-days: 14
+
   package-smoke:
+    if: inputs.p263_loader != 'neoforge-graph'
     name: Ubuntu 24.04 package candidate smoke
     runs-on: ubuntu-24.04
     permissions:
@@ -186,6 +247,10 @@ jobs:
       - name: Install UI shell dependencies
         working-directory: ui-shell
         run: npm ci
+
+      - name: Install selected 26.3 receipt schema validator
+        if: inputs.p263_loader != '' && inputs.p263_loader != 'none'
+        run: npm ci --prefix ui-core
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -223,15 +288,56 @@ jobs:
             --tests dev.copperbench.release.LinuxDistributionLayoutTest
       - name: Run Linux candidate and installed-gate contract tests
         run: |
+          python3 -m unittest discover -s tools/candidate-evidence -p 'test_*.py'
           node --test scripts/tests/linux-candidate-metadata.tests.mjs
           node --test scripts/tests/stage15-linux-installed-gate.tests.mjs
           pwsh -NoProfile -File scripts/tests/Stage15LinuxHyperVHarness.tests.ps1
           pwsh -NoProfile -File scripts/tests/Stage15WindowsProductRegressionGate.tests.ps1
 
       - name: Build portable and deb candidates
+        env:
+          P263_LOADER: ${{ inputs.p263_loader || 'none' }}
+          P263_LEVEL: ${{ inputs.p263_level || 'G1' }}
         run: |
-          chmod +x ./gradlew
-          ./gradlew --no-daemon exportLinuxCandidate
+          if [ "$P263_LOADER" = "none" ]; then
+            bash ./gradlew --no-daemon exportLinuxCandidate
+          else
+            python3 tools/candidate-evidence/package_candidate.py --platform ubuntu \
+              --loader "$P263_LOADER" --level "$P263_LEVEL" --output build/p263-candidate
+          fi
+
+      - name: Upload scoped candidate with all ten cells initially not_run
+        if: always() && inputs.p263_loader != '' && inputs.p263_loader != 'none'
+        uses: actions/upload-artifact@v7
+        with:
+          name: p263-ubuntu-${{ inputs.p263_loader }}-candidate
+          path: build/p263-candidate/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Run selected 26.3 installed Native cold and warm acceptance
+        if: inputs.p263_loader != '' && inputs.p263_loader != 'none'
+        timeout-minutes: 100
+        env:
+          P263_LOADER: ${{ inputs.p263_loader }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/candidate-evidence/installed_acceptance.py \
+            --candidate build/p263-candidate/frozen --platform ubuntu --loader "$P263_LOADER" \
+            --output build/p263-installed --work-root "$RUNNER_TEMP/p263-installed" \
+            2>&1 | tee build/p263-installed-console.log
+
+      - name: Upload selected 26.3 installed API receipts and failure logs
+        if: always() && inputs.p263_loader != '' && inputs.p263_loader != 'none'
+        uses: actions/upload-artifact@v7
+        with:
+          name: p263-ubuntu-${{ inputs.p263_loader }}-installed-api
+          path: |
+            build/p263-installed/
+            build/p263-installed-console.log
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Verify portable candidate contents and executable modes
         shell: bash
@@ -253,6 +359,7 @@ jobs:
           test -f "$root/LINUX-CANDIDATE.md"
           test -d "$root/gradle-dists/gradle-9.7.0-bin"
           test -d "$root/gradle-dists/gradle-9.6.1-bin"
+          test -d "$root/gradle-dists/gradle-9.6.0-bin"
           test -d "$root/gradle-dists/gradle-8.8-bin"
           test -f "$root/linux-candidate-manifest.json"
           node -e '
@@ -303,7 +410,7 @@ jobs:
           test -d "$isolated_home/state/copperbench"
           test -d "$isolated_home/runtime/copperbench"
           shopt -s nullglob
-          for version in 9.7.0 9.6.1 8.8; do
+          for version in 9.7.0 9.6.1 9.6.0 8.8; do
             installs=("$isolated_home/cache/copperbench/gradle/wrapper/dists/gradle-$version-bin"/*/"gradle-$version")
             test "${#installs[@]}" -ge 1
             test -f "${installs[0]}/bin/gradle"
@@ -391,6 +498,15 @@ jobs:
           xvfb-run -a -s '-screen 0 1280x800x24' \
             /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-runclient-ci-smoke.sh" \
             "$root" "$smoke" "fabric-1.21.1"
+
+      - name: Upload installed Fabric SDK build receipts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-fabric-sdk-build-recovery
+          path: build/stage15-fabric-runclient/evidence/sdk-build-recovery/**
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload Fabric runClient diagnostics on failure
         if: failure()

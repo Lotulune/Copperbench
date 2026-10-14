@@ -1,0 +1,1109 @@
+{
+  "elementType": "recipe",
+  "generatorId": "fabric-26.3",
+  "contractVersion": "1",
+  "complete": true,
+  "availability": "available",
+  "reasonCode": "FIELD_CONTRACT_AVAILABLE",
+  "fields": [
+    {
+      "path": "/recipeType",
+      "compatibilityPath": "/fields/recipeType",
+      "inputSchema": {
+        "type": "string",
+        "enum": [
+          "Blasting",
+          "Crafting",
+          "Smelting",
+          "Smoking"
+        ]
+      },
+      "default": "Crafting",
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": true,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/recipeRetstackSize",
+      "compatibilityPath": "/fields/recipeRetstackSize",
+      "inputSchema": {
+        "type": "integer",
+        "minimum": 1.0,
+        "maximum": 99.0,
+        "suggestedStep": 1.0
+      },
+      "default": 1,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/xpReward",
+      "compatibilityPath": "/fields/xpReward",
+      "inputSchema": {
+        "type": "number",
+        "maximum": 256.0,
+        "minimum": 0.0,
+        "suggestedStep": 0.1
+      },
+      "default": 0.0,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/cookingTime",
+      "compatibilityPath": "/fields/cookingTime",
+      "inputSchema": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000000.0,
+        "suggestedStep": 1.0
+      },
+      "default": 200,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/recipeShapeless",
+      "compatibilityPath": "/fields/recipeShapeless",
+      "inputSchema": {
+        "type": "boolean"
+      },
+      "default": false,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/recipeSlots",
+      "compatibilityPath": "/fields/recipeSlots",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "",
+                        "Blocks.SAND",
+                        "Items.COAL#0",
+                        "Items.DIAMOND",
+                        "Items.FLINT",
+                        "Items.IRON_NUGGET",
+                        "Items.PAPER",
+                        "Items.STICK",
+                        "Items.STRING"
+                      ]
+                    },
+                    {
+                      "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "",
+                            "Blocks.SAND",
+                            "Items.COAL#0",
+                            "Items.DIAMOND",
+                            "Items.FLINT",
+                            "Items.IRON_NUGGET",
+                            "Items.PAPER",
+                            "Items.STICK",
+                            "Items.STRING"
+                          ]
+                        },
+                        {
+                          "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "value"
+                  ]
+                }
+              ],
+              "reference": {
+                "operation": "get_field_reference_options",
+                "mappingSource": "blocksitems",
+                "workspaceOperation": "list_mod_elements",
+                "workspacePrefix": "CUSTOM:"
+              }
+            },
+            "minItems": 9,
+            "maxItems": 9,
+            "reference": {
+              "operation": "list_mod_elements",
+              "acceptedStorageTypes": []
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Crafting"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "list_mod_elements",
+          "acceptedStorageTypes": []
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Crafting"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Crafting"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/recipeReturnStack",
+      "compatibilityPath": "/fields/recipeReturnStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Crafting"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Crafting"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": "",
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Crafting"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/smeltingInputStack",
+      "compatibilityPath": "/fields/smeltingInputStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Smelting"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Smelting"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": null,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Smelting"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/smeltingReturnStack",
+      "compatibilityPath": "/fields/smeltingReturnStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Smelting"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Smelting"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": null,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Smelting"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/blastingInputStack",
+      "compatibilityPath": "/fields/blastingInputStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Blasting"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Blasting"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": null,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Blasting"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/blastingReturnStack",
+      "compatibilityPath": "/fields/blastingReturnStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Blasting"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Blasting"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": null,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Blasting"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/smokingInputStack",
+      "compatibilityPath": "/fields/smokingInputStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Smoking"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Smoking"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": null,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Smoking"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/smokingReturnStack",
+      "compatibilityPath": "/fields/smokingReturnStack",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "enum": [
+                      "",
+                      "Blocks.SAND",
+                      "Items.COAL#0",
+                      "Items.DIAMOND",
+                      "Items.FLINT",
+                      "Items.IRON_NUGGET",
+                      "Items.PAPER",
+                      "Items.STICK",
+                      "Items.STRING"
+                    ]
+                  },
+                  {
+                    "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "",
+                          "Blocks.SAND",
+                          "Items.COAL#0",
+                          "Items.DIAMOND",
+                          "Items.FLINT",
+                          "Items.IRON_NUGGET",
+                          "Items.PAPER",
+                          "Items.STICK",
+                          "Items.STRING"
+                        ]
+                      },
+                      {
+                        "pattern": "^CUSTOM:[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "value"
+                ]
+              }
+            ],
+            "reference": {
+              "operation": "get_field_reference_options",
+              "mappingSource": "blocksitems",
+              "workspaceOperation": "list_mod_elements",
+              "workspacePrefix": "CUSTOM:"
+            },
+            "requiredWhen": {
+              "operator": "any_truthy",
+              "expressionLanguage": "generator_template_condition",
+              "expressions": [
+                "recipeType %= Smoking"
+              ],
+              "paths": [
+                "/recipeType"
+              ]
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "reference": {
+          "operation": "get_field_reference_options",
+          "mappingSource": "blocksitems",
+          "workspaceOperation": "list_mod_elements",
+          "workspacePrefix": "CUSTOM:"
+        },
+        "requiredWhen": {
+          "operator": "any_truthy",
+          "expressionLanguage": "generator_template_condition",
+          "expressions": [
+            "recipeType %= Smoking"
+          ],
+          "paths": [
+            "/recipeType"
+          ]
+        }
+      },
+      "default": null,
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "requiredWhen": {
+        "operator": "any_truthy",
+        "expressionLanguage": "generator_template_condition",
+        "expressions": [
+          "recipeType %= Smoking"
+        ],
+        "paths": [
+          "/recipeType"
+        ]
+      },
+      "generatorSupport": "declared"
+    },
+    {
+      "path": "/name",
+      "compatibilityPath": "/fields/name",
+      "inputSchema": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "defaultStage": "creation_before_generation_validation",
+      "requiredOnCreate": false,
+      "requiredByGenerator": false,
+      "generatorSupport": "declared",
+      "readOnlyAfterCreate": true,
+      "defaultFrom": "payload.name"
+    },
+    {
+      "path": "/description",
+      "compatibilityPath": "/fields/description",
+      "inputSchema": {
+        "type": "string"
+      },
+      "requiredOnCreate": false,
+      "generatorSupport": "product",
+      "default": ""
+    },
+    {
+      "path": "/displayName",
+      "compatibilityPath": "/fields/displayName",
+      "inputSchema": {
+        "type": "string"
+      },
+      "requiredOnCreate": false,
+      "generatorSupport": "product",
+      "defaultFrom": "readable_payload_name"
+    }
+  ],
+  "alternatives": [
+    {
+      "scope": "existing_element",
+      "requires": [
+        "elementId"
+      ],
+      "operation": "get_mod_element_editor"
+    }
+  ],
+  "compatibilityPath": "/fields",
+  "aliasPolicy": "Top-level and /fields values must agree when both are provided; stackSize and maxStackSize must agree.",
+  "unknownFields": "Rejected; stored unknown nested fields require review before rewriting.",
+  "maxInputDepth": 64,
+  "generatorRestrictions": {
+    "includedFields": [
+      "name",
+      "recipeType",
+      "recipeShapeless",
+      "recipeSlots",
+      "recipeReturnStack",
+      "recipeRetstackSize",
+      "cookingTime",
+      "xpReward",
+      "smeltingInputStack",
+      "smeltingReturnStack",
+      "blastingInputStack",
+      "blastingReturnStack",
+      "smokingInputStack",
+      "smokingReturnStack"
+    ],
+    "excludedFields": [],
+    "source": "active_generator_definition",
+    "scope": "Declared template coverage; excluded fields may persist but have no promised generated effect. References and contextual requirements are checked during generation."
+  },
+  "minimalExample": {
+    "elementType": "recipe",
+    "name": "discovery_recipe",
+    "initialValues": {
+      "recipeType": "Crafting",
+      "recipeShapeless": true,
+      "recipeSlots": [
+        "Items.STICK",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "recipeReturnStack": "Items.DIAMOND"
+    }
+  },
+  "createRequired": [
+    "elementType",
+    "name"
+  ],
+  "createNameSchema": {
+    "type": "string",
+    "pattern": "^[a-z][a-z0-9_]{0,63}$"
+  },
+  "scope": "Complete creation/edit input metadata; inputSchema uses JSON Schema with reference and valueConstraints annotations for contextual rules. Generation and gameplay still require their own acceptance."
+}

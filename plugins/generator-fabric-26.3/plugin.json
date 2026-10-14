@@ -1,0 +1,12 @@
+{
+  "id": "generator-fabric-26.3",
+  "weight": 13,
+  "supportedversions": [2026002, 202600299999],
+  "info": {
+    "name": "Minecraft Fabric 26.3 native generator",
+    "version": "0.1.0",
+    "description": "Copperbench native source workspace for exact Fabric 26.3; preview operations are gated by Core.",
+    "author": "Copperbench contributors",
+    "credits": "Fabric API and Loom by FabricMC; MCreator workspace/template infrastructure"
+  }
+}

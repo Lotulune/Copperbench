@@ -48,7 +48,7 @@ class LinuxDistributionLayoutTest {
         assertTrue(gradle.contains("platform/linux/LINUX-CANDIDATE.md"));
         assertTrue(gradle.contains("writeLinuxCandidateManifest"));
         assertTrue(gradle.contains("prepareLinuxGradleDistPool"));
-        assertTrue(gradle.contains("['9.7.0', '9.6.1', '8.8']"));
+        assertTrue(gradle.contains("['9.7.0', '9.6.1', '9.6.0', '8.8']"));
         assertTrue(gradle.contains("services.gradle.org/distributions"));
         assertTrue(gradle.contains("into('gradle-dists')"));
         assertTrue(gradle.contains("linux-candidate-manifest.json"));
@@ -133,7 +133,7 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("test -d \"$isolated_home/data/copperbench\""));
         assertTrue(workflow.contains("test -d \"$isolated_home/cache/copperbench/gradle\""));
         assertTrue(workflow.contains("test -d \"$isolated_home/runtime/copperbench\""));
-        assertTrue(workflow.contains("for version in 9.7.0 9.6.1 8.8; do"));
+        assertTrue(workflow.contains("for version in 9.7.0 9.6.1 9.6.0 8.8; do"));
         assertTrue(workflow.contains("Run packaged Fabric 1.21.1 X11 render preflight under Xvfb"));
         assertTrue(workflow.contains("Run packaged NeoForge 1.21.1 X11 render preflight under Xvfb"));
         assertTrue(workflow.contains("verify-stage15-linux-runclient-ci-smoke.sh"));

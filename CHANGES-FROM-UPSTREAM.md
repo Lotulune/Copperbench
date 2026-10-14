@@ -14,6 +14,12 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Snapshot conditional base/global generator targets before element mutations, reject failed base generation, and disambiguate Fabric model-layer registration so failed element probes cannot poison later builds.
+- Register 26.3 exact targets behind per-operation preview negotiation; keep workspace-scoped opt-in separate from permissions, protected approval, EULA and published support.
+
+- Exclude Copperbench runtime metadata and workspace write locks from legacy local-history indexing while preserving authored files and existing history ignore rules.
+- Resolve persisted Java generator identities and execution profiles independently of the four display tracks, preserving older workspaces when a display track rotates.
+- Add separately negotiated required-case manifests across Native/MCP/SDK, bind each manifest to one task and host, and revalidate required identities at verified export while retaining the strict v1.0 projections.
 - Align Native missing-contract errors and preserve diagnostic braces across SDK/UI consumers; expose safe per-file generation conflict navigation without changing source ownership.
 - Use one Native discovery query on advertised hosts, retain compatible GameTest shortfall codes, and enrich portable verified-export evidence with observed toolchain and acceptance metadata.
 - Label the legacy HTTP eval harness as protocol-contract coverage, retain compatible case identifiers, and verify both SDK conflict codes and original Core diagnostics.

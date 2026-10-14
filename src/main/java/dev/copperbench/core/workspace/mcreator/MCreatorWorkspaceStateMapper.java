@@ -59,6 +59,15 @@ public final class MCreatorWorkspaceStateMapper {
 		}
 		if (values == null)
 			values = new JsonObject();
+		if ("procedure".equals(element.getTypeString()) && Files.isRegularFile(definitionFile)) {
+			JsonObject merged = dev.copperbench.core.application.BlockFieldContract.merged(values);
+			if (!merged.has("procedurexml") && !merged.has("procedureIr")) {
+				// Older product metadata omitted the default body that was actually stored on disk.
+				JsonObject raw = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
+				JsonObject definition = raw.has("definition") ? raw.getAsJsonObject("definition") : raw;
+				if (definition.has("procedurexml")) values.add("procedurexml", definition.get("procedurexml").deepCopy());
+			}
+		}
         if ("achievement".equals(element.getTypeString())) {
             // Legacy definitions use upstream names; metadata may omit persisted defaults.
             values = dev.copperbench.core.application.SpecializedFieldContract.projectAdvancementDefinition(values);

@@ -46,7 +46,8 @@ public final class ElementFieldContract {
             for (var field : upstream.getModElementStorageClass().getFields()) {
                 if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers()) || Modifier.isTransient(field.getModifiers())) continue;
                 String name = field.getName(); covered.add(name);
-                JsonObject descriptor = descriptor(name, FieldInputProjection.schema(field));
+                if (!PreviewElementFields.writable(generatorId, type, name)) continue;
+                JsonObject descriptor = descriptor(name, PreviewElementFields.inputSchema(generatorId, field));
                 Object value = field.get(defaults);
                 descriptor.add("default", value == null ? JsonNull.INSTANCE : ElementFieldCodec.gson().toJsonTree(value, field.getGenericType()));
                 descriptor.addProperty("defaultStage", "creation_before_generation_validation");
@@ -65,7 +66,7 @@ public final class ElementFieldContract {
                 fields.add(descriptor);
             }
             for (String name : ElementMappingSupport.fields(type).stream().sorted().toList()) {
-                if (covered.contains(name)) continue;
+                if (covered.contains(name) || !PreviewElementFields.writable(generatorId, type, name)) continue;
                 JsonObject shape = name.equals("maxStackSize") ? FieldInputProjection.schema(net.mcreator.element.types.Item.class.getField("stackSize")) : FieldInputProjection.typed("string");
                 JsonObject descriptor = descriptor(name, shape); descriptor.addProperty("requiredOnCreate", false);
                 descriptor.addProperty("generatorSupport", Set.of("modelResource", "textureBase64").contains(name) ? "product_metadata_backend_dependent" : "product");

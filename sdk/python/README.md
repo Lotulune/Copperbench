@@ -188,3 +188,7 @@ SDK 显示诊断中的原始原因，并保留 `error.code` 与未经改写的 `
 `python -m unittest discover -s sdk/python` 运行 Python 传输与兼容性测试。
 `gradlew runNativePythonSmoke` 创建隔离测试工作区，让真实外部 Python 进程通过产品启动器执行元素创建、校验任务、冲突和锁检查；随后连接仍持有写锁的产品会话，验证对象字段修改、跨连接冲突、桌面事件通知、重连和持久化，全程不开 MCP。桌面事件验证使用同一条 Core 订阅边界，未替代实际窗口的视觉验收。
 可用 `-PnativePythonExecutable=<python路径>` 指定 Python。Windows 可通过项目的 `scripts/run-gradle-external.ps1 runNativePythonSmoke` 运行。测试输出保留测试工作区路径供排查。
+
+真实构建回归：`gradlew test --tests dev.copperbench.headless.NativeBuildRecoveryTest -Dcopperbench.stage3.fabricBuild=true`。它通过产品启动器和 Python SDK 创建方块、物品、配方与空过程，执行不完整元素的失败探针，验证回滚后仍能生成、构建并检查 jar 内容；日志与哈希保存在 `build/native-build-recovery/`。Windows 可使用 `scripts/run-gradle-external.ps1` 执行同一组 Gradle 参数。
+
+Linux 候选包检查在 `verify-stage15-linux-runclient-ci-smoke.sh` 中用解压后的产品与随包 SDK 执行相同脚本，回执随 CI 归档。单纯 validate/generate 成功或 InMemory 任务模拟不能代替这项构建验证。配方 `recipeSlots` 的空槽使用 `""`，不接受 Python `None` / JSON `null`；空过程可以只提供名称，Core 会保存默认 Blockly 过程体。

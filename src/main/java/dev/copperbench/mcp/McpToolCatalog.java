@@ -9,6 +9,8 @@
 
 package dev.copperbench.mcp;
 
+import dev.copperbench.core.contract.UiCore;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -154,6 +156,9 @@ final class McpToolCatalog {
 
 	List<McpServerFeatures.SyncToolSpecification> tools() {
 		List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
+		tools.add(acceptanceTool());
+		tools.add(previewTool());
+		tools.add(versionCopyUpgradeTool());
 		tools.add(commandTool("bind_blockbench_model", "Bind a block/item element to a model verified in a successful modeling import receipt. Uses an existing element; does not create duplicates. Avoid generated model names; prefer namespace:custom/name.",
 				Operation.BIND_BLOCKBENCH_MODEL, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
 						"elementId", Map.of("type", "string", "format", "uuid"), "modelResource", Map.of("type", "string"),
@@ -261,8 +266,10 @@ final class McpToolCatalog {
 				requiredSchema(Map.of("recoveryPointId", Map.of("type", "string", "minLength", 1)),
 						List.of("recoveryPointId")),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
-		tools.add(queryTool("read_mod_element", "Read a mod element", Operation.GET_MOD_ELEMENT_EDITOR,
-				elementSchema(false), arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("read_mod_element", "Read a mod element. Omit schemaVersion for frozen 1.0; explicitly select 1.1 for configuration, source ownership and complete field contracts.", Operation.GET_MOD_ELEMENT_EDITOR,
+				requiredSchema(Map.of("elementId", Map.of("type", "string", "format", "uuid"),
+						"schemaVersion", Map.of("type", "string", "enum", List.of("1.0", "1.1"))), List.of("elementId")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("preview_mod_element_change", "Preview validated element changes without committing",
 				Operation.PREVIEW_MOD_ELEMENT_CHANGE, elementSchema(true),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
@@ -635,6 +642,66 @@ final class McpToolCatalog {
 		}
 	}
 
+	private McpServerFeatures.SyncToolSpecification versionCopyUpgradeTool() {
+		Map<String, Object> schema = requiredSchema(Map.of(
+				"supportedVersions", Map.of("type", "array", "items", Map.of("type", "string"), "minItems", 1, "maxItems", 16),
+				"operation", Map.of("type", "string", "enum", List.of("negotiate", "preview", "execute")),
+				"targetGeneratorId", Map.of("type", "string"), "outputName", Map.of("type", "string"),
+				"planId", Map.of("type", "string"), "expectedRevision", Map.of("type", "integer", "minimum", 0),
+				"taskAuthorizationId", Map.of("type", "string")), List.of("supportedVersions", "operation"));
+		return McpServerFeatures.SyncToolSpecification.builder()
+				.tool(Tool.builder("version_copy_upgrade", schema).description("26.2 to 26.3 same-loader copy upgrade. Version 1 remains read-only. Negotiate version 2 for a bounded function plan and one explicit execution, binding outputName, planId and expectedRevision; exact preview opt-in plus create/build target task authority are required. Manual tasks block execution; worlds are excluded.").build())
+				.callHandler((exchange, request) -> {
+					try {
+						auditVersionCopyUpgrade(request.arguments(), "started", 0, "");
+						JsonObject result = adapter.versionCopyUpgrade(UUID.randomUUID(), workspaceId, GSON.toJsonTree(request.arguments()).getAsJsonObject());
+						String status = result.get("status").getAsString();
+						auditVersionCopyUpgrade(request.arguments(), status, result.has("revision") ? result.get("revision").getAsLong() : 0, "");
+						return text(result.toString(), !status.equals("succeeded"));
+					} catch (AuditUnavailableException exception) { return auditUnavailable(); }
+				}).build();
+	}
+
+	private McpServerFeatures.SyncToolSpecification previewTool() {
+		Map<String, Object> schema = requiredSchema(Map.of(
+				"supportedVersions", Map.of("type", "array", "items", Map.of("type", "string"), "minItems", 1, "maxItems", 16),
+				"operation", Map.of("type", "string", "enum", List.of("negotiate", "catalog", "opt_in", "revoke", "command", "acceptance")),
+				"generatorId", Map.of("type", "string"), "workspaceFolderPath", Map.of("type", "string"),
+				"command", Map.of("type", "string"), "payload", Map.of("type", "object"),
+				"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("supportedVersions", "operation"));
+		return McpServerFeatures.SyncToolSpecification.builder()
+				.tool(Tool.builder("preview", schema).description("Negotiate preview_targets version 1 on each request. Discover exact targets, choose or revoke a session/workspace/target-scoped preview, and execute only verified operations. This never grants permissions, protected approval or EULA acceptance.").build())
+				.callHandler((exchange, request) -> {
+					try {
+						audit("preview", request.arguments(), "started", 0, "");
+						JsonObject result = adapter.preview(UUID.randomUUID(), workspaceId, GSON.toJsonTree(request.arguments()).getAsJsonObject());
+						String status = result.get("status").getAsString();
+						audit("preview", request.arguments(), status, result.has("revision") ? result.get("revision").getAsLong() : 0, "");
+						return text(result.toString(), status.equals("failed") || status.equals("rejected"));
+					} catch (AuditUnavailableException exception) { return auditUnavailable(); }
+				}).build();
+	}
+
+	private McpServerFeatures.SyncToolSpecification acceptanceTool() {
+		Map<String, Object> schema = requiredSchema(Map.of(
+				"supportedVersions", Map.of("type", "array", "items", Map.of("type", "string"), "minItems", 1),
+				"diagnosticVersions", Map.of("type", "array", "items", Map.of("type", "string"), "minItems", 1, "maxItems", 16),
+				"operation", Map.of("type", "string", "enum", List.of("negotiate", "catalog", "run", "get", "export")),
+				"payload", Map.of("type", "object"),
+				"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("supportedVersions", "operation"));
+		return McpServerFeatures.SyncToolSpecification.builder()
+				.tool(Tool.builder("acceptance", schema).description("Negotiate required_cases version 1 for each request; discover frozen manifests, run, read or export acceptance. Existing permissions and task authorization still apply.").build())
+				.callHandler((exchange, request) -> {
+					try {
+						audit("acceptance", request.arguments(), "started", 0, "");
+						JsonObject result = adapter.acceptance(UUID.randomUUID(), workspaceId, GSON.toJsonTree(request.arguments()).getAsJsonObject());
+						String status = result.get("status").getAsString();
+						audit("acceptance", request.arguments(), status, result.has("newRevision") ? result.get("newRevision").getAsLong() : 0, "");
+						return text(result.toString(), status.equals("failed") || status.equals("rejected"));
+					} catch (AuditUnavailableException exception) { return auditUnavailable(); }
+				}).build();
+	}
+
 	private McpServerFeatures.SyncToolSpecification queryTool(String name, String description, Operation operation,
 			Map<String, Object> schema, java.util.function.Function<Map<String, Object>, JsonObject> payloadFactory) {
 		return McpServerFeatures.SyncToolSpecification.builder()
@@ -642,8 +709,11 @@ final class McpToolCatalog {
 				.callHandler((exchange, request) -> {
 					try {
 						audit(name, request.arguments(), "started", 0, "");
-						var result = adapter.query(Query.of(UUID.randomUUID(), workspaceId, operation,
-								payloadFactory.apply(request.arguments())));
+						JsonObject payload = payloadFactory.apply(request.arguments());
+						String version = UiCore.SCHEMA_VERSION;
+						if (operation == Operation.GET_MOD_ELEMENT_EDITOR && payload.has("schemaVersion"))
+							version = payload.remove("schemaVersion").getAsString();
+						var result = adapter.query(new Query("query", version, UUID.randomUUID(), workspaceId, operation, payload));
 						boolean error = !result.status().equals("succeeded");
 						audit(name, request.arguments(), result.status(), result.revision(), "");
 						return text(GSON.toJson(result), error);
@@ -717,6 +787,16 @@ final class McpToolCatalog {
 					Map.of("properties", Map.of("taskAuthorizationId", properties.get("taskAuthorizationId")), "required", List.of("taskAuthorizationId"))));
 		}
 		result.put("properties", properties); return result;
+	}
+
+	/** Upgrade planning keeps its audit outside the source workspace so repeated plans have identical inputs. */
+	private void auditVersionCopyUpgrade(Map<String, Object> arguments, String result, long revision, String recoveryPoint) {
+		try {
+			var log = new JsonLineAuditLog(net.mcreator.io.UserFolderManager.getConfigFolder().toPath()
+					.resolve("version-copy-upgrade-audit").resolve(workspaceId + ".jsonl"));
+			log.append(new AuditRecord(clock.instant(), "mcp-client", "version_copy_upgrade", GSON.toJson(arguments),
+					result, revision, recoveryPoint));
+		} catch (IOException exception) { throw new AuditUnavailableException(exception); }
 	}
 
 	private void audit(String tool, Map<String, Object> arguments, String result, long revision, String recoveryPoint) {

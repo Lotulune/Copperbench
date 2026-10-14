@@ -1,0 +1,599 @@
+{
+  "element": {
+    "id": "22222222-2222-4222-8222-222222222214",
+    "type": "item",
+    "name": "trail_kit",
+    "displayName": "Copper Camp Kit",
+    "state": "valid",
+    "ownership": "generated",
+    "updatedAt": "2026-10-12T00:00:00Z",
+    "firstParty": true,
+    "diagnostics": {
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "identity": {
+      "internalName": "trail_kit",
+      "registryName": "trail_kit",
+      "source": "generator_definition",
+      "namespace": "copperbench_camp_kit",
+      "resourceId": "copperbench_camp_kit:trail_kit"
+    }
+  },
+  "configuration": {},
+  "sections": [
+    {
+      "id": "general",
+      "title": {
+        "key": "editor.section.general",
+        "fallback": "General",
+        "args": {}
+      },
+      "fields": [
+        {
+          "path": "/displayName",
+          "label": {
+            "key": "field.displayName",
+            "fallback": "DisplayName",
+            "args": {}
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": false,
+          "value": "Copper Camp Kit",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/stackSize",
+          "label": {
+            "key": "field.stackSize",
+            "fallback": "StackSize",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "integer",
+            "minimum": 1.0,
+            "maximum": 99.0,
+            "suggestedStep": 1.0
+          },
+          "control": "number",
+          "required": false,
+          "readOnly": false,
+          "value": 16,
+          "options": [],
+          "constraints": {
+            "min": 1.0,
+            "max": 99.0,
+            "step": 1.0
+          },
+          "diagnostics": []
+        },
+        {
+          "path": "/texture",
+          "label": {
+            "key": "field.texture",
+            "fallback": "Texture",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "string",
+            "enum": [
+              "minecraft:barrier",
+              "minecraft:coal",
+              "minecraft:paper",
+              "minecraft:stick"
+            ]
+          },
+          "control": "select",
+          "required": false,
+          "readOnly": false,
+          "value": "minecraft:barrier",
+          "options": [
+            {
+              "value": "minecraft:barrier",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:barrier",
+                "args": {
+                  "label": "minecraft:barrier"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "minecraft:coal",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:coal",
+                "args": {
+                  "label": "minecraft:coal"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "minecraft:paper",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:paper",
+                "args": {
+                  "label": "minecraft:paper"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "minecraft:stick",
+              "label": {
+                "key": "field.option",
+                "fallback": "minecraft:stick",
+                "args": {
+                  "label": "minecraft:stick"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            }
+          ],
+          "resourceType": "item",
+          "diagnostics": []
+        },
+        {
+          "path": "/name",
+          "label": {
+            "key": "field.name",
+            "fallback": "Name",
+            "args": {}
+          },
+          "inputSchema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "control": "text",
+          "required": false,
+          "readOnly": true,
+          "value": "trail_kit",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/description",
+          "label": {
+            "key": "field.description",
+            "fallback": "Description",
+            "args": {}
+          },
+          "control": "textarea",
+          "required": false,
+          "readOnly": false,
+          "value": "",
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/rarity",
+          "label": {
+            "key": "field.rarity",
+            "fallback": "Rarity",
+            "args": {}
+          },
+          "inputSchema": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "COMMON",
+                  "UNCOMMON",
+                  "RARE",
+                  "EPIC"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "control": "select",
+          "required": false,
+          "readOnly": false,
+          "value": "RARE",
+          "options": [
+            {
+              "value": "COMMON",
+              "label": {
+                "key": "field.option",
+                "fallback": "COMMON",
+                "args": {
+                  "label": "COMMON"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "UNCOMMON",
+              "label": {
+                "key": "field.option",
+                "fallback": "UNCOMMON",
+                "args": {
+                  "label": "UNCOMMON"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "RARE",
+              "label": {
+                "key": "field.option",
+                "fallback": "RARE",
+                "args": {
+                  "label": "RARE"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            },
+            {
+              "value": "EPIC",
+              "label": {
+                "key": "field.option",
+                "fallback": "EPIC",
+                "args": {
+                  "label": "EPIC"
+                }
+              },
+              "disabled": false,
+              "reason": null
+            }
+          ],
+          "diagnostics": []
+        },
+        {
+          "path": "/immuneToFire",
+          "label": {
+            "key": "field.immuneToFire",
+            "fallback": "ImmuneToFire",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "boolean"
+          },
+          "control": "toggle",
+          "required": false,
+          "readOnly": false,
+          "value": true,
+          "options": [],
+          "diagnostics": []
+        },
+        {
+          "path": "/fuelBurnTime",
+          "label": {
+            "key": "field.fuelBurnTime",
+            "fallback": "FuelBurnTime",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "integer",
+            "minimum": 0.0,
+            "maximum": 128000.0,
+            "suggestedStep": 1.0
+          },
+          "control": "number",
+          "required": false,
+          "readOnly": false,
+          "value": 200,
+          "options": [],
+          "constraints": {
+            "min": 0.0,
+            "max": 128000.0,
+            "step": 1.0
+          },
+          "diagnostics": []
+        },
+        {
+          "path": "/compostingLayers",
+          "label": {
+            "key": "field.compostingLayers",
+            "fallback": "CompostingLayers",
+            "args": {}
+          },
+          "inputSchema": {
+            "type": "integer",
+            "minimum": 0.0,
+            "maximum": 7.0,
+            "suggestedStep": 1.0
+          },
+          "control": "number",
+          "required": false,
+          "readOnly": false,
+          "value": 1,
+          "options": [],
+          "constraints": {
+            "min": 0.0,
+            "max": 7.0,
+            "step": 1.0
+          },
+          "diagnostics": []
+        }
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "mod_elements.create",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.build",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.migrate_loader",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "workspace.import_upstream",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    },
+    {
+      "id": "assets.publish_batch",
+      "availability": "unavailable",
+      "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+      "message": {
+        "key": "diagnostic.preview_negotiation_required",
+        "fallback": "Use negotiated preview capabilities for this target.",
+        "args": {}
+      },
+      "affectedPaths": []
+    }
+  ],
+  "fieldContract": {
+    "elementType": "item",
+    "generatorId": "fabric-26.3",
+    "contractVersion": "1",
+    "complete": true,
+    "availability": "available",
+    "reasonCode": "FIELD_CONTRACT_AVAILABLE",
+    "fields": [
+      {
+        "path": "/texture",
+        "compatibilityPath": "/fields/texture",
+        "inputSchema": {
+          "type": "string",
+          "enum": [
+            "minecraft:barrier",
+            "minecraft:coal",
+            "minecraft:paper",
+            "minecraft:stick"
+          ]
+        },
+        "default": "minecraft:barrier",
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared"
+      },
+      {
+        "path": "/name",
+        "compatibilityPath": "/fields/name",
+        "inputSchema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared",
+        "readOnlyAfterCreate": true,
+        "defaultFrom": "displayName"
+      },
+      {
+        "path": "/rarity",
+        "compatibilityPath": "/fields/rarity",
+        "inputSchema": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "COMMON",
+                "UNCOMMON",
+                "RARE",
+                "EPIC"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "default": "COMMON",
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared"
+      },
+      {
+        "path": "/stackSize",
+        "compatibilityPath": "/fields/stackSize",
+        "inputSchema": {
+          "type": "integer",
+          "minimum": 1.0,
+          "maximum": 99.0,
+          "suggestedStep": 1.0
+        },
+        "default": 64,
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared"
+      },
+      {
+        "path": "/immuneToFire",
+        "compatibilityPath": "/fields/immuneToFire",
+        "inputSchema": {
+          "type": "boolean"
+        },
+        "default": false,
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared"
+      },
+      {
+        "path": "/fuelBurnTime",
+        "compatibilityPath": "/fields/fuelBurnTime",
+        "inputSchema": {
+          "type": "integer",
+          "minimum": 0.0,
+          "maximum": 128000.0,
+          "suggestedStep": 1.0
+        },
+        "default": 0,
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared"
+      },
+      {
+        "path": "/compostingLayers",
+        "compatibilityPath": "/fields/compostingLayers",
+        "inputSchema": {
+          "type": "integer",
+          "minimum": 0.0,
+          "maximum": 7.0,
+          "suggestedStep": 1.0
+        },
+        "default": 0,
+        "defaultStage": "creation_before_generation_validation",
+        "requiredOnCreate": false,
+        "requiredByGenerator": false,
+        "generatorSupport": "declared"
+      },
+      {
+        "path": "/description",
+        "compatibilityPath": "/fields/description",
+        "inputSchema": {
+          "type": "string"
+        },
+        "requiredOnCreate": false,
+        "generatorSupport": "product",
+        "default": ""
+      },
+      {
+        "path": "/displayName",
+        "compatibilityPath": "/fields/displayName",
+        "inputSchema": {
+          "type": "string"
+        },
+        "requiredOnCreate": false,
+        "generatorSupport": "product",
+        "defaultFrom": "readable_payload_name"
+      },
+      {
+        "path": "/maxStackSize",
+        "compatibilityPath": "/fields/maxStackSize",
+        "inputSchema": {
+          "type": "integer",
+          "minimum": 1.0,
+          "maximum": 99.0,
+          "suggestedStep": 1.0
+        },
+        "requiredOnCreate": false,
+        "generatorSupport": "product",
+        "aliasOf": "/stackSize",
+        "default": 64
+      }
+    ],
+    "alternatives": [
+      {
+        "scope": "existing_element",
+        "operation": "get_mod_element_editor",
+        "requires": [
+          "elementId"
+        ]
+      }
+    ],
+    "compatibilityPath": "/fields",
+    "aliasPolicy": "Top-level and /fields values must agree when both are provided; stackSize and maxStackSize must agree.",
+    "unknownFields": "Rejected; stored unknown nested fields require review before rewriting.",
+    "maxInputDepth": 64,
+    "generatorRestrictions": {
+      "includedFields": [
+        "name",
+        "texture",
+        "stackSize",
+        "rarity",
+        "immuneToFire",
+        "fuelBurnTime",
+        "compostingLayers"
+      ],
+      "excludedFields": [],
+      "source": "active_generator_definition",
+      "scope": "Declared template coverage; excluded fields may persist but have no promised generated effect. References and contextual requirements are checked during generation."
+    },
+    "minimalExample": {
+      "elementType": "item",
+      "name": "discovery_item",
+      "initialValues": {
+        "displayName": "Discovery Item",
+        "stackSize": 16,
+        "texture": "minecraft:barrier"
+      }
+    },
+    "createRequired": [
+      "elementType",
+      "name"
+    ],
+    "createNameSchema": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "scope": "Complete creation/edit input metadata; inputSchema uses JSON Schema with reference and valueConstraints annotations for contextual rules. Generation and gameplay still require their own acceptance."
+  }
+}

@@ -1,0 +1,76 @@
+name: P263 Windows frozen packages
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/p263-unique-cases]
+    paths: [.github/workflows/p263-windows-package.yml]
+permissions:
+  contents: read
+jobs:
+  package:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-2025
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        level: [G1, G2]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '25.0.2'
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Prepare package dependencies and declared Gradle distributions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          npm ci --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'UI dependencies failed' }
+          @'
+          import hashlib,os,re,urllib.request,zipfile
+          from pathlib import Path
+          pool=Path.home()/'.gradle/wrapper/dists'
+          for version in ('9.7.0','9.6.1','9.6.0','8.8'):
+              name=f'gradle-{version}-bin.zip'
+              url='https://services.gradle.org/distributions/'+name
+              expected=urllib.request.urlopen(url+'.sha256',timeout=60).read().decode().strip()
+              assert re.fullmatch('[0-9a-f]{64}',expected)
+              archive=Path(os.environ['RUNNER_TEMP'])/name
+              urllib.request.urlretrieve(url,archive)
+              assert hashlib.file_digest(archive.open('rb'),'sha256').hexdigest()==expected
+              target=pool/f'gradle-{version}-bin'/'bundled'
+              target.mkdir(parents=True,exist_ok=False)
+              with zipfile.ZipFile(archive) as package:
+                  for member in package.infolist():
+                      assert not member.filename.startswith(('/','\\')) and ':' not in member.filename
+                      assert '..' not in Path(member.filename).parts
+                  package.extractall(target)
+              (target/(name+'.ok')).write_text('')
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) { throw 'Distribution preparation failed' }
+      - name: Freeze both loaders for the selected qualification level
+        shell: pwsh
+        env:
+          P263_LEVEL: ${{ matrix.level }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python tools/candidate-evidence/package_candidate.py --platform windows --loader fabric --loader neoforge --level $env:P263_LEVEL --output build/p263-candidate
+          if ($LASTEXITCODE -ne 0) { throw 'Frozen Windows package build failed' }
+          'Packaging on Windows Server only; Windows 11 installation and player cells remain not_run.' | Set-Content -LiteralPath build/p263-candidate/runner-scope.txt -Encoding UTF8
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: p263-windows-${{ matrix.level }}-candidate
+          path: build/p263-candidate/
+          if-no-files-found: warn
+          retention-days: 14

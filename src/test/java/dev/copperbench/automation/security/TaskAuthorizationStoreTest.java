@@ -16,6 +16,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskAuthorizationStoreTest {
+    @Test void sourceEditsConsumeOnlyRootScopedEditAuthority() throws Exception {
+        Path root = temp.resolve("native-task");
+        String id = store(NOW).issue(Actor.UI, true, "Native source", root, List.of("edit"), 3600, false).get("id").getAsString();
+        assertTrue(store(NOW).authorize(id, root.resolve("workspace"), Operation.UPDATE_WORKSPACE_FILE).allowed());
+        assertFalse(store(NOW).authorize(id, temp.resolve("outside"), Operation.UPDATE_WORKSPACE_FILE).allowed());
+        assertFalse(store(NOW).authorize(id, root, Operation.RUN_SERVER).allowed());
+    }
     @TempDir Path temp;
     private static final Instant NOW = Instant.parse("2026-09-11T03:00:00Z");
     private TaskAuthorizationStore store(Instant time) { return new TaskAuthorizationStore(temp.resolve("private"), Clock.fixed(time, ZoneOffset.UTC)); }

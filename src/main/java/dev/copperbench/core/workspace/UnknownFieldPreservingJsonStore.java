@@ -31,6 +31,9 @@ public final class UnknownFieldPreservingJsonStore {
 				? document.getAsJsonObject(PRODUCT_NAMESPACE).deepCopy()
 				: new JsonObject();
 		JsonObject replacement = Objects.requireNonNull(update.apply(current.deepCopy())).deepCopy();
+		// Opening an already migrated workspace must not replace its unchanged document.
+		if (replacement.equals(document.get(PRODUCT_NAMESPACE)))
+			return document.deepCopy();
 		document.add(PRODUCT_NAMESPACE, replacement);
 		writeAtomically(workspaceFile, document);
 		return document.deepCopy();

@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:copperbench:preview-targets:1",
+  "$defs": {
+    "request": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "supportedVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "operation": {
+              "enum": [
+                "negotiate",
+                "catalog"
+              ]
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "operation"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "supportedVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "operation": {
+              "enum": [
+                "opt_in",
+                "revoke"
+              ]
+            },
+            "generatorId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "workspaceFolderPath": {
+              "type": "string",
+              "minLength": 1
+            },
+            "expectedRevision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "operation",
+            "generatorId",
+            "expectedRevision"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "supportedVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "operation": {
+              "enum": [
+                "command"
+              ]
+            },
+            "generatorId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "command": {
+              "type": "string",
+              "minLength": 1
+            },
+            "expectedRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "payload": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "operation",
+            "generatorId",
+            "command",
+            "expectedRevision"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "supportedVersions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "operation": {
+              "enum": [
+                "acceptance"
+              ]
+            },
+            "generatorId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "operation",
+            "generatorId",
+            "payload"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "contract": {
+          "const": "preview_targets"
+        },
+        "schemaVersion": {
+          "const": "1"
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "workspaceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "selectedVersion": {
+          "const": "1"
+        },
+        "status": {
+          "enum": [
+            "succeeded",
+            "committed",
+            "completed",
+            "accepted",
+            "rejected",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic"
+          }
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "generatorId": {
+                "type": "string"
+              },
+              "loader": {
+                "type": "string"
+              },
+              "minecraftVersion": {
+                "type": "string"
+              },
+              "trackId": {
+                "type": "string"
+              },
+              "destination": {
+                "type": "string"
+              },
+              "workspaceGeneratorName": {
+                "type": "string"
+              },
+              "previewRequired": {
+                "type": "boolean"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "available": {
+                "type": "boolean"
+              },
+              "capabilities": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "supportStage": {
+                        "enum": [
+                          "registered",
+                          "native_preview",
+                          "scoped_support"
+                        ]
+                      },
+                      "environmentQualified": {
+                        "type": "boolean"
+                      },
+                      "environmentEvidence": {
+                        "type": "string"
+                      },
+                      "operations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "operation": {
+                              "type": "string"
+                            },
+                            "reasonCode": {
+                              "type": "string"
+                            },
+                            "evidence": {
+                              "type": "string"
+                            },
+                            "accessReasonCode": {
+                              "type": "string"
+                            },
+                            "ready": {
+                              "type": "boolean"
+                            },
+                            "available": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "operation",
+                            "reasonCode",
+                            "evidence",
+                            "accessReasonCode",
+                            "ready",
+                            "available"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "elementTypes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "elementType": {
+                              "type": "string"
+                            },
+                            "supported": {
+                              "type": "boolean"
+                            },
+                            "reasonCode": {
+                              "type": "string"
+                            },
+                            "fields": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "uniqueItems": true
+                            }
+                          },
+                          "required": [
+                            "elementType",
+                            "supported",
+                            "reasonCode",
+                            "fields"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "supportStage",
+                      "environmentQualified",
+                      "environmentEvidence",
+                      "operations",
+                      "elementTypes"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "generatorId",
+              "loader",
+              "minecraftVersion",
+              "trackId",
+              "destination",
+              "workspaceGeneratorName",
+              "previewRequired",
+              "selected",
+              "available",
+              "capabilities"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "core": {
+          "$ref": "urn:ui-core:1.0:command-result"
+        },
+        "acceptance": {
+          "$ref": "urn:copperbench:required-cases:1#/$defs/response"
+        }
+      },
+      "required": [
+        "contract",
+        "schemaVersion",
+        "requestId",
+        "workspaceId",
+        "status",
+        "diagnostics"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

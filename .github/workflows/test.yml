@@ -79,6 +79,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Compile, test, and generate Javadoc
         run: xvfb-run -a ./gradlew --no-daemon --no-build-cache clean test javadoc
+      - name: Verify local Minecraft JAR normalization with strict dependency checks
+        run: python3 tools/generator-probes/integration_loom_normalization.py
       - name: Publish Java test report
         uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16
         if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.java == 'true' }}
@@ -96,6 +98,7 @@ jobs:
           path: |
             build/reports/tests/
             build/reports/problems/
+            build/loom-normalization/
           if-no-files-found: ignore
           retention-days: 14
 
@@ -169,6 +172,13 @@ jobs:
       - name: Test Python SDK reliability and connection security
         if: needs.changes.outputs.python == 'true'
         run: python -m unittest discover -s sdk/python -p 'test_*.py'
+      - name: Test portable and scoped candidate evidence boundaries
+        if: needs.changes.outputs.python == 'true'
+        run: |
+          python -m unittest discover -s tools/portable-evidence -p 'test_*.py'
+          python -m unittest discover -s tools/candidate-evidence -p 'test_*.py'
+          python -m unittest discover -s tools/generator-probes -p 'test_*.py'
+          python -m unittest discover -s scripts/ci -p 'test_*.py'
       - name: Validate product status
         run: |
           node --test scripts/tests/product-release-history.tests.mjs
@@ -211,6 +221,9 @@ jobs:
       - name: Test Python SDK reliability and connection security on Windows
         if: needs.changes.outputs.python == 'true'
         run: python -m unittest discover -s sdk/python -p 'test_*.py'
+      - name: Test scoped candidate filesystem boundaries on Windows
+        if: needs.changes.outputs.python == 'true'
+        run: python -m unittest discover -s tools/candidate-evidence -p 'test_*.py'
       - name: Set up JDK 25 with JCEF
         uses: actions/setup-java@v6
         with:
@@ -235,6 +248,7 @@ jobs:
         run: >-
           .\gradlew.bat --no-daemon --no-build-cache test
           --tests dev.copperbench.core.workspace.WorkspaceFilesTest
+          --tests dev.copperbench.history.LegacyHistoryRuntimeFilesTest
           --tests dev.copperbench.assets.ResourcePackExportServiceTest
           --tests dev.copperbench.migration.LoaderMigrationServiceTest
           --tests dev.copperbench.migration.UpstreamWorkspaceImportServiceTest

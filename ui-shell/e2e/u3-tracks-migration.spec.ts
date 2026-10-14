@@ -116,12 +116,12 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await expect(page.getByText('Copper Lamp').first()).toBeVisible();
   });
 
-  test('previews 26.1 migration showing partial capability notice (complete=false) without source corruption', async ({ page }) => {
+  test('keeps an incomplete migration report blocked without claiming source changes', async ({ page }) => {
     await page.click('[data-testid="nav-tracks"]');
     await page.click('[data-testid="tab-loader-migration"]');
 
-    // Select Fabric 26.1.2 preview
-    await page.selectOption('[data-testid="migration-target-select"]', 'fabric-26.1.2');
+    // Use a visible catalog target to exercise the mock Core's incomplete-report response.
+    await page.selectOption('[data-testid="migration-target-select"]', 'fabric-26.2');
     await page.click('[data-testid="preview-migration-btn"]');
 
     await expect(page.locator('[data-testid="migration-preview-report"]')).toBeVisible();
@@ -129,7 +129,7 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await expect(page.locator('[data-testid="disposition-group-lost"]')).toBeVisible();
     await expect(page.locator('[data-testid="disposition-group-blocked"]')).toBeVisible();
 
-    // Check confirmation and execute: 26.1 is not migratable so execution is rejected/incomplete, never success
+    // Confirmation cannot turn a Core incomplete result into success.
     await page.check('[data-testid="confirm-migration-checkbox"]');
     await page.click('[data-testid="execute-migration-btn"]');
     await expect(page.locator('[data-testid="migration-incomplete-banner"]')).toBeVisible();

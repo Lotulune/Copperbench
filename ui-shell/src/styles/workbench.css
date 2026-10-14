@@ -514,3 +514,9 @@ summary { cursor: pointer; }
   .element-editor-field { grid-template-columns: 1fr; gap: 6px !important; }
   .element-editor-field > label { padding-top: 0; }
 }
+
+.workspace-preview-choice { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; background: var(--bg-panel); font-size: 12px; }
+.workspace-preview-choice label { display: flex; align-items: center; gap: 8px; min-height: 32px; cursor: pointer; }
+.workspace-preview-choice p { margin: 4px 0 0; color: var(--text-muted); line-height: 1.5; }
+.workspace-preview-choice [role="alert"] { color: var(--badge-red); }
+.create-type-grid button:disabled { opacity: .45; cursor: not-allowed; }

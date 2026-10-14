@@ -72,6 +72,35 @@ class VerifiedArtifactExporterTest {
                 () -> VerifiedArtifactExporter.export(root, original, UUID.randomUUID(), true)).code());
     }
 
+    @Test void rejectsPersistedPassedDuplicateReportForCurrentAndHistoricalExport() throws Exception {
+        JsonObject task = evidence("<testsuite><testcase classname='camp.Contract' name='stack_limit'/></testsuite>", 1);
+        JsonObject verification = task.getAsJsonObject("verification");
+        Path report = Path.of(verification.get("reportPath").getAsString());
+        Files.writeString(report, "<testsuite>"
+                + "<testcase classname='camp.Contract' name='stack_limit'/>".repeat(6) + "</testsuite>");
+        verification.addProperty("reportSha256", WorkspaceExecutionSnapshot.sha256(report));
+        verification.addProperty("minimumTests", 6);
+        // Recreate the old producer's complete passed record without calling the parser for the duplicate XML.
+        for (String key : List.of("discovered", "executed", "passed", "acceptanceExecuted")) verification.addProperty(key, 6);
+        JsonObject test = verification.getAsJsonArray("cases").get(0).getAsJsonObject().deepCopy();
+        JsonArray cases = new JsonArray();
+        for (int index = 0; index < 6; index++) cases.add(test.deepCopy());
+        verification.add("cases", cases);
+        UUID workspaceId = UUID.randomUUID();
+        WorkspaceTaskRecords.save(root, workspaceId, task, List.of(), List.of());
+        JsonObject restored = WorkspaceTaskRecords.read(root, workspaceId, UUID.fromString(task.get("id").getAsString()))
+                .orElseThrow().getAsJsonObject("task");
+        assertEquals("passed", restored.getAsJsonObject("verification").get("status").getAsString());
+        assertEquals(6, restored.getAsJsonObject("verification").get("cases").getAsJsonArray().size());
+        for (boolean historical : List.of(false, true)) {
+            if (historical) Files.writeString(root.resolve("source.java"), "new current input");
+            var failure = assertThrows(VerifiedArtifactExporter.VerificationException.class,
+                    () -> VerifiedArtifactExporter.export(root, restored, UUID.randomUUID(), historical));
+            assertEquals("VERIFIED_ACCEPTANCE_INVALID", failure.code());
+            assertFalse(Files.exists(root.resolve(".copperbench/verified-exports")));
+        }
+    }
+
     private JsonObject evidence(String xml, int minimum) throws Exception {
         Path directory = root.resolve(".copperbench/accepted/" + UUID.randomUUID()); Files.createDirectories(directory);
         Path jar = directory.resolve("mod.jar"), report = directory.resolve("report.xml");

@@ -203,7 +203,10 @@ public class WorkspaceDialogs {
 
 			generator.setPreferredSize(new Dimension(0, 0));
 
-			Generator.GENERATOR_CACHE.values().forEach(generator::addItem);
+			Generator.GENERATOR_CACHE.values().stream().filter(configuration ->
+					!dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(configuration.getGeneratorName())
+							|| workspace != null && configuration.getGeneratorName().equals(workspace.getWorkspaceSettings().getCurrentGenerator()))
+					.forEach(generator::addItem);
 
 			JPanel _basicSettings = new JPanel();
 			_basicSettings.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));

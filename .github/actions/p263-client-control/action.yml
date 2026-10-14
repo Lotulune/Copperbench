@@ -1,0 +1,9 @@
+name: P263 bounded cloud client control
+description: Keep one installed lifecycle and deliver planner-reviewed requests and screenshots
+inputs:
+  token:
+    description: Read-only repository token for the task control branch
+    required: true
+runs:
+  using: node24
+  main: index.cjs

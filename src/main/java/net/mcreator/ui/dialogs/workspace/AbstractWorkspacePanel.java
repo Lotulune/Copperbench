@@ -167,11 +167,14 @@ public abstract class AbstractWorkspacePanel {
 		workspaceDialogPanel.setFlavorFilter(generatorFlavor);
 
 		workspaceDialogPanel.generator.removeAllItems();
-		Generator.GENERATOR_CACHE.values().stream().filter(gc -> gc.getGeneratorFlavor() == generatorFlavor)
+		var legacyGenerators = Generator.GENERATOR_CACHE.values().stream()
+				.filter(gc -> !dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(gc.getGeneratorName()))
+				.toList();
+		legacyGenerators.stream().filter(gc -> gc.getGeneratorFlavor() == generatorFlavor)
 				.forEach(workspaceDialogPanel.generator::addItem);
 
 		GeneratorConfiguration generatorConfiguration = GeneratorConfiguration.getRecommendedGeneratorForFlavor(
-				Generator.GENERATOR_CACHE.values(), generatorFlavor);
+				legacyGenerators, generatorFlavor);
 		workspaceDialogPanel.generator.setSelectedItem(generatorConfiguration);
 	}
 

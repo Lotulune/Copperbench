@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "copperbench_camp_kit:t01",
+  "environment": "minecraft:default",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100,
+  "required": true
+}

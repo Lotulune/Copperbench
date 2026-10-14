@@ -113,6 +113,12 @@ public final class ProcedureFieldContract {
             if (!values.has("procedurexml")) values.addProperty("procedurexml", CODEC.toBlocklyXml(ir));
         } else if (values.has("procedurexml")) {
             values.add("procedureIr", CODEC.toJson(CODEC.fromBlocklyXml(values.get("procedurexml").getAsString(), elementId)));
+        } else {
+            // The upstream adapter already persists an empty event body for a newly named Procedure.
+            // Keep the task projection consistent so it is not mistaken for a legacy message stub.
+            ProcedureIr ir = CODEC.read(values, elementId);
+            values.add("procedureIr", CODEC.toJson(ir));
+            values.addProperty("procedurexml", CODEC.toBlocklyXml(ir));
         }
         refreshAliases(values);
     }

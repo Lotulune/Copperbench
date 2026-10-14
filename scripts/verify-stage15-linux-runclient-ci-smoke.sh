@@ -135,6 +135,27 @@ test -n "$workspace_file"
 test -f "$workspace_file"
 echo "[stage15-runclient] $loader_name workspace fixture committed"
 
+if [[ "$generator_id" == "fabric-1.21.1" ]]; then
+  echo "[stage15-runclient] testing failed AI edits and a real JAR through the installed Python SDK"
+  mkdir -p "$evidence_root/sdk-build-recovery"
+  cp "$GITHUB_WORKSPACE/sdk/python/native_build_recovery_smoke.py" "$evidence_root/sdk-build-recovery/run.py"
+  python3 - "$portable_root" "$workspace_file" "$evidence_root/sdk-build-recovery" <<'PY'
+import json
+from pathlib import Path
+import sys
+root, workspace, evidence = sys.argv[1:]
+config = {"launcher": ["/usr/bin/bash", str(Path(root) / "copperbench.sh")],
+          "workspace": workspace, "cwd": root, "evidence": evidence}
+(Path(evidence) / "config.json").write_text(json.dumps(config), encoding="utf-8")
+PY
+  if ! PYTHONPATH="$portable_root/sdk/python" timeout 1200s python3 \
+    "$evidence_root/sdk-build-recovery/run.py" "$evidence_root/sdk-build-recovery/config.json" \
+    >"$evidence_root/sdk-build-recovery/python.log" 2>&1; then
+    cat "$evidence_root/sdk-build-recovery/python.log" >&2
+    exit 1
+  fi
+fi
+
 echo "[stage15-runclient] building through packaged headless Core"
 if ! timeout 600s /usr/bin/bash "$portable_root/copperbench.sh" \
   headless --workspace "$workspace_file" build >"$build_json" 2>"$build_log"; then

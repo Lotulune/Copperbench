@@ -135,6 +135,7 @@ class WorkspaceTaskEventTest {
 		SequentialIds ids = new SequentialIds();
 		CountDownLatch cancellableRunStarted = new CountDownLatch(1);
 		AtomicInteger runs = new AtomicInteger();
+		AtomicInteger cleanupWorkspaceReads = new AtomicInteger();
 		GradleProcessRunner runner = (root, arguments, timeout, output) -> {
 			int run = runs.incrementAndGet();
 			output.accept(run == 1 ? "synthetic compile failure" : "synthetic long-running build");
@@ -144,6 +145,9 @@ class WorkspaceTaskEventTest {
 				new CountDownLatch(1).await();
 				return new GradleProcessRunner.ProcessResult(0, false);
 			} catch (InterruptedException interrupted) {
+				// A real worker can resolve its environment or persist state while being cancelled.
+				// The cancelling request must not hold the workspace monitor while awaiting this read.
+				if (store.read(WORKSPACE_ID).isPresent()) cleanupWorkspaceReads.incrementAndGet();
 				Thread.currentThread().interrupt();
 				return new GradleProcessRunner.ProcessResult(130, false);
 			}
@@ -183,9 +187,17 @@ class WorkspaceTaskEventTest {
 			JsonObject cancelPayload = new JsonObject();
 			cancelPayload.addProperty("clientMutationId", uuid(31).toString());
 			cancelPayload.addProperty("taskId", cancelledTask.toString());
+			var stale = service.execute(Command.of(uuid(33), WORKSPACE_ID, 1, Operation.CANCEL_TASK,
+					cancelPayload), new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+			assertEquals("rejected", stale.result().status());
+			assertEquals("running", tasks.find(WORKSPACE_ID, cancelledTask).orElseThrow().get("state").getAsString());
+			var readOnly = service.execute(Command.of(uuid(34), WORKSPACE_ID, 0, Operation.CANCEL_TASK,
+					cancelPayload), new RequestContext(Actor.HEADLESS, PermissionProfile.READ_ONLY));
+			assertEquals("rejected", readOnly.result().status());
 			var cancelled = service.execute(Command.of(uuid(32), WORKSPACE_ID, 0, Operation.CANCEL_TASK,
 					cancelPayload), new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
 			assertEquals("cancelled", cancelled.result().status());
+			assertEquals(1, cleanupWorkspaceReads.get());
 
 			List<UiCore.Event> replayed = new CopyOnWriteArrayList<>();
 			try (AutoCloseable reconnect = service.subscribeEvents(WORKSPACE_ID, disconnectSequence, replayed::add)) {
