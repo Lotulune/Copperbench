@@ -27,6 +27,7 @@ import { SettingsView } from './components/SettingsView';
 import { WorkbenchNavigationBar } from './components/WorkbenchNavigationBar';
 import './styles/global.css';
 import './styles/workbench.css';
+import './styles/controls.css';
 
 const ShellContent: React.FC = () => {
   const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();

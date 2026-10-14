@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr, uiText } from '../i18n/locale';
 import './creatorData.css';
 import { valueLabel } from '../i18n/labels';
@@ -506,21 +507,21 @@ export const CreatorDataView: React.FC = () => {
             <>
               <label>
                 <span>{tr("数据类型")}</span>
-                <select value={dataType} onChange={(event) => setDataType(event.target.value)}>
+                <Select value={dataType} onChange={(event) => setDataType(event.target.value)}>
                   <option value="number">{tr("数值")}</option>
                   <option value="logic">{tr("布尔")}</option>
                   <option value="string">{tr("文本")}</option>
                   <option value="itemstack">{tr("物品栈")}</option>
-                </select>
+                </Select>
               </label>
               <label>
                 <span>{tr("作用域")}</span>
-                <select value={scope} onChange={(event) => setScope(event.target.value)}>
+                <Select value={scope} onChange={(event) => setScope(event.target.value)}>
                   <option value="global">{tr("全局")}</option>
                   <option value="player_persistent">{tr("玩家持久化")}</option>
                   <option value="world">{tr("地图 / 世界")}</option>
                   <option value="local">{tr("过程局部（local）")}</option>
-                </select>
+                </Select>
               </label>
             </>
           )}
@@ -532,13 +533,13 @@ export const CreatorDataView: React.FC = () => {
               </label>
               <label>
                 <span>{tr("类别")}</span>
-                <select value={category} onChange={(event) => setCategory(event.target.value)}>
+                <Select value={category} onChange={(event) => setCategory(event.target.value)}>
                   <option value="blocks">{tr("方块")}</option>
                   <option value="items">{tr("物品")}</option>
                   <option value="entities">{tr("实体")}</option>
                   <option value="fluids">{tr("流体")}</option>
                   <option value="functions">{tr("函数")}</option>
-                </select>
+                </Select>
               </label>
             </>
           )}

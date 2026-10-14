@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr, UI_LOCALE } from '../i18n/locale';
 import { blocklyZh } from '../i18n/blocklyZh';
 import { valueLabel } from '../i18n/labels';
@@ -1026,12 +1027,12 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
           </div>
           <div className="procedure-palette-filter">
             <Filter size={13} aria-hidden="true" />
-            <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label={tr("筛选过程节点分类")}>
+            <Select value={category} onChange={(event) => setCategory(event.target.value)} aria-label={tr("筛选过程节点分类")}>
               <option value="all">{tr("全部分类")}</option>
               {categories.map((item) => (
                 <option value={item} key={item}>{procedureCategoryLabels[item] ?? item}</option>
               ))}
-            </select>
+            </Select>
           </div>
           {recentCatalog.length > 0 && (
             <div className="procedure-recent" data-testid="procedure-recent-nodes">
@@ -1320,14 +1321,14 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   <div className="procedure-section-label">{tr("批量替换调用 · ")}{callRefactorDraft.sourceName}</div>
                   <label>
                     <span>{tr("替换为")}</span>
-                    <select aria-label={tr("新的 过程调用目标")} value={callRefactorDraft.targetProcedureId} disabled={refactorBusy}
+                    <Select aria-label={tr("新的 过程调用目标")} value={callRefactorDraft.targetProcedureId} disabled={refactorBusy}
                       onChange={(event) => {
                         setCallRefactorDraft({ ...callRefactorDraft, targetProcedureId: event.target.value });
                         setSemanticRefactorPlan(null);
                       }}>
                       {(projection?.symbols.availableProcedures ?? []).filter((candidate) => candidate.id !== callRefactorDraft.sourceProcedureId)
                         .map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
-                    </select>
+                    </Select>
                   </label>
                   <div className="procedure-refactor-actions">
                     <button type="button" onClick={() => void previewCallRefactor()} disabled={refactorBusy}>{tr("预览批量替换")}</button>

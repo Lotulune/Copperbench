@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { elementLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -513,7 +514,7 @@ export const TracksAndMigrationView: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                {uiText('版本与加载器', 'Version & loader')}<select
+                {uiText('版本与加载器', 'Version & loader')}<Select
                   data-testid="migration-target-select"
                   value={targetGeneratorId}
                   onChange={(e) => {
@@ -533,7 +534,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     </option>
                   ))}
                   {migrationTargets.length === 0 && <option value="">{tr("没有可用的迁移目标")}</option>}
-                </select>
+                </Select>
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
@@ -981,11 +982,11 @@ export const TracksAndMigrationView: React.FC = () => {
                 <h3 style={{ margin: 0, fontSize: '14px' }}>{uiText('注册项重命名', 'Rename registry entry')}</h3>
               </div>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                {uiText('注册项', 'Registry entry')}<select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
+                {uiText('注册项', 'Registry entry')}<Select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
                   {refactorRegistryEntries.map((entry) => (
                     <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {valueLabel(entry.kind)}</option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
                 {tr("新名称")}<input data-testid="refactor-registry-new-name" value={registryNewName} onChange={(event) => {
@@ -1021,11 +1022,11 @@ export const TracksAndMigrationView: React.FC = () => {
                 <h3 style={{ margin: 0, fontSize: '14px' }}>{tr("资产重命名 / 移动")}</h3>
               </div>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                {tr("源资产")}<select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
+                {tr("源资产")}<Select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
                   {(refactorAssets?.assets ?? []).map((asset) => (
                     <option key={asset.id} value={asset.id}>{asset.relativePath}</option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
                 {tr("目标路径")}<input data-testid="refactor-asset-target" value={assetTargetPath} onChange={(event) => {

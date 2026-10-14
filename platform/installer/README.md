@@ -28,9 +28,13 @@ The application reads a saved UI locale first, then `install-language.txt`, then
 
 ## Validation
 
+The wizard includes Noto Sans CJK SC and its OFL license; its Chinese labels do not depend on installed OS fonts. `--preview <directory>` now checks the actual fonts of labels, controls, license text and painted captions before writing `glyph-report.json`. It renders 28 Chinese/English, dark/light prepare, progress, completion, error and license captures. A missing glyph fails the command and removes a stale success receipt. Run `node scripts/verify-installer-previews.mjs <directory>` to verify coverage and image hashes. Review the images for clipping and contrast; the receipt only certifies glyph coverage, not desktop installation or gameplay.
+
+For a release candidate, run with its **bundled JDK and installer JAR**. Retain the report, screenshots, host font inventory and package/source hashes. Compare the unchanged released package on the target desktop with CI before attributing missing glyphs to the package. Fresh target-desktop and upgrade/data-preservation checks remain separate from these synthetic preview states.
+
 Focused Java checks: `gradlew.bat test --tests dev.copperbench.installer.InstallEngineTest --tests dev.copperbench.shell.UiLocalePreferencesTest --tests dev.copperbench.shell.RecoverableBrowserHostTest`. The installer tests cover corrupt payloads, cancellation, receipt and path rejection, failed registration, packaged examples, upgrade preservation and uninstall preservation.
 
-With an actual desktop display, compile `test/InstallerInteractionTest.java` against the built `copperbench-setup.jar` and run `dev.copperbench.installer.InstallerInteractionTest` with both on the classpath. This regression opens each language/theme popup, changes its selection, and checks translated content, retained form inputs and usable actions. Headless rendering does not exercise popup removal.
+With an actual desktop display, compile `test/InstallerInteractionTest.java` against the built `copperbench-setup.jar` and run `dev.copperbench.installer.InstallerInteractionTest` with both on the classpath. This regression opens each language/theme popup, changes its selection while it is still open (as arrow-key navigation does), and checks translated content, retained form inputs, popup closure and usable actions. Pass an output directory as the first argument to retain form/menu captures and source/artifact hashes. The Linux candidate workflow runs it under Xvfb. Headless rendering does not exercise popup removal.
 
 On Linux, run `python3 platform/installer/test/launch_detach_test.py /path/to/jdk /path/to/copperbench-setup.jar` to verify the application survives closure of setup's controlling terminal. Installer-initiated Linux launches retain output in `$XDG_STATE_HOME/copperbench/startup.log` (default `~/.local/state/copperbench/startup.log`).
 

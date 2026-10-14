@@ -45,6 +45,8 @@ export function useDialogA11y(open: boolean, onRequestClose: (() => void) | null
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && closeRef.current) {
+        // An expanded select owns the first Escape; keep its form and draft open.
+        if (e.target instanceof Element && e.target.closest('select[aria-expanded="true"]')) return;
         e.preventDefault();
         e.stopPropagation();
         closeRef.current();

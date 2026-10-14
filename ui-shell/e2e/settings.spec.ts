@@ -98,3 +98,25 @@ test('browser without preferences host shows availability instead of fake contro
   await expect(settings.getByRole('button', { name: 'Save changes' })).toHaveCount(0);
   await expect(settings.getByRole('button', { name: 'Advanced settings' })).toHaveCount(0);
 });
+
+for (const theme of ['dark', 'light']) test(`settings choices and checkboxes retain saved values (${theme})`, async ({ page }, testInfo) => {
+  await settingsHost(page);
+  await page.addInitScript(theme => localStorage.setItem('copperbench.theme', theme), theme);
+  const settings = await openSettings(page);
+  const checkbox = settings.getByRole('checkbox', { name: 'System file picker' });
+  await checkbox.focus(); await checkbox.press('Space');
+  await expect(checkbox).not.toBeChecked();
+  await page.screenshot({ path: testInfo.outputPath(`settings-checkbox-${theme}.png`) });
+  await settings.getByRole('button', { name: 'Code editor', exact: true }).click();
+  await settings.getByText('Native code editor', { exact: true }).click();
+  const select = settings.getByRole('combobox', { name: 'Code editor theme' });
+  await select.click();
+  await page.screenshot({ path: testInfo.outputPath(`settings-menu-${theme}.png`) });
+  await page.getByRole('listbox').getByRole('option', { name: 'Dark', exact: true }).click();
+  await expect(select).toHaveValue('Dark');
+  await settings.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(settings.getByText('Settings saved', { exact: true })).toBeVisible();
+  await settings.getByRole('button', { name: 'Reload', exact: true }).click();
+  await settings.getByText('Native code editor', { exact: true }).click();
+  await expect(select).toHaveValue('Dark');
+});

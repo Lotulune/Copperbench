@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { valueLabel } from '../i18n/labels';
 import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -545,10 +546,10 @@ const WorkspaceAssetBrowser: React.FC = () => {
           <label className="asset-library-search"><Search size={13} /><input data-testid="asset-search" value={query} onChange={event => setQuery(event.target.value)}
             placeholder={uiText('搜索文件…', 'Find a file…')} aria-label={uiText('搜索资产', 'Search assets')} /></label>
           <label className="asset-library-sort"><span>{uiText(`${filteredAssets.length} 个文件`, `${filteredAssets.length} files`)}</span>
-            <select aria-label={uiText('资产排序', 'Sort assets')} value={sort} onChange={event => setSort(event.target.value as SortField)}>
+            <Select aria-label={uiText('资产排序', 'Sort assets')} value={sort} onChange={event => setSort(event.target.value as SortField)}>
               <option value="updated">{uiText('最近更新', 'Recent')}</option><option value="name">{uiText('名称', 'Name')}</option>
               <option value="references">{uiText('引用数', 'References')}</option><option value="size">{uiText('大小', 'Size')}</option>
-            </select></label>
+            </Select></label>
           <div className="asset-library-file-list">
             {filteredAssets.length ? filteredAssets.map(asset => <AssetCard key={asset.id} asset={asset} selected={selectedAsset?.id === asset.id} onSelect={() => setSelectedId(asset.id)} />)
               : <div className="asset-library-no-results" data-testid="asset-browser-no-results" role="status"><p>{uiText('没有匹配的文件', 'No matching files')}</p>

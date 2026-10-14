@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import React, { useEffect, useState } from 'react';
@@ -87,13 +88,13 @@ export const BlockbenchImportPanel: React.FC<{
     {restricted && <p role="alert">目标元素已删除或由手写源码管理，无法自动关联；已导入文件保留，请在源码中显式注册模型。</p>}
     {verificationTask && <p>本次验证任务：{verificationTask.kind} · {t(verificationTask.stage)}。游戏视觉效果仍需人工确认。</p>}
     <div className="blockbench-setup-actions">
-      <label>关联元素<select value={elementId} onChange={event => { setElementId(event.target.value); setBindingConfirmed(false); }} disabled={busy || Boolean(targetElementId)}>
+      <label>关联元素<Select value={elementId} onChange={event => { setElementId(event.target.value); setBindingConfirmed(false); }} disabled={busy || Boolean(targetElementId)}>
         <option value="">请选择方块或物品</option>
         {state.elements.filter(element => (element.type === 'block' || element.type === 'item') && element.ownership !== 'manual').map(element => <option key={element.id} value={element.id}>{element.name}</option>)}
-      </select></label>
-      <label>导入的游戏模型<select value={resource} onChange={event => { setResource(event.target.value); setBindingConfirmed(false); }} disabled={busy}>
+      </Select></label>
+      <label>导入的游戏模型<Select value={resource} onChange={event => { setResource(event.target.value); setBindingConfirmed(false); }} disabled={busy}>
         <option value="">请选择模型</option>{models.map(model => <option key={model} value={model}>{model}</option>)}
-      </select></label>
+      </Select></label>
       <button className="btn-secondary" type="button" disabled={!writable || busy || restricted || !elementId || !resource}
         onClick={() => void run('bind_blockbench_model', { taskId, elementId, modelResource: resource }).then(ok => setBindingConfirmed(ok))}>关联所选模型</button>
       <button className="btn-secondary" type="button" disabled={!writable || busy || starting || !bound} onClick={() => void startVerification(false)}>构建工作区</button>
@@ -103,14 +104,14 @@ export const BlockbenchImportPanel: React.FC<{
   if (taskState !== 'ready_to_import') return null;
   return <details className="modeling-import-review">
     <summary>识别游戏导出并预览回导</summary>
-    <label>目标元素<select value={elementId} disabled={busy || checking || Boolean(targetElementId)} onChange={event => {
+    <label>目标元素<Select value={elementId} disabled={busy || checking || Boolean(targetElementId)} onChange={event => {
       setElementId(event.target.value); setPreview(null); setConfirm(false);
       if (!manualMapping) setOutputs([{ sourceRelativePath: '', targetRelativePath: '' }]);
     }}>
       <option value="">请选择方块或物品</option>
       {state.elements.filter(element => (element.type === 'block' || element.type === 'item') && element.ownership !== 'manual')
         .map(element => <option key={element.id} value={element.id}>{element.name}</option>)}
-    </select></label>
+    </Select></label>
     {restricted && <p role="alert">目标元素由手写源码管理或已删除，不能自动关联。请从资产页单独处理资源，并在源码中显式注册。</p>}
     <p>在本任务编辑目录导出一个游戏 JSON 和引用的 PNG。点击识别后自动建议路径，无需手输；修改映射后按填写内容验证，缺失或多候选会停止选择。</p>
     <p>模型建议存入命名空间下的 models/custom 目录，避免与生成器的方块／物品模型同名。</p>

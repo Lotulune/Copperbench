@@ -2,7 +2,7 @@
 
 完成后，你会在 Minecraft 中取得 16 个名为 **Trail Block** 的方块，放置其中一个，并在保存、重进世界后找到它。本教程使用 **Fabric 1.21.1** 和内置石头纹理，不需要准备图片、Blockbench 或编写 Java。
 
-安装入口见[快速开始](getting-started.md)。教程使用 0.1.4 已有的工作区、方块编辑和客户端入口；当前源码新增的输入预检见[状态总览](../status.md)。
+本页使用图形界面，适用于 0.1.5。安装入口见[快速开始](getting-started.md)，英文见 [English](first-creation.en.md)。通过 Agent 操作时使用独立的 [Agent 首作教程](../ai/first-creation.md)。
 
 ## 1. 创建独立工作区
 
@@ -26,33 +26,13 @@
 
 | 编辑器字段 | 值 |
 | --- | --- |
-| 显示名称（`displayName`） | `Trail Block` |
-| 硬度（`hardness`） | `3` |
-| 爆炸抗性（`resistance`） | `6` |
+| 显示名称 | `Trail Block` |
+| 硬度 | `3` |
+| 爆炸抗性 | `6` |
 | 模型与纹理 | 保留默认普通立方体和内置石头纹理（`minecraft:stone`） |
-| 方块物品（`hasBlockItem`） | 保持开启 |
+| 方块物品 | 保持开启 |
 
 点击「应用更改」。预期：编辑器显示已保存；重新选择这个元素，名称、硬度和抗性仍是上述值。
-
-通过 Agent 创建同一个元素时，先调用 `get_workspace_environment` 确认活动生成器，再读取 `get_workspace` 的最新 revision。以下是 `create_mod_element` 的具体输入；将 `expectedRevision` 替换为刚读到的整数，仅在尚未用界面创建时执行一次：
-
-```json
-{
-  "elementType": "block",
-  "name": "trail_block",
-  "initialValues": {
-    "displayName": "Trail Block",
-    "fields": {
-      "hardness": 3,
-      "resistance": 6,
-      "hasBlockItem": true
-    }
-  },
-  "expectedRevision": 0
-}
-```
-
-预期返回 `status: "committed"`，并提供 `newRevision` 和元素 ID。后续写操作使用最新 revision；不要反复发送同名创建请求。配对与权限设置见 [MCP 入门](../ai/getting-started.md)。
 
 ## 3. 构建
 
@@ -75,13 +55,13 @@
 
 | 现象 | 下一步 |
 | --- | --- |
-| 创建返回缺字段或类型错误 | 按诊断的 `path`、`message.args.expectedType` 和 `repairHint` 修正输入；`initialValues` 必须是对象，数字不能加引号。旧安装包可能只显示保存失败，参见[输入诊断](../ai/input-diagnostics.md)。 |
+| 创建或保存提示必填字段／数值错误 | 保留当前输入，按提示补齐对应字段；确认元素类型是方块。 |
 | 名称已存在 | 打开已有的 `trail_block` 编辑，不再创建同名元素。 |
-| revision 冲突 | 重新读取工作区和元素，再基于最新 revision 提交。 |
+| 提示其他窗口已修改工作区 | 查看最新内容，确认后重新应用自己的修改。 |
 | 构建下载失败 | 在任务日志中找到失败的依赖地址，检查网络／镜像配置，按[故障排查](troubleshooting.md)重试。 |
 | `/give` 提示无权限 | 确认当前新世界已开启作弊／允许命令。 |
 | `/give` 提示未知物品 | 核对模组 ID、元素内部名称；确认构建成功，并从这个 Copperbench 工作区重新启动客户端。 |
 | 方块显示黑紫贴图 | 检查纹理是否仍为 `minecraft:stone`，保存、构建并重启客户端。 |
 | 客户端已关闭但任务仍运行或失败 | 查看任务最后日志和退出状态，先处理退出问题再判定本次流程完成。 |
 
-教程的输入和字段以本地源码为依据；本轮检查范围记录在[优化验证记录](../testing/first-success-2026-10-14.md)，其中游戏步骤需由实际客户端观察确认。
+完成后可以继续使用[用户指南](README.md)学习元素、资产和 Procedure。版本能力与验收范围见[当前状态](../status.md)。

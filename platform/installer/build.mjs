@@ -22,6 +22,14 @@ function run(program, argv, cwd = root) {
 function files(dir, predicate) { return readdirSync(dir, { withFileTypes: true }).flatMap(item => item.isDirectory() ? files(join(dir, item.name), predicate) : predicate(item.name) ? [join(dir, item.name)] : []); }
 run(join(java, `bin/javac${suffix}`), ['--release', '17', '-encoding', 'UTF-8', '-d', join(work, 'classes'), ...files(join(source, 'src'), name => name.endsWith('.java'))]);
 for (const [from, to] of [[join(source, 'assets/landscape.png'), 'landscape.png'], [join(root, 'LICENSE.txt'), 'LICENSE.txt'], [join(root, 'LICENSE-ADDITIONAL-TERMS.md'), 'LICENSE-ADDITIONAL-TERMS.md'], [join(root, 'src/main/resources/net/mcreator/ui/res/icon.png'), 'icon.png']]) copyFileSync(from, join(work, 'classes', to));
+const fontDirectory = join(source, 'assets/fonts');
+if (createHash('sha256').update(readFileSync(join(fontDirectory, 'NotoSansCJKsc-Regular.otf'))).digest('hex') !== '2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b') throw new Error('Installer font checksum mismatch');
+cpSync(fontDirectory, join(work, 'classes/fonts'), { recursive: true });
+const sourceFiles = [join(source, 'build.mjs'), ...files(join(source, 'src'), name => name.endsWith('.java')),
+  ...files(join(source, 'assets'), () => true)];
+const sourceManifest = sourceFiles.sort().map(file => ({ path: relative(root, file).split(sep).join('/'),
+  sha256: createHash('sha256').update(readFileSync(file)).digest('hex') }));
+writeFileSync(join(work, 'classes/installer-source.json'), JSON.stringify({ version, files: sourceManifest }, null, 2) + '\n');
 const jar = join(work, 'copperbench-setup.jar');
 const jarTool = existsSync(join(java, `bin/jar${suffix}`)) ? join(java, `bin/jar${suffix}`) : join(root, `jdk/jdk21_${host}_64/bin/jar${suffix}`);
 run(jarTool, ['--create', '--file', jar, '--main-class', 'dev.copperbench.installer.InstallerMain', '-C', join(work, 'classes'), '.']);

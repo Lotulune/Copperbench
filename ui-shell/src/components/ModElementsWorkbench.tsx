@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { elementShortLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -225,17 +226,17 @@ export const ModElementsWorkbench: React.FC = () => {
               <input type="search" placeholder={t({ key: 'placeholder.filter_elements', fallback: 'Filter elements...' })}
                 value={searchQuery} onChange={e => setSearchQuery(e.target.value)} data-testid="elements-search-input" />
             </label>
-            <select value={selectedState} aria-label={uiText('元素状态', 'Element status')}
+            <Select value={selectedState} aria-label={uiText('元素状态', 'Element status')}
               data-testid="elements-state-select" onChange={e => setSelectedState(e.target.value as typeof selectedState)}>
               <option value="all">{tr("全部状态")}</option><option value="valid">{tr("有效")}</option>
               <option value="draft">{tr("草稿")}</option><option value="invalid">{uiText('无效', 'Invalid')}</option>
-            </select>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value as SortOption)}
+            </Select>
+            <Select value={sortBy} onChange={e => setSortBy(e.target.value as SortOption)}
               aria-label={uiText('排序方式', 'Sort elements')} data-testid="elements-sort-select">
               <option value="updated_desc">{tr("最新更新")}</option><option value="updated_asc">{tr("最早更新")}</option>
               <option value="name_asc">{tr("名称 (A-Z)")}</option><option value="name_desc">{tr("名称 (Z-A)")}</option>
               <option value="type_asc">{tr("类型")}</option>
-            </select>
+            </Select>
             <div className="elements-view-toggle" role="group" aria-label={uiText('显示方式', 'View mode')}>
               <button onClick={() => setViewMode('grid')} aria-pressed={viewMode === 'grid'}
                 aria-label={tr("卡片网格视图")} title={tr("卡片网格视图")}><LayoutGrid size={17} aria-hidden="true" /></button>
@@ -248,14 +249,14 @@ export const ModElementsWorkbench: React.FC = () => {
               aria-pressed={selectedType === type} data-testid={`filter-type-${type}`}>
               {type === 'all' ? tr("全部") : elementShortLabel(type)}
             </button>)}
-            <select className="elements-more-types" aria-label={uiText('更多元素类型', 'More element types')}
+            <Select className="elements-more-types" aria-label={uiText('更多元素类型', 'More element types')}
               data-testid="elements-type-select"
               value={COMMON_TYPES.some(type => type === selectedType) ? '' : selectedType}
               onChange={e => { if (e.target.value) setSelectedType(e.target.value as ModElementType); }}>
               <option value="" disabled>{uiText('更多类型', 'More types')}</option>
               {ALL_MOD_ELEMENT_TYPES.filter(type => !COMMON_TYPES.some(common => common === type)).map(type =>
                 <option value={type} key={type}>{elementShortLabel(type)}</option>)}
-            </select>
+            </Select>
             {hasFilters && <button className="elements-clear-filters" onClick={clearFilters} data-testid="elements-clear-filters">
               <X size={13} aria-hidden="true" />{uiText('清除筛选', 'Clear filters')}
             </button>}
@@ -468,7 +469,7 @@ export const ModElementsWorkbench: React.FC = () => {
                 {tr("显示第 ")}{(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredAndSortedElements.length)} {tr(" 项，共 ")}{filteredAndSortedElements.length} {tr(" 个元素")}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>{tr("每页：")}</span>
-                <select
+                <Select
                   aria-label={uiText("每页元素数量", "Elements per page")}
                   value={pageSize}
                   onChange={(e) => setPageSize(parseInt(e.target.value) || 24)}
@@ -479,7 +480,7 @@ export const ModElementsWorkbench: React.FC = () => {
                   <option value={48}>{tr("48 项")}</option>
                   <option value={96}>{tr("96 项")}</option>
                   <option value={200}>{tr("200 项")}</option>
-                </select>
+                </Select>
               </div>
             </div>
 

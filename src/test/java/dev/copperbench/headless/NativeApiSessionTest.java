@@ -20,6 +20,32 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NativeApiSessionTest {
+    @Test void mcpReadNameSuggestsTheNativeOperationWithoutChangingTheContract() {
+        var api = session(PermissionProfile.WORKSPACE);
+        var result = api.dispatch(request("query", "read_mod_element", 0, "{}"));
+        assertEquals("NATIVE_INVALID_REQUEST", result.getAsJsonObject("error").get("code").getAsString());
+        assertTrue(result.getAsJsonObject("error").get("message").getAsString().contains("get_mod_element_editor"));
+        assertTrue(result.getAsJsonObject("error").get("message").getAsString().contains("MCP"));
+    }
+
+    @Test void wrongLightFieldReportsARepairAndDoesNotCreateAnElement() {
+        var api = session(PermissionProfile.WORKSPACE);
+        var rejected = api.dispatch(request("command", "create_mod_element", 0,
+                "{\"elementType\":\"block\",\"name\":\"lamp\",\"initialValues\":{\"fields\":{\"lightValue\":15}}}"))
+                .getAsJsonObject("result");
+        assertEquals("rejected", rejected.get("status").getAsString());
+        assertEquals(0, rejected.get("newRevision").getAsLong());
+        var issue = rejected.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+        assertEquals("FIELD_UNSUPPORTED", issue.get("code").getAsString());
+        assertEquals("/initialValues/fields/lightValue", issue.get("path").getAsString());
+        assertEquals("luminance", issue.getAsJsonObject("message").getAsJsonObject("args").get("suggestedField").getAsString());
+        var repaired = api.dispatch(request("command", "create_mod_element", 0,
+                "{\"elementType\":\"block\",\"name\":\"lamp\",\"initialValues\":{\"fields\":{\"luminance\":15}}}"))
+                .getAsJsonObject("result");
+        assertEquals("committed", repaired.get("status").getAsString());
+        assertEquals(1, repaired.get("newRevision").getAsLong());
+    }
+
     @Test void editorWireVersionIsExplicitAndDoesNotChangeOtherOperations() throws Exception {
         var api = session(PermissionProfile.WORKSPACE);
         var created = api.dispatch(request("command", "create_mod_element", 0,

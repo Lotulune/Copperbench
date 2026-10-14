@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { elementLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -616,7 +617,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         );
       case 'select':
         return (
-          <select
+          <Select
             id={controlId}
             value={value === undefined || value === null ? '' : String(value)}
             disabled={disabled}
@@ -633,7 +634,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 {option.disabled && option.reason ? ` — ${t(option.reason)}` : ''}
               </option>
             ))}
-          </select>
+          </Select>
         );
       case 'textarea':
       case 'json':
@@ -726,13 +727,13 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 onChange={(e) => updateItem(index, itemField.path, e.target.checked)} data-testid={itemTestId} />;
             }
             if (itemField.control === 'select') {
-              return <select value={itemValue === null || itemValue === undefined ? '' : String(itemValue)} disabled={itemDisabled}
+              return <Select value={itemValue === null || itemValue === undefined ? '' : String(itemValue)} disabled={itemDisabled}
                 onChange={(e) => updateItem(index, itemField.path,
                   typeof itemField.value === 'number' ? Number(e.target.value) : e.target.value)} data-testid={itemTestId}>
                 {itemField.options.map((option) => <option key={String(option.value)} value={String(option.value)} disabled={option.disabled}>
                   {t(option.label)}
                 </option>)}
-              </select>;
+              </Select>;
             }
             if (['resource_reference', 'procedure_reference', 'element_reference'].includes(itemField.control)) {
               const candidates = referenceCandidates(itemField);

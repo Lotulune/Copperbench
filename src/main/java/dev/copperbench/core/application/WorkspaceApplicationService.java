@@ -5830,6 +5830,13 @@ public final class WorkspaceApplicationService {
 
 	private Diagnostic blockFieldDiagnostic(UUID elementId, BlockFieldContract.Issue issue) {
 		JsonObject args = new JsonObject(); args.addProperty("reason", issue.message()); args.addProperty("field", issue.path());
+		if (issue.code().equals("FIELD_UNSUPPORTED") && issue.path().endsWith("/lightValue")) {
+			args.addProperty("suggestedField", "luminance");
+			args.addProperty("repairHint", "Use luminance: 15 or luminance: {fixedValue: 15}; fixed values must be integers from 0 to 15. Use lightOpacity for light blocking.");
+			return diagnostic(issue.code(), "diagnostic.block_light_value_unsupported",
+					"{field} is unsupported. Use luminance (0–15) for emitted light, or lightOpacity for light blocking.", args,
+					(elementId == null ? "/initialValues" : elementPath(elementId)) + issue.path(), elementId);
+		}
 		return diagnostic(issue.code(), "diagnostic.field_contract_invalid", "{field}: {reason}", args,
 				(elementId == null ? "/initialValues" : elementPath(elementId)) + issue.path(), elementId);
 	}

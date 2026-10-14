@@ -1,10 +1,11 @@
+import { Select } from './Select';
 import React, { useState } from 'react';
 import { setUiLocale, useUiLocale, uiText, type UiLocale } from '../i18n/locale';
 
 export const LanguageSelector: React.FC = () => {
   const locale = useUiLocale();
   const [saving, setSaving] = useState(false);
-  return <select
+  return <Select
     aria-label={uiText('界面语言', 'Interface language')}
     title={uiText('切换语言并保留草稿', 'Change language and keep drafts')}
     value={locale}
@@ -14,12 +15,12 @@ export const LanguageSelector: React.FC = () => {
       setSaving(true);
       try { await setUiLocale(next); } finally { setSaving(false); }
     }}
-    style={{ width: '86px', minHeight: '28px', fontSize: '12px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+    style={{ width: '100px', minHeight: '28px', fontSize: '12px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
     data-testid="ui-language-select"
     data-window-chrome-kind="client"
     data-window-chrome-id="language"
   >
     <option value="zh">中文</option>
     <option value="en">English</option>
-  </select>;
+  </Select>;
 };

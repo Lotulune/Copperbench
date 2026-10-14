@@ -25,6 +25,7 @@ on:
       - "gradle/**"
       - "platform/linux/**"
       - "platform/installer/**"
+      - "scripts/verify-installer-previews.mjs"
       - "src/test/java/dev/copperbench/installer/**"
       - "platform/setup.gradle"
       - "platform/export.gradle"
@@ -262,6 +263,7 @@ jobs:
           chmod +x ./gradlew
           ./gradlew --no-daemon test -x buildUiShell \
             --tests dev.copperbench.installer.InstallEngineTest \
+            --tests dev.copperbench.installer.InstallerFontsTest \
             --tests dev.copperbench.platform.DesktopSessionCapabilitiesTest \
             --tests dev.copperbench.platform.ExecutableFilePermissionsTest \
             --tests dev.copperbench.platform.GraphicalCiModeTest \
@@ -471,17 +473,26 @@ jobs:
           test -x "$setup_root/payload/jdk/bin/java"
           test -x "$setup_root/payload/copperbench.sh"
           test -f "$setup_root/payload.tsv"
+          mkdir -p build/stage15-installer-previews
+          fc-list :lang=zh family > build/stage15-installer-previews/host-cjk-fonts.txt
           xvfb-run -a "$setup_root/payload/jdk/bin/java" -jar "$setup_root/copperbench-setup.jar" \
-            --preview build/stage15-installer-previews
-          test -f build/stage15-installer-previews/installer-zh-dark.png
-          test -f build/stage15-installer-previews/installer-en-light.png
+            --preview build/stage15-installer-previews 2>&1 | tee build/stage15-installer-previews/preview.log
+          node scripts/verify-installer-previews.mjs build/stage15-installer-previews
+          mkdir -p build/stage15-installer-controls
+          "$JAVA_HOME/bin/javac" --release 17 -encoding UTF-8 -cp "$setup_root/copperbench-setup.jar" \
+            -d build/stage15-installer-controls platform/installer/test/InstallerInteractionTest.java
+          xvfb-run -a "$setup_root/payload/jdk/bin/java" \
+            -cp "$setup_root/copperbench-setup.jar:build/stage15-installer-controls" \
+            dev.copperbench.installer.InstallerInteractionTest build/stage15-installer-previews/controls \
+            2>&1 | tee build/stage15-installer-previews/controls.log
 
       - name: Upload graphical installer previews
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: stage15-installer-previews
-          path: build/stage15-installer-previews/*.png
-          if-no-files-found: error
+          path: build/stage15-installer-previews/**
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Upload X11 graphical smoke diagnostics on failure

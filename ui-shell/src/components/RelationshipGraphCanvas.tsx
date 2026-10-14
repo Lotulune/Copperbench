@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Box, ChevronDown, ChevronLeft, ChevronRight, File, Folder, Focus, Link2, Minus, Move, Network, Plus, RotateCcw, Search, X } from 'lucide-react';
 import { t, uiText, useUiLocale } from '../i18n';
@@ -317,10 +318,10 @@ export const RelationshipGraphCanvas: React.FC<RelationshipGraphCanvasProps> = (
     </div>
 
     {moveControlsOpen && <div className="relationship-node-movement" role="group" aria-label={uiText('移动节点控件', 'Node movement controls')}>
-      <select value={positions.has(focusId) ? focusId : model.rootId} aria-label={uiText('选择要移动的节点', 'Choose a node to move')}
+      <Select value={positions.has(focusId) ? focusId : model.rootId} aria-label={uiText('选择要移动的节点', 'Choose a node to move')}
         onChange={event => { setFocusId(event.target.value); setSelectedEdgeId(null); }}>
         {positionedNodes.map(node => <option key={node.id} value={node.id}>{nodeLabel(node)}</option>)}
-      </select>
+      </Select>
       {([{ label: uiText('节点向左移动', 'Move node left'), dx: -24, dy: 0, Icon: ArrowLeft },
         { label: uiText('节点向上移动', 'Move node up'), dx: 0, dy: -24, Icon: ArrowUp },
         { label: uiText('节点向下移动', 'Move node down'), dx: 0, dy: 24, Icon: ArrowDown },

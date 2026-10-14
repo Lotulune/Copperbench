@@ -1301,6 +1301,14 @@ export interface AssetProjection {
   health: AssetProjectionHealthSummary;
 }
 
+/** Existing Core creation discovery; only the fields used by the creation dialog. */
+export interface ElementCreationContract {
+  elementType: ModElementType;
+  availability: 'available' | 'not_exposed' | 'unsupported';
+  complete: boolean;
+  fields: Array<{ path: string; requiredOnCreate: boolean }>;
+}
+
 export interface AssetImportPreview {
   sourceFileName: string;
   sourceSize: number;

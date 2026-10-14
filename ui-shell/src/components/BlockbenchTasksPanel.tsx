@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import React, { useEffect, useRef, useState } from 'react';
@@ -132,10 +133,10 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
   const creationControls = (
       <div className="blockbench-setup-actions">
         {element && !manual && modelSources.length > 0 && <>
-          <label>现有源模型<select value={sourceId} disabled={busy} onChange={event => setSourceId(event.target.value)}>
+          <label>现有源模型<Select value={sourceId} disabled={busy} onChange={event => setSourceId(event.target.value)}>
             <option value="">选择工作区中的模型副本来源</option>
             {modelSources.map(asset => <option key={asset.id} value={asset.id}>{asset.relativePath}</option>)}
-          </select></label>
+          </Select></label>
           <button className="btn-secondary" type="button" disabled={!writable || busy || !sourceId}
             onClick={() => begin(sourceId)}>从现有模型创建副本</button>
         </>}

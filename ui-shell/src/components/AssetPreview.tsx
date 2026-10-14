@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Grid2X2, Minus, Plus, RotateCcw } from 'lucide-react';
 import { getAssetPreview, renderAssetPreviewFailure } from '../bridge/assetPreviewBridge';
@@ -114,9 +115,9 @@ function ModelPreview({ preview }: { preview: AssetPreviewProjection }) {
   return <>
     {selected && <div className="asset-model-textures">
       {preview.textures.length > 1 && <label className="asset-model-texture-choice"><span>{uiText('贴图', 'Texture')}</span>
-        <select value={selected.assetId} aria-label={uiText('模型贴图', 'Model texture')} onChange={event => setTextureId(event.target.value)}>
+        <Select value={selected.assetId} aria-label={uiText('模型贴图', 'Model texture')} onChange={event => setTextureId(event.target.value)}>
           {preview.textures.map(image => <option key={image.assetId} value={image.assetId}>{image.relativePath.split('/').pop()}</option>)}
-        </select></label>}
+        </Select></label>}
       <ImagePreview key={selected.assetId} image={selected} initialMode="orbit" />
     </div>}
     <details className="asset-model-json" open={!selected}><summary>{uiText('模型 JSON', 'Model JSON')}</summary><pre tabIndex={0}>{preview.document}</pre>

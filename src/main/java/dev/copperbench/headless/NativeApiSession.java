@@ -105,7 +105,9 @@ public final class NativeApiSession {
                 return response;
             }
             Operation operation = UiCore.wireGson().fromJson(request.get("operation"), Operation.class);
-            if (operation == null) throw new IllegalArgumentException("Unknown operation: " + name);
+            if (operation == null) throw new IllegalArgumentException(name.equals("read_mod_element")
+                    ? "read_mod_element is an MCP tool name. Native/Core queries use get_mod_element_editor with elementId; request schemaVersion 1.1 for the complete editor."
+                    : "Unknown operation: " + name + ". Use Core operation names from the query/command schemas; MCP tool names may differ.");
             JsonObject payload = request.has("payload") ? request.getAsJsonObject("payload").deepCopy() : new JsonObject();
             JsonObject response = new JsonObject();
             response.addProperty("id", id);

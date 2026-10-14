@@ -22,6 +22,7 @@ import {
   UpstreamToolCatalogProjection,
   NewWorkspaceGeneratorCatalog,
   AssetProjection,
+  ElementCreationContract,
   AssetImportPreview, AssetImportBatchPreview, AssetMovePreview,
   ProcedureEditorProjection,
   ProcedureChangePreview,
@@ -119,7 +120,8 @@ interface WorkbenchContextType {
   applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
-  createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
+  getElementCreationContract: (type: ModElementType) => Promise<ElementCreationContract>;
+  createModElement: (type: ModElementType, name: string, initialValues?: Record<string, unknown>) => Promise<CommandResult>;
   updateModElement: (elementId: UUID, changes: FieldChange[], expectedRevision?: number) => Promise<CommandResult>;
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   generateWorkspace: () => Promise<CommandResult>;
@@ -691,8 +693,18 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       payload: { clientMutationId: generateUUID(), entryId }
     }), [state.workbench]);
 
+  const getElementCreationContract = useCallback(async (elementType: ModElementType): Promise<ElementCreationContract> => {
+    const result = await coreBridge.sendQuery<ElementCreationContract>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench!.workspace.id,
+      operation: 'get_mod_element_field_contract', payload: { elementType }
+    });
+    if (result.status !== 'succeeded' || !result.data) throw new Error('Creation contract unavailable');
+    return result.data;
+  }, [state.workbench]);
+
   const createModElement = useCallback(
-    async (type: ModElementType, name: string): Promise<CommandResult> => {
+    async (type: ModElementType, name: string, initialValues: Record<string, unknown> = {}): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
       const revision = state.workbench?.workspace.revision ?? 0;
       const res = await sendWorkspaceCommand({
@@ -706,7 +718,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           clientMutationId: generateUUID(),
           elementType: type,
           name,
-          initialValues: {}
+          initialValues
         }
       });
       if (res.data?.element?.id) {
@@ -1493,6 +1505,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       renameRegistryEntry,
       deleteRegistryEntry,
       createModElement,
+      getElementCreationContract,
       updateModElement,
       deleteModElement,
       generateWorkspace,
@@ -1583,6 +1596,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       renameRegistryEntry,
       deleteRegistryEntry,
       createModElement,
+      getElementCreationContract,
       updateModElement,
       deleteModElement,
       generateWorkspace,

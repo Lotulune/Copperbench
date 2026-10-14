@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { fieldLabel, valueLabel } from '../i18n/labels';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -481,7 +482,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} {tr(" 个组件")}</div>
             </div>
             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-              <select
+              <Select
                 aria-label={tr("新增组件类型")}
                 data-testid="gui-add-component-type"
                 value={newComponentType}
@@ -493,7 +494,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 <option value="image">{tr("图片（Image）")}</option>
                 <option value="inputslot">{tr("输入槽（Input Slot）")}</option>
                 <option value="outputslot">{tr("输出槽（Output Slot）")}</option>
-              </select>
+              </Select>
               <button type="button" className="btn-secondary" onClick={addComponent} data-testid="gui-add-component-btn" aria-label={tr("添加组件")}>
                 <Plus size={12} />
               </button>
@@ -533,7 +534,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 12,
             alignItems: 'center', flexWrap: 'wrap' }}>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
-              {tr("类型")}<select
+              {tr("类型")}<Select
                 data-testid="gui-type"
                 value={Number(values['/type'] ?? 0)}
                 onChange={(event) => setValue('/type', Number(event.target.value))}
@@ -541,7 +542,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               >
                 <option value={0}>{tr("无物品槽")}</option>
                 <option value={1}>{tr("含物品槽")}</option>
-              </select>
+              </Select>
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
               {tr("宽度")}<input data-testid="gui-width" type="number" min={0} max={512} value={guiWidth}
@@ -664,10 +665,10 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 if (key === 'anchorPoint') {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      {tr("锚点")}<select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
+                      {tr("锚点")}<Select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
                         style={{ width: '100%', marginTop: 3 }}>
                         {ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}
-                      </select>
+                      </Select>
                     </label>
                   );
                 }

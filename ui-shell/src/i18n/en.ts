@@ -113,4 +113,5 @@ export const en: Record<string, string> = {
   'material.stone': 'Stone',
   'material.metal': 'Metal',
   'field.codeFiles': 'Additional Java files',
+  'diagnostic.block_light_value_unsupported': '{field} is unsupported. Use luminance (0–15) for emitted light, or lightOpacity for light blocking.',
 };

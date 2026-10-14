@@ -1,5 +1,7 @@
 # Copperbench 快速开始
 
+[English](getting-started.en.md) · [图形界面首作](first-creation.md) · [Agent 首作](../ai/first-creation.md)
+
 ## 安装前
 
 Copperbench 当前公开稳定版为 **0.1.5**，Windows 与 Linux 下载链接统一列在[当前下载](../releases/current.md)。目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；其他 Linux 发行版和架构尚未验证。

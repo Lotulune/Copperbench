@@ -1,6 +1,6 @@
 # 不完整输入的预检与修复
 
-此能力属于当前源码，未回填到已发布的 0.1.4 安装包。先读 `get_workspace_environment`：`fieldContracts.inputPreflight` 存在时可查询预检范围；活动生成器与支持矩阵分别在 `generator`、`versionTracks`。通过 `get_mod_element_field_contract` 查询具体类型的默认值和必填字段。旧构建没有新增字段时，仍可使用 `get_version_tracks`。
+输入预检已包含在 0.1.5 中，旧 0.1.4 安装包不包含此能力。先读 `get_workspace_environment`：`fieldContracts.inputPreflight` 存在时可查询预检范围；活动生成器与支持矩阵分别在 `generator`、`versionTracks`。通过 `get_mod_element_field_contract` 查询具体类型的默认值和必填字段。旧构建没有新增字段时，仍可使用 `get_version_tracks`。
 
 `create_mod_element` 在创建恢复点及写入元素之前检查 `elementType`、`name`、`initialValues` 的缺失和 JSON 类型，以及 `fields` 的对象形状。已确认无可用默认值的生成前提还包括：
 

@@ -2940,6 +2940,14 @@ export class MockCoreBridge implements CoreBridge {
         } satisfies WorkspacePlan;
         break;
       }
+      case 'get_mod_element_field_contract': {
+        const type = (query.payload as { elementType: string }).elementType;
+        const field = type === 'livingentity' ? '/mobModelTexture' : '/entityTexture';
+        const available = type === 'livingentity' || type === 'specialentity';
+        data = { elementType: type, availability: available ? 'available' : 'not_exposed', complete: available,
+          fields: available ? [{ path: field, requiredOnCreate: true }] : [] };
+        break;
+      }
       case 'list_assets':
         data = mockAssetProjection();
         break;

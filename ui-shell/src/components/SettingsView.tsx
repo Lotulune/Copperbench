@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ExternalLink, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { windowBridge, type AppPreferenceEntry, type AppPreferencesSnapshot, type AppPreferenceValue } from '../bridge/windowBridge';
@@ -114,8 +115,8 @@ export function SettingsView() {
         {!fieldValid && <p className="settings-field-error" id={`${id}-error`}>{uiText('请输入范围内的整数', 'Enter a whole number in range')}: {entry.min}–{entry.max}</p>}</div>
       {entry.type === 'boolean' ? <input id={id} type="checkbox" checked={draft[entry.key] === true}
         aria-describedby={`${id}-hint`} onChange={event => edit(entry.key, event.target.checked)} />
-        : entry.type === 'choice' ? <select id={id} value={String(draft[entry.key] ?? '')} aria-describedby={`${id}-hint`}
-          onChange={event => edit(entry.key, event.target.value)}>{entry.options?.map(option => <option key={option} value={option}>{option}</option>)}</select>
+        : entry.type === 'choice' ? <Select id={id} value={String(draft[entry.key] ?? '')} aria-describedby={`${id}-hint`}
+          onChange={event => edit(entry.key, event.target.value)}>{entry.options?.map(option => <option key={option} value={option}>{option}</option>)}</Select>
           : <input id={id} type="number" step="1" min={entry.min} max={entry.max} value={String(draft[entry.key] ?? '')}
             aria-invalid={!fieldValid} aria-describedby={`${id}-hint${fieldValid ? '' : ` ${id}-error`}`}
             onChange={event => edit(entry.key, event.target.value)} />}

@@ -12,3 +12,7 @@
 - [`licenses/`](./licenses/)：从固定提交复制的许可证快照。
 
 机器可读运行结果保存在 `evidence/stage-0/`，其中包括产品产物锁、JBR 逐文件锁、Fabric 内容一致性、测试、启动和打包日志；不得用手工勾选替代。
+
+## Offline installer font
+
+The graphical installer bundles unmodified Noto Sans CJK SC Regular 2.004 under SIL OFL 1.1. Its source, SHA-256 and license are recorded in [the installer font notice](../platform/installer/assets/fonts/README.md). The font and OFL license are included in the standalone setup JAR; they are not a system font installation.

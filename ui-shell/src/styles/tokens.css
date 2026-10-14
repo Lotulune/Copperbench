@@ -11,6 +11,7 @@
   --bg-active: rgba(255, 255, 255, 0.08);
 
   --border-subtle: #30322f;
+  --control-border: #62685c;
   --border-focus: #e2aa7a;
   --border-active: #6c7268;
 
@@ -74,6 +75,7 @@
   --bg-active: rgba(0, 0, 0, 0.08);
 
   --border-subtle: #e7e7e4;
+  --control-border: #899080;
   --border-focus: #985029;
   --border-active: #89988b;
 

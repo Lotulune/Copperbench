@@ -68,6 +68,7 @@ java {
 sourceSets {
     installer {
         java.srcDir 'platform/installer/src'
+        resources.srcDir 'platform/installer/assets'
     }
     gradleBridge {
         java.srcDir 'src/gradleBridge/java'

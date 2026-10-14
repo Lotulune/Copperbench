@@ -48,6 +48,7 @@ export const zh: Record<string, string> = {
   'task.interrupted_unconfirmed': '上次会话未记录任务终态，结果未确认；请核对日志后再运行。',
   'diagnostic.configuration_drift': '声明配置与实际定义不一致。请审查两份值，再选择采用当前定义或重新应用声明配置。',
   'diagnostic.field_contract_invalid': '{field}：{reason}',
+  'diagnostic.block_light_value_unsupported': '{field} 不是支持的字段。发光请用 luminance（0–15）；遮光请用 lightOpacity。',
   'diagnostic.blockbench_task_failed': '建模任务未完成，请检查文件、纹理或源资产冲突后重试。',
   'diagnostic.blockbench_task_detail': '建模任务未完成：{detail}',
   'diagnostic.model_edit_changed': '编辑副本在检查后又发生了变化。请完成磁盘保存，再确认生成候选；本次未覆盖源资产。',

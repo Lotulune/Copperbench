@@ -25,7 +25,7 @@
 .settings-label { min-width: 0; }
 .settings-label label { font-size: 13px; font-weight: 550; cursor: pointer; }
 .settings-label p { color: var(--text-muted); margin: 6px 0 0; font-size: 12px; line-height: 1.65; }
-.settings-row input[type="checkbox"] { flex: 0 0 auto; width: 17px; height: 17px; accent-color: var(--accent-copper-fill); cursor: pointer; margin: 0 6px; }
+.settings-row input[type="checkbox"] { margin: 0 6px; }
 .settings-row :is(select,input[type="number"]) { width: 165px; flex: 0 0 165px; min-height: 34px; border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-main); background: var(--bg-input); padding: 6px 10px; font-size: 12px; }
 .settings-savebar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--bg-base); border-top: 1px solid var(--border-subtle); margin-top: 28px; padding: 16px 0; }
 .settings-savebar > span { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 12px; }

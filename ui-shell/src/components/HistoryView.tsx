@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr, UI_LOCALE, uiText } from '../i18n/locale';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -225,7 +226,7 @@ export const HistoryView: React.FC = () => {
               placeholder={tr("搜索恢复点")}
             />
             <div className="history-filter-row">
-              <select
+              <Select
                 data-testid="history-source-filter"
                 aria-label={tr("按来源筛选")}
                 value={sourceFilter}
@@ -235,8 +236,8 @@ export const HistoryView: React.FC = () => {
                 {Object.entries(sourceLabels).map(([value, text]) => (
                   <option value={value} key={value}>{text}</option>
                 ))}
-              </select>
-              <select
+              </Select>
+              <Select
                 data-testid="history-actor-filter"
                 aria-label={tr("按操作者筛选")}
                 value={actorFilter}
@@ -246,7 +247,7 @@ export const HistoryView: React.FC = () => {
                 {Object.entries(actorLabels).map(([value, text]) => (
                   <option value={value} key={value}>{text}</option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
           <div className="history-section-label">{tr("恢复点 · ")}{filteredPoints.length}/{state.recoveryPoints.length}</div>

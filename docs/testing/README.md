@@ -1,8 +1,10 @@
 # 测试与验收证据索引
 
+本地修复记录：[安装器字形、实体创建与首作分流（2026-10-15）](installer-creator-repair-2026-10-15.md)。该记录不替代已发布包的安装与游戏验收。
+
 ## 当前交付基线
 
-当前稳定版为 Windows `v0.1.4`、Linux `v0.1.4-linux-stable`，下载入口见[当前下载](../releases/current.md)。
+当前稳定版为 Windows `v0.1.5`、Linux `v0.1.5-linux-stable`，下载入口见[当前下载](../releases/current.md)。
 
 | 内容 | 入口 |
 | --- | --- |

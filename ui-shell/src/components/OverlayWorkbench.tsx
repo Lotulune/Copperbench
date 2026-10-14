@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { fieldLabel, valueLabel } from '../i18n/labels';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -353,13 +354,13 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
               <div style={{ fontSize: 11, fontWeight: 700 }}>{tr("组件树")}</div>
               <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} {tr(" 个 Overlay 组件")}</div>
             </div>
-            <select data-testid="overlay-add-component-type" value={newComponentType}
+            <Select data-testid="overlay-add-component-type" value={newComponentType}
               onChange={(event) => setNewComponentType(event.target.value as OverlayComponentType)} style={{ fontSize: 9, maxWidth: 105 }}>
               <option value="label">{tr("文本标签（Label）")}</option>
               <option value="image">{tr("图片（Image）")}</option>
               <option value="sprite">{tr("精灵图（Sprite）")}</option>
               <option value="entitymodel">{tr("实体模型（EntityModel）")}</option>
-            </select>
+            </Select>
             <button type="button" className="btn-secondary" data-testid="overlay-add-component-btn" onClick={addComponent} aria-label={tr("添加 Overlay 组件")}><Plus size={12} /></button>
           </div>
           <div data-testid="overlay-component-tree" style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
@@ -387,10 +388,10 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
                 onChange={(event) => setValue('/overlayTarget', event.target.value)} style={{ marginLeft: 4, width: 120 }} />
             </label>
             <datalist id="overlay-targets">{OVERLAY_TARGETS.map((target) => <option key={target} value={target} />)}</datalist>
-            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("优先级（Priority）")}<select data-testid="overlay-priority" value={String(values['/priority'] ?? 'NORMAL')}
+            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("优先级（Priority）")}<Select data-testid="overlay-priority" value={String(values['/priority'] ?? 'NORMAL')}
                 onChange={(event) => setValue('/priority', event.target.value)} style={{ marginLeft: 4 }}>
                 {['LOWEST', 'LOW', 'NORMAL', 'HIGH', 'HIGHEST'].map((priority) => <option key={priority} value={priority}>{priority}</option>)}
-              </select>
+              </Select>
             </label>
             <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("基础纹理（Base Texture）")}<input data-testid="overlay-base-texture" list="overlay-textures" value={String(values['/baseTexture'] ?? '')}
                 onChange={(event) => setValue('/baseTexture', event.target.value)} style={{ marginLeft: 4, width: 150 }} />
@@ -459,8 +460,8 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
               <input data-testid={`overlay-component-field-${key}`} type="number" value={Number(selected.data[key] ?? 0)}
                 onChange={(event) => updateComponentField(key, Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
             </label>)}
-            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("锚点")}<select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
-                style={{ width: '100%', marginTop: 3 }}>{ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}</select>
+            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("锚点")}<Select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
+                style={{ width: '100%', marginTop: 3 }}>{ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}</Select>
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
               <input type="checkbox" checked={Boolean(selected.data.locked)} onChange={(event) => updateComponentField('locked', event.target.checked)} /> {tr(" 锁定（locked）")}</label>

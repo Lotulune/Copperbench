@@ -16,7 +16,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 final class InstallerWindow extends JFrame {
-    private static final String FONT = PlatformInstall.WINDOWS ? "Microsoft YaHei UI" : Font.SANS_SERIF;
     private final Map<String, String> options;
     private final AtomicBoolean cancelled = new AtomicBoolean();
     private PlatformInstall.Existing existing;
@@ -36,6 +35,7 @@ final class InstallerWindow extends JFrame {
 
     InstallerWindow(Map<String, String> options) {
         super("Copperbench");
+        InstallerFonts.installDefaults();
         this.options = options;
         uninstall = options.containsKey("uninstall");
         try {
@@ -63,21 +63,14 @@ final class InstallerWindow extends JFrame {
     private Color copper() { return Color.decode(theme.equals("dark") ? "#e2aa7a" : "#985029"); }
     private JPanel panel(LayoutManager layout) { JPanel p = new JPanel(layout); p.setOpaque(false); return p; }
     private JLabel label(String text, int size, Color color, boolean bold) {
-        JLabel l = new JLabel(text); l.setFont(new Font(FONT, bold ? Font.BOLD : Font.PLAIN, size)); l.setForeground(color); return l;
+        JLabel l = new JLabel(text); l.setFont(InstallerFonts.font(bold ? Font.BOLD : Font.PLAIN, size)); l.setForeground(color); return l;
     }
     private JTextArea paragraph(String text) {
         JTextArea area = new JTextArea(text); area.setLineWrap(true); area.setWrapStyleWord(true); area.setEditable(false); area.setOpaque(false);
-        area.setFont(new Font(FONT, Font.PLAIN, 14)); area.setForeground(muted()); area.setFocusable(false); return area;
+        area.setFont(InstallerFonts.font(Font.PLAIN, 14)); area.setForeground(muted()); area.setFocusable(false); return area;
     }
     private JButton button(String title, boolean primary) {
-        JButton b = new JButton(title); b.setFont(new Font(FONT, Font.BOLD, 15));
-        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
-            @Override protected void paintFocus(Graphics g, AbstractButton button, Rectangle view, Rectangle text, Rectangle icon) {
-                g.setColor(button.getForeground()); g.drawRect(4, 4, button.getWidth() - 9, button.getHeight() - 11);
-            }
-        }); b.setOpaque(true); b.setContentAreaFilled(true);
-        b.setBackground(primary ? copper() : bg()); b.setForeground(primary ? (theme.equals("dark") ? Color.decode("#241a12") : Color.WHITE) : fg());
-        b.setBorder(new CompoundBorder(new MatteBorder(1, 1, 4, 1, primary ? copper().darker() : muted()), new EmptyBorder(10, 20, 8, 20)));
+        JButton b = new JButton(title); new InstallerControls(theme.equals("dark")).button(b, primary);
         return b;
     }
     private void render() {
@@ -87,25 +80,25 @@ final class InstallerWindow extends JFrame {
         root.setBorder(new CompoundBorder(new MatteBorder(3, 1, 1, 1, copper()), new EmptyBorder(20, 24, 24, 24)));
         JPanel header = panel(new BorderLayout(20, 0)); header.setBorder(new EmptyBorder(0, 0, 20, 0));
         header.add(label("Copperbench", 25, copper(), true), BorderLayout.WEST);
+        InstallerControls controls = new InstallerControls(theme.equals("dark"));
         JPanel choices = panel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         JComboBox<String> languages = new JComboBox<>(new String[]{"简体中文", "English"});
         languages.setSelectedIndex(locale.equals("zh") ? 0 : 1); languages.setEnabled(!running);
         languages.getAccessibleContext().setAccessibleName("Language / 语言"); languages.setName("installer-language");
         languages.addActionListener(e -> {
             remember(); locale = languages.getSelectedIndex() == 0 ? "zh" : "en";
-            // Let the combo close its popup before replacing the content pane.
-            SwingUtilities.invokeLater(this::render);
+            // Keyboard navigation can select while the popup is still open. Close it before replacing the pane.
+            SwingUtilities.invokeLater(() -> { languages.setPopupVisible(false); render(); });
         });
         JComboBox<String> themes = new JComboBox<>(new String[]{t("深色", "Dark"), t("浅色", "Light")});
         themes.setSelectedIndex(theme.equals("dark") ? 0 : 1); themes.setEnabled(!running);
         themes.getAccessibleContext().setAccessibleName(t("主题", "Theme")); themes.setName("installer-theme");
         themes.addActionListener(e -> {
             remember(); theme = themes.getSelectedIndex() == 0 ? "dark" : "light";
-            SwingUtilities.invokeLater(this::render);
+            SwingUtilities.invokeLater(() -> { themes.setPopupVisible(false); render(); });
         });
         for (JComboBox<String> box : List.of(languages, themes)) {
-            box.setFont(new Font(FONT, Font.PLAIN, 14)); box.setBackground(bg()); box.setForeground(fg());
-            box.setBorder(new LineBorder(muted())); box.setPreferredSize(new Dimension(box == languages ? 130 : 95, 38)); choices.add(box);
+            controls.combo(box, box == languages ? 146 : 112); choices.add(box);
         }
         header.add(choices, BorderLayout.EAST); root.add(header, BorderLayout.NORTH);
         JPanel body = panel(new BorderLayout(30, 0));
@@ -123,19 +116,19 @@ final class InstallerWindow extends JFrame {
                     : t("仅为当前用户安装 · 无需管理员权限", "Install for the current user · No administrator access needed")), c, 14);
             JLabel pathLabel = label(uninstall ? t("程序位置", "Application location") : t("安装位置", "Install location"), 14, fg(), true); addForm(pathLabel, c, 8);
             JPanel pathRow = panel(new BorderLayout(8, 0));
-            path = new JTextField(location); path.setName("installer-location"); path.setFont(new Font(FONT, Font.PLAIN, 13));
-            path.setBackground(bg()); path.setForeground(fg()); path.setCaretColor(fg()); path.setBorder(new CompoundBorder(new LineBorder(muted()), new EmptyBorder(10, 8, 10, 8)));
+            path = new JTextField(location); path.setName("installer-location"); path.setFont(InstallerFonts.font(Font.PLAIN, 13));
+            path.setBackground(bg()); path.setForeground(fg()); path.setCaretColor(fg()); controls.field(path);
             path.setEditable(!running && !uninstall && existing == null); pathLabel.setLabelFor(path);
             JButton browse = button(t("浏览…", "Browse…"), false); browse.setEnabled(path.isEditable());
             browse.addActionListener(e -> { JFileChooser chooser = new JFileChooser(); chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); chooser.setDialogTitle(t("选择父目录", "Choose parent folder"));
                 if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) { location = chooser.getSelectedFile().toPath().resolve("Copperbench").toString(); path.setText(location); } });
             pathRow.add(path, BorderLayout.CENTER); pathRow.add(browse, BorderLayout.EAST); addForm(pathRow, c, 14);
             if (PlatformInstall.WINDOWS && !uninstall) {
-                JCheckBox shortcut = new JCheckBox(t("创建桌面快捷方式", "Create a desktop shortcut"), desktop); shortcut.setOpaque(false); shortcut.setForeground(fg()); shortcut.setEnabled(!running);
+                JCheckBox shortcut = new JCheckBox(t("创建桌面快捷方式", "Create a desktop shortcut"), desktop); controls.checkbox(shortcut); shortcut.setName("installer-shortcut"); shortcut.setEnabled(!running);
                 shortcut.addActionListener(e -> desktop = shortcut.isSelected()); addForm(shortcut, c, 8);
             }
             if (!uninstall) {
-                JCheckBox license = new JCheckBox(t("我已阅读并接受许可协议", "I have read and accept the license"), accepted); license.setOpaque(false); license.setForeground(fg()); license.setEnabled(!running);
+                JCheckBox license = new JCheckBox(t("我已阅读并接受许可协议", "I have read and accept the license"), accepted); controls.checkbox(license); license.setName("installer-license"); license.setEnabled(!running);
                 license.addActionListener(e -> { accepted = license.isSelected(); install.setEnabled(accepted && !running && !initializationFailed); });
                 JPanel licenseRow = panel(new BorderLayout()); licenseRow.add(license, BorderLayout.CENTER);
                 JButton read = button(t("查看", "Read"), false); read.addActionListener(e -> showLicense()); licenseRow.add(read, BorderLayout.EAST); addForm(licenseRow, c, 14);
@@ -147,7 +140,7 @@ final class InstallerWindow extends JFrame {
         if (!error.isEmpty()) {
             addForm(paragraph(t("操作未完成，请查看详情后重试。", "Could not complete the operation. Review the details and retry.")), c, 8);
             JTextArea details = new JTextArea(error, 3, 28); details.setEditable(false); details.setLineWrap(true); details.setWrapStyleWord(true);
-            details.setFont(new Font(FONT, Font.PLAIN, 12)); details.setBackground(bg()); details.setForeground(fg()); addForm(new JScrollPane(details), c, 12);
+            details.setFont(InstallerFonts.font(Font.PLAIN, 12)); details.setBackground(bg()); details.setForeground(fg()); addForm(new JScrollPane(details), c, 12);
         }
         status = label(phaseText(), 13, muted(), false); status.getAccessibleContext().setAccessibleName(phaseText()); addForm(status, c, 10);
         progress = new JProgressBar(0, 100); progress.setForeground(copper()); progress.setBackground(bg()); progress.setVisible(running); progress.setStringPainted(true); addForm(progress, c, 14);
@@ -236,18 +229,22 @@ final class InstallerWindow extends JFrame {
             cancelled.set(true); cancel.setEnabled(false); status.setText(t("正在取消…", "Cancelling…"));
         }
     }
-    private void showLicense() {
-        try {
+    private JDialog licenseDialog() throws IOException {
             JTabbedPane tabs = new JTabbedPane();
-            for (String file : List.of("LICENSE.txt", "LICENSE-ADDITIONAL-TERMS.md")) {
+            for (String file : List.of("LICENSE.txt", "LICENSE-ADDITIONAL-TERMS.md", "fonts/OFL.txt")) {
                 try (InputStream stream = getClass().getResourceAsStream("/" + file)) {
                     JTextArea text = new JTextArea(new String(Objects.requireNonNull(stream).readAllBytes(), StandardCharsets.UTF_8), 20, 64);
                     text.setEditable(false); text.setCaretPosition(0); text.setLineWrap(true); text.setWrapStyleWord(true);
-                    tabs.addTab(file.equals("LICENSE.txt") ? "GPL v3" : t("附加条款", "Additional terms"), new JScrollPane(text));
+                    tabs.addTab(file.equals("LICENSE.txt") ? "GPL v3" : file.equals("fonts/OFL.txt") ? t("字体许可", "Font license") : t("附加条款", "Additional terms"), new JScrollPane(text));
                 }
             }
-            JOptionPane.showOptionDialog(this, tabs, t("许可协议", "License agreement"), JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{t("关闭", "Close")}, null);
-        } catch (IOException exception) { error = exception.getMessage(); render(); }
+            JOptionPane pane = new JOptionPane(tabs, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION,
+                    null, new Object[]{t("关闭", "Close")});
+            return pane.createDialog(this, t("许可协议", "License agreement"));
+    }
+    private void showLicense() {
+        try { JDialog dialog = licenseDialog(); try { dialog.setVisible(true); } finally { dialog.dispose(); } }
+        catch (IOException exception) { error = exception.getMessage(); render(); }
     }
     private void launch() {
         try { PlatformInstall.launchApplication(Path.of(location)); dispose(); }
@@ -261,26 +258,55 @@ final class InstallerWindow extends JFrame {
                 int w = (int) (landscape.getWidth() * scale), h = (int) (landscape.getHeight() * scale); g.drawImage(landscape, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, null); }
             g.setPaint(new GradientPaint(0, 0, new Color(0, 0, 0, 170), 0, 150, new Color(0, 0, 0, 0))); g.fillRect(0, 0, getWidth(), 150);
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.setColor(Color.decode("#f4d4ae")); g.setFont(new Font(FONT, Font.BOLD, 23));
+            g.setColor(Color.decode("#f4d4ae")); g.setFont(InstallerFonts.font(Font.BOLD, 23));
             g.drawString(t("从想法到方块世界", "BUILD YOUR WORLD"), 22, 42);
             g.setColor(new Color(12, 18, 12, 200)); g.fillRect(0, getHeight() - 94, getWidth(), 94);
-            g.setColor(Color.decode("#e6e8e2")); g.setFont(new Font(FONT, Font.PLAIN, 14));
+            g.setColor(Color.decode("#e6e8e2")); g.setFont(InstallerFonts.font(Font.PLAIN, 14));
             g.drawString(t("可视化项目管理", "Visual project management"), 22, getHeight() - 61);
             g.drawString(t("Agent 协作 · Minecraft 模组创作", "Agents · Minecraft mod creation"), 22, getHeight() - 31); g.dispose();
         }
     }
     static void preview(Path output) throws Exception {
-        Files.createDirectories(output);
+        InstallerVisualCheck check = new InstallerVisualCheck(output);
         SwingUtilities.invokeAndWait(() -> {
             InstallerWindow window = new InstallerWindow(Map.of("preview", "true"));
             try {
                 for (String language : List.of("zh", "en")) for (String theme : List.of("dark", "light")) {
-                    window.locale = language; window.theme = theme; window.render(); window.addNotify(); window.validate();
-                    BufferedImage image = new BufferedImage(window.root.getWidth(), window.root.getHeight(), BufferedImage.TYPE_INT_RGB);
-                    Graphics2D graphics = image.createGraphics(); window.root.printAll(graphics); graphics.dispose();
-                    try { ImageIO.write(image, "png", output.resolve("installer-" + language + "-" + theme + ".png").toFile()); } catch (IOException e) { throw new UncheckedIOException(e); }
+                    window.locale = language; window.theme = theme;
+                    check.text(InstallerFonts.font(Font.BOLD, 23), window.t("从想法到方块世界", "BUILD YOUR WORLD"));
+                    check.text(InstallerFonts.font(Font.PLAIN, 14), window.t("可视化项目管理", "Visual project management"));
+                    check.text(InstallerFonts.font(Font.PLAIN, 14), window.t("Agent 协作 · Minecraft 模组创作", "Agents · Minecraft mod creation"));
+                    String prefix = "installer-" + language + "-" + theme;
+                    for (String page : List.of("prepare", "progress", "complete", "error")) {
+                        window.running = page.equals("progress"); window.complete = page.equals("complete");
+                        window.phase = window.complete ? "complete" : window.running ? "copy" : "prepare";
+                        window.error = page.equals("error") ? window.t("安装包校验失败，请重新下载完整安装包。", "Package verification failed. Download the complete package again.") : "";
+                        window.render(); window.addNotify(); window.validate(); window.progress.setValue(42);
+                        check.capture(window.root, prefix + (page.equals("prepare") ? "" : "-" + page) + ".png");
+                    }
+                    JDialog dialog = window.licenseDialog();
+                    try {
+                        dialog.addNotify(); dialog.validate();
+                        check.capture(dialog.getContentPane(), prefix + "-license.png");
+                        JTabbedPane tabs = findTabs(dialog);
+                        tabs.setSelectedIndex(1); dialog.validate();
+                        check.capture(dialog.getContentPane(), prefix + "-license-additional.png");
+                        tabs.setSelectedIndex(2); dialog.validate();
+                        check.capture(dialog.getContentPane(), prefix + "-license-font.png");
+                    } finally { dialog.dispose(); }
                 }
-            } finally { window.dispose(); }
+            } catch (IOException exception) { throw new UncheckedIOException(exception); }
+            finally { window.dispose(); }
         });
+        check.finish();
+    }
+    private static JTabbedPane findTabs(Container parent) {
+        for (Component child : parent.getComponents()) {
+            if (child instanceof JTabbedPane tabs) return tabs;
+            if (child instanceof Container container) {
+                JTabbedPane result = findTabs(container); if (result != null) return result;
+            }
+        }
+        return null;
     }
 }

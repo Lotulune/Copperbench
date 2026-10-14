@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck, X } from 'lucide-react';
@@ -80,9 +81,9 @@ export const TaskAuthorizationPanel: React.FC = () => {
       <label htmlFor="task-authority-root">{tr("授权目录（绝对路径，包含子目录）")}</label>
       <input id="task-authority-root" required maxLength={1024} value={root} onChange={event => setRoot(event.target.value)} disabled={busy} />
       <label htmlFor="task-authority-ttl">{tr("有效期")}</label>
-      <select id="task-authority-ttl" value={ttl} onChange={event => setTtl(Number(event.target.value))} disabled={busy}>
+      <Select id="task-authority-ttl" value={ttl} onChange={event => setTtl(Number(event.target.value))} disabled={busy}>
         <option value={3600}>{tr("1 小时")}</option><option value={7200}>{tr("2 小时")}</option><option value={28800}>{tr("8 小时")}</option><option value={86400}>{tr("24 小时")}</option>
-      </select>
+      </Select>
       <fieldset disabled={busy}><legend>{tr("允许的操作")}</legend><div className="task-authority-capabilities">
         {capabilities.map(item => <label key={item.id}><input type="checkbox" checked={selected.includes(item.id)}
           onChange={event => setSelected(items => event.target.checked ? [...items, item.id] : items.filter(id => id !== item.id))} />{item.label}</label>)}

@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { valueLabel } from '../i18n/labels';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -232,14 +233,14 @@ export const TaskDrawer: React.FC = () => {
             <span>{uiText('任务控制台与日志流', 'Task console and logs')}</span>
           </div>
 
-          {Object.keys(state.tasks).length > 1 && <select
+          {Object.keys(state.tasks).length > 1 && <Select
             aria-label={t({ key: 'task.recent_selector', fallback: 'Recent tasks' })}
             value={activeTask?.id ?? ''} onChange={(event) => setActiveTaskId(event.target.value)}
             style={{ maxWidth: 220, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
             {Object.values(state.tasks).map((task) => <option key={task.id} value={task.id}>
               {valueLabel(task.kind)} · {valueLabel(task.state)} · {new Date(task.startedAt).toLocaleString()}
             </option>)}
-          </select>}
+          </Select>}
 
           {activeTask && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

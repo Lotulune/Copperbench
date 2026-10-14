@@ -1,11 +1,11 @@
 # 当前状态与发布能力
 
-更新：2026-10-14。先用这页判断自己使用的是哪一层，再进入对应指南。公开下载记录来自[当前下载](releases/current.md)与 [product-status.json](../product-status.json)，源码修改不会自动进入已有安装包。
+更新：2026-10-15。先用这页判断自己使用的是哪一层，再进入对应指南。公开下载记录来自[当前下载](releases/current.md)与 [product-status.json](../product-status.json)，源码修改不会自动进入已有安装包。
 
 | 层次 | 当前可用范围 | 入口与证据 |
 | --- | --- | --- |
 | **下载版已有** | Windows `v0.1.5`、Linux `v0.1.5-linux-stable`；双语离线安装器、结构化输入诊断、首作教程、草稿与数字编辑修复、创建默认值和光照／船模板修复，以及既有工作台、MCP／SDK、构建与客户端入口 | [下载安装](releases/current.md) · [第一件作品](user/first-creation.md) · [发布记录](testing/maintenance-release-0.1.5.md) |
-| **源码新增** | 本轮 bug 修复、首作优化和安装器改动已进入 0.1.5；发布后的主线变化需另看提交记录，已有下载不会自动更新 | [输入诊断](ai/input-diagnostics.md) · [整合检查](testing/first-success-integration-2026-10-14.md) · [依赖记录](../compliance/dependency-audit/2026-10-14.json) |
+| **源码新增** | 0.1.5 后的源码修复：安装器内置中文字体与字形门禁、选项控件统一与勾选居中、实体创建贴图选择、字段／原生接口提示、GUI／Agent 首作分流及英文入门。尚未发布包含本轮修复的新包 | [修复与验证范围](testing/installer-creator-repair-2026-10-15.md) · [图形界面首作](user/first-creation.md) · [English](user/first-creation.en.md) |
 | **预览／有边界的能力** | Fabric / NeoForge 26.3 需要显式启用预览，操作、元素与字段范围依能力查询；资源包客户端准备只落地文件；Blockbench 自动建模按任务范围运行；datagen、迁移与计划需预览确认 | [26.3 候选范围](releases/copperbench-26-3-candidate-2026-10-14.md) · [资源包](user/README.md#blockbench-与资源包) · [建模任务](user/blockbench-modeling-tasks.md) |
 | **未验证／未宣称** | 没有新的真人首作完成记录；最终 0.1.5 未重跑完整安装与全量玩法验收。既有 VM、缓存和开发客户端证据保留原始候选范围；已终止的 Agent／陌生用户研究不列为待完成门禁；额外系统／架构、物理屏幕阅读器认证不视为通过 | [既有范围](remaining-work.md) · [0.1.5 范围](releases/current.md#release-scope--版本验证范围) |
 

@@ -16,12 +16,12 @@ Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/getting-started.en.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
-3. Follow [your first creation](docs/user/first-creation.md) to build a block, obtain and place it in Minecraft, then save and reopen the world.
+3. Follow [your first creation](docs/user/first-creation.en.md) to build a block, obtain and place it in Minecraft, then save and reopen the world.
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
 
@@ -63,7 +63,7 @@ See the [user guide](docs/user/README.md) for feature and generator coverage. Be
 
 ## Documentation
 
-Most detailed guides are currently in Chinese.
+Start with the English [installation guide](docs/user/getting-started.en.md) and [first creation](docs/user/first-creation.en.md). Most advanced guides are currently in Chinese.
 
 - [Documentation index](docs/README.md) · [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
 - [MCP setup](docs/ai/getting-started.md) · [Agent examples](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)

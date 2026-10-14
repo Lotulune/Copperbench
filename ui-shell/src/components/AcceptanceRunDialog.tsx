@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import React, { useEffect, useState } from 'react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
@@ -64,11 +65,11 @@ export const AcceptanceRunDialog: React.FC<{
         <div className="modal-body">
           <WorkspacePreviewChoice />
           <label htmlFor="acceptance-manifest">{uiText('已发布清单', 'Published manifest')}</label>
-          <select id="acceptance-manifest" value={manifests.includes(manifest!) ? manifest!.id : ''} disabled={loading || busy}
+          <Select id="acceptance-manifest" value={manifests.includes(manifest!) ? manifest!.id : ''} disabled={loading || busy}
             onChange={event => { setManifest(manifests.find(value => value.id === event.target.value) ?? null); setError(''); }}>
             <option value="">{loading ? uiText('加载中…', 'Loading…') : uiText('选择与工作区匹配的清单', 'Choose a manifest matching this workspace')}</option>
             {manifests.map(value => <option key={value.id} value={value.id}>{value.id}</option>)}
-          </select>
+          </Select>
           <label htmlFor="acceptance-manifest-file">{uiText('或载入自己的清单', 'Or load your own manifest')}</label>
           <input id="acceptance-manifest-file" type="file" accept=".json,application/json" disabled={busy}
             onChange={event => { void importManifest(event.target.files?.[0]); event.target.value = ''; }} />

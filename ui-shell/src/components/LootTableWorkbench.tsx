@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -485,7 +486,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600 }}>
               {tr("掉落类型:")}</span>
-            <select
+            <Select
               value={lootType}
               onChange={(e) => {
                 setLootType(e.target.value);
@@ -499,7 +500,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                   {lt.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div
@@ -942,7 +943,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
 
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px', color: 'var(--text-sub)' }}>
                             <span>{tr("精准采集模式")}</span>
-                            <select
+                            <Select
                               value={entry.silkTouchMode}
                               onChange={(e) => handleUpdateEntry(entry.id, { silkTouchMode: parseInt(e.target.value) || 0 })}
                               data-testid={`entry-silktouch-${eIdx}`}
@@ -951,7 +952,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                               <option value={0}>{tr("忽略精准采集")}</option>
                               <option value={1}>{tr("仅精准采集时掉落")}</option>
                               <option value={2}>{tr("仅非精准采集时掉落")}</option>
-                            </select>
+                            </Select>
                           </label>
 
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'center' }}>

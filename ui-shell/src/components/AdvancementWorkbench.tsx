@@ -1,3 +1,4 @@
+import { Select } from './Select';
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -659,7 +660,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                 <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
                   {tr("具备循环引用防护")}</span>
               </div>
-              <select
+              <Select
                 id="adv-parent-select"
                 value={parent}
                 onChange={(e) => {
@@ -676,7 +677,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     {adv.displayName} ({adv.name})
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             {/* Title & Description */}
@@ -738,7 +739,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                   <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("框架类型 (Frame Type)")}</span>
-                  <select
+                  <Select
                     value={achievementType}
                     onChange={(e) => {
                       setAchievementType(e.target.value as 'task' | 'goal' | 'challenge');
@@ -750,14 +751,14 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     <option value="task">{tr("普通任务 (Task - 方形边框)")}</option>
                     <option value="goal">{tr("阶段目标 (Goal - 圆角金边)")}</option>
                     <option value="challenge">{tr("极限挑战 (Challenge - 尖角紫金框)")}</option>
-                  </select>
+                  </Select>
                 </label>
               </div>
 
               {parent === 'root' && (
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                   <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("根进度背景纹理 (Background Texture)")}</span>
-                  <select
+                  <Select
                     value={background}
                     onChange={(e) => {
                       setBackground(e.target.value);
@@ -771,7 +772,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                         {bg.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
               )}
             </div>

@@ -4,7 +4,7 @@ Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作
 
 字段能力、内部名称与游戏注册 ID、冷工程准备、模型回导和可信产物导出见[结构化编辑与验收产物](../../docs/stage-17-agent-workflow.md)。发行包同时提供该文档，以及 [Fabric / NeoForge 1.21.1 Code 生命周期示例](../../examples/agent-native/lifecycle-1.21.1/README.md)。
 
-通用 `workspace.command` / `workspace.query` 的操作参数可查随包 [Core 命令 schema](../../ui-core/schemas/v1.0/command.schema.json) 与 [Core 查询 schema](../../ui-core/schemas/v1.0/query.schema.json)：各 operation 对应的 `payload` 就是关键字参数结构，SDK负责协议封装；跨文件引用的定义也在同一目录。MCP工具的参数以服务端 `tools/list` 为准，不能直接照搬 Core 请求封装。
+通用 `workspace.command` / `workspace.query` 的操作参数可查随包 [Core 命令 schema](../../ui-core/schemas/v1.0/command.schema.json) 与 [Core 查询 schema](../../ui-core/schemas/v1.0/query.schema.json)：各 operation 对应的 `payload` 就是关键字参数结构，SDK负责协议封装；跨文件引用的定义也在同一目录。MCP工具的参数以服务端 `tools/list` 为准，不能直接照搬 Core 请求封装。 例如 MCP 的 `read_mod_element` 对应 Native/Core 的 `get_mod_element_editor`；原生调用为 `workspace.query("get_mod_element_editor", elementId=element_id)`（默认请求完整的 1.1 编辑器）。[Agent 首作](../../docs/ai/first-creation.md)给出接口分流和具体输入。
 
 建模查询的返回结构见 [Core 查询结果 schema](../../ui-core/schemas/v1.0/query-result.schema.json) 和 [资产定义中的 modelingTask](../../ui-core/schemas/v1.0/asset.schema.json)。`elementContext` 记录任务开始时选定的元素与建议路径，`binding` 单独描述当前关联；旧任务可以没有这两项。`state=imported` 或 `binding.state=bound` 均不代表构建或游戏验证已通过。
 
