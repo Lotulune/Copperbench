@@ -6,9 +6,9 @@ Blockbench 是独立的可选建模工具。Copperbench 不捆绑或自动安装
 
 ## 手工模型编辑
 
-1. 在资产中心展开“连接 Blockbench”，点击“重新检测安装”。
+1. 点击工作区总览的“设置 Blockbench”或资产页上方的“Blockbench 设置”，直接打开设置窗口并检测本机安装。也可在资产页的“Blockbench 工具”中展开设置。
 2. 未安装时，复制 [Blockbench 官方下载地址](https://www.blockbench.net/)，在浏览器中下载适合系统的桌面版。完成安装后重新检测。
-3. 对已导入并索引的 `.bbmodel` 选择“在 Blockbench 打开”。现有手工流程在编辑器退出后处理已保存文件变化。
+3. 对已导入并索引的 `.bbmodel` 或模型目录中的 `.json` 选择“在 Blockbench 打开”。按钮旁会显示准备进度、启动结果或失败原因；未配置时可从提示直接打开设置。编辑前创建恢复点，编辑器退出后处理已保存文件变化。
 
 非标准安装位置可点击“选择安装位置”，在系统文件选择器中选择 `Blockbench.exe`、官方便携启动器（如 `Blockbench_5.1.6_portable.exe`）、`blockbench` 或 Blockbench AppImage。不要选择尚未运行安装的安装包。位置保存在 Copperbench 用户配置目录的 `blockbench.json`，取消选择不会改变原设置。产品会在打开模型时重新检查安装，无需重开工作区。
 

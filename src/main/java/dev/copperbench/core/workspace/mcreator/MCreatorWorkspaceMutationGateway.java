@@ -140,17 +140,39 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		ModElement detached = new ModElement(workspace, element.name(), modElementType(element.type()));
 		detached.setCodeLock(element.ownership().equals("manual"));
 		GeneratableElement definition = newDefinition(detached, element);
-		return workspace.getGenerator().getModElementGeneratorTemplatesList(definition).stream()
+		var paths = new java.util.ArrayList<>(workspace.getGenerator().getModElementGeneratorTemplatesList(definition).stream()
 				.map(GeneratorTemplate::getFile)
 				.map(File::toPath)
 				.map(path -> path.toAbsolutePath().normalize())
-				.distinct()
-				.toList();
+				.toList());
+		paths.addAll(finalizedResourcePaths(definition));
+		return paths.stream().distinct().toList();
 	}
 
 	private static List<Path> associatedPaths(ModElement element) {
-		return element.getAssociatedFiles().stream().map(File::toPath)
-				.map(path -> path.toAbsolutePath().normalize()).toList();
+		var paths = new java.util.ArrayList<>(element.getAssociatedFiles().stream().map(File::toPath)
+				.map(path -> path.toAbsolutePath().normalize()).toList());
+		if (Set.of("specialentity", "livingentity").contains(element.getTypeString()))
+			paths.addAll(finalizedResourcePaths(element.getGeneratableElement()));
+		return paths.stream().distinct().toList();
+	}
+
+	/** Upstream finalizers write these resources outside the template file list. */
+	private static List<Path> finalizedResourcePaths(GeneratableElement definition) {
+		if (definition instanceof net.mcreator.element.types.SpecialEntity boat) {
+			var element = boat.getModElement();
+			return List.of(element.getFolderManager().getTexturesFolder(net.mcreator.ui.workspace.resources.TextureType.OTHER)
+					.toPath().resolve("entity/" + (boat.isBoatChestVariant() ? "chest_boat/" : "boat/")
+							+ element.getRegistryName() + ".png").toAbsolutePath().normalize());
+		}
+		if (definition instanceof net.mcreator.element.types.LivingEntity entity && entity.hasSpawnEgg
+				&& (entity.spawnEggTexture == null || entity.spawnEggTexture.isEmpty())
+				&& java.lang.module.ModuleDescriptor.Version.parse(entity.getModElement().getGeneratorConfiguration().getGeneratorMinecraftVersion())
+				.compareTo(java.lang.module.ModuleDescriptor.Version.parse("1.21.5")) >= 0)
+			return List.of(entity.getModElement().getFolderManager().getTextureFile(
+					entity.getModElement().getRegistryName() + "_spawn_egg_generated",
+					net.mcreator.ui.workspace.resources.TextureType.ITEM).toPath().toAbsolutePath().normalize());
+		return List.of();
 	}
 
 	private void assertPlannedGeneratedPathAvailable(Path path, Element owner, WorkspaceState after,
@@ -735,7 +757,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private void validateGeneratedUpdatePaths(ModElement owner, Element element) {
 		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 		Set<String> current = new LinkedHashSet<>();
-		for (File file : owner.getAssociatedFiles()) current.add(pathKey(file.toPath()));
+		for (Path path : associatedPaths(owner)) current.add(pathKey(path));
 		for (Path path : predictedGeneratedPaths(element)) {
 			assertCodePathAvailable(owner, path);
 			if (!current.contains(pathKey(path)) && Files.exists(path))
@@ -746,6 +768,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	private void persistGeneratedElement(ModElement modElement, Element previous, Element element,
 			GeneratableElement definition) {
+		validateCreatorTextures(definition, element);
 		if (definition instanceof CustomElement) {
 			persistCustomCode(modElement, previous, element, definition);
 			generateWorkspaceBaseIfReady();
@@ -858,12 +881,58 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private GeneratableElement newGenericDefinition(ModElement modElement, Element element) {
 		try {
 			Class<? extends GeneratableElement> storageClass = modElementType(element.type()).getModElementStorageClass();
-			GeneratableElement definition = storageClass.getConstructor(ModElement.class).newInstance(modElement);
+			GeneratableElement definition = dev.copperbench.core.application.ElementFieldContract.modelledCreator(element.type())
+					? dev.copperbench.core.application.StructuredElementDefaults.forType(element.type(), modElement, workspace, element.displayName())
+					: storageClass.getConstructor(ModElement.class).newInstance(modElement);
 			applyGenericValues(definition, element);
 			return definition;
 		} catch (ReflectiveOperationException exception) {
 			throw new IllegalStateException("Unable to instantiate upstream element type: " + element.type(), exception);
 		}
+	}
+
+	private void validateCreatorTextures(GeneratableElement definition, Element element) {
+		if (definition instanceof net.mcreator.element.types.Tool tool) {
+			tool.texture = canonicalTexture(tool.texture);
+			validateTexture(tool.texture == null ? "" : tool.texture.getRawTextureName(), "texture",
+					net.mcreator.ui.workspace.resources.TextureType.ITEM, true, element);
+		} else if (definition instanceof net.mcreator.element.types.LivingEntity entity) {
+			validateTexture(entity.mobModelTexture, "mobModelTexture",
+					net.mcreator.ui.workspace.resources.TextureType.ENTITY, false, element);
+		} else if (definition instanceof net.mcreator.element.types.SpecialEntity entity) {
+			entity.entityTexture = canonicalTexture(entity.entityTexture);
+			entity.itemTexture = canonicalTexture(entity.itemTexture);
+			validateTexture(entity.entityTexture == null ? "" : entity.entityTexture.getRawTextureName(), "entityTexture",
+					net.mcreator.ui.workspace.resources.TextureType.ENTITY, false, element);
+			validateTexture(entity.itemTexture == null ? "" : entity.itemTexture.getRawTextureName(), "itemTexture",
+					net.mcreator.ui.workspace.resources.TextureType.ITEM, true, element);
+		}
+	}
+
+	private TextureHolder canonicalTexture(TextureHolder texture) {
+		if (texture == null || !texture.getRawTextureName().endsWith(".png")) return texture;
+		String name = texture.getRawTextureName();
+		return new TextureHolder(workspace, name.substring(0, name.length() - 4));
+	}
+
+	private void validateTexture(String texture, String field, net.mcreator.ui.workspace.resources.TextureType kind,
+			boolean vanillaAllowed, Element element) {
+		String path = BlockFieldContract.path(element.values(), field);
+		if (texture == null || texture.isBlank())
+			throw new ElementFieldException("FIELD_REQUIRED", path, element.id(), "Select a " + kind.getID() + " texture.");
+		if (vanillaAllowed && texture.matches("minecraft:[a-z0-9_/]+")) return;
+		if (field.equals("mobModelTexture") != texture.endsWith(".png"))
+			throw new ElementFieldException("FIELD_REFERENCE_INVALID", path, element.id(),
+					field.equals("mobModelTexture") ? "Use the imported entity texture filename, including .png."
+							: "Use the texture resource name without the .png extension.");
+		if (!texture.matches("[a-z0-9_./-]+"))
+			throw new ElementFieldException("FIELD_REFERENCE_INVALID", path, element.id(), "Select a texture from this workspace.");
+		Path directory = workspace.getFolderManager().getTexturesFolder(kind).toPath().toAbsolutePath().normalize();
+		String filename = texture.endsWith(".png") ? texture : texture + ".png";
+		Path file = directory.resolve(filename).normalize();
+		if (!file.startsWith(directory) || !Files.isRegularFile(file))
+			throw new ElementFieldException("FIELD_REFERENCE_INVALID", path, element.id(),
+					"Import the " + kind.getID() + " texture into this workspace and select its resource name.");
 	}
 
 	private Block newBlock(ModElement modElement, Element element) {
@@ -889,6 +958,13 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			}
 		}
 		block.name = element.displayName();
+		if (block.luminance != null && block.luminance.getName() != null && !block.luminance.getName().isBlank()) {
+			ModElement procedure = workspace.getModElementByName(block.luminance.getName());
+			if (procedure == null || !procedure.getType().equals(ModElementType.PROCEDURE)
+					|| !"number".equals(procedure.getMetadata("return_type")))
+				throw new ElementFieldException("FIELD_REFERENCE_INVALID", "/luminance/name", element.id(),
+						"Select an existing procedure that returns a number, or supply a fixed light level from 0 to 15.");
+		}
 		if (block.guiBoundTo != null && !block.guiBoundTo.isBlank()) {
 			ModElement gui = workspace.getModElementByName(block.guiBoundTo);
 			if (gui == null || !gui.getTypeString().equals("gui"))
@@ -1082,6 +1158,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	private void validateSupportedChanges(Element previous, Element element) {
 		if (previous != null && previous.values().equals(element.values())) return;
+		var creationIssue = dev.copperbench.core.application.ElementFieldContract.validateCreation(element.type(), element.values());
+		if (creationIssue != null) throw new ElementFieldException(creationIssue.code(), creationIssue.path(), element.id(), creationIssue.message());
 		var scopeIssue = dev.copperbench.core.application.PreviewElementFields.validateChange(
                 workspace.getWorkspaceSettings().getCurrentGenerator(), element.type(),
                 previous == null ? new JsonObject() : previous.values(), element.values());
@@ -1186,6 +1264,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			// Some upstream types intentionally do not expose a name field.
 		}
 		dev.copperbench.core.application.StructuredElementDefaults.fillStrings(definition);
+		if (definition instanceof net.mcreator.element.types.LivingEntity entity && !values.has("mobName"))
+			entity.mobName = element.displayName();
 	}
 
 	private static void validatePrimitiveInput(Field field, JsonElement raw, Element element) {
@@ -1338,7 +1418,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		for (ModElement other : workspace.getModElements()) {
 			if (other == owner) continue;
 			Set<String> otherPaths = new LinkedHashSet<>();
-			for (File associated : other.getAssociatedFiles()) otherPaths.add(pathKey(associated.toPath()));
+			for (Path associated : associatedPaths(other)) otherPaths.add(pathKey(associated));
 			for (Path path : managedCodeBundlePaths(other, workspaceRoot)) otherPaths.add(pathKey(path));
 			if (otherPaths.contains(candidateKey))
 				throw new IllegalStateException("Managed source path is already owned by element '"
@@ -1536,8 +1616,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			capture(files, root, workspace.getFolderManager().getModElementsDir().toPath()
 					.resolve(elementName + ".mod.json"));
 			if (existing != null) {
-				for (var associated : existing.getAssociatedFiles())
-					capture(files, root, associated.toPath());
+				for (var associated : associatedPaths(existing))
+					capture(files, root, associated);
 			}
 			if (plannedPaths != null)
 				for (Path planned : plannedPaths) capture(files, root, planned);
@@ -1561,7 +1641,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				capture(files, root, workspace.getFolderManager().getModElementsDir().toPath()
 						.resolve(previous.name() + ".mod.json"));
 				if (existing != null)
-					for (var associated : existing.getAssociatedFiles()) capture(files, root, associated.toPath());
+					for (var associated : associatedPaths(existing)) capture(files, root, associated);
 			}
 			for (Element next : afterElements.values()) {
 				if (beforeElements.containsKey(next.id())) continue;

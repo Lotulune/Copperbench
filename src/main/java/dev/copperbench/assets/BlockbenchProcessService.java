@@ -112,9 +112,10 @@ public final class BlockbenchProcessService implements AutoCloseable {
 		}
 		AssetDescriptor descriptor = assets.findById(assetId).orElseThrow(() ->
 				new BlockbenchBridgeException("ASSET_NOT_FOUND", "The requested asset is not indexed"));
-		if (!descriptor.relativePath().toLowerCase(java.util.Locale.ROOT).endsWith(".bbmodel"))
+		String path = descriptor.relativePath().toLowerCase(java.util.Locale.ROOT);
+		if (descriptor.category() != AssetCategory.MODEL || !(path.endsWith(".bbmodel") || path.endsWith(".json")))
 			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_UNSUPPORTED",
-					"Only indexed .bbmodel sources can be opened in Blockbench");
+					"Only indexed Blockbench sources and JSON models can be opened in Blockbench");
 		Path authorized = assets.resolveAuthorizedPath(descriptor.relativePath());
 		try {
 			lease = AssetTaskLease.tryAcquire(assets.workspaceRoot(), descriptor.id()).orElseThrow(() ->

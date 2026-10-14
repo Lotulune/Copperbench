@@ -1,5 +1,15 @@
 import { test, expect, type Page } from '@playwright/test';
 
+declare global {
+  interface Window {
+    draftFixture: {
+      requests: { operation?: string; payload?: { changes?: { path: string; value: unknown }[] } }[];
+      refreshPending: boolean;
+      refreshCompleted: boolean;
+    };
+  }
+}
+
 async function openLamp(page: Page) {
   await page.getByTestId('nav-elements').click();
   await page.locator('.element-card').filter({ hasText: 'Copper Lamp' }).click();
@@ -11,13 +21,17 @@ async function leaveAndReturn(page: Page) {
   await page.getByTestId('nav-elements').click();
 }
 
-async function installEditorFixture(page: Page, deferSave = false) {
-  await page.addInitScript(({ deferSave }) => {
+async function installEditorFixture(page: Page, deferSave = false, deferRefresh = false) {
+  await page.addInitScript(({ deferSave, deferRefresh }) => {
     const modulePath = '/src/mock/mockBridge.ts';
     const ready = import(modulePath).then(({ MockCoreBridge }) => new MockCoreBridge());
     const listeners = new Set<(raw: string) => void>();
     let releaseSave: (() => void) | undefined;
+    let releaseRefresh: (() => void) | undefined;
+    let refreshAfterSave = false;
+    window.draftFixture = { requests: [], refreshPending: false, refreshCompleted: false };
     window.addEventListener('draft-fixture-release-save', () => releaseSave?.());
+    window.addEventListener('draft-fixture-release-refresh', () => releaseRefresh?.());
     window.addEventListener('draft-fixture-external-update', async () => {
       const core = await ready;
       const state = core.getState();
@@ -39,25 +53,125 @@ async function installEditorFixture(page: Page, deferSave = false) {
       async invoke(raw) {
         const core = await ready;
         const request = JSON.parse(raw);
+        window.draftFixture.requests.push(request);
         if (deferSave && request.operation === 'update_mod_element') {
           await new Promise<void>(resolve => { releaseSave = resolve; });
         }
         const result = request.messageType === 'handshake' ? await core.negotiateHandshake(request)
           : request.messageType === 'command' ? await core.sendCommand(request) : await core.sendQuery(request);
+        if (request.operation === 'update_mod_element' && result.status === 'committed') refreshAfterSave = true;
         if (request.operation === 'get_mod_element_editor' && result.data) {
           const fields = result.data.sections[0].fields;
           if (!fields.some(field => field.path === '/draftJson')) fields.push(
             { path: '/draftJson', label: { key: 'audit.json', fallback: 'Draft JSON' }, control: 'json',
               required: false, readOnly: false, value: {}, options: [], diagnostics: [] },
             { path: '/draftReferences', label: { key: 'audit.references', fallback: 'Draft references' }, control: 'element_reference_list',
-              required: false, readOnly: false, value: [], options: [], diagnostics: [] }
+              required: false, readOnly: false, value: [], options: [], diagnostics: [] },
+            { path: '/draftRows', label: { key: 'audit.rows', fallback: 'Draft rows' }, control: 'structured_list',
+              required: false, readOnly: false, value: [{ amount: 1, note: 'Preserved', metadata: { keep: true } }], options: [], diagnostics: [],
+              itemFields: [
+                { path: '/amount', label: { key: 'audit.amount', fallback: 'Amount' }, control: 'number',
+                  required: false, readOnly: false, value: 1, options: [], diagnostics: [], constraints: { step: 0.1 } },
+                { path: '/note', label: { key: 'audit.note', fallback: 'Note' }, control: 'text',
+                  required: false, readOnly: false, value: '', options: [], diagnostics: [],
+                  condition: { operator: 'any_truthy', paths: ['/amount'] } }
+              ] }
           );
+          if (deferRefresh && refreshAfterSave) {
+            refreshAfterSave = false;
+            window.draftFixture.refreshPending = true;
+            await new Promise<void>(resolve => { releaseRefresh = resolve; });
+            window.draftFixture.refreshCompleted = true;
+          }
         }
         return JSON.stringify(result);
       }
     };
-  }, { deferSave });
+  }, { deferSave, deferRefresh });
 }
+
+async function lastSavedChanges(page: Page) {
+  return page.evaluate(() => window.draftFixture.requests.filter(request => request.operation === 'update_mod_element').at(-1)?.payload?.changes);
+}
+
+test('a delayed post-save refresh preserves edits made after the command committed', async ({ page }) => {
+  await installEditorFixture(page, false, true);
+  await page.goto('/');
+  await openLamp(page);
+  const name = page.getByTestId('field-displayName');
+  const save = page.getByTestId('inspector-save-btn');
+  await name.fill('First saved name');
+  await save.click();
+  await expect.poll(() => page.evaluate(() => window.draftFixture.refreshPending)).toBe(true);
+  await expect(name).toBeEditable();
+  await name.fill('Second unsaved name');
+  await page.evaluate(() => window.dispatchEvent(new Event('draft-fixture-release-refresh')));
+  await expect.poll(() => page.evaluate(() => window.draftFixture.refreshCompleted)).toBe(true);
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(name).toHaveValue('Second unsaved name');
+  await expect(save).toBeEnabled();
+  await leaveAndReturn(page);
+  await expect(name).toHaveValue('Second unsaved name');
+  await expect(page.getByTestId('inspector-external-change')).not.toBeVisible();
+  await expect(save).toBeEnabled();
+});
+
+test('negative and decimal drafts survive typing and navigation and are submitted as numbers', async ({ page }) => {
+  await installEditorFixture(page);
+  await page.goto('/');
+  await page.getByTestId('nav-elements').click();
+  await page.getByTestId('create-element-btn').click();
+  await page.getByTestId('create-element-type-biome').click();
+  await page.getByTestId('create-element-name-input').fill('cold_grove');
+  await page.getByTestId('create-element-submit-btn').click();
+  const temperature = page.getByTestId('field-temperature');
+  const save = page.getByTestId('inspector-save-btn');
+  await expect(temperature).toHaveAttribute('min', '-1');
+  await temperature.fill('');
+  await temperature.pressSequentially('-', { delay: 40 });
+  await expect(temperature).toHaveAttribute('aria-invalid', 'true');
+  await expect(save).toBeDisabled();
+  await temperature.pressSequentially('1', { delay: 40 });
+  await expect(temperature).toHaveValue('-1');
+  await save.click();
+  await expect(save).toBeDisabled();
+  expect(await lastSavedChanges(page)).toContainEqual({ path: '/temperature', value: -1 });
+
+  await temperature.fill('');
+  await leaveAndReturn(page);
+  await expect(temperature).toHaveValue('');
+  await expect(temperature).toHaveAttribute('aria-invalid', 'true');
+  await expect(save).toBeDisabled();
+  await temperature.pressSequentially('-0.25', { delay: 40 });
+  await expect(temperature).toHaveValue('-0.25');
+  await save.click();
+  await expect(save).toBeDisabled();
+  expect(await lastSavedChanges(page)).toContainEqual({ path: '/temperature', value: -0.25 });
+});
+
+test('structured numeric drafts preserve unknown data and numeric conditions when serialized', async ({ page }) => {
+  await installEditorFixture(page);
+  await page.goto('/');
+  await openLamp(page);
+  const amount = page.getByTestId('field-draftRows-0-amount');
+  const note = page.getByTestId('field-draftRows-0-note');
+  const save = page.getByTestId('inspector-save-btn');
+  await amount.fill('0');
+  await expect(note).toBeDisabled();
+  await amount.fill('');
+  await expect(save).toBeDisabled();
+  await leaveAndReturn(page);
+  await expect(amount).toHaveValue('');
+  await expect(save).toBeDisabled();
+  await amount.pressSequentially('-1.5', { delay: 40 });
+  await expect(amount).toHaveValue('-1.5');
+  await expect(note).toBeEditable();
+  await save.click();
+  await expect(save).toBeDisabled();
+  expect(await lastSavedChanges(page)).toContainEqual({
+    path: '/draftRows', value: [{ amount: -1.5, note: 'Preserved', metadata: { keep: true } }]
+  });
+});
 
 test('unsaved fields survive navigation, switching elements and closing the inspector; applying clears the draft', async ({ page }) => {
   await page.goto('/');

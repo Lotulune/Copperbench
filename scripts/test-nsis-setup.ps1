@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('all', 'compiler-missing', 'plugin-missing', 'complete', 'malformed')]
+    [ValidateSet('all', 'compiler-missing', 'plugin-missing', 'complete', 'malformed', 'compiler-only', 'archive-missing', 'checksum-mismatch', 'plugin-malformed')]
     [string]$Scenario = 'all',
     [switch]$ExternalGradle
 )
@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 if (-not $IsWindows) { throw 'NSIS setup regression requires Windows.' }
 $repository = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $runRoot = Join-Path $repository ('build/nsis-setup-regression/' + [Guid]::NewGuid().ToString('N'))
-$scenarios = if ($Scenario -eq 'all') { @('compiler-missing', 'plugin-missing', 'complete', 'malformed') } else { @($Scenario) }
+$scenarios = if ($Scenario -eq 'all') { @('compiler-missing', 'plugin-missing', 'complete', 'malformed', 'compiler-only', 'archive-missing', 'checksum-mismatch', 'plugin-malformed') } else { @($Scenario) }
 $results = @()
 foreach ($case in $scenarios) {
     $fixture = Join-Path $runRoot $case
@@ -27,10 +27,18 @@ foreach ($case in $scenarios) {
     }
     $exitCode = $LASTEXITCODE
     $logText = Get-Content -LiteralPath $log -Raw -Encoding UTF8
-    $passed = if ($case -eq 'malformed') {
-        $exitCode -ne 0 -and $logText.Contains('NSIS compiler is missing after extraction')
+    $expectedFailures = @{
+        malformed = 'NSIS compiler is missing after extraction'
+        'checksum-mismatch' = 'NSIS 3.12 archive SHA-256 mismatch'
+        'plugin-malformed' = 'NSIS LockedList plugin is missing after extraction'
+    }
+    $passed = if ($expectedFailures.ContainsKey($case)) {
+        $exitCode -ne 0 -and $logText.Contains($expectedFailures[$case])
     } else {
         $exitCode -eq 0 -and $logText.Contains("NSIS fixture passed: $case;")
+    }
+    if ($case -eq 'checksum-mismatch') {
+        $passed = $passed -and ((Get-Content -LiteralPath (Join-Path $fixture 'build/tools/nsis/makensis.exe') -Raw) -eq 'retained-compiler')
     }
     $results += [ordered]@{ scenario = $case; passed = $passed; exitCode = $exitCode; log = $log }
     $results | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $runRoot 'results.json') -Encoding UTF8

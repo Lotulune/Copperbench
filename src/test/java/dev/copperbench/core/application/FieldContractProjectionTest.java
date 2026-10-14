@@ -26,7 +26,7 @@ class FieldContractProjectionTest {
     void preservesCompleteContractsAndLegacyCapabilitiesOnEveryTrack(String generator) {
         JsonObject contracts = environment(generator);
         assertEquals(Set.of("block", "loottable", "function", "projectile", "achievement", "generic", "custom",
-                "code", "procedure", "item", "recipe"), contracts.keySet());
+                "code", "procedure", "item", "recipe", "tool", "livingentity", "specialentity"), contracts.keySet());
         assertEquals(BlockFieldContract.capabilities(generator), contracts.get("block"));
         assertEquals(LootTableFieldContract.capabilities(), contracts.get("loottable"));
         assertEquals(FunctionFieldContract.capabilities(), contracts.get("function"));
@@ -36,11 +36,11 @@ class FieldContractProjectionTest {
         assertEquals(CustomFieldInputContract.capabilities(), contracts.get("custom"));
         assertEquals(CodeFieldContract.capabilities(), contracts.get("code"));
         assertEquals(ProcedureFieldContract.capabilities(), contracts.get("procedure"));
-        for (String type : List.of("item", "recipe")) {
+        for (String type : List.of("item", "recipe", "tool", "livingentity", "specialentity")) {
             assertTrue(contracts.getAsJsonObject(type).get("complete").getAsBoolean());
             assertEquals(ElementFieldContract.discover(type, generator), contracts.get(type));
         }
-        for (String type : List.of("block", "item", "recipe"))
+        for (String type : List.of("block", "item", "recipe", "tool", "livingentity", "specialentity"))
             assertEquals(contracts.get(type), editor(type, generator));
         assertEquals("not_exposed", ElementFieldContract.discover("block", generator).get("availability").getAsString(),
                 "Legacy block capabilities must not be replaced with the per-type discovery envelope");
@@ -51,7 +51,7 @@ class FieldContractProjectionTest {
         JsonObject contracts = environment(generator);
         assertEquals(COMPATIBILITY_TYPES, contracts.keySet());
         assertFalse(contracts.getAsJsonObject("block").get("supported").getAsBoolean());
-        for (String type : List.of("item", "recipe")) {
+        for (String type : List.of("item", "recipe", "tool", "livingentity", "specialentity")) {
             JsonObject contract = editor(type, generator);
             assertFalse(contract.get("complete").getAsBoolean());
             assertEquals("GENERATOR_NOT_LOADED", contract.get("reasonCode").getAsString());
@@ -71,7 +71,7 @@ class FieldContractProjectionTest {
         first.getAsJsonObject("procedure").addProperty("consumerEdit", true);
         first.remove("recipe");
         assertEquals(expected, environment("fabric-1.21.1"));
-        for (String type : List.of("block", "item", "recipe")) {
+        for (String type : List.of("block", "item", "recipe", "tool", "livingentity", "specialentity")) {
             JsonObject contract = editor(type, "fabric-1.21.1");
             assertEquals(expected.get(type), contract);
             contract.getAsJsonArray("fields").asList().clear();

@@ -79,6 +79,11 @@ public final class FieldInputProjection {
             shape = object(members);
         }
         if (field != null) {
+            if (field.getDeclaringClass() == net.mcreator.element.types.Block.class
+                    && field.getName().equals("luminance") && kind == double.class) {
+                shape.addProperty("type", "integer");
+                shape.addProperty("minimum", 0); shape.addProperty("maximum", 15);
+            }
             Numeric numeric = field.getAnnotation(Numeric.class);
             if (numeric != null && (kind.isPrimitive() && kind != boolean.class || Number.class.isAssignableFrom(kind))) {
                 shape.addProperty("minimum", numeric.min()); shape.addProperty("maximum", numeric.max());

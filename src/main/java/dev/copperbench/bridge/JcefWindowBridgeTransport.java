@@ -57,6 +57,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final CefMessageRouter router;
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
+	private final Consumer<String> localeListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private JcefWindowBridgeTransport(WebView webView, JFrame window, Runnable closeAction,
@@ -76,6 +77,10 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 		this.router = webView.getRouter();
 		this.loadStartListener = this::installHost;
 		this.closeListener = this::close;
+		this.localeListener = locale -> SwingUtilities.invokeLater(() -> {
+			if (!closed.get()) webView.executeScriptAsync("window.dispatchEvent(new CustomEvent('copperbench:locale-changed',{detail:" + JSON.toJson(locale) + "}));");
+		});
+		UiLocalePreferences.addListener(localeListener);
 		this.router.addHandler(this, false);
 		this.webView.addLoadStartListener(loadStartListener);
 		this.webView.addCloseListener(closeListener);
@@ -222,8 +227,20 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			return true;
 		}
 		if (action.startsWith("set_locale_")) {
-			try { UiLocalePreferences.save(action.substring("set_locale_".length())); callback.success("{}"); }
-			catch (java.io.IOException | SecurityException exception) { callback.failure(500, "Could not save the UI language preference"); }
+			String locale = action.substring("set_locale_".length());
+			if (!"zh".equals(locale) && !"en".equals(locale)) {
+				callback.failure(400, "Unsupported UI language");
+				return true;
+			}
+			SwingUtilities.invokeLater(() -> {
+				try {
+					UiLocalePreferences.save(locale);
+					net.mcreator.ui.init.L10N.initTranslations();
+					callback.success("{}");
+				} catch (java.io.IOException | SecurityException exception) {
+					callback.failure(500, "Could not save the UI language preference");
+				}
+			});
 			return true;
 		}
 		callback.success("{}");
@@ -362,6 +379,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 		if (!closed.compareAndSet(false, true))
 			return;
 		webView.removeLoadStartListener(loadStartListener);
+		UiLocalePreferences.removeListener(localeListener);
 		window.removeWindowStateListener(windowStateListener);
 		webView.removeCloseListener(closeListener);
 		try {

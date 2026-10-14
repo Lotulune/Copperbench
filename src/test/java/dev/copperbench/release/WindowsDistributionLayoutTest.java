@@ -41,7 +41,8 @@ class WindowsDistributionLayoutTest {
 		assertTrue(gradle.contains("into('gradle/wrapper')"));
 		assertTrue(gradle.contains("from file('gradle/wrapper/gradle-wrapper.jar')"));
 		assertTrue(gradle.contains("into('license')"));
-		assertTrue(gradle.contains("docs/user/README.md"));
+		assertTrue(gradle.contains("from('docs/user')"));
+		assertTrue(gradle.contains("include 'README.md', 'graphical-installation.md', 'security-alerts.md'"));
 		assertTrue(gradle.contains("copperbench.exe"));
 		assertFalse(gradle.contains("mcreator.exe"));
 	}

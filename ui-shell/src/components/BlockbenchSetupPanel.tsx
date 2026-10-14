@@ -1,5 +1,5 @@
 import { tr } from '../i18n/locale';
-import React, { useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { coreBridge } from '../bridge';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
@@ -37,7 +37,7 @@ const mcpLabels: Record<string, string> = {
 };
 
 /** Optional setup: disclosure itself performs no network request or installation. */
-export const BlockbenchSetupPanel: React.FC = () => {
+export const BlockbenchSetupPanel: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { state } = useWorkbench();
   const endpointId = useId();
   const [endpoint, setEndpoint] = useState('http://127.0.0.1:3000/bb-mcp');
@@ -78,9 +78,12 @@ export const BlockbenchSetupPanel: React.FC = () => {
     catch { setMessage(tr("复制失败，请手动选择并复制显示的地址。")); }
   };
 
-  return <details name="blockbench-tools" className="blockbench-setup" data-testid="blockbench-setup">
-    <summary>{uiText('Blockbench 设置', 'Blockbench setup')}</summary>
-    <div className="blockbench-setup-content">
+  useEffect(() => {
+    if (embedded) void inspect(false);
+    return () => { requestSequence.current += 1; };
+  }, [embedded]);
+
+  const content = <div className="blockbench-setup-content">
       <div className="blockbench-setup-status" aria-live="polite" aria-atomic="true">
         <span>{tr("编辑器：")}{environment ? tr(editorLabels[environment.editor.state] ?? environment.editor.state) || tr("状态未知") : tr("尚未检测")}
           {environment?.editor.version ? `（${environment.editor.version}）` : ''}</span>
@@ -88,14 +91,14 @@ export const BlockbenchSetupPanel: React.FC = () => {
           {environment?.mcp.toolCount != null ? tr("（本页 {0} 个工具）", [environment.mcp.toolCount]) : ''}</span>
       </div>
       {environment && <details className="blockbench-setup-note">
-        <summary>检测与运行详情</summary>
-        {environment.mcp.diagnosticCode && <p>连接诊断：<code>{environment.mcp.diagnosticCode}</code>
+        <summary>{tr('检测与运行详情')}</summary>
+        {environment.mcp.diagnosticCode && <p>{tr('连接诊断：')}<code>{environment.mcp.diagnosticCode}</code>
           {environment.mcp.failurePhase && <> · <code>{environment.mcp.failurePhase}</code></>}</p>}
-        {environment.mcp.cleanupDiagnosticCode && <p>关闭诊断：<code>{environment.mcp.cleanupDiagnosticCode}</code></p>}
-        {environment.editor.diagnosticCode && <p>安装诊断：<code>{environment.editor.diagnosticCode}</code></p>}
-        <p>构建来源：{environment.application?.sourceState === 'packaged_binary' ? '已打包程序' : '开发构建或来源未确认'}
+        {environment.mcp.cleanupDiagnosticCode && <p>{tr('关闭诊断：')}<code>{environment.mcp.cleanupDiagnosticCode}</code></p>}
+        {environment.editor.diagnosticCode && <p>{tr('安装诊断：')}<code>{environment.editor.diagnosticCode}</code></p>}
+        <p>{tr('构建来源：')}{tr(environment.application?.sourceState === 'packaged_binary' ? '已打包程序' : '开发构建或来源未确认')}
           {environment.application?.version && <> · {environment.application.version}</>}</p>
-        {environment.application?.applicationSha256 && <p>程序 SHA-256：<code style={{ overflowWrap: 'anywhere' }}>{environment.application.applicationSha256}</code></p>}
+        {environment.application?.applicationSha256 && <p>{tr('程序 SHA-256：')}<code style={{ overflowWrap: 'anywhere' }}>{environment.application.applicationSha256}</code></p>}
         {environment.application?.javaVersion && <p>{t({ key: 'blockbench.runtime.java', fallback: 'Java: ' })}{environment.application.javaVersion} · {environment.application.javaVendor}</p>}
         {environment.application?.mcpSdkVersion && <p>{t({ key: 'blockbench.runtime.sdk', fallback: 'MCP SDK: ' })}{environment.application.mcpSdkVersion}</p>}
       </details>}
@@ -130,7 +133,11 @@ export const BlockbenchSetupPanel: React.FC = () => {
       <p className="blockbench-setup-note">{tr("可在资产中心创建建模副本，保存候选后预览并回导导出的模型和贴图，再关联元素。原有手工编辑可使用“在 Blockbench 打开”。安装位置选择会保存在本机，启动参数如有指定则优先。")}</p>
       <p className="blockbench-setup-note">{tr("Blockbench 与社区 MCP 插件均为独立 GPLv3 项目；社区插件并非 Blockbench 官方 MCP。Copperbench 当前不捆绑或自动安装它们。")}</p>
       </details>
-      <p role="status" className="blockbench-setup-message">{message}</p>
-    </div>
-  </details>;
+      <p role="status" className="blockbench-setup-message">{tr(message)}</p>
+    </div>;
+  return embedded
+    ? <section className="blockbench-setup blockbench-setup-embedded" data-testid="blockbench-setup">{content}</section>
+    : <details name="blockbench-tools" className="blockbench-setup" data-testid="blockbench-setup">
+      <summary>{uiText('Blockbench 设置', 'Blockbench setup')}</summary>{content}
+    </details>;
 };

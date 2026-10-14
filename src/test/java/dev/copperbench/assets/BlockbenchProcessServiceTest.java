@@ -135,19 +135,39 @@ class BlockbenchProcessServiceTest {
 		service.close();
 	}
 
-	@Test void rejectsAnIndexedNonBlockbenchAsset() throws IOException {
-		Path json = workspace.resolve("assets/copperbench/models/plain.json");
-		Files.writeString(json, "{}");
-		AssetDescriptor unsupported = new AssetWorkspaceService(workspace).findByRelativePath(
-				"assets/copperbench/models/plain.json").orElseThrow();
+	@Test void launchesAnIndexedJsonModelAndRetainsItsOriginalPath() throws IOException {
+		Path json = workspace.resolve("assets/copperbench/models/item/staff.json");
+		Files.createDirectories(json.getParent());
+		Files.writeString(json, "{\"parent\":\"item/generated\",\"textures\":{\"layer0\":\"copperbench:item/staff\"}}");
+		AssetDescriptor descriptor = AssetDescriptor.fromFile(workspace, json);
 		Path executable = temp.resolve("Blockbench.exe");
 		Files.write(executable, new byte[] { 1 });
-		var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable,
-				command -> { throw new AssertionError("starter must not run"); });
+		AtomicReference<List<String>> command = new AtomicReference<>();
+		try (var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable, arguments -> {
+			command.set(arguments);
+			return new FakeProcess(7790);
+		})) {
+			assertEquals(BlockbenchProcessService.State.RUNNING, service.openAsset(descriptor.id()).state());
+			assertEquals(List.of(executable.toString(), json.toString()), command.get());
+		}
+	}
 
-		BlockbenchBridgeException error = assertThrows(BlockbenchBridgeException.class,
-				() -> service.openAsset(unsupported.id()));
-		assertEquals("BLOCKBENCH_ASSET_UNSUPPORTED", error.code());
+	@Test void rejectsNonModelJsonAndNonEditableModelFilesBeforeLaunch() throws IOException {
+		Path executable = temp.resolve("Blockbench.exe");
+		Files.write(executable, new byte[] { 1 });
+		try (var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable,
+				command -> { throw new AssertionError("starter must not run"); })) {
+			for (String path : List.of("assets/copperbench/lang/en_us.json", "assets/copperbench/models/texture.png",
+					"assets/copperbench/animations/idle.animation.json")) {
+				Path file = workspace.resolve(path);
+				Files.createDirectories(file.getParent());
+				Files.writeString(file, "{}");
+				AssetDescriptor unsupported = AssetDescriptor.fromFile(workspace, file);
+				BlockbenchBridgeException error = assertThrows(BlockbenchBridgeException.class,
+						() -> service.openAsset(unsupported.id()));
+				assertEquals("BLOCKBENCH_ASSET_UNSUPPORTED", error.code());
+			}
+		}
 	}
 
 	@Test

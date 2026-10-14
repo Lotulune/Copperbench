@@ -9,7 +9,8 @@ import dev.copperbench.core.contract.UiCore.Event;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.history.JGitLocalHistoryService;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
@@ -31,9 +32,11 @@ class BlockbenchEditApplicationServiceTest {
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-09-05T06:00:00Z"), ZoneOffset.UTC);
 	@TempDir Path temp;
 
-	@Test void blockbenchEditCreatesRecoveryBeforeLaunchAndRegistersExternalSaveAsOneRevision() throws Exception {
+	@ParameterizedTest @ValueSource(strings = {"bbmodel", "json"})
+	void blockbenchEditCreatesRecoveryBeforeLaunchAndRegistersExternalSaveAsOneRevision(String extension) throws Exception {
 		Path workspace = temp.resolve("workspace");
-		Path modelFile = workspace.resolve("assets/copperbench/models/lamp.bbmodel");
+		String modelPath = "assets/copperbench/models/lamp." + extension;
+		Path modelFile = workspace.resolve(modelPath);
 		Files.createDirectories(modelFile.getParent());
 		Files.writeString(modelFile, "{}");
 
@@ -65,8 +68,7 @@ class BlockbenchEditApplicationServiceTest {
 				assertEquals("recovery_point_created", events.getFirst().event());
 
 				Files.writeString(modelFile, "{\"edited\":true}");
-				var current = new AssetWorkspaceService(workspace).findByRelativePath(
-						"assets/copperbench/models/lamp.bbmodel").orElseThrow();
+				var current = new AssetWorkspaceService(workspace).findByRelativePath(modelPath).orElseThrow();
 				assertNotEquals(prepared.openedSha256(), current.sha256());
 				var completion = lifecycle.complete(prepared, current);
 

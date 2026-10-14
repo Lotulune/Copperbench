@@ -33,6 +33,7 @@ if (expectedCommit && metadata.source.commit !== expectedCommit) fail('source co
 if (metadata.platform?.os !== 'linux' || metadata.platform?.arch !== 'x86_64') fail('platform is not linux/x86_64');
 
 const requiredRoles = ['portable', 'deb', 'sbom', 'manifest'];
+if (metadata.assets?.setup) requiredRoles.push('setup');
 if (Object.keys(metadata.assets ?? {}).sort().join(',') !== requiredRoles.slice().sort().join(','))
   fail(`asset roles must be exactly ${requiredRoles.join(', ')}`);
 

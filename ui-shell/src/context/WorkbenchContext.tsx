@@ -102,6 +102,7 @@ interface WorkbenchContextType {
 
   // Bridge Actions
   loadScenario: (scenarioId: string) => void;
+  refreshWorkspace: () => Promise<void>;
   getModElementEditor: (elementId: UUID) => Promise<ModElementEditorProjection | null>;
   previewModElementChange: (elementId: UUID, changes: FieldChange[]) => Promise<ModElementChangePreview | null>;
   getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
@@ -349,7 +350,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // can still be dismissed manually and will not force itself open again.
   useEffect(() => {
     // The source editor owns its file/hash conflict recovery and keeps its draft.
-    setIsConflictModalOpen(state.viewportState === 'conflict' && activeViewRef.current !== 'source');
+    if (state.viewportState === 'conflict' && activeViewRef.current !== 'source') setIsConflictModalOpen(true);
   }, [state.viewportState]);
 
 
@@ -393,6 +394,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const selector = expected.focusTarget;
       window.setTimeout(() => focusByContractSelector(selector), 60);
     }
+  }, []);
+
+  const refreshWorkspace = useCallback(async () => {
+    // Keep editor selection and in-memory drafts while fetching the latest committed state.
+    const result = await coreBridge.negotiateHandshake({
+      messageType: 'handshake', requestId: generateUUID(),
+      supportedSchemaVersions: [...UI_SUPPORTED_SCHEMA_VERSIONS], client: { ...UI_CLIENT_IDENTITY }
+    });
+    if (result.status !== 'compatible') throw new Error('Workspace connection failed');
   }, []);
 
   const selectedEditorElement = selectedElementId ? state.elementEditors[selectedElementId]?.element : undefined;
@@ -1466,6 +1476,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsConflictModalOpen,
       announcement,
       loadScenario,
+      refreshWorkspace,
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
@@ -1555,6 +1566,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isConflictModalOpen,
       announcement,
       loadScenario,
+      refreshWorkspace,
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,

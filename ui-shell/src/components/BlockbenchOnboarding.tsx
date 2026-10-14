@@ -4,9 +4,11 @@ import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { uiText } from '../i18n';
+import { BlockbenchSetupDialog } from './BlockbenchSetupDialog';
 
 export const BlockbenchOnboarding: React.FC = () => {
-  const { state, setActiveView } = useWorkbench();
+  const { state } = useWorkbench();
+  const [setupOpen, setSetupOpen] = useState(false);
   const [show, setShow] = useState(false);
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -23,11 +25,12 @@ export const BlockbenchOnboarding: React.FC = () => {
   return <aside className="blockbench-setup" data-testid="blockbench-onboarding" style={{ padding: 14, margin: 0 }}>
     <strong>{uiText('可选工具 · Blockbench', 'Optional tool · Blockbench')}</strong>
     <div className="blockbench-setup-actions">
-      <button className="btn-secondary" type="button" onClick={() => setActiveView('assets')}>{uiText('设置 Blockbench', 'Set up Blockbench')}</button>
+      <button className="btn-secondary" type="button" onClick={() => setSetupOpen(true)}>{uiText('设置 Blockbench', 'Set up Blockbench')}</button>
       <button className="btn-secondary" type="button" disabled={busy} onClick={() => {
         setBusy(true); void blockbenchBridge.dismissSetup().then(() => setShow(false)).catch(() => setError(true)).finally(() => setBusy(false));
       }}>{uiText('稍后设置', 'Set up later')}</button>
     </div>
     {error && <p role="alert">{uiText('偏好保存失败，请稍后重试。', 'Could not save this preference. Please try again later.')}</p>}
+    <BlockbenchSetupDialog open={setupOpen} onClose={() => setSetupOpen(false)} />
   </aside>;
 };
