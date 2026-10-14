@@ -1,13 +1,16 @@
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 class FixtureDownloadRequest {
     String source
     String destination
+    boolean replace = false
     void src(Object value) { source = value.toString() }
     void dest(Object value) { destination = value.toString() }
-    void overwrite(boolean value) {}
+    void overwrite(boolean value) { replace = value }
 }
 
 def scenario = providers.gradleProperty('scenario').get()
@@ -19,58 +22,79 @@ ext.download = [run: { Closure configure ->
     configured.resolveStrategy = Closure.DELEGATE_ONLY
     configured.call()
     def role = request.source.endsWith('/LockedList.zip') ? 'plugin' : 'compiler'
-    downloads.add(role)
     def destination = file(request.destination)
+    if (destination.exists() && !request.replace) return
+    downloads.add(role)
     destination.parentFile.mkdirs()
-    Files.copy(file("fixtures/${role}.zip").toPath(), destination.toPath())
+    Files.copy(file("fixtures/${role}.zip").toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING)
 }]
 
-apply from: 'setup-under-test.gradle'
+// The isolated fixture pins its own tiny archive. Production keeps the real
+// NSIS digest; no build property can bypass that verification.
+def archives = [
+        compiler: ['nsis-3.12/makensis.exe': 'compiler-fixture',
+                   'nsis-3.12/Include/MUI2.nsh': 'include-fixture'],
+        plugin: ['Plugins/x86-unicode/LockedList.dll': 'plugin-fixture']
+]
+if (scenario == 'malformed') archives.compiler.remove('nsis-3.12/makensis.exe')
+if (scenario == 'plugin-malformed') archives.plugin = ['readme.txt': 'missing plugin']
+file('fixtures').mkdirs()
+archives.each { role, entries ->
+    new ZipOutputStream(new FileOutputStream(file("fixtures/${role}.zip"))).withCloseable { zip ->
+        entries.each { name, content ->
+            zip.putNextEntry(new ZipEntry(name))
+            zip.write(content.getBytes('UTF-8'))
+            zip.closeEntry()
+        }
+    }
+}
+def fixtureDigest = MessageDigest.getInstance('SHA-256').digest(file('fixtures/compiler.zip').bytes).encodeHex().toString()
+def productionDigest = '56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f'
+def setup = file('setup-under-test.gradle').getText('UTF-8')
+assert setup.contains(productionDigest): 'Update the fixture when the pinned NSIS release changes'
+file('setup-fixture.gradle').setText(setup.replace(productionDigest, fixtureDigest), 'UTF-8')
+if (scenario == 'checksum-mismatch') file('fixtures/compiler.zip').append('tampered', 'UTF-8')
+apply from: 'setup-fixture.gradle'
 
 tasks.register('prepareNsisFixture') {
     doLast {
         if (file('build/tools').exists()) throw new GradleException('Use a fresh fixture directory')
-        def archives = [
-                compiler: ['nsis-3.12/makensis.exe': 'compiler-fixture',
-                           'nsis-3.12/Include/MUI2.nsh': 'include-fixture'],
-                plugin: ['Plugins/x86-unicode/LockedList.dll': 'plugin-fixture']
-        ]
-        if (scenario == 'malformed') archives.compiler.remove('nsis-3.12/makensis.exe')
-        file('fixtures').mkdirs()
-        archives.each { role, entries ->
-            new ZipOutputStream(new FileOutputStream(file("fixtures/${role}.zip"))).withCloseable { zip ->
-                entries.each { name, content ->
-                    zip.putNextEntry(new ZipEntry(name))
-                    zip.write(content.getBytes('UTF-8'))
-                    zip.closeEntry()
-                }
-            }
-        }
-        def retained = scenario in ['compiler-missing', 'malformed'] ? archives.plugin : archives.compiler
+        def retained = scenario in ['compiler-missing', 'malformed'] ? archives.plugin
+                : scenario == 'compiler-only' ? [:] : archives.compiler
         retained.each { name, content ->
             def target = file('build/tools/nsis/' + name.replaceFirst('^nsis-3.12/', ''))
             target.parentFile.mkdirs()
             target.setText(content, 'UTF-8')
         }
-        if (scenario == 'complete') {
+        if (scenario in ['complete', 'archive-missing']) {
             def plugin = file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll')
             plugin.parentFile.mkdirs()
             plugin.setText('plugin-fixture', 'UTF-8')
         }
+        if (scenario in ['plugin-missing', 'complete', 'plugin-malformed']) {
+            def cached = file('build/tmp/nsis-3.12-pinned.zip')
+            cached.parentFile.mkdirs()
+            Files.copy(file('fixtures/compiler.zip').toPath(), cached.toPath())
+        }
+        if (scenario == 'checksum-mismatch') file('build/tools/nsis/makensis.exe').setText('retained-compiler', 'UTF-8')
     }
 }
 
 tasks.named('downloadNSIS') { dependsOn 'prepareNsisFixture' }
 tasks.register('verifyNsisSetup') {
-    dependsOn 'downloadNSIS'
+    dependsOn scenario == 'compiler-only' ? 'downloadNSIS' : 'downloadLegacyNsisPlugin'
     doLast {
         assert file('build/tools/nsis/makensis.exe').text == 'compiler-fixture'
         assert file('build/tools/nsis/Include/MUI2.nsh').text == 'include-fixture'
-        assert file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').text == 'plugin-fixture'
+        def plugin = file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll')
+        if (scenario == 'compiler-only') assert !plugin.exists(): 'The graphical installer must not fetch the legacy plugin'
+        else assert plugin.text == 'plugin-fixture'
         def expected = [
                 'compiler-missing': ['compiler'],
                 'plugin-missing': ['plugin'],
-                'complete': []
+                'complete': [],
+                'compiler-only': ['compiler'],
+                'archive-missing': ['compiler']
         ][scenario]
         assert downloads == expected: "Unexpected downloads for ${scenario}: ${downloads}"
         println "NSIS fixture passed: ${scenario}; downloads=${downloads}"

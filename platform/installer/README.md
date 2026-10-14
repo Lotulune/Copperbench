@@ -38,6 +38,8 @@ On Windows, compile `test/InstallerProgressFileTest.java` against the setup JAR 
 
 On Linux, compile `test/InstallerReceiptPermissionsTest.java` against the setup JAR and run `dev.copperbench.installer.InstallerReceiptPermissionsTest` with both on the classpath. Atomic property-file replacement preserves existing POSIX permissions, so system installation receipts remain readable to ordinary users. Newly created request/progress files retain their private temporary-file permissions. The regression checks both boundaries; a real system-package upgrade and ordinary-user uninstall must still be verified on GNOME.
 
+The same permission boundaries run in the Ubuntu Java CI job through `./gradlew test --tests dev.copperbench.installer.InstallerReceiptTest`. This test skips filesystems without POSIX permission support.
+
 `test/InstallRehearsal.java` exercises a complete Windows payload in a new temporary directory. Compile it with the installer classes on the classpath, then pass the payload, manifest, setup JAR, a new output directory and version. It deliberately does not register an application, request UAC, launch Copperbench or claim an end-to-end OS installation test.
 
 Before release, use a clean test account for the full Windows install/start/upgrade/uninstall flow and an Ubuntu 24.04 GNOME session for extraction, the actual script context menu, authorization, launch and uninstall on Wayland/Xorg. Also re-scan the exact final Windows artifact with the reported 360 product/database version. CI/headless tests and old package acceptance cannot replace those checks.

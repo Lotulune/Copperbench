@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 for (const [systemLanguage, expected] of [['zh-TW', 'zh'], ['en-US', 'en'], ['de-DE', 'en']] as const) {
-  test(`first launch matches ${systemLanguage} and keeps an explicit choice`, async ({ browser }) => {
-    const context = await browser.newContext({ locale: systemLanguage });
+  test(`first launch matches ${systemLanguage} and keeps an explicit choice`, async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ locale: systemLanguage, baseURL });
     const page = await context.newPage();
-    await page.goto('http://localhost:5173');
+    await page.goto('/');
     await expect(page.getByTestId('ui-language-select')).toHaveValue(expected);
     const chosen = expected === 'en' ? 'zh' : 'en';
     await page.getByTestId('ui-language-select').selectOption(chosen);

@@ -187,9 +187,11 @@ tasks.register('downloadNSIS') {
 tasks.register('downloadLegacyNsisPlugin') {
     dependsOn downloadNSIS
     doLast {
-        if (Os.isFamily(Os.FAMILY_WINDOWS) && !file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').exists()) {
+        if (Os.isFamily(Os.FAMILY_WINDOWS) && !file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').isFile()) {
             download.run { src nsis_lockedlist_plugin_url; dest 'build/tmp/nsis_lockedlist_plugin'; overwrite true }
             copy { from zipTree(file('build/tmp/nsis_lockedlist_plugin')) into file('build/tools/nsis/') }
+            if (!file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').isFile())
+                throw new GradleException('NSIS LockedList plugin is missing after extraction')
             delete 'build/tmp/nsis_lockedlist_plugin'
         }
     }
