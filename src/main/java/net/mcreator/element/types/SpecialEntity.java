@@ -29,6 +29,7 @@ import net.mcreator.element.types.interfaces.IMCItemProvider;
 import net.mcreator.element.types.interfaces.ITabContainedElement;
 import net.mcreator.element.types.interfaces.LimitedOptions;
 import net.mcreator.io.FileIO;
+import net.mcreator.generator.GeneratorFlavor;
 import net.mcreator.minecraft.MCItem;
 import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.util.image.ImageUtils;
@@ -93,8 +94,11 @@ import java.util.List;
 		List<BaseType> baseTypes = new ArrayList<>();
 		baseTypes.add(BaseType.ITEM);
 
-		// 1.21-1.21.1 uses enum extensions for custom boats so they do not require the creation of a new entity type
-		if (!getModElement().getGenerator().getGeneratorMinecraftVersion().equals("1.21.1"))
+		// NeoForge 1.21.1 extends vanilla boat variants; Fabric registers a separate entity type.
+		boolean usesEnumExtension = getModElement().getGeneratorConfiguration().getGeneratorFlavor()
+				== GeneratorFlavor.NEOFORGE
+				&& getModElement().getGenerator().getGeneratorMinecraftVersion().equals("1.21.1");
+		if (!usesEnumExtension)
 			baseTypes.add(BaseType.ENTITY);
 
 		return baseTypes;

@@ -43,7 +43,7 @@ package ${package}.init;
 				</#if>
 			<#elseif entity.getModElement().getTypeString() == "specialentity">
 				net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()},
-						context -> new <#if entity.isAnyRaft()>Raft<#else>Boat</#if>Renderer(context, ${JavaModName}Models.${entity.getModElement().getRegistryNameUpper()}_LAYER_LOCATION));
+						${entity.getModElement().getName()}Renderer::new);
 			</#if>
 		</#list>
 	}
