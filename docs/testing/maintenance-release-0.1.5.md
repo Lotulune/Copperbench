@@ -5,7 +5,7 @@ The owner requested combining the first-success improvements with the completed 
 ## Source scope
 
 - [PR #106](https://github.com/Lotulune/Copperbench/pull/106), merged as `ccee11b8358aeee8da25e28741cefb3eb98c7048`, includes delayed-refresh draft protection, numeric input preservation, POSIX receipt permissions, the complete bilingual offline installer, creator defaults and texture diagnostics, block lighting fields, and Fabric 1.21.1 spawn-egg/shearing/boat repairs.
-- The first-success integration adds structured input preflight, the first-creation tutorial, dependency-lock fixes, consistent generator descriptions and a consolidated status entry. Its integration verification is recorded in [first-success-2026-10-14.md](first-success-2026-10-14.md).
+- The first-success integration `8a304de48097a173038a46563cb829d90f2e2135` adds structured input preflight, the first-creation tutorial, dependency-lock fixes, consistent generator descriptions and a consolidated status entry. Its integration verification is recorded in [first-success-integration-2026-10-14.md](first-success-integration-2026-10-14.md).
 - Product configuration, UI identity/About, package version and the release manifest fixture are synchronized to 0.1.5. [Previous release declarations](../../evidence/maintenance/2026-10-14/publication-0.1.5/previous-release-state.json) retain their original source and publication evidence. Historical snapshot, Beta candidate provenance and installed-product gates are unchanged.
 
 ## Existing evidence and its scope
