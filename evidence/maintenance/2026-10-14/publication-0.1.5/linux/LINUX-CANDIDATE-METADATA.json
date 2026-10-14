@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-linux-immutable-candidate",
+  "status": "development-not-certified",
+  "formalSupportClaim": false,
+  "exactBinaryPromotionEligible": false,
+  "candidateId": "sha256:ea18be795a6266fa5934e75722983ccabf93e62a634c3629494b96768f4e1fac",
+  "productId": "dev.copperbench.studio",
+  "productVersion": "0.1.5",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "primaryDesktopSession": "GNOME Wayland",
+    "compatibilityDesktopSession": "GNOME on Xorg"
+  },
+  "source": {
+    "commit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+    "ref": "refs/heads/main",
+    "workflowRunId": "38568121386",
+    "workflowRunAttempt": "1"
+  },
+  "assets": {
+    "portable": {
+      "role": "portable",
+      "name": "Copperbench 0.1.5 Linux x86_64.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1110034878,
+      "sha256": "60eb139a5c48e101228378edc0e1d23ea882bc7d33aaa06572a4995839dc07b5"
+    },
+    "deb": {
+      "role": "deb",
+      "name": "copperbench_0.1.5_amd64.deb",
+      "mediaType": "application/vnd.debian.binary-package",
+      "size": 1027191486,
+      "sha256": "1af8ffbd49361ef2815053c1d89c4b6b82cbd318a1aa13b9c6934a52b8bda2c4"
+    },
+    "sbom": {
+      "role": "sbom",
+      "name": "copperbench-linux.spdx.json",
+      "mediaType": "application/spdx+json",
+      "size": 5670307,
+      "sha256": "3894275b657949b3451ac6560b38d2d6f8ed4efad744627d2443381ca3bdd638"
+    },
+    "manifest": {
+      "role": "manifest",
+      "name": "linux-candidate-manifest.json",
+      "mediaType": "application/json",
+      "size": 6694,
+      "sha256": "781cbee7bc1bc6d8260caf0ed48539f04d028d25bf97c20c6e669c34b0cb27ad"
+    },
+    "setup": {
+      "role": "setup",
+      "name": "Copperbench 0.1.5 Linux x86_64 Setup.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1112002483,
+      "sha256": "3f9b7573511d46af9f2828aee58fa8d8154d1444180340d4f67c6c7ce591e0d7"
+    }
+  }
+}

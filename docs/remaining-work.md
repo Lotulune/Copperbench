@@ -4,13 +4,13 @@ For the compact current entry, see [current status and release capabilities](./s
 
 ## Current baseline
 
-- Public stable releases: Windows `v0.1.4` and Linux `v0.1.4-linux-stable`. The refreshed Product Shell, source editing, relationship graph, asset previews, settings and reliability changes are published. See [current downloads](./releases/current.md) for platform-specific verification.
+- Public stable releases: Windows `v0.1.5` and Linux `v0.1.5-linux-stable`. The integrated bug fixes, first-success improvements and bilingual offline installer are published. See [current downloads](./releases/current.md) for platform-specific verification.
 - Stage 11 / Public Beta V1 product closure is complete.
 - Stage 12 / complex element depth is complete in the current implementation line: all 37 first-party Java Mod Element types now share the structured editor/schema path, unknown fields survive save/reopen, field diagnostics can locate the affected editor field, and the eight supported Fabric/NeoForge generator tracks pass the Stage 12 edited-fixture golden build. See [Stage 12 closure evidence](./testing/stage12-complex-element-depth-2026-09-05.md).
 - Stage 13 / creator productivity is complete on the current development line. Procedure Workbench 2.0, Asset Center, Diagnostics 2.0, Local History/Recovery, Migration/Refactor and Workspace Health all satisfy the Stage 13 Definition of Done, including the final clean-installed Windows Explorer drag/drop and failure → location → recovery-protected repair → rebuild product replays. See [Stage 13 closure evidence](./testing/stage13-closure-2026-09-07.md).
 - The installed-product P0 hardening for bundled JDK resolution, real Run Client lifecycle, desktop MCP integration, and the external-Agent product loop is complete and represented by Beta 4.
 - All current beta-blocking gates in `product-status.json` are `passed`; `product.betaEligible=true`.
-- Formal desktop support covers Windows 11 x64 and Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg. The historical [0.1.2 installed acceptance](./testing/maintenance-012-linux-installed-2026-09-28.md) covers Fabric/NeoForge 1.21.1 on those package bytes. Linux 0.1.4 uses the owner-approved [candidate CI acceptance scope](./testing/product-shell-linux-release-0.1.4.md); it does not claim a fresh full installed replay or certify additional distributions, architectures or cold-cache/default-network builds.
+- Formal desktop support covers Windows 11 x64 and Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg. The historical [0.1.2 installed acceptance](./testing/maintenance-012-linux-installed-2026-09-28.md) covers Fabric/NeoForge 1.21.1 on those package bytes. Linux 0.1.5 uses the owner-approved [candidate CI acceptance scope](./testing/maintenance-linux-0.1.5.md); it does not claim a fresh full installed replay or certify additional distributions, architectures or cold-cache/default-network builds.
 - Stage 14 / native-first general-Agent workbench is complete on the current development line: 14A source integrity, 14B native bootstrap/authoring, 14C layered packaged runtime/gameplay evidence, and 14D review/reuse are all closed by their own DoD. See [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md).
 
 The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseline. New development should reopen and revalidate the corresponding installed-product gate whenever it changes the validated JDK, Run Client, Desktop MCP, or external-Agent product path, or when regression evidence shows the validated behavior changed; otherwise the existing passed gate state remains the baseline.
@@ -31,7 +31,7 @@ The [installed cache provenance phase](./roadmap/agent-readiness-cache-phase.md)
 
 This page is the current follow-up entry; [PRD-NEXT.md](../PRD-NEXT.md) preserves historical requirements. Stage 17 and earlier maintenance releases retain their original acceptance scope. Earlier closure records, including Stage 15 Linux Preview 2, retain their historical scope and binary digests.
 
-The repository review's reliability changes shipped in 0.1.4. Full installed-product and gameplay acceptance were not repeated; the release records retain that limit. M2 fixes the failed asset-preview message retaining its old language, with a browser regression proving locale changes do not refetch it. That fix is not yet published; the 0.1.4 release record remains unchanged.
+The repository review's reliability changes shipped in 0.1.4. Full installed-product and gameplay acceptance were not repeated; the release records retain that limit. M2 fixes the failed asset-preview message retaining its old language, with a browser regression proving locale changes do not refetch it. That fix is included in 0.1.5; the historical 0.1.4 release record remains unchanged.
 
 The published 0.1.2 maintenance release fixes asset-refresh continuity, clipboard success feedback and current user documentation, and extracts one internal asset-read/health projection service. Both platforms are published; the Linux release promotes the exact newly accepted candidate bytes. Checks and outstanding limitations are recorded in the [maintenance acceptance record](./testing/maintenance-2026-09-27.md).
 
@@ -58,7 +58,7 @@ The remaining roadmap work is continuous maintenance: Minecraft/loader/generator
 
 ## Non-blocking follow-up
 
-The following remain useful quality work but are not blockers for the published 0.1.4 release:
+The following remain useful quality work but are not blockers for the published 0.1.5 release:
 
 - real JCEF accessibility certification on a physical or otherwise known-good Windows accessibility environment;
 - Authenticode signing;

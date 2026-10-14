@@ -3,12 +3,12 @@
   <h1>Copperbench</h1>
   <p><strong>在桌面上制作、构建和测试 Minecraft Java 模组。</strong></p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="docs/releases/current.md">下载 0.1.4</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
+  <p><a href="docs/releases/current.md">下载 0.1.5</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
 
 Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fabric 和 NeoForge。用模组元素编辑器和 Blockly 制作内容，也可以编辑手写源码、管理模型与纹理，并通过本机 MCP 接入外部 AI 工具。
 
-**当前稳定版：0.1.4，Windows 与 Linux 均已发布。** 新版工作台加入源码编辑、关系图、资产分类与预览，并简化导航和设置。
+**当前稳定版：0.1.5，Windows 与 Linux 均已发布。** 本次更新带来双语离线安装器、结构化输入诊断与首作教程，并修复编辑器、创建默认值和 Fabric 模板。
 
 <a id="getting-started"></a>
 
@@ -16,8 +16,8 @@ Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fa
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable) | Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 新建工作区，选择加载器和 Minecraft 版本。
@@ -25,9 +25,9 @@ Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fa
 
 工作台支持简体中文和英文。内置 Fabric / NeoForge 生成器覆盖 Minecraft **26.2、26.1.2、1.21.1、1.20.1**；一个工作区同时使用一个活动生成器。
 
-当前源码另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.4 的支持声明。
+另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.5 的支持声明。
 
-Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.4 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
+Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.5 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
 
 <a id="showcase"></a>
 

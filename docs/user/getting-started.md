@@ -2,7 +2,7 @@
 
 ## 安装前
 
-Copperbench 当前公开稳定版为 **0.1.4**，Windows 与 Linux 下载链接统一列在[当前下载](../releases/current.md)。目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；其他 Linux 发行版和架构尚未验证。
+Copperbench 当前公开稳定版为 **0.1.5**，Windows 与 Linux 下载链接统一列在[当前下载](../releases/current.md)。目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；其他 Linux 发行版和架构尚未验证。
 
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 
@@ -10,7 +10,7 @@ Copperbench 当前公开稳定版为 **0.1.4**，Windows 与 Linux 下载链接�
 
 ## 第一次启动
 
-1. Windows：运行 EXE 安装包，或解压 Portable ZIP 后启动 `copperbench.exe`。Ubuntu：按 [Linux 安装说明](./linux-installation.md)安装 `.deb` 或使用便携版 `.tar.gz`。
+1. Windows：运行 EXE 安装包，或解压 Portable ZIP 后启动 `copperbench.exe`。Ubuntu：使用 [图形安装向导](./graphical-installation.md)，或按 [Linux 安装说明](./linux-installation.md)安装 `.deb`、使用便携版 `.tar.gz`。
 2. 选择是否使用中国大陆镜像。Windows 偏好设置默认位于 `%USERPROFILE%\.copperbench`；Linux 默认位于 `~/.config/copperbench`，并遵循 `XDG_CONFIG_HOME`。显式用户目录覆盖和旧设置迁移见 [Linux 安装说明](./linux-installation.md)。
 3. 在“新建工作区”中选择 Fabric/NeoForge 版本轨道或资源包。
 4. 填写名称、ID、Java 包名和工作区目录，确认后创建。
@@ -24,4 +24,4 @@ datagen 输出先进入隔离暂存区，查看差异并明确确认后才发布
 
 详细能力和验证边界见[稳定版使用说明](./README.md)。遇到启动、网络或构建问题时查阅[故障排查](./troubleshooting.md)。首次构建需要联网，暖缓存验证不代表冷缓存或离线构建认证。
 
-0.1.4 提供新版工作台、源码编辑、关系图、资产分类与预览，以及主题、语言和编辑器设置。具体改动、已知问题和验证范围见[当前下载中的平台发布说明](../releases/current.md)。旧安装包不会随源码更新自动包含这些功能。
+0.1.5 提供双语离线安装器、输入诊断和首作教程，修复草稿保存、数字编辑、创建默认值、光照与船模板，并保留既有工作台和设置。具体改动、已知问题和验证范围见[当前下载中的平台发布说明](../releases/current.md)。旧安装包不会随源码更新自动包含这些功能。

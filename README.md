@@ -3,12 +3,12 @@
   <h1>Copperbench</h1>
   <p><strong>Create, build, and test Minecraft Java mods on your desktop.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="docs/releases/current.md">Download 0.1.4</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
+  <p><a href="docs/releases/current.md">Download 0.1.5</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
 Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric and NeoForge support. Create content with Mod Element editors and Blockly, edit manual source files, manage models and textures, and connect external AI tools through local MCP.
 
-**Current stable release: 0.1.4 for Windows and Linux.** The refreshed workbench adds source editing, a relationship graph, asset filtering and previews, with simpler navigation and settings.
+**Current stable release: 0.1.5 for Windows and Linux.** This release adds bilingual offline installers, clearer input diagnostics and a first-creation tutorial, with editor, creator and Fabric template fixes.
 
 <a id="getting-started"></a>
 
@@ -16,8 +16,8 @@ Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable) | Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
@@ -25,9 +25,9 @@ Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
 
-Current source also registers **26.3 preview** targets with explicit opt-in and bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.4 support claim.
+Additional bundled **26.3 preview** targets require explicit opt-in and expose bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.5 support claim.
 
-Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access; Blockbench is installed separately. Release checks passed for 0.1.4, while full installed-product and gameplay acceptance were not repeated. See [current downloads](docs/releases/current.md) for each platform's verification scope and known issues.
+Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access; Blockbench is installed separately. Release checks passed for 0.1.5, while full installed-product and gameplay acceptance were not repeated. See [current downloads](docs/releases/current.md) for each platform's verification scope and known issues.
 
 <a id="showcase"></a>
 
