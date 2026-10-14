@@ -159,6 +159,70 @@ export class JcefCoreBridge implements CoreBridge {
     return result;
   }
 
+  public async previewVersionCopyUpgrade(workspaceId: string, targetGeneratorId: string): Promise<import('../types/contract').VersionCopyUpgradeResult> {
+    const result = await this.invoke<import('../types/contract').VersionCopyUpgradeResult>({
+      messageType: 'version_copy_upgrade', requestId: safeRandomUUID(), workspaceId,
+      request: { supportedVersions: ['1'], operation: 'preview', targetGeneratorId }
+    });
+    if (result.contract !== 'version_copy_upgrade' || result.selectedVersion !== '1')
+      throw new Error(tr('版本复制升级协商失败，请更新客户端。'));
+    return result;
+  }
+
+  public async versionCopyUpgradeV2(workspaceId: string, request: import('../types/contract').VersionCopyUpgradeV2Request): Promise<import('../types/contract').VersionCopyUpgradeResult> {
+    const result = await this.invoke<import('../types/contract').VersionCopyUpgradeResult>({
+      messageType: 'version_copy_upgrade', requestId: safeRandomUUID(), workspaceId,
+      request: { ...request, supportedVersions: ['2'] }
+    });
+    if (result.contract !== 'version_copy_upgrade' || result.selectedVersion !== '2')
+      throw new Error(tr('版本复制升级协商失败，请更新客户端。'));
+    return result;
+  }
+
+  public async sendPreview(workspaceId: string, request: import('../types/contract').PreviewRequest): Promise<import('../types/contract').PreviewResult> {
+    const result = await this.invoke<import('../types/contract').PreviewResult>({
+      messageType: 'preview', requestId: safeRandomUUID(), workspaceId, request
+    });
+    if (result.contract !== 'preview_targets' || result.selectedVersion !== '1')
+      throw new Error(tr("预览能力协商失败，请更新客户端。"));
+    const acceptance = result.acceptance;
+    if (acceptance && (acceptance.contract !== 'required_cases' || acceptance.selectedVersion !== '1'
+      || acceptance.requestId !== result.requestId)) throw new Error('Acceptance response does not match the preview request.');
+    const core = result.core ?? acceptance?.core;
+    if (core && (core.workspaceId !== workspaceId || core.requestId !== result.requestId))
+      throw new Error('Preview Core response identity does not match the request.');
+    if (core?.messageType === 'command_result') {
+      const operation = request.operation === 'acceptance'
+        ? request.payload?.operation === 'run' ? 'run_gametest' : 'export_workspace' : request.command;
+      if (core.operation !== operation || !Number.isSafeInteger(core.newRevision) || core.newRevision < 0)
+        throw new Error('Invalid preview command response.');
+      this.applyCommandResult(core);
+      this.notify();
+      if (core.task?.state === 'running') this.pollTask(core.task.id);
+      if (core.status === 'committed' && ['create_mod_element', 'update_mod_element', 'apply_workspace_plan'].includes(core.operation))
+        await this.refreshInitialProjection();
+    } else if (result.status === 'rejected' || result.status === 'failed') {
+      this.state.diagnostics = [...result.diagnostics];
+      this.notify();
+    }
+    return result;
+  }
+
+  public async readAcceptanceDiagnostics(workspaceId: string, taskId: string): Promise<import('../types/contract').AcceptanceCoverageDiagnostics> {
+    const requestId = safeRandomUUID();
+    // The extension retains workspace identity in its unchanged core query envelope.
+    const result = this.parse<{ contract: string; selectedVersion: string; status: string; requestId: string;
+      core?: { workspaceId: string }; coverageDiagnostics?: import('../types/contract').AcceptanceCoverageDiagnostics }>(await this.host.invoke(JSON.stringify({
+      messageType: 'acceptance', requestId, workspaceId,
+      request: { supportedVersions: ['1'], diagnosticVersions: ['1'], operation: 'get', payload: { taskId } }
+    })));
+    if (result.requestId !== requestId || result.core?.workspaceId !== workspaceId
+      || result.status !== 'succeeded' || result.contract !== 'required_cases' || result.selectedVersion !== '1'
+      || result.coverageDiagnostics?.schemaVersion !== '1' || result.coverageDiagnostics.taskId !== taskId)
+      throw new Error('Acceptance diagnostic contract was not negotiated');
+    return result.coverageDiagnostics;
+  }
+
   public async sendCommand<T>(command: Command<T>): Promise<CommandResult> {
     const result = await this.invoke<CommandResult>(command);
     this.applyCommandResult(result);
@@ -182,6 +246,8 @@ export class JcefCoreBridge implements CoreBridge {
       ? { eventSequence: this.lastEventSequence, requestSequence: ++this.nextTaskQuerySequence }
       : undefined;
     const result = await this.invoke<QueryResult<T>>(query);
+    if (query.schemaVersion === '1.1' && result.schemaVersion !== '1.1')
+      throw new Error('Core did not return the requested editor schema 1.1.');
     if (this.disposed) return result;
     this.applyQueryResult(result as QueryResult, taskWatermark);
     this.notify();

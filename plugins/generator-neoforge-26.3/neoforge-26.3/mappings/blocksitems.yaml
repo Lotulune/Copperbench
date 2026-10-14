@@ -1,0 +1,11 @@
+_default:
+  - Items.AIR
+  - minecraft:air
+Items.STICK: [Items.STICK, 'minecraft:stick']
+Items.STRING: [Items.STRING, 'minecraft:string']
+Items.PAPER: [Items.PAPER, 'minecraft:paper']
+Items.FLINT: [Items.FLINT, 'minecraft:flint']
+Items.DIAMOND: [Items.DIAMOND, 'minecraft:diamond']
+'Items.COAL#0': [Items.COAL, 'minecraft:coal']
+Items.IRON_NUGGET: [Items.IRON_NUGGET, 'minecraft:iron_nugget']
+Blocks.SAND: [Blocks.SAND, 'minecraft:sand']

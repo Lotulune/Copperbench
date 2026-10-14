@@ -91,6 +91,10 @@ export interface HandshakeResult {
  * components or the WorkbenchContext.
  */
 export interface CoreBridge {
+  previewVersionCopyUpgrade?(workspaceId: string, targetGeneratorId: string): Promise<import('../types/contract').VersionCopyUpgradeResult>;
+  versionCopyUpgradeV2?(workspaceId: string, request: import('../types/contract').VersionCopyUpgradeV2Request): Promise<import('../types/contract').VersionCopyUpgradeResult>;
+  readAcceptanceDiagnostics?(workspaceId: string, taskId: string): Promise<import('../types/contract').AcceptanceCoverageDiagnostics>;
+  sendPreview?(workspaceId: string, request: import('../types/contract').PreviewRequest): Promise<import('../types/contract').PreviewResult>;
   getState(): BridgeState;
   onEvent(listener: (event: CoreEvent) => void): () => void;
   onStateChange(listener: (state: BridgeState) => void): () => void;

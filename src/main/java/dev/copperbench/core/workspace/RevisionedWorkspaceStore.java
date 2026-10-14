@@ -83,6 +83,16 @@ public final class RevisionedWorkspaceStore {
 		}
 	}
 
+	/** Allocates an observation event after asynchronous work, without changing the current content revision. */
+	public TransactionResult<Long> nextEventSequence(UUID workspaceId) {
+		Entry entry;
+		synchronized (this) { entry = workspaces.get(workspaceId); }
+		if (entry == null) return TransactionResult.notFound();
+		synchronized (entry) {
+			return TransactionResult.coordinated(entry.state.revision(), entry.state.nextEventSequence());
+		}
+	}
+
 	/** Outcome of a state replacement: committed revision plus the event sequence to use. */
 	public record Replacement(long revision, long sequence, java.util.Set<String> changedPaths) {
 		public Replacement {

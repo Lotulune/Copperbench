@@ -1,0 +1,30 @@
+.version-copy-upgrade { display: flex; flex-direction: column; gap: 16px; max-width: 1120px; min-width: 0; }
+.version-copy-upgrade h2 { margin: 0; font-size: 20px; }
+.version-copy-upgrade p { margin: 8px 0 0; line-height: 1.55; }
+.version-upgrade-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.version-upgrade-controls label { display: flex; flex-direction: column; flex: 1 1 220px; gap: 8px; }
+.version-upgrade-controls input, .version-upgrade-controls select { width: 100%; min-height: 40px; padding: 8px 12px; color: var(--text-main); background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.version-upgrade-controls button { min-height: 40px; padding: 8px 16px; }
+.version-upgrade-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.version-upgrade-filters button { padding: 9px 12px; color: var(--text-main); border: 1px solid var(--border-subtle); background: var(--bg-panel); border-radius: var(--radius-md); }
+.version-upgrade-filters button[aria-pressed="true"] { background: var(--badge-blue-bg); border-color: var(--badge-blue); }
+.version-upgrade-entry, .version-upgrade-basis { padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-panel); }
+.version-upgrade-entry > div { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.version-upgrade-path, .version-upgrade-basis dd { overflow-wrap: anywhere; min-width: 0; }
+.version-upgrade-entry .badge { flex-shrink: 0; }
+.version-upgrade-entry[data-disposition="manual"] .badge { color: var(--badge-amber); background: var(--badge-amber-bg); }
+.version-upgrade-entry[data-disposition="unsupported"] .badge { color: var(--badge-red); background: var(--badge-red-bg); }
+.version-upgrade-entry[data-disposition="convertible"] .badge { color: var(--badge-green); background: var(--badge-green-bg); }
+.version-upgrade-entries { display: flex; flex-direction: column; gap: 12px; }
+.version-copy-upgrade summary { cursor: pointer; padding: 8px 0; line-height: 1.4; }
+.version-copy-upgrade summary:focus-visible { outline: 2px solid var(--badge-blue); outline-offset: 2px; }
+.version-upgrade-entry pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; font-size: 12px; line-height: 1.5; }
+.version-upgrade-error { color: var(--badge-red); }
+.version-upgrade-basis dl { display: grid; grid-template-columns: minmax(80px, auto) minmax(0, 1fr); gap: 8px 16px; font-size: 12px; }
+.version-upgrade-basis dd { margin: 0; }
+.version-upgrade-copy { padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.version-upgrade-copy h3 { margin: 0; }
+.version-upgrade-copy .version-upgrade-controls { margin-top: 12px; }
+.version-upgrade-confirm { display: flex; align-items: start; gap: 10px; margin: 16px 0; line-height: 1.5; }
+.version-upgrade-copy > button { padding: 10px 16px; min-height: 40px; }
+.version-upgrade-copy input[type="checkbox"] { margin-top: 4px; }

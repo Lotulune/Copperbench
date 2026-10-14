@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class GameTestWorkflowTest {
     @TempDir Path temp;
 
-    @ParameterizedTest @ValueSource(strings = {"pass", "zero", "framework_only", "skipped", "failed", "missing", "stale", "process_exit", "artifact_changed", "source_changed"})
+    @ParameterizedTest @ValueSource(strings = {"pass", "zero", "framework_only", "skipped", "failed", "duplicate", "missing", "stale", "process_exit", "artifact_changed", "source_changed"})
     void isolatedAcceptanceUsesRealNativeFilesAndActualReports(String outcome) throws Exception {
         Path root = temp.resolve("native-project");
         write(root.resolve("native.mcreator"), "{}");
@@ -71,6 +71,7 @@ class GameTestWorkflowTest {
                     case "framework_only" -> "<testcase name=\"minecraft:always_pass\"/>";
                     case "skipped" -> "<testcase name=\"scenario\"><skipped/></testcase>";
                     case "failed" -> "<testcase name=\"scenario\"><failure message=\"Expected waypoint to survive serialization\"/></testcase>";
+                    case "duplicate" -> "<testcase name=\"scenario\" classname=\"Behavior\"/>".repeat(6);
                     default -> "<testcase name=\"scenario\" classname=\"Behavior\"/>";
                 };
                 if (!outcome.equals("missing")) write(report, "<testsuite>" + testcase + "</testsuite>");
@@ -93,6 +94,12 @@ class GameTestWorkflowTest {
             assertEquals(report, JsonParser.parseString(Files.readString(Path.of(report.get("verificationPath").getAsString()))));
             if (outcome.equals("pass")) { assertEquals(1, report.get("executed").getAsInt()); assertEquals(1, report.get("passed").getAsInt()); }
             if (outcome.equals("failed")) assertTrue(report.getAsJsonArray("cases").toString().contains("survive serialization"));
+            if (outcome.equals("duplicate")) {
+                assertEquals("GAMETEST_REPORT_INVALID", report.get("reasonCode").getAsString());
+                assertEquals(1, report.get("acceptanceExecuted").getAsInt());
+                assertTrue(report.get("detail").getAsString().startsWith("GAMETEST_DUPLICATE_TESTS:"));
+                assertFalse(task.has("verifiedExport"));
+            }
             assertEquals("existing player world", Files.readString(root.resolve("run/world/level.dat")));
             assertEquals(outcome.equals("source_changed") ? "newer implementation" : "native implementation bytes", Files.readString(root.resolve("src/main/java/custom/Native.java")));
             assertEquals(!outcome.equals("source_changed"), report.get("sourceCurrentAtCompletion").getAsBoolean());
@@ -102,10 +109,10 @@ class GameTestWorkflowTest {
     @Test void scaffoldsEveryJavaTrackAndKeepsAuthoredTestsOnRepeatedPreparation() throws Exception {
         List<JsonObject> environments = new ArrayList<>();
         for (var profile : List.of(Fabric1211Generator.Profile.FABRIC_1201, Fabric1211Generator.Profile.FABRIC_1211,
-                Fabric1211Generator.Profile.FABRIC_261, Fabric1211Generator.Profile.FABRIC_262))
+                Fabric1211Generator.Profile.FABRIC_261, Fabric1211Generator.Profile.FABRIC_262, Fabric1211Generator.Profile.FABRIC_263))
             environments.add(new Fabric1211Generator(Path.of("."), profile).gameTestEnvironment());
         for (var profile : List.of(NeoForge1211Generator.Profile.NEOFORGE_1201, NeoForge1211Generator.Profile.NEOFORGE_1211,
-                NeoForge1211Generator.Profile.NEOFORGE_261, NeoForge1211Generator.Profile.NEOFORGE_262))
+                NeoForge1211Generator.Profile.NEOFORGE_261, NeoForge1211Generator.Profile.NEOFORGE_262, NeoForge1211Generator.Profile.NEOFORGE_263))
             environments.add(new NeoForge1211Generator(Path.of("."), profile).gameTestEnvironment());
         for (JsonObject environment : environments) {
             Path root = temp.resolve(environment.get("generatorId").getAsString());
@@ -120,6 +127,9 @@ class GameTestWorkflowTest {
             String build = GameTestSupport.hostBuild(environment, root.resolve("run/report.xml"));
             assertTrue(build.contains(environment.get("pluginVersion").getAsString()));
             assertTrue(build.contains("runGameTest"));
+            assertEquals(environment.get("generatorId").getAsString().equals("neoforge-26.3"),
+                    build.contains("javaExecutable = javaToolchains.launcherFor(java.toolchain)"),
+                    "The isolated 26.3 host must use its selected Java instead of requiring an unbundled Java 21");
         }
     }
 

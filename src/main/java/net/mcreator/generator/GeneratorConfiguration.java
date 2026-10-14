@@ -169,6 +169,12 @@ public class GeneratorConfiguration implements Comparable<GeneratorConfiguration
 		return (String) generatorConfig.get(root);
 	}
 
+	/** Whether base generation requires a Minecraft source index; native-only templates may opt out. */
+	public boolean requiresMinecraftSourceIndex() {
+		// Generator YAML uses the failsafe schema: scalar values, including false, are strings.
+		return !"false".equals(generatorConfig.get("requires_source_index"));
+	}
+
 	@Nonnull public String getGeneratorMinecraftVersion() {
 		return this.generatorName.split("-")[1];
 	}

@@ -73,6 +73,15 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 
 			@Override public JsonObject gameTestEnvironment() { return generator.gameTestEnvironment(); }
 
+			@Override public void prepareServerRun(Path targetRoot) throws Exception {
+				if (!profile.equals(Fabric1211Generator.Profile.FABRIC_263)) return;
+				// This preview qualifies a local dedicated test server in a fresh isolated task directory.
+				Path properties = serverRunDirectory(targetRoot).resolve("server.properties");
+				java.nio.file.Files.createDirectories(properties.getParent());
+				java.nio.file.Files.writeString(properties, "server-ip=127.0.0.1\nserver-port=0\n"
+						+ "view-distance=2\nsimulation-distance=2\nmax-players=1\n", java.nio.charset.StandardCharsets.UTF_8);
+			}
+
 			@Override public List<ValidationIssue> validate(dev.copperbench.core.workspace.WorkspaceState workspace) {
 				return generator.validate(workspace).stream().map(issue -> new ValidationIssue(issue.code(),
 						issue.message(), issue.path(), issue.elementId(), issue.repairValue())).toList();

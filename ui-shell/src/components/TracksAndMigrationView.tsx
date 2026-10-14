@@ -15,6 +15,7 @@ import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t, uiText } from '../i18n';
 import './tracksMigration.css';
+import { VersionCopyUpgradePanel } from './VersionCopyUpgradePanel';
 import {
   VersionTracksProjection,
   VersionTrack,
@@ -33,7 +34,7 @@ import {
   AssetMovePreview
 } from '../types/contract';
 
-type U3Tab = 'matrix' | 'migration' | 'publish';
+type U3Tab = 'matrix' | 'migration' | 'upgrade' | 'publish';
 
 const sanitizeOutputName = (raw: string): string => {
   return raw.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/^_+/, 'w_').slice(0, 64);
@@ -456,7 +457,9 @@ export const TracksAndMigrationView: React.FC = () => {
             data-testid="tab-track-matrix" onClick={() => setActiveTab('matrix')}>{uiText('可用版本', 'Available versions')}</button>
           <button type="button" className={activeTab === 'migration' ? 'is-active' : ''} aria-current={activeTab === 'migration' ? 'page' : undefined}
             data-testid="tab-loader-migration" onClick={() => setActiveTab('migration')}>{uiText('迁移工作区', 'Migrate workspace')}</button>
-          <button type="button" className={activeTab === 'publish' ? 'is-active' : ''} aria-current={activeTab === 'publish' ? 'page' : undefined}
+          <button type="button" className={activeTab === 'upgrade' ? 'is-active' : ''} aria-current={activeTab === 'upgrade' ? 'page' : undefined}
+            data-testid="tab-version-upgrade" onClick={() => setActiveTab('upgrade')}>{uiText('版本复制升级', 'Version copy upgrade')}</button>
+          <button type="button" className={activeTab === 'publish'  ? 'is-active' : ''} aria-current={activeTab === 'publish' ? 'page' : undefined}
             data-testid="tab-publish-batches" onClick={() => setActiveTab('publish')}>{uiText('资源包发布', 'Resource pack releases')}</button>
         </nav>
       </header>
@@ -753,6 +756,8 @@ export const TracksAndMigrationView: React.FC = () => {
       )}
 
       {/* Tab 4: Resource Pack Publish Batches */}
+      {activeTab === 'upgrade' && <VersionCopyUpgradePanel />}
+
       {activeTab === 'publish' && (
         <div className="publish-batches-content animate-fade-in" data-testid="publish-batches-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

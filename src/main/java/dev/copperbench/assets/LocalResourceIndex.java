@@ -42,6 +42,10 @@ final class LocalResourceIndex {
             if (!generator.matches("(?:fabric|neoforge)-(?:1\\.20\\.1|1\\.21\\.1|26\\.1\\.2|26\\.2)")) return unavailable(version);
             version = generator.substring(generator.indexOf('-') + 1);
             dependencies = DependencyResourceIndex.discover(root, generator);
+            // A stale dependency context cannot establish vanilla availability either. Do not hash
+            // and index client archives whose results would immediately be discarded by resolve().
+            if (dependencies.invalidatesPreviousContext())
+                return new LocalResourceIndex(Set.of(), version, "none", false, null, null, dependencies);
             List<Path> homes = new ArrayList<>();
             homes.add(root.resolve(".gradle"));
             String configured = System.getenv("COPPERBENCH_GRADLE_USER_HOME");

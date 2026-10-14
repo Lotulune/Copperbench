@@ -21,6 +21,7 @@ import { ModElementSummary, FieldChange } from '../types/contract';
 import { uiText, diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
 import { functionFields, functionHasChanges, getFunctionSession, loadedFunction, subscribeFunctionSessions, updateFunctionSession } from '../hooks/functionEditorSessions';
+import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
 
 interface FunctionWorkbenchProps {
   element: ModElementSummary;
@@ -74,7 +75,9 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
 };
 
 const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
-  const { state, updateModElement, getModElementEditor } = useWorkbench();
+  const { state, updateModElement, getModElementEditor, workspacePreviewTarget } = useWorkbench();
+  const previewAllowsSave = !workspacePreviewTarget || (workspacePreviewTarget.capabilities.operations?.some(
+    operation => operation.operation === 'update_mod_element' && operation.available) ?? false);
   const current = useSyncExternalStore(subscribeFunctionSessions, () => getFunctionSession(sessionKey));
   const { code, tags, namespace, newTag, saving: isSaving, error: message } = current;
   const fields = functionFields(current.editor);
@@ -194,7 +197,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
   };
 
   const handleSave = async () => {
-    if (!projectionLoaded || isSaving || !isDirty) return;
+    if (!projectionLoaded || isSaving || !isDirty || !previewAllowsSave) return;
     const submitted = getFunctionSession(sessionKey);
     change({ saving: true });
     setMessage(null);
@@ -426,7 +429,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
             type="button"
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || !projectionLoaded || !isDirty || !(canEditCode || canEditTags || canEditNamespace)}
+            disabled={isSaving || !projectionLoaded || !isDirty || !previewAllowsSave || !(canEditCode || canEditTags || canEditNamespace)}
             data-testid="function-save-btn"
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
@@ -435,6 +438,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
           </button>
         </div>
       </header>
+      <WorkspacePreviewChoice />
 
       {/* Notification / Alert Bar */}
       {message && (
@@ -596,7 +600,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <span>{tr("总行数：")}{lineCount}</span>
-                <span>{tr("有效命令数：")}{commandCount}</span>
+                <span>{tr("命令行数：")}{commandCount}</span>
                 {lineDiagnostics.length > 0 ? (
                   <span
                     style={{
@@ -618,7 +622,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
                       gap: '4px'
                     }}
                   >
-                    <Check size={13} /> {tr(" 语法检查通过")}</span>
+                    <Check size={13} /> {tr(" 未发现行格式问题")}</span>
                 )}
               </div>
 

@@ -1,0 +1,31 @@
+plugins {
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+group = 'dev.copperbench.probe'
+version = '1.0.0'
+base.archivesName = 'copperbench-neoforge-26.3-environment-probe'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+// ModDev's asset helper otherwise requests Java 21 even for this Java 25 target.
+tasks.withType(net.neoforged.nfrtgradle.DownloadAssets).configureEach {
+    javaExecutable = javaToolchains.launcherFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
+}
+neoForge {
+    version = '26.3.0.76'
+    mods {
+        copperbench_environment_probe { sourceSet sourceSets.main }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+    if (System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('linux')) {
+        lockFile = file('gradle/linux.lockfile')
+    }
+}

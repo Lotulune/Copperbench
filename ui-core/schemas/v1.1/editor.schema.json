@@ -1,0 +1,727 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.1:editor",
+  "title": "Explicit editor query and response 1.1; other operations remain at frozen 1.0",
+  "$defs": {
+    "localizedText": {
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9._$:/-]{0,255}$"
+        },
+        "fallback": {
+          "type": "string",
+          "minLength": 1
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "fieldOption": {
+      "type": "object",
+      "required": [
+        "value",
+        "label",
+        "disabled"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "reason": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/localizedText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorField": {
+      "type": "object",
+      "required": [
+        "path",
+        "label",
+        "control",
+        "required",
+        "readOnly",
+        "value",
+        "options",
+        "diagnostics"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "help": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/localizedText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "control": {
+          "type": "string",
+          "enum": [
+            "text",
+            "textarea",
+            "json",
+            "number",
+            "toggle",
+            "select",
+            "resource_reference",
+            "procedure_reference",
+            "element_reference",
+            "element_reference_list",
+            "structured_list"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "value": {},
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldOption"
+          }
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "minLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "pattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic"
+          }
+        },
+        "source": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/taskSourcePreview"
+        },
+        "inputSchema": {
+          "type": "object"
+        },
+        "resourceType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "referenceTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "itemFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/editorField"
+          }
+        },
+        "itemTemplate": {
+          "type": "object"
+        },
+        "condition": {
+          "type": "object",
+          "properties": {
+            "operator": {
+              "const": "any_truthy"
+            },
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^/"
+              }
+            },
+            "expressions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "expressionLanguage": {
+              "const": "generator_template_condition"
+            }
+          },
+          "required": [
+            "operator",
+            "paths"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorSection": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/identifier"
+        },
+        "title": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/editorField"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "modElementEditorProjection": {
+      "type": "object",
+      "required": [
+        "element",
+        "sections",
+        "capabilities",
+        "configuration",
+        "sourceManagement"
+      ],
+      "properties": {
+        "element": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/modElementSummary"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/editorSection"
+          },
+          "minItems": 1
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/capabilityDecision"
+          }
+        },
+        "configuration": {
+          "type": "object",
+          "properties": {
+            "generationState": {
+              "enum": [
+                "pending",
+                "ready"
+              ]
+            },
+            "status": {
+              "enum": [
+                "consistent",
+                "drift",
+                "unverified"
+              ]
+            },
+            "reason": {
+              "type": "string"
+            },
+            "sourceFingerprint": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "differences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "declared": {},
+                  "effective": {}
+                },
+                "required": [
+                  "path",
+                  "declared",
+                  "effective"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "declaredValues": {
+              "type": "object"
+            },
+            "effectiveValues": {
+              "type": "object"
+            },
+            "planOperations": {
+              "type": "object",
+              "properties": {
+                "adopt_definition": {
+                  "type": "object",
+                  "properties": {
+                    "operation": {
+                      "const": "update_mod_element"
+                    },
+                    "payload": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "operation",
+                    "payload"
+                  ],
+                  "additionalProperties": false
+                },
+                "reapply_declared": {
+                  "type": "object",
+                  "properties": {
+                    "operation": {
+                      "const": "update_mod_element"
+                    },
+                    "payload": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "operation",
+                    "payload"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "adopt_definition",
+                "reapply_declared"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "sourceManagement": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "enum": [
+                "generated",
+                "manual"
+              ]
+            },
+            "generated": {
+              "type": "boolean"
+            },
+            "manual": {
+              "type": "boolean"
+            },
+            "canTakeOver": {
+              "type": "boolean"
+            },
+            "canReattach": {
+              "type": "boolean"
+            },
+            "reattachRequiresApproval": {
+              "type": "boolean"
+            },
+            "operation": {
+              "const": "set_mod_element_source_management"
+            }
+          },
+          "required": [
+            "mode",
+            "generated",
+            "manual",
+            "canTakeOver",
+            "canReattach",
+            "reattachRequiresApproval",
+            "operation"
+          ],
+          "additionalProperties": false
+        },
+        "fieldContract": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/blockFieldContract"
+            },
+            {
+              "$ref": "urn:ui-core:1.0:element-field-contract"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "element": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "block"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "element"
+            ]
+          },
+          "then": {
+            "properties": {
+              "fieldContract": {
+                "$ref": "#/$defs/blockFieldContract"
+              }
+            },
+            "required": [
+              "fieldContract"
+            ]
+          },
+          "else": {
+            "properties": {
+              "fieldContract": {
+                "$ref": "urn:ui-core:1.0:element-field-contract"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "messageType",
+        "schemaVersion",
+        "requestId",
+        "workspaceId",
+        "operation",
+        "payload"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "query"
+        },
+        "schemaVersion": {
+          "const": "1.1"
+        },
+        "requestId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "workspaceId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "operation": {
+          "const": "get_mod_element_editor"
+        },
+        "payload": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "elementId": {
+                  "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+                }
+              },
+              "required": [
+                "elementId"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "elementType": {
+                  "const": "block"
+                }
+              },
+              "required": [
+                "elementType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "required": [
+        "messageType",
+        "schemaVersion",
+        "requestId",
+        "workspaceId",
+        "operation",
+        "status",
+        "revision",
+        "data",
+        "diagnostics"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "query_result"
+        },
+        "schemaVersion": {
+          "const": "1.1"
+        },
+        "requestId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "workspaceId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "operation": {
+          "const": "get_mod_element_editor"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "succeeded",
+            "rejected",
+            "failed"
+          ]
+        },
+        "revision": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+        },
+        "data": {},
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "succeeded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/modElementEditorProjection"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "fieldContract": {
+                        "$ref": "#/$defs/blockFieldContract"
+                      }
+                    },
+                    "required": [
+                      "fieldContract"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "data": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "blockFieldContract": {
+      "type": "object",
+      "properties": {
+        "contractVersion": {
+          "const": 1
+        },
+        "generatorId": {
+          "type": "string"
+        },
+        "supported": {
+          "type": "boolean"
+        },
+        "unknownFields": {
+          "const": "preserve_read_only"
+        },
+        "internalNamePattern": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "minimalExample": {
+          "type": "object",
+          "properties": {
+            "elementType": {
+              "const": "block"
+            },
+            "name": {
+              "type": "string"
+            },
+            "initialValues": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "elementType",
+            "name",
+            "initialValues"
+          ],
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "compatibilityPath": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "condition": {
+                "type": "string"
+              },
+              "defaultFrom": {
+                "type": "string"
+              },
+              "writable": {
+                "type": "boolean"
+              },
+              "inputSchema": {
+                "type": "object"
+              },
+              "default": {},
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": [
+                        "string",
+                        "number"
+                      ]
+                    },
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "label"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "path",
+              "compatibilityPath",
+              "type",
+              "writable"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "contractVersion",
+        "generatorId",
+        "supported",
+        "unknownFields",
+        "internalNamePattern",
+        "fields"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

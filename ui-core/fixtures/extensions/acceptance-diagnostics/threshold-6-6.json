@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1",
+  "taskId": "33333333-3333-4333-8333-333333333333",
+  "evidenceScope": "minimum_only_legacy",
+  "inputScope": "current_at_completion",
+  "required": 0,
+  "minimumTests": 6,
+  "uniqueExecuted": 6,
+  "shortfall": 0,
+  "duplicates": [],
+  "missingCases": [],
+  "state": "passed_current_input",
+  "reasonCode": "GAMETEST_PASSED"
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1",
+  "id": "camp-kit-recipe-v1",
+  "identityKind": "gametest_resource",
+  "minimumTests": 5,
+  "cases": [
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t03"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t04"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t07"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t08"
+    },
+    {
+      "className": "",
+      "name": "copperbench_camp_kit:t09"
+    }
+  ],
+  "sha256": "033c965b66c3e9948cc5a1e62283e68879275f7dc5645f2865ef73927266c918"
+}

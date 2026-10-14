@@ -1,0 +1,32 @@
+{
+  "contractVersion": 1,
+  "scope": "Function body input validation; command syntax and runtime execution require separate validation.",
+  "commandsType": "array<string>",
+  "codeType": "string",
+  "compatibilityPath": "/fields",
+  "bodyMapping": "Join commands with LF and append a final LF; an empty array produces empty text.",
+  "aliasPolicy": "commands and code must produce exactly equal text when both are present.",
+  "generatorId": "neoforge-26.3",
+  "supported": true,
+  "fields": [
+    "code",
+    "commands",
+    "description",
+    "displayName",
+    "name",
+    "namespace"
+  ],
+  "namespaceValues": [
+    "mod"
+  ],
+  "namePattern": "^[a-z][a-z0-9_]{0,63}$",
+  "contentChecks": "String bodies, matching aliases, no NUL or leading slash; game parsing reports other syntax and reference errors.",
+  "minimalExample": {
+    "elementType": "function",
+    "name": "camp_signal",
+    "initialValues": {
+      "namespace": "mod",
+      "code": "scoreboard objectives add camp_count dummy\nscoreboard players set camp_probe camp_count 7\n"
+    }
+  }
+}

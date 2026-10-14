@@ -73,7 +73,7 @@ class CopperbenchError(RuntimeError):
 
 
 TASK_AUTHORIZED_TOOLS = {
-    "create_workspace", "create_mod_element", "update_mod_element", "delete_mod_element", "update_procedure",
+    "create_workspace", "create_mod_element", "update_mod_element", "delete_mod_element", "update_procedure", "update_workspace_file",
     "set_mod_element_source_management", "create_registry_entry", "update_registry_entry", "delete_registry_entry",
     "rename_registry_entry", "apply_workspace_plan", "import_asset", "import_asset_batch", "move_asset",
     "create_recovery_point", "restore_recovery_point", "publish_datagen_output", "prepare_game_tests",
@@ -125,6 +125,15 @@ class CopperbenchClient:
 
     def get_workspace_health(self) -> dict[str, Any]:
         return self.call_tool("get_workspace_health", {})
+
+    def read_mod_element(self, element_id: str, *, schema_version: str = "1.1") -> dict[str, Any]:
+        """Explicit editor version; 1.0 preserves the frozen legacy projection."""
+        if schema_version not in ("1.0", "1.1"):
+            raise ValueError("Unsupported editor schema version")
+        result = self.call_tool("read_mod_element", {"elementId": element_id, "schemaVersion": schema_version})
+        if result.get("schemaVersion") != schema_version:
+            raise CopperbenchError("Core did not return the requested editor schema", "MCP_TOOL_RESULT_INVALID", result)
+        return result
 
     def preview_generation(self) -> dict[str, Any]:
         """Read source safety; ready is an observation, not build acceptance or a write permit."""
@@ -224,6 +233,74 @@ class CopperbenchClient:
 
     def run_gametest(self, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("run_gametest", {"expectedRevision": expected_revision})
+
+    def version_copy_upgrade(self, operation: str = "preview", *, target_generator_id: str | None = None,
+                             supported_versions: tuple[str, ...] = ("1",), output_name: str | None = None,
+                             plan_id: str | None = None, expected_revision: int | None = None,
+                             task_authorization_id: str | None = None) -> dict[str, Any]:
+        """Version 1 is read-only. Explicit version 2 executes a reviewed plan once, with target authority."""
+        arguments: dict[str, Any] = {"supportedVersions": list(supported_versions)}
+        for key, value in (("targetGeneratorId", target_generator_id), ("outputName", output_name),
+                           ("planId", plan_id), ("expectedRevision", expected_revision),
+                           ("taskAuthorizationId", task_authorization_id)):
+            if value is not None:
+                arguments[key] = value
+        result = self.call_tool("version_copy_upgrade", {**arguments, "operation": operation})
+        if result.get("contract") != "version_copy_upgrade" or result.get("selectedVersion") not in supported_versions:
+            raise CopperbenchError("Version copy upgrade contract was not negotiated", "INVALID_RESPONSE", result)
+        return result
+
+    def preview(self, operation: str, *, generator_id: str | None = None,
+                command: str | None = None, workspace_folder_path: str | None = None,
+                expected_revision: int | None = None, supported_versions: tuple[str, ...] = ("1",),
+                payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Choose or revoke a scoped preview; every command still rechecks Core authority and evidence."""
+        arguments: dict[str, Any] = {"supportedVersions": list(supported_versions)}
+        if generator_id is not None:
+            arguments["generatorId"] = generator_id
+        if command is not None:
+            arguments["command"] = command
+        if workspace_folder_path is not None:
+            arguments["workspaceFolderPath"] = workspace_folder_path
+        if payload is not None:
+            arguments["payload"] = dict(payload)
+        if operation in {"opt_in", "revoke", "command"}:
+            revision = expected_revision
+            if type(revision) is not int or revision < 0:
+                raise ValueError("expected_revision must be a nonnegative integer")
+            arguments["expectedRevision"] = revision
+        if operation == "command" and self.task_authorization_id and command in TASK_AUTHORIZED_TOOLS:
+            arguments.setdefault("payload", {}).setdefault("taskAuthorizationId", self.task_authorization_id)
+        arguments["operation"] = operation
+        result = self.call_tool("preview", arguments)
+        if result.get("contract") != "preview_targets" or result.get("selectedVersion") not in supported_versions:
+            raise CopperbenchError("Preview contract was not negotiated", "INVALID_RESPONSE", result)
+        return result
+
+    def acceptance(self, operation: str, *, expected_revision: int | None = None,
+                   supported_versions: tuple[str, ...] = ("1",), diagnostic_versions: tuple[str, ...] | None = None,
+                   **payload: Any) -> dict[str, Any]:
+        """Negotiate required_cases for this request; mutations are never retried."""
+        arguments: dict[str, Any] = {"operation": operation, "supportedVersions": list(supported_versions), "payload": payload}
+        if diagnostic_versions is not None:
+            arguments["diagnosticVersions"] = list(diagnostic_versions)
+        if operation in {"run", "export"}:
+            if type(expected_revision) is not int or expected_revision < 0:
+                raise ValueError("expected_revision must be a nonnegative integer")
+            arguments["expectedRevision"] = expected_revision
+            if operation == "run" and self.task_authorization_id:
+                payload.setdefault("taskAuthorizationId", self.task_authorization_id)
+        result = self.call_tool("acceptance", arguments)
+        if result.get("contract") != "required_cases" or result.get("selectedVersion") not in supported_versions:
+            raise CopperbenchError("Required-case contract was not negotiated", "INVALID_RESPONSE", result)
+        diagnostics = result.get("coverageDiagnostics")
+        if diagnostic_versions is not None and (not isinstance(diagnostics, dict) or diagnostics.get("schemaVersion") not in diagnostic_versions):
+            raise CopperbenchError("Acceptance diagnostic contract was not negotiated", "INVALID_RESPONSE", result)
+        return result
+
+    def get_acceptance_diagnostics(self, task_id: str) -> dict[str, Any]:
+        """Read Core's recorded machine reasons and counts without executing a product command."""
+        return self.acceptance("get", diagnostic_versions=("1",), taskId=task_id)["coverageDiagnostics"]
 
     def list_task_authorizations(self) -> dict[str, Any]:
         return self.call_tool("list_task_authorizations", {})

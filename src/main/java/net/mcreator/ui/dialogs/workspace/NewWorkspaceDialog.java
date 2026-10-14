@@ -107,6 +107,9 @@ public class NewWorkspaceDialog extends MCreatorDialog {
 		ok.addActionListener(e -> {
 			WorkspaceSettings workspaceSettings = current.getWorkspaceSettings();
 			if (workspaceSettings != null) {
+				// The legacy dialog has no preview negotiation. Its creator must use the Core preview flow.
+				if (dev.copperbench.tracks.VersionTrackCatalog.official()
+						.requiresPreview(workspaceSettings.getCurrentGenerator())) return;
 				if (w instanceof WorkspaceSelector workspaceSelector) {
 					if (workspaceSelector.getApplication() != null)
 						workspaceSelector.getApplication().getAnalytics()

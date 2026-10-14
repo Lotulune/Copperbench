@@ -25,6 +25,7 @@ import {
 } from '../types/contract';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
+import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
 import {
   clearElementEditorDraft, elementEditorDraftKey, getElementEditorDraft, setElementEditorDraft
 } from '../hooks/elementEditorDrafts';
@@ -163,6 +164,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
     runDiagnosticAction,
     planWorkspaceChanges,
     applyWorkspacePlan,
+    workspacePreviewTarget,
     state
   } = useWorkbench();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -340,10 +342,18 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
       setIsSaving(false);
       return;
     }
-    const changes = pending.changes;
+    const changes = [...pending.changes];
     if (changes.length === 0) {
       setIsSaving(false);
       return;
+    }
+
+    // Keep the source observation attached to this draft, even if another edit updates the workspace cache.
+    if (element.type === 'code' && changes.some(change => /^\/(?:fields\/)?(?:code|codeFiles)(?:\/|$)/.test(change.path))) {
+      for (const field of editor.sections.flatMap(section => section.fields)) {
+        if (/^\/(?:fields\/)?sourceFingerprints(?:\/|$)/.test(field.path))
+          changes.push({ path: field.path, value: field.value });
+      }
     }
 
     let result;
@@ -464,7 +474,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         .filter((candidate) => acceptedTypes
           ? acceptedTypes.has(candidate.type as ModElementType)
           : candidate.type === 'block' || candidate.type === 'plant' || candidate.type === 'fluid')
-        .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · ${candidate.type}`));
+        .forEach((candidate) => byValue.set(`CUSTOM:${candidate.identity?.internalName || candidate.name}`, `${candidate.displayName} · ${candidate.type}`));
     } else if (field.control === 'element_reference_list') {
       state.elements
         .filter((candidate) => acceptedTypes ? acceptedTypes.has(candidate.type as ModElementType) : candidate.type === 'biome')
@@ -890,6 +900,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         }}
       >
         {/* Validation Errors Notice */}
+        <WorkspacePreviewChoice />
         {(element.type === 'block' || element.type === 'item') && <BlockbenchTasksPanel key={element.id} element={editor?.element ?? element} />}
         {editor?.configuration?.generationState === 'pending' && <p role="status" data-testid="generation-pending-notice">
           {t({ key: 'editor.generation_pending', fallback: 'Definition saved; source generation is pending. Run Generate or Build to prepare dependencies and update managed sources.' })}
@@ -996,8 +1007,10 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 </div>
                 {preview.generationImpact && (
                   <div style={{ fontSize: '12px', color: 'var(--badge-blue)' }}>
-                    {uiText("保存后需重新生成当前元素 · ", "Regenerate this element after saving · ")}{preview.generationImpact.affectedDomains.map(generationDomainLabel).join(uiText('、', ', '))}
-                    {preview.generationImpact.generatorId ? ` · ${preview.generationImpact.generatorId}` : ''}
+                    {element.type === 'code' ? uiText("手写源码直接保存，构建后生效；仅修改属性会保留源码。", "Handwritten sources are saved directly; build to apply code changes. Metadata edits preserve sources.") : <>
+                      {uiText("保存后需重新生成当前元素 · ", "Regenerate this element after saving · ")}{preview.generationImpact.affectedDomains.map(generationDomainLabel).join(uiText('、', ', '))}
+                      {preview.generationImpact.generatorId ? ` · ${preview.generationImpact.generatorId}` : ''}
+                    </>}
                   </div>
                 )}
               </>
@@ -1030,6 +1043,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
               </div>
 
               {section.fields.map((field) => {
+                if (element.type === 'code' && /^\/(?:fields\/)?sourceFingerprints(?:\/|$)/.test(field.path)) return null;
                 const fieldDiagnostic = diagnosticByPath.get(field.path);
                 const pickerIssue = referenceIssue(field);
                 const extensionName = loaderExtensionName(field.path);
@@ -1189,6 +1203,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           className="btn-danger"
           style={{ fontSize: '12px' }}
           onClick={handleDelete}
+          disabled={Boolean(workspacePreviewTarget)}
+          title={workspacePreviewTarget ? uiText('此预览尚不支持删除元素。', 'Deleting elements is not available in this preview.') : undefined}
           data-testid="inspector-delete-btn"
         >
           <Trash2 size={13} />
@@ -1203,7 +1219,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={externalChange || isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)}
+            disabled={externalChange || isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)
+              || Boolean(workspacePreviewTarget && (!workspacePreviewTarget.selected || workspacePreviewTarget.destination !== ''
+                || !workspacePreviewTarget.capabilities.operations?.some(operation => operation.operation === 'update_mod_element' && operation.available)))}
             data-testid="inspector-save-btn"
           >
             <Save size={13} />

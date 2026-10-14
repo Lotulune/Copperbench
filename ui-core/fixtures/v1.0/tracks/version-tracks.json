@@ -1,12 +1,40 @@
 {
   "schemaVersion": "1.0",
-  "latestMinecraftVersion": "26.2",
-  "previousMinecraftVersion": "26.1",
+  "latestMinecraftVersion": "26.3",
+  "previousMinecraftVersion": "26.2",
   "tracks": [
     {
       "id": "latest_stable",
+      "minecraftVersion": "26.3",
+      "displayName": "最新稳定轨（Minecraft 26.3）",
+      "dynamic": true,
+      "loaders": [
+        {
+          "loader": "fabric",
+          "generatorId": "fabric-26.3",
+          "minecraftVersion": "26.3",
+          "javaRelease": 25,
+          "status": "preview",
+          "pluginId": "generator-fabric-26.3",
+          "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+          "notes": "26.3 已登记；通过预览扩展查询精确操作、类型与字段范围。环境探针不代表产品原生或客户端验收。"
+        },
+        {
+          "loader": "neoforge",
+          "generatorId": "neoforge-26.3",
+          "minecraftVersion": "26.3",
+          "javaRelease": 25,
+          "status": "preview",
+          "pluginId": "generator-neoforge-26.3",
+          "reasonCode": "PREVIEW_NEGOTIATION_REQUIRED",
+          "notes": "26.3 已登记；通过预览扩展查询精确操作、类型与字段范围。环境探针不代表产品原生或客户端验收。"
+        }
+      ]
+    },
+    {
+      "id": "previous_stable",
       "minecraftVersion": "26.2",
-      "displayName": "最新稳定轨（Minecraft 26.2）",
+      "displayName": "前一稳定轨（Minecraft 26.2）",
       "dynamic": true,
       "loaders": [
         {
@@ -17,7 +45,7 @@
           "status": "supported",
           "pluginId": "generator-fabric-26.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "最新稳定轨 Minecraft 26.2。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 Fabric API 0.158.0+26.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
+          "notes": "前一稳定轨 Minecraft 26.2。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 Fabric API 0.158.0+26.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         },
         {
           "loader": "neoforge",
@@ -27,35 +55,7 @@
           "status": "supported",
           "pluginId": "generator-26.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "最新稳定轨 Minecraft 26.2。新建工作区模板基于 NeoForge 26.1.2 适配，使用 NeoForge 26.2.0.63；内置功能范围已有编译和客户端启动（runClient）验证记录。"
-        }
-      ]
-    },
-    {
-      "id": "previous_stable",
-      "minecraftVersion": "26.1",
-      "displayName": "前一稳定轨（Minecraft 26.1）",
-      "dynamic": true,
-      "loaders": [
-        {
-          "loader": "fabric",
-          "generatorId": "fabric-26.1.2",
-          "minecraftVersion": "26.1",
-          "javaRelease": 25,
-          "status": "supported",
-          "pluginId": "generator-fabric-26.1.2",
-          "reasonCode": "TRACK_SUPPORTED",
-          "notes": "前一稳定轨 Minecraft 26.1.2。使用无混淆 Loom 和 Fabric API 0.155.2+26.1.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
-        },
-        {
-          "loader": "neoforge",
-          "generatorId": "neoforge-26.1.2",
-          "minecraftVersion": "26.1",
-          "javaRelease": 25,
-          "status": "supported",
-          "pluginId": "generator-26.1.x",
-          "reasonCode": "TRACK_SUPPORTED",
-          "notes": "前一稳定轨 Minecraft 26.1.2。使用 NeoForge 26.1.2.95；内置功能范围已有编译和客户端启动（runClient）验证记录。"
+          "notes": "前一稳定轨 Minecraft 26.2。新建工作区模板基于 NeoForge 26.1.2 适配，使用 NeoForge 26.2.0.63；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         }
       ]
     },

@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,14 +46,9 @@ class ReleaseManifestTest {
 		assertTrue(automatedChecks.contains("windows11_hyperv_guest_install_upgrade_uninstall"));
 		assertFalse(automatedChecks.contains("vmware_readiness_probe"));
 		JsonArray golden = actual.getAsJsonObject("claims").getAsJsonArray("goldenCompileClaimed");
-		assertEquals("fabric-26.2", golden.get(0).getAsString());
-		assertEquals("neoforge-26.2", golden.get(1).getAsString());
-		assertEquals("fabric-26.1.2", golden.get(2).getAsString());
-		assertEquals("neoforge-26.1.2", golden.get(3).getAsString());
-		assertEquals("fabric-1.21.1", golden.get(4).getAsString());
-		assertEquals("neoforge-1.21.1", golden.get(5).getAsString());
-		assertEquals("fabric-1.20.1", golden.get(6).getAsString());
-		assertEquals("neoforge-1.20.1", golden.get(7).getAsString());
+		assertEquals(Set.of("fabric-26.2", "neoforge-26.2", "fabric-26.1.2", "neoforge-26.1.2",
+				"fabric-1.21.1", "neoforge-1.21.1", "fabric-1.20.1", "neoforge-1.20.1"),
+				golden.asList().stream().map(value -> value.getAsString()).collect(Collectors.toSet()));
 		assertEquals(8, golden.size());
 		assertEquals(0, actual.getAsJsonObject("claims").getAsJsonArray("generateReadyNotGolden").size());
 		JsonArray offline = actual.getAsJsonObject("claims").getAsJsonArray("offlineBuildClaimed");

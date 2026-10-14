@@ -94,13 +94,20 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			throw new IllegalArgumentException(backend.displayName() + " task is not implemented yet: " + operation);
 		UUID taskId = ids.get();
 		Job job = new Job(workspaceId, task(taskId, operation));
+		JsonObject taskPayload = payload == null ? new JsonObject() : payload.deepCopy();
+		if (operation == Operation.RUN_GAMETEST && taskPayload.has("requiredCases")) {
+			JsonObject selected = new JsonObject();
+			selected.addProperty("schemaVersion", "1");
+			selected.addProperty("status", "queued");
+			selected.add("manifest", RequiredCaseManifest.parse(taskPayload.getAsJsonObject("requiredCases")).projection());
+			job.record(RequiredCaseEvidence.TASK_FIELD, selected);
+		}
 		job.summary.addProperty("backendIdentity", backend.displayName());
 		jobs.computeIfAbsent(workspaceId, ignored -> new ConcurrentHashMap<>()).put(taskId, job);
-		try { WorkspaceTaskRecords.save(workspaceRoots.apply(workspaceId), workspaceId, job.task(), List.of(), List.of()); }
+		try { WorkspaceTaskRecords.save(workspaceRoots.apply(workspaceId), workspaceId, job.recordedTask(), List.of(), List.of()); }
 		catch (java.io.IOException exception) { LOG.warn("Could not persist task start {}", taskId, exception); }
 		job.log("info", "Starting " + backend.displayName() + " " + taskKind(operation)
 				+ " from revision " + state.revision());
-		JsonObject taskPayload = payload == null ? new JsonObject() : payload.deepCopy();
 		job.future = executor.submit(() -> {
 			job.workerStarted();
 			try {
@@ -116,7 +123,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		try {
 			Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
 			Path executionRoot = operation == Operation.RUN_GAMETEST ? GameTestRunDirectory.select(root, job.id()) : isolated(operation)
-					? root.resolve(".copperbench/task-runs").resolve(taskKind(operation))
+					? operation == Operation.RUN_SERVER ? GameTestRunDirectory.selectServer(root, job.id())
+					: root.resolve(".copperbench/task-runs").resolve(taskKind(operation))
 							.resolve(job.id().toString()).resolve("workspace").normalize()
 					: root;
 			job.executionRoot = executionRoot;
@@ -126,24 +134,28 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				UUID verifiedId;
 				try { verifiedId = UUID.fromString(payload.get("verifiedTaskId").getAsString()); }
 				catch (RuntimeException invalid) { throw new VerifiedArtifactExporter.VerificationException("VERIFIED_TASK_ID_INVALID: Select an acceptance task UUID."); }
-				JsonObject verified = find(workspaceId, verifiedId).orElseThrow(() ->
+				JsonObject verified = findRecorded(workspaceId, verifiedId).orElseThrow(() ->
 						new VerifiedArtifactExporter.VerificationException("VERIFIED_TASK_NOT_FOUND: No acceptance task with this ID was recorded for this workspace."));
+				if (payload.has("requireRequiredCases") && !verified.has(RequiredCaseEvidence.TASK_FIELD))
+					throw new VerifiedArtifactExporter.VerificationException("VERIFIED_REQUIRED_CASES_MISSING: This task has legacy evidence only.");
 				job.record("verifiedExport", VerifiedArtifactExporter.export(root, verified, job.id(),
 						payload.has("allowHistorical") && payload.get("allowHistorical").getAsBoolean()));
 				job.succeed("task.export.completed", "Verified acceptance artifact exported");
 				return;
 			}
 			if (isolated(operation)) {
-				if (operation != Operation.RUN_GAMETEST && !executionRoot.startsWith(root.toAbsolutePath().normalize()))
+				if (operation != Operation.RUN_GAMETEST && operation != Operation.RUN_SERVER && !executionRoot.startsWith(root.toAbsolutePath().normalize()))
 					throw new IllegalStateException("Isolated task path escaped the workspace");
 				var snapshot = WorkspaceExecutionSnapshot.capture(root, executionRoot, workspaceId,
 						state.revision(), clock, job::cancellationRequested);
 				job.record("sourceSnapshot", snapshot.projection());
-				if (operation == Operation.RUN_GAMETEST) GameTestRunDirectory.record(root, job.id(), snapshot);
+				if (operation == Operation.RUN_GAMETEST || operation == Operation.RUN_SERVER)
+					GameTestRunDirectory.record(root, job.id(), taskKind(operation), snapshot);
 				job.log("info", "Using isolated task directory "
 						+ executionRoot.toString().replace('\\', '/'));
 				if (!executionRoot.startsWith(root))
-					job.log("info", "GAMETEST_SHORT_PATH: using the Copperbench task cache to avoid the Windows wrapper path limit; execution-location.json remains in the workspace task directory.");
+					job.log("info", (operation == Operation.RUN_GAMETEST ? "GAMETEST_SHORT_PATH" : "SERVER_SHORT_PATH")
+							+ ": using the Copperbench task cache to avoid the Windows wrapper path limit; execution-location.json remains in the workspace task directory.");
 			}
 			job.progress(0.15, "task." + taskKind(operation) + ".validating", "Validating workspace");
 			var validation = backend.validate(state);
@@ -334,14 +346,27 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 	private boolean runGameTests(Path snapshot, WorkspaceState state, JsonObject payload, Job job) throws Exception {
 		var configuration = GameTestSupport.configuration(snapshot);
+		RequiredCaseManifest required = payload.has("requiredCases") ? RequiredCaseManifest.parse(payload.getAsJsonObject("requiredCases")) : null;
+		if (required != null && !configuration.mode().equals("packaged_jar"))
+			throw new GameTestSupport.TestSetupException("GAMETEST_REQUIRED_CASES_INVALID", "Required cases need an isolated packaged-JAR host.");
+		if (required == null && backend.gameTestEnvironment().has("minecraftVersion")
+				&& "26.3".equals(backend.gameTestEnvironment().get("minecraftVersion").getAsString()))
+			throw new GameTestSupport.TestSetupException("GAMETEST_REQUIRED_CASES_MISSING", "Minecraft 26.3 acceptance requires the negotiated required-case contract.");
 		JsonObject verification = GameTestReport.empty("GAMETEST_NOT_COMPLETED");
 		verification.addProperty("mode", configuration.mode());
 		verification.addProperty("status", "pending");
-		verification.addProperty("minimumTests", configuration.minimumTests());
+		verification.addProperty("minimumTests", required == null ? configuration.minimumTests() : required.minimumTests());
 		verification.add("environment", backend.gameTestEnvironment());
 		job.record("verification", verification);
 		Path runRoot = snapshot, report = GameTestSupport.safePath(snapshot, configuration.reportPath());
 		List<String> arguments = List.of(configuration.task());
+		if (required != null) {
+			Path host = snapshot.resolveSibling("host");
+			job.record(RequiredCaseEvidence.TASK_FIELD, RequiredCaseEvidence.freeze(snapshot, job.task(), state.id(),
+					state.revision(), job.task().getAsJsonObject("sourceSnapshot"), backend.gameTestEnvironment(), required,
+					host, host.resolve("run/gametest-results.xml")));
+			job.persistObservation();
+		}
 		if (configuration.mode().equals("packaged_jar")) {
 			boolean serverAuthorized = payload.has("serverEulaAuthorized") && payload.get("serverEulaAuthorized").getAsBoolean();
 			GameTestSupport.requireServerAuthorization(backend.gameTestEnvironment(), serverAuthorized);
@@ -364,7 +389,16 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		job.progress(0.65, "task.run_gametest.running", "Running acceptance tests");
 		var startedAt = clock.instant();
 		var process = processes.run(runRoot, arguments, Duration.ofMinutes(20), line -> job.log("info", line));
-		JsonObject parsed = GameTestReport.read(report, startedAt, configuration.minimumTests());
+		var assessed = required == null ? GameTestReport.assess(report, startedAt, configuration.minimumTests())
+				: GameTestReport.assess(report, startedAt, required);
+		JsonObject parsed = assessed.verification();
+		if (required == null) job.record(AcceptanceDiagnostics.TASK_FIELD, assessed.coverage());
+		if (required != null) {
+			JsonObject evidence = job.recordedTask().getAsJsonObject(RequiredCaseEvidence.TASK_FIELD);
+			evidence.add("coverage", assessed.coverage());
+			evidence.add("status", assessed.verification().get("status").deepCopy());
+			job.record(RequiredCaseEvidence.TASK_FIELD, evidence);
+		}
 		for (var entry : parsed.entrySet()) verification.add(entry.getKey(), entry.getValue());
 		verification.addProperty("startedAt", startedAt.toString());
 		verification.addProperty("completedAt", clock.instant().toString());
@@ -378,6 +412,15 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				WorkspaceExecutionSnapshot.fingerprint(workspaceRoots.apply(state.id()), job::cancellationRequested));
 		verification.addProperty("sourceCurrentAtCompletion", sourceCurrent);
 		if (!sourceCurrent) GameTestReport.reason(verification, "GAMETEST_SOURCE_CHANGED");
+		if (required != null) {
+			JsonObject frozen = job.recordedTask().getAsJsonObject(RequiredCaseEvidence.TASK_FIELD);
+			Path frozenPath = Path.of(frozen.get("frozenPath").getAsString());
+			WorkspaceExecutionSnapshot.rejectLinks(frozenPath);
+			if (!Files.isRegularFile(frozenPath) || !frozen.get("frozenSha256").getAsString().equals(WorkspaceExecutionSnapshot.sha256(frozenPath))) {
+				GameTestReport.reason(verification, "GAMETEST_REPORT_INVALID");
+				verification.addProperty("detail", "GAMETEST_REQUIRED_CASES_CHANGED: Frozen binding changed after task start.");
+			}
+		}
 		job.record("verification", verification);
 		job.persistVerification();
 		verification = job.task().getAsJsonObject("verification");
@@ -433,11 +476,15 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	}
 
 	@Override public Optional<JsonObject> find(UUID workspaceId, UUID taskId) {
+		return findRecorded(workspaceId, taskId).map(RequiredCaseEvidence::legacyTask);
+	}
+
+	private Optional<JsonObject> findRecorded(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
 		return job == null ? WorkspaceTaskRecords.read(workspaceRoots.apply(workspaceId), workspaceId, taskId)
 				.map(record -> record.getAsJsonObject("task"))
 				.filter(task -> task.has("backendIdentity") && backend.displayName().equals(task.get("backendIdentity").getAsString()))
-				: Optional.of(job.task());
+				: Optional.of(job.recordedTask());
 	}
 
 	@Override public List<JsonObject> active(UUID workspaceId) {
@@ -457,7 +504,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		for (Job job : jobs.getOrDefault(workspaceId, Map.of()).values()) {
 			JsonObject task = job.task(); observations.put(task.get("id").getAsString(), task);
 		}
-		return observations.values().stream().sorted(java.util.Comparator.comparing(
+		return observations.values().stream().map(RequiredCaseEvidence::legacyTask).sorted(java.util.Comparator.comparing(
 				(JsonObject task) -> task.has("startedAt") ? task.get("startedAt").getAsString() : "").reversed()).limit(100).toList();
 	}
 
@@ -479,7 +526,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		if (observed != null && !event.event().equals("task_log_appended")) {
 			synchronized (observed) {
 				try { WorkspaceTaskRecords.save(workspaceRoots.apply(event.workspaceId()), event.workspaceId(),
-						observed.task(), observed.logs(), observed.diagnostics()); }
+						observed.recordedTask(), observed.logs(), observed.diagnostics()); }
 				catch (java.io.IOException | RuntimeException exception) { LOG.warn("Could not persist task observation {}", event.taskId(), exception); }
 			}
 		}
@@ -879,7 +926,13 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private synchronized JsonObject task() {
-			return summary.deepCopy();
+			return RequiredCaseEvidence.legacyTask(summary);
+		}
+
+		private synchronized JsonObject recordedTask() { return summary.deepCopy(); }
+
+		private synchronized void persistObservation() throws java.io.IOException {
+			WorkspaceTaskRecords.save(workspaceRoots.apply(workspaceId), workspaceId, recordedTask(), logs(), diagnostics());
 		}
 
 		private synchronized void record(String key, JsonObject value) {
@@ -912,6 +965,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private synchronized void persistVerification() {
 			if (operation() != Operation.RUN_GAMETEST || !summary.has("verification")) return;
 			JsonObject verification = summary.getAsJsonObject("verification");
+			if (summary.has(RequiredCaseEvidence.TASK_FIELD)) {
+				JsonObject evidence = summary.getAsJsonObject(RequiredCaseEvidence.TASK_FIELD);
+				evidence.add("status", verification.get("status").deepCopy());
+				evidence.add("reasonCode", verification.get("reasonCode").deepCopy());
+			}
 			verification.addProperty("taskId", id().toString());
 			verification.addProperty("workspaceId", workspaceId.toString());
 			verification.addProperty("workspaceRevision", sourceRevision);
@@ -925,6 +983,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			} catch (java.io.IOException exception) {
 				verification.remove("verificationPath");
 				GameTestReport.reason(verification, "GAMETEST_EVIDENCE_WRITE_FAILED");
+				if (summary.has(RequiredCaseEvidence.TASK_FIELD)) {
+					JsonObject evidence = summary.getAsJsonObject(RequiredCaseEvidence.TASK_FIELD);
+					evidence.addProperty("status", "failed");
+					evidence.addProperty("reasonCode", "GAMETEST_EVIDENCE_WRITE_FAILED");
+				}
 			}
 		}
 

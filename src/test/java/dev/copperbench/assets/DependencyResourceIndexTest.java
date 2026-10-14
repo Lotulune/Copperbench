@@ -120,6 +120,27 @@ class DependencyResourceIndexTest {
         assertEquals("unverified", new AssetWorkspaceService(root).referenceGraph().references().getFirst().resolution());
     }
 
+    @Test void staleContextDoesNotLoadAVanillaCatalogThatCannotBeUsed() throws Exception {
+        Path root = workspace();
+        Path vanilla = root.resolve(".gradle/caches/fabric-loom/1.21.1/minecraft-client.jar");
+        Files.createDirectories(vanilla.getParent());
+        try (var zip = new ZipOutputStream(Files.newOutputStream(vanilla))) {
+            for (var entry : Map.of("version.json", "{\"id\":\"1.21.1\"}",
+                    "assets/minecraft/models/block/cube_all.json", "{}",
+                    "assets/minecraft/models/item/generated.json", "{}").entrySet()) {
+                zip.putNextEntry(new ZipEntry(entry.getKey()));
+                zip.write(entry.getValue().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                zip.closeEntry();
+            }
+        }
+        capture(root, List.of(), ":runtimeClasspath");
+        assertNotNull(LocalResourceIndex.discover(root).readModel("assets/minecraft/models/block/cube_all.json"));
+        write(root, "build.gradle", "// changed after capture");
+        var index = LocalResourceIndex.discover(root);
+        assertEquals("unverified", index.resolve("assets/minecraft/models/block/cube_all.json", "probe").state());
+        assertNull(index.readModel("assets/minecraft/models/block/cube_all.json"));
+    }
+
     @Test void runtimeDirectoryResourcesPreventClaimingACompleteArchiveCatalog() throws Exception {
         Path root = workspace();
         Path directory = Files.createDirectories(temporary.resolve("runtime-directory"));

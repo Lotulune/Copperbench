@@ -44,13 +44,15 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 
 	public record Profile(String generatorId, String minecraftVersion, String neoForgeVersion, String moddevVersion,
 			int javaRelease, String readyMarker, String templateSource, Fabric1211Generator.Profile fabricProfile,
-			boolean modernDeferred) {
+			boolean modernDeferred) implements dev.copperbench.generator.JavaGeneratorProfile {
 		public static final Profile NEOFORGE_1211 = new Profile("neoforge-1.21.1", "1.21.1", "21.1.232", "2.0.141",
 				21, "COPPERBENCH_STAGE5_NEOFORGE_READY", "plugins/generator-1.21.1/neoforge-1.21.1", Fabric1211Generator.Profile.FABRIC_1211, true);
 		public static final Profile NEOFORGE_261 = new Profile("neoforge-26.1.2", "26.1.2", "26.1.2.95", "2.0.141",
 				25, "COPPERBENCH_STAGE7_NEOFORGE261_READY", "plugins/generator-26.1.x/neoforge-26.1.2", Fabric1211Generator.Profile.FABRIC_261, true);
 		public static final Profile NEOFORGE_262 = new Profile("neoforge-26.2", "26.2", "26.2.0.63", "2.0.141",
 				25, "COPPERBENCH_STAGE7_NEOFORGE262_READY", "neoforge-26.2-first-party", Fabric1211Generator.Profile.FABRIC_262, true);
+		public static final Profile NEOFORGE_263 = new Profile("neoforge-26.3", "26.3", "26.3.0.76", "2.0.148",
+				25, "COPPERBENCH_P263_NEOFORGE_INITIALIZED", "plugins/generator-neoforge-26.3/neoforge-26.3", Fabric1211Generator.Profile.FABRIC_263, true);
 		public static final Profile NEOFORGE_1201 = new Profile("neoforge-1.20.1", "1.20.1", "47.1.106", "7.0.165",
 				17, "COPPERBENCH_STAGE7_NEOFORGE1201_READY", "neoforge-1.20.1-maintenance", Fabric1211Generator.Profile.FABRIC_1201, false);
 
@@ -124,6 +126,16 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 	}
 
 	@Override public void prepareServerRun(Path targetRoot) throws IOException {
+		if (profile.equals(Profile.NEOFORGE_263)) {
+			Path properties = serverRunDirectory(targetRoot).resolve("server.properties");
+			Files.createDirectories(properties.getParent());
+			Files.writeString(properties, "server-ip=127.0.0.1\nserver-port=0\nview-distance=2\nsimulation-distance=2\nmax-players=1\n",
+					StandardCharsets.UTF_8);
+			Path config = serverRunDirectory(targetRoot).resolve("config/neoforge-synced.toml");
+			Files.createDirectories(config.getParent());
+			Files.writeString(config, "advertiseDedicatedServerToLan = false\n", StandardCharsets.UTF_8);
+			return;
+		}
 		if (profile.modernDeferred()) return;
 		Path forgeServerConfig = serverRunDirectory(targetRoot).resolve("world/serverconfig/forge-server.toml");
 		Files.createDirectories(forgeServerConfig.getParent());
@@ -136,6 +148,11 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 			return List.of(new ValidationIssue("NEOFORGE_WORKSPACE_INVALID",
 					"Workspace generator must be " + profile.generatorId(), "/generator", null));
 		}
+
+        if (profile.equals(Profile.NEOFORGE_263)) for (Element element : workspace.elements()) {
+            var issue = dev.copperbench.core.application.PreviewElementFields.validateGeneration(profile.generatorId(), element.type(), element.values());
+            if (issue != null) return List.of(new ValidationIssue(issue.code(), issue.message(), issue.path(), element.id()));
+        }
 		return commonGenerator.validate(asFabricWorkspace(workspace)).stream()
 				.map(issue -> new ValidationIssue(issue.code().replaceFirst("^FABRIC_", "NEOFORGE_"),
 						issue.message().replace("Fabric", "NeoForge"), issue.path(), issue.elementId(), issue.repairValue()))
@@ -207,7 +224,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 					base.archivesName = project.mod_id
 
 					java.toolchain.languageVersion = JavaLanguageVersion.of(%d)
-
+					%s
 					neoForge {
 					    version = project.neoforge_version
 
@@ -225,7 +242,9 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 					    options.encoding = 'UTF-8'
 					    options.release = %d
 					}
-					""".formatted(profile.javaRelease(), descriptor.modId(), profile.javaRelease()), generated);
+					""".formatted(profile.javaRelease(), profile.equals(Profile.NEOFORGE_263)
+							? "tasks.withType(net.neoforged.nfrtgradle.DownloadAssets).configureEach { javaExecutable = javaToolchains.launcherFor(java.toolchain).map { it.executablePath.asFile.absolutePath } }\n"
+							: "", descriptor.modId(), profile.javaRelease()), generated);
 		} else {
 			write(root, "build.gradle", """
 					plugins {

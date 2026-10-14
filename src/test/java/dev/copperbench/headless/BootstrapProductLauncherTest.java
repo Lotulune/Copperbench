@@ -89,7 +89,11 @@ class BootstrapProductLauncherTest {
 		assertEquals(HeadlessExitCode.SUCCESS.code(), result.exitCode());
 		assertEquals("list_new_workspace_generators", result.json().get("operation").getAsString());
 		assertEquals("succeeded", result.json().get("status").getAsString());
-		assertEquals(9, result.json().getAsJsonObject("data").getAsJsonArray("generators").size());
+		assertEquals(java.util.Set.of("fabric-26.2", "neoforge-26.2", "fabric-1.21.1", "neoforge-1.21.1",
+				"fabric-1.20.1", "neoforge-1.20.1", "resourcepack-1.21.1"),
+				result.json().getAsJsonObject("data").getAsJsonArray("generators").asList().stream()
+						.map(value -> value.getAsJsonObject().get("generatorId").getAsString())
+						.collect(java.util.stream.Collectors.toSet()));
 		assertTrue(result.json().getAsJsonObject("data").get("suggestedWorkspaceFoldersRoot").getAsString()
 				.contains("MCreatorWorkspaces"));
 	}

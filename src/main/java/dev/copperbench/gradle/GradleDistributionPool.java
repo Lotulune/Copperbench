@@ -43,8 +43,8 @@ public final class GradleDistributionPool {
 	private static final Logger LOG = LogManager.getLogger(GradleDistributionPool.class);
 	private static final Pattern VERSION = Pattern.compile("gradle-([0-9]+(?:\\.[0-9]+){1,3})-bin\\.zip");
 
-	/** Workspace generators currently ship 9.7.0; 1.20.1 stays on 8.8. 9.6.1 is packed if a build machine still has it. */
-	public static final List<String> PACKAGED_VERSIONS = List.of("9.7.0", "9.6.1", "8.8");
+	/** Current generators use 9.7.0, 26.3 uses 9.6.0, and 1.20.1 stays on 8.8. */
+	public static final List<String> PACKAGED_VERSIONS = List.of("9.7.0", "9.6.1", "9.6.0", "8.8");
 
 	private GradleDistributionPool() {
 	}

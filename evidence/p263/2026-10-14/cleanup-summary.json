@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-14",
+  "status": "completed_except_policy_blocked_build",
+  "removedVirtualMachines": 2,
+  "deletedTargets": 67,
+  "deletedLogicalBytes": 157598580646,
+  "netFreedBytes": 184255602688,
+  "netFreedGiB": 171.6,
+  "drives": [
+    {
+      "drive": "C",
+      "freeBefore": 40215121920,
+      "freeAfter": 122446872576,
+      "freedBytes": 82231750656
+    },
+    {
+      "drive": "D",
+      "freeBefore": 35879075840,
+      "freeAfter": 137902927872,
+      "freedBytes": 102023852032
+    }
+  ],
+  "retainedBuild": {
+    "status": "blocked_by_automatic_approval",
+    "reason": "blocked by policy",
+    "attempts": 2,
+    "scope": "The first request bundled build and dependency directories. A narrower request for the archived task build alone was also rejected before execution.",
+    "remainingPath": "C:/Users/Administrator/.codex/worktrees/p263-unique-cases/Minecraft_ModCreator/build",
+    "logicalBytes": 4323411469,
+    "archive": "build-results-preserved.zip",
+    "deleted": false,
+    "authorization": "User already authorized project temporary-build and cache cleanup; no renewed permission requested."
+  },
+  "priorCleanupIncluded": false,
+  "measurement": "Free-space difference measured in this closeout, including new archive/candidate copies. Checkpoint merges are reflected in free space; deletion logical bytes are not a physical allocation measurement.",
+  "preserved": [
+    "All final G1/G2 candidates",
+    "Original successful/failed receipts and world evidence",
+    "Two guest source/result archives and host fixture archive",
+    "Latest Windows r14 / Linux r12 installers",
+    "Earlier ticket archives and source snapshots"
+  ],
+  "evidenceMove": "24062 inventoried files matched; 28 additional long-path NeoForm logs separately indexed. All 12 strict candidate pairs passed again at the final location.",
+  "reports": "docs/testing/p263-cleanup-2026-10-14.md"
+}

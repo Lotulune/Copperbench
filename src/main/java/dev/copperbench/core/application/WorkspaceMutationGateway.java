@@ -39,6 +39,17 @@ import java.util.List;
 		return new com.google.gson.JsonObject();
 	}
 
+	/** Renders the exact source generator's baseline without writing or preserving user-code regions. */
+	default java.util.Map<String, byte[]> versionCopyBaseline(com.google.gson.JsonObject document,
+			java.util.Map<String, com.google.gson.JsonObject> definitions) throws Exception {
+		throw new UnsupportedOperationException("Version copy baseline is unavailable for this backend.");
+	}
+
+	/** Initializes an already reserved new copy; never called for the source workspace. */
+	default void generateVersionCopy(java.nio.file.Path workspaceFile) throws Exception {
+		throw new UnsupportedOperationException("Version copy generation is unavailable for this backend.");
+	}
+
 	void persist(WorkspaceState before, WorkspaceState after, Operation operation, Element affectedElement)
 			throws Exception;
 

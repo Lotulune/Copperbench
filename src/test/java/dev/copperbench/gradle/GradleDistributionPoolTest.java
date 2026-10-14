@@ -73,6 +73,18 @@ class GradleDistributionPoolTest {
 		assertTrue(GradleDistributionPool.findReadyInstall("9.7.0", temp.resolve("empty-home"), List.of()).isEmpty());
 	}
 
+	@Test void seedsThe263DistributionBeforeAnyWorkspaceExists(@TempDir Path temp) throws Exception {
+		Path launcher = temp.resolve("gradle-dists/gradle-9.6.0-bin/bundled/gradle-9.6.0/bin/gradle");
+		Files.createDirectories(launcher.getParent());
+		Files.writeString(launcher, "#!/usr/bin/env sh\n", StandardCharsets.UTF_8);
+		Path gradleHome = temp.resolve("gradle-home");
+		assertEquals(1, GradleDistributionPool.seedPackagedDistributions(gradleHome,
+				List.of(temp.resolve("gradle-dists")), false));
+		assertTrue(GradleDistributionPool.isReadyInstall(gradleHome.resolve("wrapper/dists/gradle-9.6.0-bin")
+				.resolve(GradleDistributionPool.hashDistributionUrl(GradleDistributionPool.officialDistributionUrl("9.6.0"))),
+				"9.6.0"));
+	}
+
 	@Test void seedsOfficialAndChinaHashesFromPackagedGradleDists(@TempDir Path temp) throws Exception {
 		Path packaged = temp.resolve("gradle-dists/gradle-9.7.0-bin/bundled");
 		Path launcher = packaged.resolve("gradle-9.7.0/bin/gradle");

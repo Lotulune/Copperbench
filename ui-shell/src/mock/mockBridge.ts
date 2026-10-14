@@ -195,6 +195,41 @@ function initialMockRegistries(): NonNullable<WorkspaceRegistriesProjection['reg
 }
 
 export class MockCoreBridge implements CoreBridge {
+  private previewSelection: { generatorId: string; destination: string } | null = null;
+  public async sendPreview(workspaceId: string, request: import('../types/contract').PreviewRequest): Promise<import('../types/contract').PreviewResult> {
+    const revision = this.state.workbench?.workspace.revision ?? 0;
+    const response: import('../types/contract').PreviewResult = { contract: 'preview_targets', schemaVersion: '1',
+      selectedVersion: '1', requestId: crypto.randomUUID(), workspaceId, status: 'succeeded', revision, diagnostics: [] };
+    if (request.operation === 'opt_in') this.previewSelection = { generatorId: request.generatorId!, destination: request.workspaceFolderPath ?? '' };
+    if (request.operation === 'revoke') this.previewSelection = null;
+    const catalog = await this.sendQuery<NewWorkspaceGeneratorCatalog>({ messageType: 'query', schemaVersion: '1.0',
+      requestId: crypto.randomUUID(), workspaceId, operation: 'list_new_workspace_generators', payload: {} });
+    const existing = catalog.data?.generators ?? [];
+    response.targets = ['fabric', 'neoforge'].map(loader => {
+      const generatorId = `${loader}-26.3`;
+      const selected = this.previewSelection?.generatorId === generatorId;
+      return { generatorId, loader: loader as 'fabric' | 'neoforge', minecraftVersion: '26.3', trackId: 'latest_stable' as const,
+        previewRequired: true, selected, destination: selected ? this.previewSelection!.destination : '', available: false,
+        workspaceGeneratorName: generatorId, capabilities: { supportStage: 'registered' as const, environmentQualified: true,
+          environmentEvidence: `fixture-${loader}-environment`,
+          operations: ['create_workspace', 'update_workspace_file', 'validate_workspace', 'generate_workspace', 'build_workspace',
+            'run_client', 'run_server', 'run_datagen', 'run_gametest', 'prepare_game_tests', 'export_workspace'].map(operation => ({
+            operation, ready: false, available: false, reasonCode: 'PREVIEW_NATIVE_OPERATION_UNVERIFIED', evidence: '',
+            accessReasonCode: selected ? 'PREVIEW_NATIVE_OPERATION_UNVERIFIED' : 'PREVIEW_OPT_IN_REQUIRED' })),
+          elementTypes: ['item','block','recipe','function','code'].map(elementType => ({ elementType, supported: false,
+            reasonCode: 'PREVIEW_ELEMENT_UNVERIFIED', fields: [] })) } };
+    });
+    response.targets.push(...existing.filter(target => target.loader !== 'resource_pack').map(target => ({
+      ...target, trackId: target.minecraftVersion === '26.1.2' ? 'advanced' as const : target.minecraftVersion === '26.2' ? 'previous_stable' as const : target.trackId,
+      previewRequired: false, selected: false, destination: '', capabilities: {} })));
+    if (request.operation === 'command') {
+      response.status = 'rejected';
+      response.diagnostics = [{ code: 'PREVIEW_NATIVE_OPERATION_UNVERIFIED', severity: 'error',
+        message: { key: 'diagnostic.preview_native_operation_unverified', fallback: 'Operation not verified' },
+        path: null, recoverable: true, actions: [] }];
+    }
+    return response;
+  }
   private taskAuthorizations: import('../types/contract').TaskAuthorization[] = [];
   private state: BridgeState = {
     currentScenarioId: 'ready',
@@ -4492,7 +4527,7 @@ export class MockCoreBridge implements CoreBridge {
 
     return {
       messageType: 'query_result',
-      schemaVersion: '1.0',
+      schemaVersion: query.schemaVersion,
       requestId: query.requestId,
       workspaceId,
       operation: query.operation,

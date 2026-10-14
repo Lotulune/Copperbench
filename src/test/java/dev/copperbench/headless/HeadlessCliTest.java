@@ -132,7 +132,11 @@ class HeadlessCliTest {
 		assertEquals(HeadlessExitCode.SUCCESS.code(), generators.exitCode());
 		assertEquals("list_new_workspace_generators", generators.json().get("operation").getAsString());
 		assertEquals("succeeded", generators.json().get("status").getAsString());
-		assertEquals(9, generators.json().getAsJsonObject("data").getAsJsonArray("generators").size());
+		assertEquals(java.util.Set.of("fabric-26.2", "neoforge-26.2", "fabric-1.21.1", "neoforge-1.21.1",
+				"fabric-1.20.1", "neoforge-1.20.1", "resourcepack-1.21.1"),
+				generators.json().getAsJsonObject("data").getAsJsonArray("generators").asList().stream()
+						.map(value -> value.getAsJsonObject().get("generatorId").getAsString())
+						.collect(java.util.stream.Collectors.toSet()));
 		assertTrue(generators.json().getAsJsonObject("data").getAsJsonArray("generators").toString()
 				.contains("resourcepack-1.21.1"));
 

@@ -1,0 +1,12 @@
+{
+  "id": "generator-neoforge-26.3",
+  "weight": 14,
+  "supportedversions": [2026002, 202600299999],
+  "info": {
+    "name": "Minecraft NeoForge 26.3 native generator",
+    "version": "0.1.0",
+    "description": "Copperbench native source workspace for exact NeoForge 26.3; preview operations are gated by Core.",
+    "author": "Copperbench contributors",
+    "credits": "NeoForge and ModDevGradle by NeoForged; MCreator workspace/template infrastructure"
+  }
+}

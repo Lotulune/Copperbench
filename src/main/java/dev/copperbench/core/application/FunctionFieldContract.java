@@ -47,6 +47,30 @@ public final class FunctionFieldContract {
         return value.isJsonPrimitive() && value.getAsJsonPrimitive().isString();
     }
 
+    /** Bounded preview input checks; Minecraft still owns command parsing and registry resolution. */
+    public static BlockFieldContract.Issue validatePreview(JsonObject requested) {
+        var issue = validate(requested);
+        if (issue != null) return issue;
+        JsonObject values = BlockFieldContract.merged(requested);
+        if (values.has("namespace") && !values.get("namespace").getAsString().equals("mod"))
+            return new BlockFieldContract.Issue("FIELD_ENUM_INVALID", BlockFieldContract.path(requested, "namespace"),
+                    "The 26.3 function preview uses the workspace mod namespace.");
+        if (values.has("name") && !ElementMappingSupport.ELEMENT_NAME.matcher(values.get("name").getAsString()).matches())
+            return new BlockFieldContract.Issue("FIELD_VALUE_INVALID", BlockFieldContract.path(requested, "name"),
+                    "Use a lowercase function identifier with letters, digits and underscores, starting with a letter.");
+        String key = values.has("commands") ? "commands" : "code";
+        String code = values.has("commands") ? body(values.getAsJsonArray("commands"))
+                : values.has("code") ? values.get("code").getAsString() : "";
+        String[] lines = code.split("\\n", -1);
+        for (int index = 0; index < lines.length; index++) {
+            String line = lines[index].stripLeading();
+            if (line.indexOf('\0') >= 0 || line.startsWith("/"))
+                return new BlockFieldContract.Issue("FUNCTION_CONTENT_INVALID", BlockFieldContract.path(requested, key),
+                        "Line " + (index + 1) + ": function commands cannot contain NUL or start with '/'.");
+        }
+        return null;
+    }
+
     public static String body(JsonArray commands) {
         StringBuilder body = new StringBuilder();
         commands.forEach(command -> body.append(command.getAsString()).append('\n'));
@@ -62,6 +86,26 @@ public final class FunctionFieldContract {
         result.addProperty("compatibilityPath", "/fields");
         result.addProperty("bodyMapping", "Join commands with LF and append a final LF; an empty array produces empty text.");
         result.addProperty("aliasPolicy", "commands and code must produce exactly equal text when both are present.");
+        return result;
+    }
+
+    /** The existing specialized function contract, qualified for an exact preview generator. */
+    public static JsonObject capabilities(String generatorId) {
+        JsonObject result = capabilities();
+        var fields = dev.copperbench.tracks.PreviewCapabilityCatalog.official().fields(generatorId, "function");
+        result.addProperty("generatorId", generatorId);
+        result.addProperty("supported", !fields.isEmpty());
+        result.add("fields", new Gson().toJsonTree(fields.stream().sorted().toList()));
+        if (!fields.isEmpty()) {
+            result.add("namespaceValues", new Gson().toJsonTree(List.of("mod")));
+            result.addProperty("namePattern", ElementMappingSupport.ELEMENT_NAME.pattern());
+            result.addProperty("contentChecks", "String bodies, matching aliases, no NUL or leading slash; game parsing reports other syntax and reference errors.");
+            JsonObject example = new JsonObject();
+            example.addProperty("elementType", "function"); example.addProperty("name", "camp_signal");
+            JsonObject values = new JsonObject(); values.addProperty("namespace", "mod");
+            values.addProperty("code", "scoreboard objectives add camp_count dummy\nscoreboard players set camp_probe camp_count 7\n");
+            example.add("initialValues", values); result.add("minimalExample", example);
+        }
         return result;
     }
 }

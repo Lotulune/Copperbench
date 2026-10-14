@@ -1,0 +1,52 @@
+plugins {
+    id 'eclipse'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = '${settings.getCleanVersion()}'
+group = '${package}'
+base.archivesName = '${modid}'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+// ModDev's asset helper otherwise requests Java 21 even for this Java 25 target.
+tasks.withType(net.neoforged.nfrtgradle.DownloadAssets).configureEach {
+    javaExecutable = javaToolchains.launcherFor(java.toolchain).map { it.executablePath.asFile.absolutePath }
+}
+neoForge {
+    version = '26.3.0.76'
+    runs {
+        client { client() }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+    }
+    mods {
+        ${modid} { sourceSet sourceSets.main }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+    if (System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('linux')) {
+        lockFile = file('gradle/linux.lockfile')
+    }
+}
+
+// The NeoForge development runtime skips vanilla's EULA check.
+tasks.named('runServer').configure {
+    doFirst {
+        def eula = new Properties()
+        def eulaFile = file('run/eula.txt')
+        if (eulaFile.isFile()) eulaFile.withInputStream { eula.load(it) }
+        if (!'true'.equalsIgnoreCase(eula.getProperty('eula'))) {
+            throw new GradleException('Accept the Minecraft EULA in run/eula.txt before starting the server (https://aka.ms/MinecraftEULA).')
+        }
+    }
+}
+apply from: 'mcreator.gradle'

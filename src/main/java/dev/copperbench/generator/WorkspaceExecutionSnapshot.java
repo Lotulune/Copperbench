@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
@@ -156,6 +157,39 @@ public final class WorkspaceExecutionSnapshot {
 
     public static String fingerprint(Path root, BooleanSupplier cancelled) throws IOException {
         return manifestHash(inventory(root.toAbsolutePath().normalize(), cancelled));
+    }
+
+    /**
+     * Verifies a captured input fingerprint, rejecting inputs touched after capture before hashing content.
+     * Timestamps only invalidate an observation; matching timestamps never establish content identity.
+     */
+    public static boolean matchesFingerprint(Path root, String expected, FileTime capturedAt,
+            BooleanSupplier cancelled) throws IOException {
+        Path normalized = root.toAbsolutePath().normalize();
+        rejectLinks(normalized);
+        boolean[] newer = {false};
+        Files.walkFileTree(normalized, new SimpleFileVisitor<>() {
+            @Override public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
+                    throws IOException {
+                checkCancelled(cancelled);
+                if (!directory.equals(normalized) && excluded(normalized.relativize(directory)))
+                    return FileVisitResult.SKIP_SUBTREE;
+                rejectLinks(directory);
+                return FileVisitResult.CONTINUE;
+            }
+            @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+                checkCancelled(cancelled);
+                if (excluded(normalized.relativize(file))) return FileVisitResult.CONTINUE;
+                if (!attributes.isRegularFile() || attributes.isSymbolicLink())
+                    throw unsafe("Snapshot input is not a regular file: " + file);
+                if (attributes.lastModifiedTime().compareTo(capturedAt) > 0) {
+                    newer[0] = true;
+                    return FileVisitResult.TERMINATE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return !newer[0] && expected.equals(fingerprint(normalized, cancelled));
     }
 
     private static boolean excluded(Path relative) {
