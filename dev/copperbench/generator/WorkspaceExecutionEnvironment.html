@@ -57,6 +57,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#describe(java.nio.file.Path,java.nio.file.Path,java.lang.String)" tabindex="0">describe(Path, Path, String)</a></li>
+<li><a href="#describe(java.nio.file.Path,java.nio.file.Path,java.lang.String,dev.copperbench.tracks.VersionTrackCatalog)" tabindex="0">describe(Path, Path, String, VersionTrackCatalog)</a></li>
 <li><a href="#fabric(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.fabric.Fabric1211Generator.Profile)" tabindex="0">fabric(Path, Path, Fabric1211Generator.Profile)</a></li>
 <li><a href="#neoForge(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.neoforge.NeoForge1211Generator.Profile)" tabindex="0">neoForge(Path, Path, NeoForge1211Generator.Profile)</a></li>
 <li><a href="#gradleHome(java.util.Map,java.nio.file.Path)" tabindex="0">gradleHome(Map, Path)</a></li>
@@ -101,23 +102,31 @@ loadScripts(document, 'script');</script>
 <div class="block">Describes a built-in backend without opening a workspace, starting tasks or creating files.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fabric(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.fabric.Fabric1211Generator.Profile)" class="member-name-link">fabric</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#describe(java.nio.file.Path,java.nio.file.Path,java.lang.String,dev.copperbench.tracks.VersionTrackCatalog)" class="member-name-link">describe</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generator,
+ <a href="../tracks/VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a>&nbsp;catalog)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Describes an exact registered backend, including targets outside the display tracks.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fabric(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.fabric.Fabric1211Generator.Profile)" class="member-name-link">fabric</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
  <a href="fabric/Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a>&nbsp;profile)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Describes the Fabric profile used by the actual task backend.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#gradleHome(java.util.Map,java.nio.file.Path)" class="member-name-link">gradleHome</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;environment,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#gradleHome(java.util.Map,java.nio.file.Path)" class="member-name-link">gradleHome</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;environment,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;productDefault)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Resolves the same caller overrides and product cache default used by launched Gradle processes.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#neoForge(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.neoforge.NeoForge1211Generator.Profile)" class="member-name-link">neoForge</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#neoForge(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.neoforge.NeoForge1211Generator.Profile)" class="member-name-link">neoForge</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
  <a href="neoforge/NeoForge1211Generator.Profile.html" title="class in dev.copperbench.generator.neoforge">NeoForge1211Generator.Profile</a>&nbsp;profile)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Describes the NeoForge profile used by the actual task backend.</div>
 </div>
 </div>
@@ -145,6 +154,27 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generator)</span></div>
 <div class="block">Describes a built-in backend without opening a workspace, starting tasks or creating files.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="describe(java.nio.file.Path,java.nio.file.Path,java.lang.String,dev.copperbench.tracks.VersionTrackCatalog)">
+<h3>describe</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">describe</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generator,
+ <a href="../tracks/VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a>&nbsp;catalog)</span></div>
+<div class="block">Describes an exact registered backend, including targets outside the display tracks.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>root</code> - workspace root, without opening it</dd>
+<dd><code>distribution</code> - product distribution root</dd>
+<dd><code>generator</code> - exact persisted generator ID</dd>
+<dd><code>catalog</code> - registry with the caller's display selection</dd>
+<dt>Returns:</dt>
+<dd>the backend environment, or an empty object for an unknown ID</dd>
+</dl>
 </div>
 </section>
 </li>

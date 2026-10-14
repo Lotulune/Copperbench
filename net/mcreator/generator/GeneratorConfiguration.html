@@ -69,6 +69,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#getModAssetsRoot()" tabindex="0">getModAssetsRoot()</a></li>
 <li><a href="#getModDataRoot()" tabindex="0">getModDataRoot()</a></li>
 <li><a href="#getSpecificRoot(java.lang.String)" tabindex="0">getSpecificRoot(String)</a></li>
+<li><a href="#requiresMinecraftSourceIndex()" tabindex="0">requiresMinecraftSourceIndex()</a></li>
 <li><a href="#getGeneratorMinecraftVersion()" tabindex="0">getGeneratorMinecraftVersion()</a></li>
 <li><a href="#getGeneratorBuildFileVersion()" tabindex="0">getGeneratorBuildFileVersion()</a></li>
 <li><a href="#getGeneratorSubVersion()" tabindex="0">getGeneratorSubVersion()</a></li>
@@ -259,9 +260,14 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#requiresMinecraftSourceIndex()" class="member-name-link">requiresMinecraftSourceIndex</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Whether base generation requires a Minecraft source index; native-only templates may opt out.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -354,6 +360,15 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>getSpecificRoot</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getSpecificRoot</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;root)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="requiresMinecraftSourceIndex()">
+<h3>requiresMinecraftSourceIndex</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">requiresMinecraftSourceIndex</span>()</div>
+<div class="block">Whether base generation requires a Minecraft source index; native-only templates may opt out.</div>
 </div>
 </section>
 </li>

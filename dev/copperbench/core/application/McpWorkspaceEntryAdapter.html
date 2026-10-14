@@ -65,6 +65,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#withPermissionProfile(dev.copperbench.core.contract.UiCore.PermissionProfile)" tabindex="0">withPermissionProfile(UiCore.PermissionProfile)</a></li>
 <li><a href="#execute(dev.copperbench.core.contract.UiCore.Command)" tabindex="0">execute(UiCore.Command)</a></li>
 <li><a href="#query(dev.copperbench.core.contract.UiCore.Query)" tabindex="0">query(UiCore.Query)</a></li>
+<li><a href="#acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" tabindex="0">acceptance(UUID, UUID, JsonObject)</a></li>
+<li><a href="#preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" tabindex="0">preview(UUID, UUID, JsonObject)</a></li>
+<li><a href="#versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" tabindex="0">versionCopyUpgrade(UUID, UUID, JsonObject)</a></li>
 </ol>
 </li>
 </ol>
@@ -112,15 +115,34 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">acceptance</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ com.google.gson.JsonObject&nbsp;request)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">preview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ com.google.gson.JsonObject&nbsp;request)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Versioned preview extension, using the same immutable caller permissions.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query(dev.copperbench.core.contract.UiCore.Query)" class="member-name-link">query</a><wbr>(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withPermissionProfile(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">withPermissionProfile</a><wbr>(<a href="../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">versionCopyUpgrade</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ com.google.gson.JsonObject&nbsp;request)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Read-only version-copy upgrade planning with per-request negotiation.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withPermissionProfile(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">withPermissionProfile</a><wbr>(<a href="../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates an immutable permission boundary for a replacement MCP server.</div>
 </div>
 </div>
@@ -179,6 +201,38 @@ loadScripts(document, 'script');</script>
 <h3>query</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></span>&nbsp;<span class="element-name">query</span><wbr><span class="parameters">(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)">
+<h3>acceptance</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">acceptance</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ com.google.gson.JsonObject&nbsp;request)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)">
+<h3>preview</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">preview</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ com.google.gson.JsonObject&nbsp;request)</span></div>
+<div class="block">Versioned preview extension, using the same immutable caller permissions.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)">
+<h3>versionCopyUpgrade</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">versionCopyUpgrade</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ com.google.gson.JsonObject&nbsp;request)</span></div>
+<div class="block">Read-only version-copy upgrade planning with per-request negotiation.</div>
 </div>
 </section>
 </li>

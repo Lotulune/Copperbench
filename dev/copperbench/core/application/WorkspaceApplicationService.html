@@ -72,6 +72,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#blockbenchEditLifecycle(java.util.UUID)" tabindex="0">blockbenchEditLifecycle(UUID)</a></li>
 <li><a href="#grantAssetImportSource(java.nio.file.Path)" tabindex="0">grantAssetImportSource(Path)</a></li>
 <li><a href="#executeAndPublish(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">executeAndPublish(UiCore.Command, UiCore.RequestContext)</a></li>
+<li><a href="#acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">acceptance(UUID, UUID, JsonObject, UiCore.RequestContext)</a></li>
+<li><a href="#preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">preview(UUID, UUID, JsonObject, UiCore.RequestContext)</a></li>
+<li><a href="#versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">versionCopyUpgrade(UUID, UUID, JsonObject, UiCore.RequestContext)</a></li>
 <li><a href="#execute(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">execute(UiCore.Command, UiCore.RequestContext)</a></li>
 <li><a href="#query(dev.copperbench.core.contract.UiCore.Query,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">query(UiCore.Query, UiCore.RequestContext)</a></li>
 </ol>
@@ -171,30 +174,46 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../assets/BlockbenchProcessService.EditLifecycle.html" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#blockbenchEditLifecycle(java.util.UUID)" class="member-name-link">blockbenchEditLifecycle</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">acceptance</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ com.google.gson.JsonObject&nbsp;request,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Separate required-case contract; commands retain the caller's permission and authorization checks.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../assets/BlockbenchProcessService.EditLifecycle.html" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#blockbenchEditLifecycle(java.util.UUID)" class="member-name-link">blockbenchEditLifecycle</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Managed lifecycle used by the desktop Blockbench bridge without giving the bridge direct history access.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
- <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#executeAndPublish(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">executeAndPublish</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
  <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#executeAndPublish(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">executeAndPublish</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">External scripting commands must notify existing desktop event subscribers too.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSource(java.nio.file.Path)" class="member-name-link">grantAssetImportSource</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;source)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSource(java.nio.file.Path)" class="member-name-link">grantAssetImportSource</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;source)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates a short-lived capability for a file explicitly selected by the native desktop host.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSources(java.util.List)" class="member-name-link">grantAssetImportSources</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;sources)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSources(java.util.List)" class="member-name-link">grantAssetImportSources</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;sources)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Grants a bounded multi-selection without exposing any external absolute path to browser code.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">preview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ com.google.gson.JsonObject&nbsp;request,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Negotiates preview choice without granting permission, approval, task authority or EULA acceptance.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query(dev.copperbench.core.contract.UiCore.Query,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">query</a><wbr>(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query,
@@ -206,6 +225,14 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../contract/UiCore.Event.html" title="class in dev.copperbench.core.contract">UiCore.Event</a>&gt;&nbsp;listener)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Subscribes to retained asynchronous task events.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">versionCopyUpgrade</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ com.google.gson.JsonObject&nbsp;request,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Read-only version-copy upgrade contract, separate from loader migration.</div>
 </div>
 </div>
 </div>
@@ -347,6 +374,42 @@ The returned grant never exposes the selected absolute path to browser code.</di
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></span>&nbsp;<span class="element-name">executeAndPublish</span><wbr><span class="parameters">(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
  <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</span></div>
 <div class="block">External scripting commands must notify existing desktop event subscribers too.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)">
+<h3>acceptance</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">acceptance</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ com.google.gson.JsonObject&nbsp;request,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</span></div>
+<div class="block">Separate required-case contract; commands retain the caller's permission and authorization checks.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)">
+<h3>preview</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">preview</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ com.google.gson.JsonObject&nbsp;request,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</span></div>
+<div class="block">Negotiates preview choice without granting permission, approval, task authority or EULA acceptance.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject,dev.copperbench.core.contract.UiCore.RequestContext)">
+<h3>versionCopyUpgrade</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">versionCopyUpgrade</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+ com.google.gson.JsonObject&nbsp;request,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</span></div>
+<div class="block">Read-only version-copy upgrade contract, separate from loader migration.</div>
 </div>
 </section>
 </li>

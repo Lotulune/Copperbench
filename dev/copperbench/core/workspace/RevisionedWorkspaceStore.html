@@ -67,6 +67,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#read(java.util.UUID)" tabindex="0">read(UUID)</a></li>
 <li><a href="#transact(java.util.UUID,long,java.util.function.Function)" tabindex="0">transact(UUID, long, Function)</a></li>
 <li><a href="#coordinate(java.util.UUID,long,java.util.function.Function)" tabindex="0">coordinate(UUID, long, Function)</a></li>
+<li><a href="#nextEventSequence(java.util.UUID)" tabindex="0">nextEventSequence(UUID)</a></li>
 <li><a href="#replace(java.util.UUID,long,dev.copperbench.core.workspace.WorkspaceState,java.util.Set)" tabindex="0">replace(UUID, long, WorkspaceState, Set)</a></li>
 <li><a href="#restore(java.util.UUID,long,dev.copperbench.core.workspace.RevisionedWorkspaceStore.RestorationOperation)" tabindex="0">restore(UUID, long, RevisionedWorkspaceStore.RestorationOperation)</a></li>
 </ol>
@@ -151,33 +152,38 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Coordinates runtime state with a content revision without advancing that revision.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#read(java.util.UUID)" class="member-name-link">read</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#register(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">register</a><wbr>(<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextEventSequence(java.util.UUID)" class="member-name-link">nextEventSequence</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Allocates an observation event after asynchronous work, without changing the current content revision.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#read(java.util.UUID)" class="member-name-link">read</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;<a href="RevisionedWorkspaceStore.Replacement.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.Replacement</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replace(java.util.UUID,long,dev.copperbench.core.workspace.WorkspaceState,java.util.Set)" class="member-name-link">replace</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#register(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">register</a><wbr>(<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;<a href="RevisionedWorkspaceStore.Replacement.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.Replacement</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replace(java.util.UUID,long,dev.copperbench.core.workspace.WorkspaceState,java.util.Set)" class="member-name-link">replace</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  long&nbsp;expectedRevision,
  <a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;restored,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;changedPaths)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Atomically replaces the registered workspace state after an out-of-band restore
 (local history rollback).</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;<a href="RevisionedWorkspaceStore.Replacement.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.Replacement</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#restore(java.util.UUID,long,dev.copperbench.core.workspace.RevisionedWorkspaceStore.RestorationOperation)" class="member-name-link">restore</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;<a href="RevisionedWorkspaceStore.Replacement.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.Replacement</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#restore(java.util.UUID,long,dev.copperbench.core.workspace.RevisionedWorkspaceStore.RestorationOperation)" class="member-name-link">restore</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  long&nbsp;expectedRevision,
  <a href="RevisionedWorkspaceStore.RestorationOperation.html" title="interface in dev.copperbench.core.workspace">RevisionedWorkspaceStore.RestorationOperation</a>&nbsp;operation)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Runs an out-of-band restore while holding the same workspace lock used by content mutations.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;T&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#transact(java.util.UUID,long,java.util.function.Function)" class="member-name-link">transact</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a><wbr>&lt;T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#transact(java.util.UUID,long,java.util.function.Function)" class="member-name-link">transact</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  long&nbsp;expectedRevision,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Function.html" title="class or interface in java.util.function" class="external-link">Function</a>&lt;<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>, <a href="RevisionedWorkspaceStore.Decision.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.Decision</a>&lt;T&gt;&gt;&nbsp;operation)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -247,6 +253,15 @@ loadScripts(document, 'script');</script>
  long&nbsp;expectedRevision,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Function.html" title="class or interface in java.util.function" class="external-link">Function</a>&lt;<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>, T&gt;&nbsp;operation)</span></div>
 <div class="block">Coordinates runtime state with a content revision without advancing that revision.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="nextEventSequence(java.util.UUID)">
+<h3>nextEventSequence</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</span>&nbsp;<span class="element-name">nextEventSequence</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</span></div>
+<div class="block">Allocates an observation event after asynchronous work, without changing the current content revision.</div>
 </div>
 </section>
 </li>

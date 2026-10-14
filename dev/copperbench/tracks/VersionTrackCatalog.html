@@ -68,6 +68,10 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#official()" tabindex="0">official()</a></li>
 <li><a href="#tracks()" tabindex="0">tracks()</a></li>
+<li><a href="#requiresPreview(java.lang.String)" tabindex="0">requiresPreview(String)</a></li>
+<li><a href="#withTracks(java.util.List)" tabindex="0">withTracks(List)</a></li>
+<li><a href="#registrations()" tabindex="0">registrations()</a></li>
+<li><a href="#findRegistration(java.lang.String)" tabindex="0">findRegistration(String)</a></li>
 <li><a href="#findGenerator(java.lang.String)" tabindex="0">findGenerator(String)</a></li>
 <li><a href="#decision(java.lang.String)" tabindex="0">decision(String)</a></li>
 <li><a href="#firstPartyGenerator(java.lang.String)" tabindex="0">firstPartyGenerator(String)</a></li>
@@ -90,9 +94,9 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">VersionTrackCatalog</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">First-party source of truth for the four Minecraft version tracks and their
-Fabric/NeoForge support status. Dynamic tracks may coincide with a fixed track
-without duplicating generators (ADR-0004).</div>
+<div class="block">First-party registry of exact generators, with a separate four-track display.
+Rotating or coinciding display tracks never removes a persisted generator or
+changes its execution profile (ADR-0004).</div>
 </div>
 </section>
 <section class="summary">
@@ -115,6 +119,16 @@ without duplicating generators (ADR-0004).</div>
 <div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
 <div class="col-second even-row-color"><code><a href="VersionTrackCatalog.LoaderStatus.html" class="type-name-link" title="class in dev.copperbench.tracks">VersionTrackCatalog.LoaderStatus</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="VersionTrackCatalog.PendingProfile.html" class="type-name-link" title="class in dev.copperbench.tracks">VersionTrackCatalog.PendingProfile</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Identity reserved before a product backend is ready; it must never launch an older backend.</div>
+</div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="VersionTrackCatalog.Registration.html" class="type-name-link" title="class in dev.copperbench.tracks">VersionTrackCatalog.Registration</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">A support decision and its exact backend identity, independent of display tracks.</div>
+</div>
 <div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
 <div class="col-second odd-row-color"><code><a href="VersionTrackCatalog.SupportStatus.html" class="type-name-link" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
@@ -168,22 +182,38 @@ without duplicating generators (ADR-0004).</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="VersionTrackCatalog.LoaderStatus.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.LoaderStatus</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findGenerator(java.lang.String)" class="member-name-link">findGenerator</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="VersionTrackCatalog.Registration.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Registration</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findRegistration(java.lang.String)" class="member-name-link">findRegistration</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Resolves a persisted identity without consulting the display selection.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#firstPartyGenerator(java.lang.String)" class="member-name-link">firstPartyGenerator</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#firstPartyGenerator(java.lang.String)" class="member-name-link">firstPartyGenerator</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#migratable(java.lang.String,java.lang.String)" class="member-name-link">migratable</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sourceGeneratorId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;targetGeneratorId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#official()" class="member-name-link">official</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="VersionTrackCatalog.Registration.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Registration</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#registrations()" class="member-name-link">registrations</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#migratable(java.lang.String,java.lang.String)" class="member-name-link">migratable</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sourceGeneratorId,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;targetGeneratorId)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#requiresPreview(java.lang.String)" class="member-name-link">requiresPreview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#official()" class="member-name-link">official</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toProjection()" class="member-name-link">toProjection</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="VersionTrackCatalog.Track.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Track</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#tracks()" class="member-name-link">tracks</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toProjection()" class="member-name-link">toProjection</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="VersionTrackCatalog.Track.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Track</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#tracks()" class="member-name-link">tracks</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withTracks(java.util.List)" class="member-name-link">withTracks</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="VersionTrackCatalog.Track.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Track</a>&gt;&nbsp;displayTracks)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns a display selection while retaining every exact generator registration.</div>
+</div>
 </div>
 </div>
 </div>
@@ -286,6 +316,60 @@ without duplicating generators (ADR-0004).</div>
 <h3>tracks</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="VersionTrackCatalog.Track.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Track</a>&gt;</span>&nbsp;<span class="element-name">tracks</span>()</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="requiresPreview(java.lang.String)">
+<h3>requiresPreview</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">requiresPreview</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</span></div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>whether this target requires the separately negotiated preview contract</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withTracks(java.util.List)">
+<h3>withTracks</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a></span>&nbsp;<span class="element-name">withTracks</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="VersionTrackCatalog.Track.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Track</a>&gt;&nbsp;displayTracks)</span></div>
+<div class="block">Returns a display selection while retaining every exact generator registration.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>displayTracks</code> - display groups whose generator IDs are already registered</dd>
+<dt>Returns:</dt>
+<dd>an immutable catalog with the same execution identities and support decisions</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="registrations()">
+<h3>registrations</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="VersionTrackCatalog.Registration.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Registration</a>&gt;</span>&nbsp;<span class="element-name">registrations</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>each registered exact generator once, including generators outside the display tracks</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="findRegistration(java.lang.String)">
+<h3>findRegistration</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="VersionTrackCatalog.Registration.html" title="class in dev.copperbench.tracks">VersionTrackCatalog.Registration</a>&gt;</span>&nbsp;<span class="element-name">findRegistration</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</span></div>
+<div class="block">Resolves a persisted identity without consulting the display selection.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>generatorId</code> - the exact generator ID; null and unknown IDs are absent</dd>
+<dt>Returns:</dt>
+<dd>the registered support decision and execution profile, when known</dd>
+</dl>
 </div>
 </section>
 </li>

@@ -58,8 +58,10 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#reconcileEditedAliases(com.google.gson.JsonObject,com.google.gson.JsonArray)" tabindex="0">reconcileEditedAliases(JsonObject, JsonArray)</a></li>
 <li><a href="#validate(com.google.gson.JsonObject)" tabindex="0">validate(JsonObject)</a></li>
+<li><a href="#validatePreview(com.google.gson.JsonObject)" tabindex="0">validatePreview(JsonObject)</a></li>
 <li><a href="#body(com.google.gson.JsonArray)" tabindex="0">body(JsonArray)</a></li>
 <li><a href="#capabilities()" tabindex="0">capabilities()</a></li>
+<li><a href="#capabilities(java.lang.String)" tabindex="0">capabilities(String)</a></li>
 </ol>
 </li>
 </ol>
@@ -99,15 +101,25 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#capabilities()" class="member-name-link">capabilities</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#reconcileEditedAliases(com.google.gson.JsonObject,com.google.gson.JsonArray)" class="member-name-link">reconcileEditedAliases</a><wbr>(com.google.gson.JsonObject&nbsp;values,
- com.google.gson.JsonArray&nbsp;changes)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#capabilities(java.lang.String)" class="member-name-link">capabilities</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">The existing specialized function contract, qualified for an exact preview generator.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#reconcileEditedAliases(com.google.gson.JsonObject,com.google.gson.JsonArray)" class="member-name-link">reconcileEditedAliases</a><wbr>(com.google.gson.JsonObject&nbsp;values,
+ com.google.gson.JsonArray&nbsp;changes)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Editing a compatibility path supersedes its old spelling, not an explicitly supplied conflict.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="BlockFieldContract.Issue.html" title="class in dev.copperbench.core.application">BlockFieldContract.Issue</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#validate(com.google.gson.JsonObject)" class="member-name-link">validate</a><wbr>(com.google.gson.JsonObject&nbsp;requested)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="BlockFieldContract.Issue.html" title="class in dev.copperbench.core.application">BlockFieldContract.Issue</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#validate(com.google.gson.JsonObject)" class="member-name-link">validate</a><wbr>(com.google.gson.JsonObject&nbsp;requested)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#validatePreview(com.google.gson.JsonObject)" class="member-name-link">validatePreview</a><wbr>(com.google.gson.JsonObject&nbsp;requested)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Bounded preview input checks; Minecraft still owns command parsing and registry resolution.</div>
+</div>
 </div>
 </div>
 </div>
@@ -144,6 +156,15 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="validatePreview(com.google.gson.JsonObject)">
+<h3>validatePreview</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="BlockFieldContract.Issue.html" title="class in dev.copperbench.core.application">BlockFieldContract.Issue</a></span>&nbsp;<span class="element-name">validatePreview</span><wbr><span class="parameters">(com.google.gson.JsonObject&nbsp;requested)</span></div>
+<div class="block">Bounded preview input checks; Minecraft still owns command parsing and registry resolution.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="body(com.google.gson.JsonArray)">
 <h3>body</h3>
 <div class="horizontal-scroll">
@@ -156,6 +177,15 @@ loadScripts(document, 'script');</script>
 <h3>capabilities</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">capabilities</span>()</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="capabilities(java.lang.String)">
+<h3>capabilities</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">capabilities</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId)</span></div>
+<div class="block">The existing specialized function contract, qualified for an exact preview generator.</div>
 </div>
 </section>
 </li>

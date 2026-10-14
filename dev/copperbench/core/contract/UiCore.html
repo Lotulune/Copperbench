@@ -59,11 +59,13 @@ loadScripts(document, 'script');</script>
 <li><a href="#field-detail" tabindex="0">Field Details</a>
 <ol class="toc-list">
 <li><a href="#SCHEMA_VERSION" tabindex="0">SCHEMA_VERSION</a></li>
+<li><a href="#EDITOR_SCHEMA_VERSION" tabindex="0">EDITOR_SCHEMA_VERSION</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#wireGson()" tabindex="0">wireGson()</a></li>
+<li><a href="#requireQueryVersion(java.lang.String,dev.copperbench.core.contract.UiCore.Operation)" tabindex="0">requireQueryVersion(String, UiCore.Operation)</a></li>
 </ol>
 </li>
 </ol>
@@ -81,7 +83,7 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">UiCore</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Java representation of the frozen UI-Core v1.0 envelopes.</div>
+<div class="block">Frozen UI-Core 1.0 envelopes and the separately selected editor-query version 1.1.</div>
 </div>
 </section>
 <section class="summary">
@@ -156,8 +158,11 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#SCHEMA_VERSION" class="member-name-link">SCHEMA_VERSION</a></code></div>
+<div class="col-second even-row-color"><code><a href="#EDITOR_SCHEMA_VERSION" class="member-name-link">EDITOR_SCHEMA_VERSION</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SCHEMA_VERSION" class="member-name-link">SCHEMA_VERSION</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -172,9 +177,15 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.Gson</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wireGson()" class="member-name-link">wireGson</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#requireQueryVersion(java.lang.String,dev.copperbench.core.contract.UiCore.Operation)" class="member-name-link">requireQueryVersion</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;version,
+ <a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Version 1.1 is an explicit editor-query opt-in, not a new version of every UI-Core operation.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.Gson</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wireGson()" class="member-name-link">wireGson</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Serializer required at adapter boundaries because the schema requires explicit null properties.</div>
 </div>
 </div>
@@ -210,6 +221,22 @@ loadScripts(document, 'script');</script>
 </div>
 </section>
 </li>
+<li>
+<section class="detail" id="EDITOR_SCHEMA_VERSION">
+<h3>EDITOR_SCHEMA_VERSION</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">EDITOR_SCHEMA_VERSION</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../constant-values.html#dev.copperbench.core.contract.UiCore.EDITOR_SCHEMA_VERSION">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
 </ul>
 </section>
 </li>
@@ -224,6 +251,16 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.Gson</span>&nbsp;<span class="element-name">wireGson</span>()</div>
 <div class="block">Serializer required at adapter boundaries because the schema requires explicit null properties.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="requireQueryVersion(java.lang.String,dev.copperbench.core.contract.UiCore.Operation)">
+<h3>requireQueryVersion</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">requireQueryVersion</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;version,
+ <a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</span></div>
+<div class="block">Version 1.1 is an explicit editor-query opt-in, not a new version of every UI-Core operation.</div>
 </div>
 </section>
 </li>
