@@ -1108,7 +1108,7 @@ class WorkspacePersistenceCompatibilityTest {
 				createPayload.addProperty("clientMutationId", ids.get().toString());
 				createPayload.addProperty("elementType", type);
 				createPayload.addProperty("name", name);
-				JsonObject values = firstPartyPersistenceValues(type);
+				JsonObject values = firstPartyPersistenceValues(type, workspace);
 				createPayload.add("initialValues", values);
 
 				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
@@ -1321,7 +1321,7 @@ class WorkspacePersistenceCompatibilityTest {
 					createPayload.addProperty("clientMutationId", ids.get().toString());
 					createPayload.addProperty("elementType", type);
 					createPayload.addProperty("name", name);
-					JsonObject values = firstPartyPersistenceValues(type);
+					JsonObject values = firstPartyPersistenceValues(type, workspace);
 					createPayload.add("initialValues", values);
 					var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
 							Operation.CREATE_MOD_ELEMENT, createPayload));
@@ -1394,7 +1394,7 @@ class WorkspacePersistenceCompatibilityTest {
 		}
 	}
 
-	private static JsonObject firstPartyPersistenceValues(String type) {
+	private static JsonObject firstPartyPersistenceValues(String type, Workspace workspace) throws java.io.IOException {
 		JsonObject values = new JsonObject();
 		// Use actual Blockly defaults so reloading exercises valid definitions.
 		for (var field : ModElementTypeLoader.getModElementType(type).getModElementStorageClass().getFields()) {
@@ -1432,6 +1432,15 @@ class WorkspacePersistenceCompatibilityTest {
 			values.addProperty("mobSpawningType", "creature");
 			values.addProperty("spawnEggBaseColor", -1);
 			values.addProperty("spawnEggDotColor", -16777216);
+		}
+		if (type.equals("livingentity") || type.equals("specialentity")) {
+			Path texture = workspace.getFolderManager().getTextureFile("persistence_entity",
+					net.mcreator.ui.workspace.resources.TextureType.ENTITY).toPath();
+			Files.createDirectories(texture.getParent());
+			javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(128, 64,
+					java.awt.image.BufferedImage.TYPE_INT_ARGB), "png", texture.toFile());
+			values.addProperty(type.equals("livingentity") ? "mobModelTexture" : "entityTexture",
+					type.equals("livingentity") ? "persistence_entity.png" : "persistence_entity");
 		}
 		if (type.equals("plant")) {
 			values.addProperty("texture", "minecraft:poppy");

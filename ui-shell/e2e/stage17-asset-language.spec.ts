@@ -143,12 +143,12 @@ test('an existing unavailable notice changes language without opening Blockbench
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
   await page.getByTestId('asset-open-blockbench').click();
-  await expect(page.getByTestId('asset-notice')).toContainText('尚未配置 Blockbench');
+  const notice = page.getByTestId('asset-blockbench-notice');
+  await expect(notice).toContainText('尚未配置 Blockbench');
   await page.getByTestId('ui-language-select').selectOption('en');
-  await expect(page.getByTestId('asset-notice')).toContainText('Blockbench is not configured.');
+  await expect(notice).toContainText('Blockbench is not configured.');
+  await expect(notice.getByRole('button', { name: 'Set up Blockbench', exact: true })).toBeVisible();
   expect(await page.evaluate(() => sessionStorage.getItem('openAssetCalls'))).toBe('1');
-  await page.getByRole('button', { name: 'Dismiss notice' }).click();
-  await expect(page.getByTestId('asset-notice')).toHaveCount(0);
 });
 
 test('a returned Core import diagnostic translates after failure without repeating the command', async ({ page }) => {

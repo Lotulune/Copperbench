@@ -84,8 +84,10 @@ class ElementCoverageCatalogTest {
 		generator.addProperty("minecraftVersion", "1.21.1");
 		generator.addProperty("displayName", "Fabric 1.21.1");
 		generator.addProperty("state", "ready");
+		JsonObject values = new JsonObject();
+		values.addProperty("mobModelTexture", "copper_golem.png");
 		Element living = new Element(LIVING, "livingentity", "copper_golem", "Copper Golem", "valid", "generated",
-				Instant.parse("2026-08-20T12:00:00Z"), new JsonObject());
+				Instant.parse("2026-08-20T12:00:00Z"), values);
 		store.register(new WorkspaceState(WORKSPACE_ID, "Copper Trails", "mod", 0, false, generator, new JsonObject(),
 				List.of(living)));
 		AtomicLong sequence = new AtomicLong(900);
