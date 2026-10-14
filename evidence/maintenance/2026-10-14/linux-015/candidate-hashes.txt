@@ -1,0 +1,7 @@
+6d326d16b8efde222a932d6498d3cc8e261bcd5c6947cec3dd905457cff06d58  Copperbench 0.1.5 Linux x86_64 Setup.tar.gz
+4d2124912f87ac6d00c03cd9c9036c3f42f2f53e99cf6b4297d3558f94decef6  Copperbench 0.1.5 Linux x86_64 Setup.tar.gz.build.json
+29faf34ef00662a645d11c91a63f4fe943db3989bc811c1559faf35c2c991ae3  Copperbench 0.1.5 Linux x86_64.tar.gz
+3a33fb9ba40470a22d116324fa7a2bde3d06813be10da40e66fe210ac0b0c604  LINUX-CANDIDATE-METADATA.json
+82bfdc1cf3dea7cba736c98314ac8dce94d3b02e1a20d4a82e7e3236bb7079d0  copperbench-linux.spdx.json
+5d901fb88255a51e76a2731b88b086b4f1f62b98d74f3f08d8f59345fa57fb18  copperbench_0.1.5_amd64.deb
+781cbee7bc1bc6d8260caf0ed48539f04d028d25bf97c20c6e669c34b0cb27ad  linux-candidate-manifest.json

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.5-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:30ec7ef885b3f7074efcbb831e5568ce5fc318f5a8cd83d9e0b82302df226f1d",
+  "candidateSourceCommit": "cb616b878da983864f7747cfa7b0ae09513ffef7",
+  "candidateWorkflowRunId": "38556240467",
+  "debSha256": "5d901fb88255a51e76a2731b88b086b4f1f62b98d74f3f08d8f59345fa57fb18",
+  "portableSha256": "29faf34ef00662a645d11c91a63f4fe943db3989bc811c1559faf35c2c991ae3",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.5.md",
+  "validationReportSha256": "9597e4a106da6d2d93e19e74bf7bcab287f87c67cb0f3033d3d275c3adf4ded0",
+  "acceptancePolicy": "maintenance-ci-0.1.5",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.5-linux-stable",
+    "date": "2026-10-14",
+    "scope": "The current user explicitly requested new installer publication after the preceding handoff disclosed that clean-Linux installed acceptance remained pending. Publish only this passed main CI candidate, retain signatures/provenance/hashes/draft comparison, and do not claim fresh full installed acceptance or formal Linux certification."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-10-14/linux-015/candidate-run.json",
+      "sha256": "3105b606bc5db3a506d209ec838bec42aad1c7f6aee2e7fd9157927bb4cf9c12"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-10-14/linux-015/candidate-jobs.json",
+      "sha256": "8d7f8a897b919eaab76dc0ca1e14e16c06e720da79ad1bf24a6f5dcddb68a114"
+    }
+  }
+}

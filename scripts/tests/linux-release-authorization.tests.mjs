@@ -286,3 +286,36 @@ test('0.1.4 approval rejects missing runtime preflights and old installed result
   });
   assert.throws(check, /step did not pass/);
 });
+
+test('requested 0.1.5 publication requires its bound main CI and graphical installer check', (t) => {
+  const { auth, check } = maintenanceFixture(t, 'evidence/maintenance/2026-10-14/linux-015/maintenance-authorization.json');
+  assert.equal(auth.releaseTag, 'v0.1.5-linux-stable');
+  assert.equal(check().ciStepsVerified, 13);
+  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
+  assert.equal(auth.formalSupportClaim, false);
+});
+
+test('0.1.5 publication cannot authorize another candidate or claim installed certification', (t) => {
+  const { auth, check } = maintenanceFixture(t, 'evidence/maintenance/2026-10-14/linux-015/maintenance-authorization.json');
+  for (const [key, invalid] of [['releaseTag', 'v0.1.6-linux-stable'], ['candidateSourceCommit', 'a'.repeat(40)],
+    ['candidateWorkflowRunId', '123'], ['acceptancePolicy', 'maintenance-ci-0.1.4']]) {
+    const original = auth[key]; auth[key] = invalid;
+    assert.throws(check, /limited to the approved/); auth[key] = original;
+  }
+  auth.formalSupportClaim = true;
+  assert.throws(check, /honest installed-acceptance/);
+  auth.formalSupportClaim = false;
+  auth.maintenanceApproval.approved = false;
+  assert.throws(check, /explicit approval/);
+});
+
+test('0.1.5 publication rejects a skipped graphical installer check or a non-main candidate', (t) => {
+  const { check, mutate } = maintenanceFixture(t, 'evidence/maintenance/2026-10-14/linux-015/maintenance-authorization.json');
+  mutate('run', run => { run.head_branch = 'unapproved-branch'; });
+  assert.throws(check, /CI identity or result mismatch/);
+  mutate('run', run => { run.head_branch = 'main'; });
+  mutate('jobs', receipt => {
+    receipt.jobs[0].steps.find(step => step.name === 'Verify graphical installer package and render its bilingual wizard').conclusion = 'skipped';
+  });
+  assert.throws(check, /step did not pass/);
+});
