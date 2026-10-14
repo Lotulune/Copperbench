@@ -3,6 +3,7 @@
 本目录保存来源、许可、品牌和源码分发证据。它不是法律意见。公开身份与分发政策见 [`BRANDING.md`](./BRANDING.md) 与 [ADR-0015](../docs/adr/0015-github-unsigned-gpl-fork.md)：Copperbench GitHub 未签名 GPL 衍生版。
 
 - [`baseline.lock.json`](./baseline.lock.json)：不可变来源、文件哈希和工具链版本。
+- [前端依赖告警记录（2026-10-14）](./dependency-audit/2026-10-14.json)：来源、依赖链、开发／运行时影响、升级依据与 npm 审计回执。
 - [`branding-assets.lock.json`](./branding-assets.lock.json)：23 个替换资产的上游与当前 SHA-256。
 - [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)：上游与第三方归属入口。
 - [`BRANDING.md`](./BRANDING.md)：必须替换、必须保留的品牌项，以及 GitHub 未签名公开分发政策。

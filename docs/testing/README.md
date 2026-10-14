@@ -6,6 +6,7 @@
 
 | 内容 | 入口 |
 | --- | --- |
+| 首次成功、输入诊断与依赖告警（源码） | [原始检查](first-success-2026-10-14.md) · [最新主线整合](first-success-integration-2026-10-14.md) |
 | Windows 0.1.4 发布与验证 | [发布记录](product-shell-release-0.1.4.md) |
 | Linux 0.1.4 发布与验证 | [发布记录](product-shell-linux-publication-0.1.4.md)、[本次验收范围](product-shell-linux-release-0.1.4.md) |
 | 历史 0.1.2 维护修复与 Windows 原生回归 | [维护验收](maintenance-2026-09-27.md) |

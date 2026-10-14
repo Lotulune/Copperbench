@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-14",
+  "source": {
+    "head": "b1a69d244ab7337608cc302826ed55d4a707f37f",
+    "scope": "Current dirty working tree, including pre-existing changes. Hashes identify the affected inputs, not an isolated clean commit.",
+    "affectedFiles": [
+      {
+        "path": "src/main/java/dev/copperbench/core/application/ElementInputPreflight.java",
+        "sha256": "2a064e214a0ebdd04068f8abe305879461c5f1c3a3fe1507ed1e0a40e4fa8dfb"
+      },
+      {
+        "path": "src/main/java/dev/copperbench/core/application/WorkspaceApplicationService.java",
+        "sha256": "ed64eb9d928be2df66e78d264d791e8a57a8418ac8a81a0118b1aec31ea22b1f"
+      },
+      {
+        "path": "src/main/java/dev/copperbench/mcp/McpToolCatalog.java",
+        "sha256": "3de415d6c6d042c35ec83ea4baa7afcc6495e98716a791a08b1c0d3013d2fec0"
+      },
+      {
+        "path": "src/test/java/dev/copperbench/core/application/ElementInputPreflightTest.java",
+        "sha256": "1f61ace3a7e2272ea94f7bd91e78209d992e0549595b5cf8d2ed2576ef9808f6"
+      },
+      {
+        "path": "src/test/java/dev/copperbench/core/workspace/mcreator/FailedElementMutationRegressionTest.java",
+        "sha256": "7a0be2d87e2463f129f9685ec464a0a69477a09b4991a64b7d8f0fb564c2ca6a"
+      },
+      {
+        "path": "src/test/java/dev/copperbench/core/WorkspaceApplicationServiceTest.java",
+        "sha256": "a91f43f49e13d95544b8544dd73c7abc93d53f54eb0a8127e87ed8506f4cc6cf"
+      },
+      {
+        "path": "ui-shell/src/components/CreateElementModal.tsx",
+        "sha256": "06794fd336852161ae10ce099f12c7750c6afcdcd58a244520ce0b3df75e3617"
+      },
+      {
+        "path": "ui-shell/src/content/userGuide.ts",
+        "sha256": "eee0e62a7ce0d6694c20812f29a079eaa92d36f6faa39f35d79e19f10d5339ed"
+      },
+      {
+        "path": "ui-shell/e2e/input-preflight.spec.ts",
+        "sha256": "4ffd881835ddf2463db146e65727791ae75343be42e88f69273b18c78f956217"
+      },
+      {
+        "path": "ui-shell/e2e/adaptive-and-frameless.spec.ts",
+        "sha256": "7f9093d41ac37a28aa5eeec66b53fc3e975538e57e49fee3d2b04c77f2ee2975"
+      },
+      {
+        "path": "ui-shell/package-lock.json",
+        "sha256": "1d713c2dcdd6be86a16d2b9b6a745e6d4ae34f7656dbc829eb97d9e2d651438d"
+      },
+      {
+        "path": "ui-core/package-lock.json",
+        "sha256": "2f3e0b4c13f9a9f14bf28ab509d36cc5f5fc95ec11534333498c022f0c9c3162"
+      }
+    ]
+  },
+  "java": {
+    "status": "passed",
+    "tests": 85,
+    "failures": 0,
+    "reports": [
+      {
+        "name": "dev.copperbench.core.application.ElementInputPreflightTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.core.application.ElementInputPreflightTest.xml",
+        "sha256": "f412e5b6af1ea5ef724d348b17fdad6df01fb2e45e08d4983f5fb9e9fbbefac3"
+      },
+      {
+        "name": "dev.copperbench.core.application.WorkspacePlanEngineTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.core.application.WorkspacePlanEngineTest.xml",
+        "sha256": "679a72fc57165a9ed900a06cc72c1c89a013c9650d169eec74eb9fedddaabf3b"
+      },
+      {
+        "name": "dev.copperbench.core.workspace.mcreator.FailedElementMutationRegressionTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.core.workspace.mcreator.FailedElementMutationRegressionTest.xml",
+        "sha256": "6d161a045834954e290a31eed0ca7dc8e76c378b7888a6dbd6475286228f0ab7"
+      },
+      {
+        "name": "dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest.xml",
+        "sha256": "9778f0bc1114d2be2e2d4a4668a13e6fc2a136024a1e1ebf3132b1bda1bc4745"
+      },
+      {
+        "name": "dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest.xml",
+        "sha256": "a6620dbb688c566ef18b8b54d13c9a3b763c09c96a3a91c7d99c0d7df4af3a72"
+      },
+      {
+        "name": "dev.copperbench.core.WorkspaceApplicationServiceTest",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.core.WorkspaceApplicationServiceTest.xml",
+        "sha256": "6875edeedc13574620a17f01beff987dc5c2893538d8c1a2394d9b70831cb4bc"
+      },
+      {
+        "name": "dev.copperbench.mcp.McpHttpServerTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "path": "build/test-results/test/TEST-dev.copperbench.mcp.McpHttpServerTest.xml",
+        "sha256": "76e85e3b7c2abf66d4fd49a06a70d9a2d50b739b3dc7838aa2bc88b1a5a1abe6"
+      }
+    ],
+    "launch": "Documented run-gradle-external.ps1 after the direct launch hit the known host loopback restriction."
+  },
+  "ui": {
+    "unitTests": 28,
+    "contractTests": 35,
+    "schemas": 12,
+    "scenarios": 18,
+    "playwrightCases": 20,
+    "helpCasesRepeatedAfterVersionCopyFix": 4,
+    "productionBuild": "passed",
+    "visualReview": [
+      {
+        "path": "output/first-success-2026-10-14/screenshots/creation-zh-1366.png",
+        "sha256": "c3097415ce90cdfccda5d1d13a0272b8d22eda971cbee9b44d36800e5247d59e"
+      },
+      {
+        "path": "output/first-success-2026-10-14/screenshots/creation-en-1920.png",
+        "sha256": "835cfac1059a028f54441bc31e81090074e422e73059204b5d53f976b3881497"
+      },
+      {
+        "path": "output/first-success-2026-10-14/screenshots/help-1366.png",
+        "sha256": "58a6032955135e10fef7bae9bc3aef9bb936d5f7d48eab4286d7a216df8ff54b"
+      }
+    ]
+  },
+  "mcp": {
+    "tool": "@modelcontextprotocol/conformance",
+    "toolVersion": "0.1.16",
+    "specVersion": "2025-11-25",
+    "applicableScenarios": [
+      {
+        "scenario": "server-initialize",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "logging-set-level",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "ping",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "tools-list",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "server-sse-multiple-streams",
+        "checks": 2,
+        "failures": 0
+      },
+      {
+        "scenario": "dns-rebinding-protection",
+        "checks": 2,
+        "failures": 0
+      }
+    ],
+    "checks": 8,
+    "failures": 0,
+    "windowsCliExitIssue": "UV_HANDLE_CLOSING may occur after a successful report; checks.json is authoritative."
+  },
+  "dependencies": {
+    "record": "compliance/dependency-audit/2026-10-14.json",
+    "beforeHigh": 3,
+    "afterHigh": 0,
+    "afterTotal": 0
+  },
+  "verificationLimits": {
+    "gameplay": "not-run; no new client/world observations claimed",
+    "publishedPackages": "not-rebuilt",
+    "markdown": "New and changed documentation has no reported missing links. The full-repository checker still reports three pre-existing output links in docs/testing/installer-cloud-2026-10-13.md."
+  },
+  "logs": [
+    {
+      "path": "output/first-success-2026-10-14/gradle-external.log",
+      "sha256": "417838a0b0cc9928b00468714a28ae05abc0cbe058c7d614ff2ccb5ecaab2d64"
+    },
+    {
+      "path": "output/first-success-2026-10-14/ui-tests.log",
+      "sha256": "2aae1f81c5ac27a1abfd966256393dbdf578b862412ac8ccc01941c7dc739ddf"
+    },
+    {
+      "path": "output/first-success-2026-10-14/ui-core-tests.log",
+      "sha256": "c181b87af232e2c5e3acf753371d8a48bd4a42ff8cb8b763cc88f131d11ab030"
+    },
+    {
+      "path": "output/first-success-2026-10-14/ui-core-validate.log",
+      "sha256": "9dc2c2ee51ad4f20a13c35bb3ed406c7167536e51b83edfbafcfdd5caaaf8bed"
+    },
+    {
+      "path": "output/first-success-2026-10-14/e2e.log",
+      "sha256": "83e5b936ce057a5caa96322ba5c1fe1030366b0cf70bea1b1b9c598fd7ae3ad1"
+    },
+    {
+      "path": "output/first-success-2026-10-14/help-final.log",
+      "sha256": "765bcd2db51cec2457d2acaefbd581bd524dbc9f81eda8cb8ea56a9962535380"
+    },
+    {
+      "path": "output/first-success-2026-10-14/ui-build-final.log",
+      "sha256": "7125bf3277dbdab5e54b5b061a979b13cb876df049925fa3bdc151e409c85c9e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build/classes/java/main/dev/copperbench/core/application/ElementInputPreflight.class",
+      "sha256": "b4bff0b4220812b5036bf3f8d13a7bd3f29d32b61ac5a95d0fa7eed66c7aed94"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/core/application/WorkspaceApplicationService.class",
+      "sha256": "d7e3661246fff103dd97db2d8db4b345aef5c2fa95a5094a916ce1ed61bc4bae"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/mcp/McpToolCatalog.class",
+      "sha256": "5c386944c5c41eb761ed09e955efdb6950d65dcc0654f7518f2b3c0bc9bf24d4"
+    },
+    {
+      "path": "ui-shell/dist/assets/AdvancementWorkbench-DNimLdij.js",
+      "sha256": "d001e99769a441d2403ebf9e9f633cb6a01b989df30111c069e53df2a3959ac3"
+    },
+    {
+      "path": "ui-shell/dist/assets/code-xml-CVHqVMo-.js",
+      "sha256": "f7dfabdcb941bab7993dd3659f8b1d07ff82debda3ef494801c2451c4924204a"
+    },
+    {
+      "path": "ui-shell/dist/assets/FunctionWorkbench-D9mzrHnP.js",
+      "sha256": "37531816cf24f4c8fea98db47c5a3d1484be1ee1236b82969c88fb10c8d8b962"
+    },
+    {
+      "path": "ui-shell/dist/assets/GuiWorkbench-sX05yqYb.js",
+      "sha256": "341ba7f2628dc1032d1a33375bd8a691df004c7d56fd04cf050ff8e84d9048fd"
+    },
+    {
+      "path": "ui-shell/dist/assets/index-DT8KsecX.css",
+      "sha256": "02e500595436595db77be8f2bd699736615a7c1b225d30c8f89e8b731481c7ea"
+    },
+    {
+      "path": "ui-shell/dist/assets/index-tWmrMp2B.js",
+      "sha256": "a4e4fdeb0767bfcae510910e2603c4fce74fa64f8b8b58cdee97ca632de83cd0"
+    },
+    {
+      "path": "ui-shell/dist/assets/LootTableWorkbench-B9fys3ZJ.js",
+      "sha256": "c625c4a2b739ab5ba2a1ebc7b4b3e20fd0059489f2d41c1935eccb0ede321de2"
+    },
+    {
+      "path": "ui-shell/dist/assets/OverlayWorkbench-DA71Q28w.js",
+      "sha256": "91c72cf6a085e9290e62b386bb9e94721dcd454ad35bf75a2be150122448589d"
+    },
+    {
+      "path": "ui-shell/dist/assets/ProcedureWorkbench-CSC5Bxux.js",
+      "sha256": "de3f0cac9679140d5c383355c2948f57df48dbfb1b4bae366e5187db5c623e7a"
+    }
+  ]
+}

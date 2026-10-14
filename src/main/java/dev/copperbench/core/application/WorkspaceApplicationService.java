@@ -505,7 +505,10 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("workspaceKind", state.kind());
 			projection.addProperty("revision", state.revision());
 			projection.add("generator", state.generator());
-			projection.add("fieldContracts", FieldContractProjection.environment(optionalString(state.generator(), "id")));
+			projection.add("versionTracks", versionTracks(state));
+			JsonObject fieldContracts = FieldContractProjection.environment(optionalString(state.generator(), "id"));
+			fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
+			projection.add("fieldContracts", fieldContracts);
 			projection.addProperty("fieldContractDiscovery", "get_mod_element_field_contract");
 			projection.add("application", ApplicationBuildIdentity.inspect());
 			Path root = workspaceRoot(query.workspaceId());
@@ -1931,6 +1934,8 @@ public final class WorkspaceApplicationService {
 
 	private CommandOutcome create(Command command, RequestContext context) {
 		JsonObject payload = command.payload();
+		List<Diagnostic> inputIssues = ElementInputPreflight.createPayload(payload);
+		if (!inputIssues.isEmpty()) return failed(command, currentRevision(command.workspaceId()), inputIssues);
 		String type;
 		String name;
 		JsonObject initialValues;
@@ -1945,6 +1950,8 @@ public final class WorkspaceApplicationService {
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
 		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
+		List<Diagnostic> missingValues = ElementInputPreflight.requiredValues(type, normalizedValues, null);
+		if (!missingValues.isEmpty()) return failed(command, currentRevision(command.workspaceId()), missingValues);
 		if (type.equals("block")) {
 			for (String field : BlockFieldContract.merged(initialValues).keySet()) {
 				if (!BlockFieldContract.DEFINITION_FIELDS.contains(field) && !BlockFieldContract.PRODUCT_FIELDS.contains(field))
@@ -5752,6 +5759,10 @@ public final class WorkspaceApplicationService {
 	}
 
 	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
+		List<Diagnostic> shapeIssues = ElementInputPreflight.shape(values, elementId);
+		if (!shapeIssues.isEmpty()) return shapeIssues.getFirst();
+		List<Diagnostic> requiredIssues = ElementInputPreflight.requiredValues(elementType, values, elementId);
+		if (!requiredIssues.isEmpty()) return requiredIssues.getFirst();
 		var creationIssue = ElementFieldContract.validateCreation(elementType, values);
 		if (creationIssue != null) return blockFieldDiagnostic(elementId, creationIssue);
 		if (elementType.equals("procedure")) {
@@ -5836,8 +5847,12 @@ public final class WorkspaceApplicationService {
 	}
 
 	private CommandOutcome failed(Command command, long revision, Diagnostic diagnostic) {
+		return failed(command, revision, List.of(diagnostic));
+	}
+
+	private CommandOutcome failed(Command command, long revision, List<Diagnostic> diagnostics) {
 		return new CommandOutcome(result(command, "rejected", revision, JsonNull.INSTANCE, JsonNull.INSTANCE,
-				List.of(diagnostic), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+				diagnostics, JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
 	}
 
 	private CommandResult result(Command command, String status, long revision, JsonElement task, JsonElement data,

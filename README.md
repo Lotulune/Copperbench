@@ -21,9 +21,11 @@ Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
-3. Add a Mod Element, save, build, and launch the test client.
+3. Follow [your first creation](docs/user/first-creation.md) to build a block, obtain and place it in Minecraft, then save and reopen the world.
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
+
+Current source also registers **26.3 preview** targets with explicit opt-in and bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.4 support claim.
 
 Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access; Blockbench is installed separately. Release checks passed for 0.1.4, while full installed-product and gameplay acceptance were not repeated. See [current downloads](docs/releases/current.md) for each platform's verification scope and known issues.
 
@@ -66,7 +68,7 @@ Most detailed guides are currently in Chinese.
 - [Documentation index](docs/README.md) · [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
 - [MCP setup](docs/ai/getting-started.md) · [Agent examples](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
 - [Development setup](docs/build/development-setup.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
-- [Current follow-up](docs/remaining-work.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
+- [Current status: downloads, source, preview and unverified](docs/status.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
 
 <a id="development"></a>
 

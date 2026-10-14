@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-14",
+  "baseCommit": "ccee11b8358aeee8da25e28741cefb3eb98c7048",
+  "branch": "codex/first-success-integration-20261014",
+  "scope": "Scoped five-item optimization integrated over PR #106; no release version bump or publication. Original checkout remains unchanged.",
+  "sourceFiles": [
+    {
+      "path": "src/main/java/dev/copperbench/core/application/ElementInputPreflight.java",
+      "sha256": "a5b830d6bf20c0bfd3c5252180914a7da47455bba8db62b95eba5d93de3ed379"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/ElementFieldContract.java",
+      "sha256": "02ef99db45578b94421cd6ca00bdd6bb1d98d319b253a29633c3540a476f9588"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/WorkspaceApplicationService.java",
+      "sha256": "1ab1007fdc48623d63bd0fd179b12b29b2079d760ee36cd4fa1e4e490b0633ae"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/mcp/McpToolCatalog.java",
+      "sha256": "0ef9bb6ab4ed88fd5774490287db059ab8b6bf1f3d4db6bccd8dd6fde864e414"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/application/ElementInputPreflightTest.java",
+      "sha256": "384de3535011bc609722ba15909e47017c085f5102ab36fa4b5bd78d3039d4dd"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/workspace/mcreator/IncompleteElementPreflightPersistenceTest.java",
+      "sha256": "d590b74e234872215001b7b0a0cb74c27575e1d7f2dbb06853b005e16a47392b"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/mcp/McpHttpServerTest.java",
+      "sha256": "0173b3124a779f3e2c167aac23cfa453d31921256a93f9a13ccfbbd3fbe5c486"
+    },
+    {
+      "path": "ui-shell/src/components/CreateElementModal.tsx",
+      "sha256": "7676627ee628c72f16ab80d3f489c70ade65049d3c66b52ce94956012829161b"
+    },
+    {
+      "path": "ui-shell/src/content/userGuide.ts",
+      "sha256": "7e9b5b2a3d3da0dfc141127ee563c2073601bc59264b5617436507c13a4e9c97"
+    },
+    {
+      "path": "ui-shell/src/i18n/en.ts",
+      "sha256": "182b9d8e8e268cb473c54c89bf985ebd0d884246cceace9e81f46ed9a2e3365f"
+    },
+    {
+      "path": "ui-shell/src/i18n/zh.ts",
+      "sha256": "e76ba854c11490e0226580d2b0bfd50436a460f51f735070854896b702276e2a"
+    },
+    {
+      "path": "ui-shell/e2e/input-preflight.spec.ts",
+      "sha256": "5bf08dd8343413fb9f2bed85cd657a85cd2ddf1ace703d01274971599e845556"
+    },
+    {
+      "path": "ui-shell/e2e/adaptive-and-frameless.spec.ts",
+      "sha256": "4aa55729c1900460fa13a98df6627e1c294de28795e4a20105a5c9cab149d678"
+    },
+    {
+      "path": "ui-core/package-lock.json",
+      "sha256": "2f3e0b4c13f9a9f14bf28ab509d36cc5f5fc95ec11534333498c022f0c9c3162"
+    },
+    {
+      "path": "ui-shell/package-lock.json",
+      "sha256": "1d713c2dcdd6be86a16d2b9b6a745e6d4ae34f7656dbc829eb97d9e2d651438d"
+    }
+  ],
+  "preservedMainFiles": [
+    {
+      "path": "src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceMutationGateway.java",
+      "sha256": "7452121e109a51de3cdd9b59dee45df57f262c47cbcc6da1dad831bf0dd6f1b9"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/ProcedureFieldContract.java",
+      "sha256": "1f6e248d6fadc3a586db49ff3feff5441e1ea1563f8c6f16fa8339de7efe1062"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/workspace/mcreator/FailedElementMutationRegressionTest.java",
+      "sha256": "3915e026808ee1e6843a9b73aaa4e9f8396b39bdee95a09de32e89d85a5df19a"
+    }
+  ],
+  "java": {
+    "status": "passed",
+    "uniqueTests": 131,
+    "finalFailures": 0,
+    "runs": [
+      {
+        "pass": "java-initial",
+        "tests": 131,
+        "failures": 4,
+        "reports": [
+          {
+            "name": "dev.copperbench.core.application.ElementInputPreflightTest",
+            "tests": 13,
+            "failures": 1,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.application.ElementInputPreflightTest.xml",
+            "sha256": "06680d0918b3938163428880c94e6d23ab0f373f0786c6b8755ffc8de7e482ed"
+          },
+          {
+            "name": "dev.copperbench.core.application.FieldContractProjectionTest",
+            "tests": 19,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.application.FieldContractProjectionTest.xml",
+            "sha256": "57ccd0b5d5f923ec94ceedb5c9531211e936f804406bd2630ed0c8b46e930ed4"
+          },
+          {
+            "name": "dev.copperbench.core.application.PreviewAccessTest",
+            "tests": 8,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.application.PreviewAccessTest.xml",
+            "sha256": "ecdd4629b8836f67d3f2552e4bae0fd3ef9f421061a7784bc60a2b211db7cb37"
+          },
+          {
+            "name": "dev.copperbench.core.application.WorkspacePlanEngineTest",
+            "tests": 13,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.application.WorkspacePlanEngineTest.xml",
+            "sha256": "29285bb4e8a098b070b766392e12aa6f3960ae921c624039735c86445c942d0f"
+          },
+          {
+            "name": "dev.copperbench.core.workspace.mcreator.FailedElementMutationRegressionTest",
+            "tests": 7,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.workspace.mcreator.FailedElementMutationRegressionTest.xml",
+            "sha256": "93548e3f76dd12dd47db45403551a72e37e126c6a4df56e448098a72b230a8e4"
+          },
+          {
+            "name": "dev.copperbench.core.workspace.mcreator.IncompleteElementPreflightPersistenceTest",
+            "tests": 6,
+            "failures": 3,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.workspace.mcreator.IncompleteElementPreflightPersistenceTest.xml",
+            "sha256": "820b9836705944b170a506d11968847eb4563ba1fea32b253be414ee31f801f2"
+          },
+          {
+            "name": "dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest",
+            "tests": 7,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest.xml",
+            "sha256": "c32eb85bfd81e6e5a5f247c5bc93c0ddd3b289d766eb1b906b3772d26b5aab7d"
+          },
+          {
+            "name": "dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest",
+            "tests": 11,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest.xml",
+            "sha256": "12878c30905e17692d3368431b0164aad5891bd07e41692836fbb071778ce188"
+          },
+          {
+            "name": "dev.copperbench.core.workspace.mcreator.StructuredCreatorPersistenceTest",
+            "tests": 7,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.workspace.mcreator.StructuredCreatorPersistenceTest.xml",
+            "sha256": "3d1e97e938a7601b653ae1f9845f14d18fcfbee316772f6247e9e2b4513339c5"
+          },
+          {
+            "name": "dev.copperbench.core.WorkspaceApplicationServiceTest",
+            "tests": 27,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.core.WorkspaceApplicationServiceTest.xml",
+            "sha256": "694af72afac0b110ed209c4c9b57500fd04f9e115634356f475f58605889a81e"
+          },
+          {
+            "name": "dev.copperbench.mcp.McpHttpServerTest",
+            "tests": 13,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-initial/TEST-dev.copperbench.mcp.McpHttpServerTest.xml",
+            "sha256": "baf6f30672e5c4d80793a5deaae87ab5e807c8b466207a9de439635d5ee4afff"
+          }
+        ]
+      },
+      {
+        "pass": "java-corrected",
+        "tests": 19,
+        "failures": 0,
+        "reports": [
+          {
+            "name": "dev.copperbench.core.application.ElementInputPreflightTest",
+            "tests": 13,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-corrected/TEST-dev.copperbench.core.application.ElementInputPreflightTest.xml",
+            "sha256": "ac73db0e6d9bce67b7a686e6be0bc5e375dce330241797bec86a9f2af6f397ac"
+          },
+          {
+            "name": "dev.copperbench.core.workspace.mcreator.IncompleteElementPreflightPersistenceTest",
+            "tests": 6,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "path": "output/first-success-integration/java-corrected/TEST-dev.copperbench.core.workspace.mcreator.IncompleteElementPreflightPersistenceTest.xml",
+            "sha256": "619110dd106c7fb2a3394503a29582be9f58577b0242c78717d5e742be72436b"
+          }
+        ]
+      }
+    ],
+    "correction": "Four new assertions used rejected instead of the existing plan failure status failed. Only those test expectations changed; the two affected classes were rerun."
+  },
+  "javadoc": "passed",
+  "ui": {
+    "productionBuild": "passed via buildUiShell",
+    "unitTests": 36,
+    "contractTests": 50,
+    "schemas": 14,
+    "scenarios": 18,
+    "playwright": 28,
+    "viewports": [
+      "1920x1080",
+      "1366x768"
+    ],
+    "port": 5188
+  },
+  "mcp": {
+    "tool": "@modelcontextprotocol/conformance",
+    "toolVersion": "0.1.16",
+    "specVersion": "2025-11-25",
+    "applicableScenarios": [
+      {
+        "scenario": "server-initialize",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "logging-set-level",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "ping",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "tools-list",
+        "checks": 1,
+        "failures": 0
+      },
+      {
+        "scenario": "server-sse-multiple-streams",
+        "checks": 2,
+        "failures": 0
+      },
+      {
+        "scenario": "dns-rebinding-protection",
+        "checks": 2,
+        "failures": 0
+      }
+    ],
+    "checks": 8,
+    "failures": 0,
+    "windowsCliExitIssue": "UV_HANDLE_CLOSING may occur after a successful report; checks.json is authoritative."
+  },
+  "audits": [
+    {
+      "project": "ui-shell",
+      "path": "output/first-success-integration/ui-shell-audit.json",
+      "sha256": "9aba33dc1ecd5783b3e977f12f68829e83b7f0e6c39c335009ec9b84631e5240",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    {
+      "project": "ui-core",
+      "path": "output/first-success-integration/ui-core-audit.json",
+      "sha256": "b0056bd5145d685f1372622cb098806f05b23f1a656b695c3ecbdf1c8dc813f1",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    }
+  ],
+  "markdown": "all local links resolve",
+  "productStatus": {
+    "generators": 8,
+    "gates": 27,
+    "changed": false
+  },
+  "limits": {
+    "minecraftGameplay": "not rerun",
+    "installedPackageAcceptance": "not rerun",
+    "publication": "not performed"
+  },
+  "logs": [
+    {
+      "path": "output/first-success-integration/gradle.log",
+      "sha256": "d4983951e28c460b394909a1887866cfc02009e0bcbf4d8f7d5f7483f3a5d8dc"
+    },
+    {
+      "path": "output/first-success-integration/gradle-corrected.log",
+      "sha256": "43d518b27888ad2cee4f5f2969e699c81d331a6efd8fd586d05061f3762e0f3e"
+    },
+    {
+      "path": "output/first-success-integration/ui-shell-test.log",
+      "sha256": "f33e305423fbac878a0932fe4b83599a979ac67348f67efb05ef1f4336d61703"
+    },
+    {
+      "path": "output/first-success-integration/ui-core-test.log",
+      "sha256": "f5654e3fa427775129eb899e8ed996e4d1766a418739a9fdd166f8222a4b628d"
+    },
+    {
+      "path": "output/first-success-integration/ui-core-validate.log",
+      "sha256": "5ee1e97342d940fa3d83a48990ea2a56f5e91346e888f7d99aeaa6e265a5d673"
+    },
+    {
+      "path": "output/first-success-integration/e2e.log",
+      "sha256": "2e22cb3f22daae542bf3a23b62ae3594fcb4b37b3ddcc5c3523c7bdf568256c2"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build/classes/java/main/dev/copperbench/core/application/ElementInputPreflight.class",
+      "sha256": "1bda5ba1e59a30fb38ba40787e82099e654a5b8b46408e6c5f45737c4ba115e8"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/core/application/ElementFieldContract.class",
+      "sha256": "5b0a166d5de9b199cdf6a8b2480daa25f3de9468a323814e3f0e87c218c17331"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/core/application/WorkspaceApplicationService.class",
+      "sha256": "72541fedd67478b5f493fdc79fe2a063bcb512b67a2b1a77a95a9bad5fa3a4a9"
+    },
+    {
+      "path": "ui-shell/dist/assets/AdvancementWorkbench-BMcgsGWA.js",
+      "sha256": "e3227315be5844aac1155eb54d53808231ea7541ad6e65beb6a315cb9f5004f1"
+    },
+    {
+      "path": "ui-shell/dist/assets/code-xml-C6xg1JU2.js",
+      "sha256": "7792977bb3f9bbf909c58a47503ff761dca1ea236f001142388df5d88619f7d5"
+    },
+    {
+      "path": "ui-shell/dist/assets/FunctionWorkbench-C9PZUKZv.js",
+      "sha256": "9410c56b86f5fc6192cfd8c93e4c3c48a8b648ec47e83546660df517cb25025e"
+    },
+    {
+      "path": "ui-shell/dist/assets/GuiWorkbench-BYc9JQFO.js",
+      "sha256": "66ea50cfbd2818028f38713114b30abf739d24fbda7f4d58158a572b03bcde44"
+    },
+    {
+      "path": "ui-shell/dist/assets/index-BLBHTjr0.js",
+      "sha256": "50b3abfe3c7265a62e490980bb337d610f7e33e5d748fde69c5a66c6606321ac"
+    },
+    {
+      "path": "ui-shell/dist/assets/index-SLySAn1P.css",
+      "sha256": "3cafe0d844e95aab890cec974c070738ac83c3747136b101ee7466936dbb36e5"
+    },
+    {
+      "path": "ui-shell/dist/assets/LootTableWorkbench-C-AQiPnL.js",
+      "sha256": "232a2e5a79a3516e5293651b92b0572a2def3ebd82300dc61c68f6ef2aa2b8a3"
+    },
+    {
+      "path": "ui-shell/dist/assets/OverlayWorkbench-iOJCGlGZ.js",
+      "sha256": "1147af7ad8a740557bb889daffd52cfe71cc45ca8c2068c427fb751c64fb4d11"
+    },
+    {
+      "path": "ui-shell/dist/assets/ProcedureWorkbench-5kX-bu_q.js",
+      "sha256": "94ce8090b984720c121c80aa27e338d6ecf4ea3721b03e36489b808f195b2acd"
+    }
+  ],
+  "reproductionCommands": [
+    {
+      "cwd": ".",
+      "command": "pwsh -NoProfile -File scripts/run-gradle-external.ps1 --no-daemon test --tests dev.copperbench.core.application.ElementInputPreflightTest --tests dev.copperbench.core.application.FieldContractProjectionTest --tests dev.copperbench.core.application.PreviewAccessTest --tests dev.copperbench.core.application.WorkspacePlanEngineTest --tests dev.copperbench.core.workspace.mcreator.FailedElementMutationRegressionTest --tests dev.copperbench.core.workspace.mcreator.IncompleteElementPreflightPersistenceTest --tests dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest --tests dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest --tests dev.copperbench.core.workspace.mcreator.StructuredCreatorPersistenceTest --tests dev.copperbench.core.WorkspaceApplicationServiceTest --tests dev.copperbench.mcp.McpHttpServerTest javadoc"
+    },
+    {
+      "cwd": ".",
+      "command": "npm test --prefix ui-shell"
+    },
+    {
+      "cwd": ".",
+      "command": "npm test --prefix ui-core"
+    },
+    {
+      "cwd": ".",
+      "command": "npm run validate --prefix ui-core"
+    },
+    {
+      "cwd": "ui-shell",
+      "command": "npx playwright test e2e/input-preflight.spec.ts e2e/adaptive-and-frameless.spec.ts e2e/stage17-procedure-rendering.spec.ts e2e/preview-targets.spec.ts --project=chromium --project=compact-1366 --grep \"creation preserves|help/about|help page|opening and unrelated edits|unavailable renderer|preview|historical exact\"",
+      "note": "Original run used an ignored temporary config on port 5188 for worktree isolation."
+    },
+    {
+      "cwd": ".",
+      "command": "pwsh -NoProfile -File scripts/verify-mcp-conformance.ps1 -OutputDirectory output/first-success-integration/mcp-conformance"
+    }
+  ]
+}

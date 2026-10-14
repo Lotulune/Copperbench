@@ -420,6 +420,9 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("get_workspace_environment"));
 			assertTrue(tools.body().contains("get_workspace_doctor"));
 			assertTrue(tools.body().contains("preview_generation"));
+			assertFalse(tools.body().contains("Generate Fabric 1.21.1 sources"));
+			assertFalse(tools.body().contains("Build the Fabric 1.21.1 mod"));
+			assertTrue(tools.body().contains("workspace's active generator"));
 			assertTrue(tools.body().contains("list_new_workspace_generators"));
 			assertTrue(tools.body().contains("create_workspace"));
 			assertTrue(tools.body().contains("preview_mod_element_change"));

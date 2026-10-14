@@ -1,4 +1,5 @@
 import { tr, uiText } from '../i18n/locale';
+import { renderUiMessage, uiMessage, type UiMessage } from '../i18n';
 import { elementLabel, elementShortLabel } from '../i18n/labels';
 import React, { useEffect, useState } from 'react';
 import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
@@ -12,7 +13,8 @@ export const CreateElementModal: React.FC = () => {
   const [elementType, setElementType] = useState<ModElementType>('block');
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UiMessage[] | null>(null);
+  const [nameInvalid, setNameInvalid] = useState(false);
   const typeIcons: Record<string, typeof Box> = { block: Box, item: Compass, recipe: Scroll, procedure: Terminal, function: FileCode2, loottable: Gift, achievement: Trophy };
 
   const dialogRef = useDialogA11y(isCreateModalOpen, () => setIsCreateModalOpen(false));
@@ -28,17 +30,20 @@ export const CreateElementModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError(tr("元素标识符不能为空"));
+      setError([uiMessage('元素标识符不能为空', 'Element identifier is required.')]);
+      setNameInvalid(true);
       return;
     }
     // Validate identifier format
     if (!/^[a-z][a-z0-9_]{0,63}$/.test(name.trim())) {
-      setError(tr("标识符须以小写字母开头，仅含小写字母、数字或下划线，长度为 1–64（如 copper_lamp）。"));
+      setError([uiMessage('标识符须以小写字母开头，仅含小写字母、数字或下划线，长度为 1–64（如 copper_lamp）。', 'Use 1–64 lowercase letters, digits or underscores, starting with a letter (for example copper_lamp).')]);
+      setNameInvalid(true);
       return;
     }
 
     setIsSubmitting(true);
     setError(null);
+    setNameInvalid(false);
     try {
       const res = await createModElement(elementType, name.trim());
       setIsSubmitting(false);
@@ -46,11 +51,13 @@ export const CreateElementModal: React.FC = () => {
         setIsCreateModalOpen(false);
         setName('');
       } else {
-        setError(tr("创建元素失败"));
+        setError(res.diagnostics.length ? res.diagnostics.map(diagnostic => diagnostic.message)
+          : [uiMessage('创建元素失败', 'Could not create the element.')]);
+        setNameInvalid(res.diagnostics.some(diagnostic => diagnostic.path === '/name'));
       }
     } catch {
       setIsSubmitting(false);
-      setError(tr("创建元素时发生错误"));
+      setError([uiMessage('创建元素时发生错误', 'An error occurred while creating the element.')]);
     }
   };
 
@@ -75,7 +82,7 @@ export const CreateElementModal: React.FC = () => {
             <WorkspacePreviewChoice />
             {error && (
               <div role="alert" id="create-element-error" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.3)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--badge-red)', fontSize: '12px' }}>
-                {error}
+                {error.map((message, index) => <p key={index} style={{ margin: '4px 0', overflowWrap: 'anywhere' }}>{renderUiMessage(message)}</p>)}
               </div>
             )}
 
@@ -89,7 +96,7 @@ export const CreateElementModal: React.FC = () => {
                 placeholder={tr("例如 copper_lamp、trail_lantern")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                aria-invalid={!!error}
+                aria-invalid={nameInvalid}
                 aria-describedby={error ? "create-element-error create-element-hint" : "create-element-hint"}
                 autoComplete="off"
                 spellCheck={false}

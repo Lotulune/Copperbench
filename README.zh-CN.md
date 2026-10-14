@@ -21,9 +21,11 @@ Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fa
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 新建工作区，选择加载器和 Minecraft 版本。
-3. 添加模组元素，保存、构建，然后启动测试客户端。
+3. 按[第一件作品](docs/user/first-creation.md)创建方块，构建后在 Minecraft 中取得、放置，并保存重进世界确认。
 
 工作台支持简体中文和英文。内置 Fabric / NeoForge 生成器覆盖 Minecraft **26.2、26.1.2、1.21.1、1.20.1**；一个工作区同时使用一个活动生成器。
+
+当前源码另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.4 的支持声明。
 
 Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.4 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
 
@@ -64,7 +66,7 @@ Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。
 - [文档导航](docs/README.md) · [使用说明](docs/user/README.md) · [故障排查](docs/user/troubleshooting.md)
 - [MCP 接入](docs/ai/getting-started.md) · [Agent 操作示例](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
 - [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [项目目录与维护](docs/maintenance/repository-maintenance.md)
-- [当前待办](docs/remaining-work.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
+- [当前状态：下载版／源码／预览／未验证](docs/status.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
 
 <a id="development"></a>
 
