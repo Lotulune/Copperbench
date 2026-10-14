@@ -95,10 +95,19 @@ async function cameraZoom(page: Page) {
   return Number(/scale\(([^)]+)\)/.exec(transform!)![1]);
 }
 
-async function dragNode(page: Page, node: Locator, dx: number, dy: number) {
-  const bounds = await node.locator('rect.relationship-node-surface').boundingBox();
+async function startNodeDrag(page: Page, node: Locator) {
+  const surface = node.locator('rect.relationship-node-surface');
+  // Reveal/resize can still refit the camera. Wait for Playwright's stability and
+  // hit-target checks before taking fresh screen coordinates for the gesture.
+  await surface.hover();
+  const bounds = await surface.boundingBox();
   const x = bounds!.x + bounds!.width / 2; const y = bounds!.y + bounds!.height / 2;
   await page.mouse.move(x, y); await page.mouse.down();
+  return { x, y };
+}
+
+async function dragNode(page: Page, node: Locator, dx: number, dy: number) {
+  const { x, y } = await startNodeDrag(page, node);
   await page.mouse.move(x + dx, y + dy, { steps: 8 }); await page.mouse.up();
 }
 
@@ -151,9 +160,8 @@ test('groups drag independently, cancellation restores a node, and sub-threshold
   await reveal(page, 'Graph Block 0039');
   const node = page.locator(`[data-graph-node][data-element-id="${distantId}"]`);
   const before = await nodePosition(node);
-  const bounds = await node.locator('rect.relationship-node-surface').boundingBox();
-  const x = bounds!.x + bounds!.width / 2; const y = bounds!.y + bounds!.height / 2;
-  await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + 60, y + 30, { steps: 4 });
+  const { x, y } = await startNodeDrag(page, node);
+  await page.mouse.move(x + 60, y + 30, { steps: 4 });
   await expect(node).toHaveClass(/is-dragging/);
   await node.dispatchEvent('pointercancel', { pointerId: 1 });
   await page.mouse.up();
