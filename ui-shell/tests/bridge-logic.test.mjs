@@ -164,6 +164,54 @@ test('production bridge negotiates and loads workbench, elements, and history', 
     ['handshake', 'get_workbench', 'list_mod_elements', 'get_history']);
 });
 
+for (const [operation, command] of [['run', 'run_gametest'], ['export', 'export_workspace']]) {
+  test(`nested preview acceptance ${operation} updates tasks and polls completion`, async (t) => {
+    const f = await fixture(t);
+    const invoke = f.host.invoke;
+    const started = { ...task(), kind: operation === 'run' ? 'run_gametest' : 'export' };
+    const completed = { ...task('succeeded'), kind: started.kind };
+    f.host.invoke = async raw => {
+      const request = JSON.parse(raw);
+      if (request.messageType !== 'preview') return invoke(raw);
+      return JSON.stringify({ contract: 'preview_targets', schemaVersion: '1', selectedVersion: '1',
+        requestId: request.requestId, workspaceId, status: 'accepted', diagnostics: [],
+        acceptance: { contract: 'required_cases', schemaVersion: '1', selectedVersion: '1', requestId: request.requestId,
+          status: 'accepted', core: { messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
+            workspaceId, operation: command, status: 'accepted', newRevision: revision, task: started, diagnostics: [] } } });
+    };
+    f.readTask(() => projection(completed, [log(1)]));
+    await f.bridge.sendPreview(workspaceId, { supportedVersions: ['1'], operation: 'acceptance', generatorId: 'fabric-26.3',
+      payload: { supportedVersions: ['1'], operation, expectedRevision: revision, payload: {} } });
+    assert.deepEqual(f.bridge.getState().tasks[taskId], started);
+    await new Promise(resolve => setTimeout(resolve, 600));
+    assert.deepEqual(f.bridge.getState().tasks[taskId], completed);
+    assert.equal(f.bridge.getState().taskLogs[taskId][0].sequence, 1);
+    assert.equal(f.taskQueries().length, 1);
+  });
+}
+
+test('nested preview acceptance rejects mismatched receipts without changing state', async (t) => {
+  const f = await fixture(t);
+  let mismatch = '';
+  f.host.invoke = async raw => {
+    const request = JSON.parse(raw);
+    return JSON.stringify({ contract: 'preview_targets', schemaVersion: '1', selectedVersion: '1',
+      requestId: request.requestId, workspaceId, status: 'accepted', diagnostics: [],
+      acceptance: { contract: 'required_cases', schemaVersion: '1', selectedVersion: mismatch === 'version' ? '2' : '1',
+        requestId: mismatch === 'request' ? otherTaskId : request.requestId,
+        status: 'accepted', core: { messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
+          workspaceId: mismatch === 'workspace' ? otherTaskId : workspaceId,
+          operation: mismatch === 'operation' ? 'run_client' : 'run_gametest', status: 'accepted',
+          newRevision: mismatch === 'revision' ? -1 : revision, task: task(), diagnostics: [] } } });
+  };
+  const before = structuredClone(f.bridge.getState());
+  for (mismatch of ['version', 'request', 'workspace', 'operation', 'revision']) {
+    await assert.rejects(f.bridge.sendPreview(workspaceId, { supportedVersions: ['1'], operation: 'acceptance', generatorId: 'fabric-26.3',
+      payload: { supportedVersions: ['1'], operation: 'run', expectedRevision: revision, payload: {} } }));
+    assert.deepEqual(f.bridge.getState(), before);
+  }
+});
+
 test('incompatible schema stops initial projection queries', async (t) => {
   const f = await fixture(t, { initialize: false });
   const result = await f.bridge.negotiateHandshake(handshake(['0.1']));

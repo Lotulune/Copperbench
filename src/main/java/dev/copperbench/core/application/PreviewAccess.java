@@ -56,7 +56,10 @@ final class PreviewAccess {
                 ? path(string(command.payload(), "workspaceFolderPath")) : "";
         if (selection == null || !selection.generatorId().equals(target) || !selection.destination().equals(destination))
             return "PREVIEW_OPT_IN_REQUIRED";
-        String operationReason = evidence.reason(target, command.operation());
+        boolean recoveryPlan = command.operation() == UiCore.Operation.APPLY_WORKSPACE_PLAN
+                && configurationRecoveryPlan(command.payload().getAsJsonObject("plan"), state);
+        if (recoveryPlan && evidence.fields(target, "block").isEmpty()) return "PREVIEW_ELEMENT_UNVERIFIED";
+        String operationReason = evidence.reason(target, recoveryPlan ? UiCore.Operation.UPDATE_MOD_ELEMENT : command.operation());
         if (!operationReason.isEmpty()) return operationReason;
         if (command.operation() == UiCore.Operation.CREATE_MOD_ELEMENT) {
             String type = string(command.payload(), "elementType");
@@ -70,6 +73,11 @@ final class PreviewAccess {
             if (element != null) {
                 Set<String> fields = evidence.fields(target, element.type());
                 if (fields.isEmpty()) return "PREVIEW_ELEMENT_UNVERIFIED";
+                JsonObject recovered = recoveryValues(command.payload(), state);
+                if (recovered != null) {
+                    var issue = PreviewElementFields.validateChange(target, element.type(), element.values(), recovered);
+                    return issue == null ? "" : issue.code();
+                }
                 for (var raw : command.payload().getAsJsonArray("changes")) {
                     String path = string(raw.getAsJsonObject(), "path").replaceFirst("^/fields/", "/");
                     String[] parts = path.split("/", -1);
@@ -78,6 +86,38 @@ final class PreviewAccess {
             }
         }
         return "";
+    }
+
+    private static JsonObject recoveryValues(JsonObject payload, WorkspaceState state) {
+        var element = state.element(UUID.fromString(string(payload, "elementId")));
+        if (element == null || !element.type().equals("block") || element.ownership().equals("manual")) return null;
+        JsonObject values = element.values().deepCopy();
+        boolean resolution = false;
+        for (var raw : payload.getAsJsonArray("changes")) {
+            var change = raw.getAsJsonObject();
+            String path = string(change, "path");
+            resolution |= path.equals("/configurationResolution");
+            JsonPointerPatch.set(values, path, change.get("value"));
+        }
+        return resolution && PreviewElementFields.configurationRecovery(element.type(), element.values(), values) ? values : null;
+    }
+
+    // Only the existing reviewed block recovery flow may use plans on a preview track.
+    // Plan signatures, revision, recovery points and source fingerprints remain enforced downstream.
+    static boolean configurationRecoveryPlan(JsonObject plan, WorkspaceState state) {
+        if (plan.has("templateAssets") && !plan.getAsJsonArray("templateAssets").isEmpty()) return false;
+        var operations = plan.getAsJsonArray("operations");
+        if (operations.isEmpty()) return false;
+        for (var raw : operations) {
+            JsonObject step = raw.getAsJsonObject();
+            if (!"update_mod_element".equals(string(step, "operation"))) return false;
+            JsonObject stepPayload = step.getAsJsonObject("payload");
+            JsonObject values = recoveryValues(stepPayload, state);
+            if (values == null) return false;
+            var element = state.element(UUID.fromString(string(stepPayload, "elementId")));
+            if (PreviewElementFields.validateChange(active(state), element.type(), element.values(), values) != null) return false;
+        }
+        return true;
     }
 
     JsonObject dispatch(UUID workspaceId, UUID requestId, JsonObject request, RequestContext context,

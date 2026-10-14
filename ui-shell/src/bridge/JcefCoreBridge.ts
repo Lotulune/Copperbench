@@ -185,12 +185,25 @@ export class JcefCoreBridge implements CoreBridge {
     });
     if (result.contract !== 'preview_targets' || result.selectedVersion !== '1')
       throw new Error(tr("预览能力协商失败，请更新客户端。"));
-    if (result.core) {
-      this.applyCommandResult(result.core);
+    const acceptance = result.acceptance;
+    if (acceptance && (acceptance.contract !== 'required_cases' || acceptance.selectedVersion !== '1'
+      || acceptance.requestId !== result.requestId)) throw new Error('Acceptance response does not match the preview request.');
+    const core = result.core ?? acceptance?.core;
+    if (core && (core.workspaceId !== workspaceId || core.requestId !== result.requestId))
+      throw new Error('Preview Core response identity does not match the request.');
+    if (core?.messageType === 'command_result') {
+      const operation = request.operation === 'acceptance'
+        ? request.payload?.operation === 'run' ? 'run_gametest' : 'export_workspace' : request.command;
+      if (core.operation !== operation || !Number.isSafeInteger(core.newRevision) || core.newRevision < 0)
+        throw new Error('Invalid preview command response.');
+      this.applyCommandResult(core);
       this.notify();
-      if (result.core.task?.state === 'running') this.pollTask(result.core.task.id);
-      if (result.core.status === 'committed' && ['create_mod_element', 'update_mod_element'].includes(result.core.operation))
+      if (core.task?.state === 'running') this.pollTask(core.task.id);
+      if (core.status === 'committed' && ['create_mod_element', 'update_mod_element', 'apply_workspace_plan'].includes(core.operation))
         await this.refreshInitialProjection();
+    } else if (result.status === 'rejected' || result.status === 'failed') {
+      this.state.diagnostics = [...result.diagnostics];
+      this.notify();
     }
     return result;
   }

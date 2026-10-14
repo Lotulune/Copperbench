@@ -14,6 +14,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Snapshot conditional base/global generator targets before element mutations, reject failed base generation, and disambiguate Fabric model-layer registration so failed element probes cannot poison later builds.
 - Register 26.3 exact targets behind per-operation preview negotiation; keep workspace-scoped opt-in separate from permissions, protected approval, EULA and published support.
 
 - Exclude Copperbench runtime metadata and workspace write locks from legacy local-history indexing while preserving authored files and existing history ignore rules.

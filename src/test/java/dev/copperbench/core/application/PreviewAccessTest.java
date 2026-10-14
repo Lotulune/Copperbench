@@ -107,6 +107,36 @@ class PreviewAccessTest {
         code(command(service, "build_workspace"), "PREVIEW_OPT_IN_REQUIRED");
     }
 
+    @Test void recoveryMetadataDoesNotOpenUnverifiedFieldsOrElementCreation() {
+        var before = JsonParser.parseString("{\"hardness\":3}").getAsJsonObject();
+        var after = before.deepCopy();
+        var resolution = new JsonObject(); resolution.addProperty("mode", "adopt_definition");
+        resolution.addProperty("sourceFingerprint", "a".repeat(64)); after.add("configurationResolution", resolution);
+        after.addProperty("hardness", 1);
+        assertNull(PreviewElementFields.validateChange("fabric-26.3", "block", before, after));
+        assertEquals("PREVIEW_FIELD_UNVERIFIED", PreviewElementFields.validateChange("fabric-26.3", "block", new JsonObject(), after).code());
+        after.addProperty("hasInventory", true);
+        assertEquals("PREVIEW_FIELD_UNVERIFIED", PreviewElementFields.validateChange("fabric-26.3", "block", before, after).code());
+        after.remove("hasInventory"); after.addProperty("unknownField", 1);
+        assertEquals("PREVIEW_FIELD_UNVERIFIED", PreviewElementFields.validateChange("fabric-26.3", "block", before, after).code());
+        after.remove("unknownField"); resolution.addProperty("sourceFingerprint", "");
+        assertEquals("PREVIEW_FIELD_UNVERIFIED", PreviewElementFields.validateChange("fabric-26.3", "block", before, after).code());
+    }
+
+    @Test void nestedAcceptanceStillRequiresOptInPermissionAndCurrentRevision() {
+        var service = service(PreviewCapabilityCatalog.official());
+        JsonObject run = request("acceptance"); run.remove("expectedRevision");
+        var acceptance = JsonParser.parseString("{\"supportedVersions\":[\"1\"],\"operation\":\"run\",\"expectedRevision\":0}").getAsJsonObject();
+        var payload = new JsonObject(); payload.add("requiredCases", dev.copperbench.generator.RequiredCaseManifest.catalog().getFirst().projection());
+        acceptance.add("payload", payload); run.add("payload", acceptance);
+        code(send(service, run), "PREVIEW_OPT_IN_REQUIRED");
+        send(service, request("opt_in"));
+        code(service.preview(id, UUID.randomUUID(), run, new UiCore.RequestContext(UiCore.Actor.UI, UiCore.PermissionProfile.READ_ONLY)), "PERMISSION_DENIED");
+        acceptance.addProperty("expectedRevision", 1); code(send(service, run), "REVISION_CONFLICT");
+        acceptance.addProperty("expectedRevision", 0);
+        send(service, request("revoke")); code(send(service, run), "PREVIEW_OPT_IN_REQUIRED");
+    }
+
     @Test void negotiationLegacyCallsAndPermissionsCannotBeBypassed() {
         var service = service(fixture());
         send(service, request("opt_in"));

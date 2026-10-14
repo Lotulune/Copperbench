@@ -99,20 +99,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private List<Path> plannedRollbackPaths(WorkspaceState before, WorkspaceState after) {
 		Set<Path> paths = new LinkedHashSet<>();
 		if (workspace.getGenerator() != null && workspace.getGenerator().getGeneratorConfiguration() != null) {
-			workspace.getGenerator().getModBaseGeneratorTemplatesList().stream()
-					.map(GeneratorTemplate::getFile).map(File::toPath)
+			// Evaluate no conditions here: the first element of a type can enable shared files
+			// that do not exist yet (e.g. Fabric Models, DispenseBehaviors and SheepMixin).
+			workspace.getGenerator().getPotentialBaseGeneratorFiles().stream().map(File::toPath)
 					.map(path -> path.toAbsolutePath().normalize()).forEach(paths::add);
-			AtomicInteger templateId = new AtomicInteger();
-			for (ModElementType<?> type : workspace.getGenerator().getGeneratorConfiguration().getGeneratorStats()
-					.getSupportedModElementTypes())
-				workspace.getGenerator().getGlobalTemplatesListForModElementType(type, templateId).stream()
-						.map(GeneratorTemplate::getFile).map(File::toPath)
-						.map(path -> path.toAbsolutePath().normalize()).forEach(paths::add);
-			for (BaseType type : BaseType.values())
-				workspace.getGenerator().getGlobalTemplatesListForDefinition(
-						workspace.getGenerator().getGeneratorConfiguration().getDefinitionsProvider().getBaseTypeDefinition(type),
-						templateId).stream().map(GeneratorTemplate::getFile).map(File::toPath)
-						.map(path -> path.toAbsolutePath().normalize()).forEach(paths::add);
 			if (workspace.getMetadata("files") instanceof List<?> tracked)
 				for (Object relative : tracked)
 					paths.add(workspace.getWorkspaceFolder().toPath().resolve(relative.toString())
@@ -796,7 +786,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		}
 		if (MCreatorGenerationPreparation.deferred(workspace)) return;
 		try {
-			workspace.getGenerator().generateBase();
+			generateWorkspaceBaseIfReady();
 			if (!workspace.getGenerator().generateElement(definition)) {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
 				throw new IllegalStateException("Upstream source generation failed for "
@@ -806,7 +796,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			// templates can resolve existing base classes. A newly created element's own Java class does
 			// not exist in the import tree until generateElement() writes it, though. Refresh the base once
 			// more so shared registries/init files can import that new class before the next real Gradle build.
-			workspace.getGenerator().generateBase();
+			generateWorkspaceBaseIfReady();
 		} catch (RuntimeException exception) {
 			try {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
@@ -818,8 +808,9 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private void generateWorkspaceBaseIfReady() {
-		if (generatorWorkspaceReady() && !MCreatorGenerationPreparation.deferred(workspace))
-			workspace.getGenerator().generateBase();
+		if (generatorWorkspaceReady() && !MCreatorGenerationPreparation.deferred(workspace)
+				&& !workspace.getGenerator().generateBase())
+			throw new IllegalStateException("Upstream workspace base generation failed");
 	}
 
 	private boolean generatorWorkspaceReady() {

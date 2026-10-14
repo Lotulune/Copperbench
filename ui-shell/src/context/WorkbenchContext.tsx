@@ -41,7 +41,8 @@ import {
   RecoveryRestorePreview,
   WorkspaceHealthProjection
 } from '../types/contract';
-import type { TaskAuthorization, TaskAuthorizationRequest, CommandOperation, PreviewTarget, Command } from '../types/contract';
+import type { TaskAuthorization, TaskAuthorizationRequest, CommandOperation, PreviewTarget, Command, RequiredCaseManifest } from '../types/contract';
+import { AcceptanceRunDialog } from '../components/AcceptanceRunDialog';
 import {
   coreBridge,
   BridgeState,
@@ -130,7 +131,7 @@ interface WorkbenchContextType {
   previewDatagenOutput: (taskId: UUID) => Promise<DatagenPreview | null>;
   previewTaskSource: (taskId: UUID, sourcePath: string) => Promise<TaskSourcePreview | null>;
   publishDatagenOutput: (taskId: UUID, manifestHash: string) => Promise<CommandResult>;
-  runGameTest: () => Promise<CommandResult>;
+  runGameTest: (requiredCases?: RequiredCaseManifest) => Promise<CommandResult | null>;
   prepareGameTests: () => Promise<CommandResult>;
   listTaskAuthorizations: () => Promise<TaskAuthorization[]>;
   getWorkspaceRoot: () => Promise<string>;
@@ -213,11 +214,13 @@ function focusByContractSelector(selector: string): void {
 export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<BridgeState>(coreBridge.getState());
   const [workspacePreviewTarget, setWorkspacePreviewTarget] = useState<PreviewTarget | null>(null);
+  const [acceptanceDialogOpen, setAcceptanceDialogOpen] = useState(false);
   const activeWorkspaceId = state.workbench?.workspace.id;
   const activeGeneratorId = state.workbench?.workspace.generator.id;
   useEffect(() => {
     let active = true;
     setWorkspacePreviewTarget(null);
+    setAcceptanceDialogOpen(false);
     if (activeWorkspaceId && coreBridge.sendPreview) {
       void coreBridge.sendPreview(activeWorkspaceId, { operation: 'catalog', supportedVersions: ['1'] })
         .then(result => {
@@ -230,6 +233,19 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const sendWorkspaceCommand = useCallback(async (command: Command): Promise<CommandResult> => {
     if (!workspacePreviewTarget) return coreBridge.sendCommand(command);
     if (!coreBridge.sendPreview) throw new Error(tr("当前客户端无法协商预览能力。"));
+    if (command.operation === 'run_gametest' || command.operation === 'export_workspace') {
+      const payload = command.payload as Record<string, unknown>;
+      const result = await coreBridge.sendPreview(command.workspaceId, {
+        operation: 'acceptance', supportedVersions: ['1'], generatorId: workspacePreviewTarget.generatorId,
+        payload: { operation: command.operation === 'run_gametest' ? 'run' : 'export', supportedVersions: ['1'],
+          expectedRevision: command.expectedRevision,
+          payload: command.operation === 'run_gametest' ? { requiredCases: payload.requiredCases }
+            : { verifiedTaskId: payload.verifiedTaskId, allowHistorical: payload.allowHistorical } }
+      });
+      if (result.acceptance?.core?.messageType !== 'command_result')
+        throw new Error(result.diagnostics.map(d => t(d.message, d.code)).join('; '));
+      return result.acceptance.core;
+    }
     const result = await coreBridge.sendPreview(command.workspaceId, { operation: 'command', supportedVersions: ['1'],
       generatorId: workspacePreviewTarget.generatorId, command: command.operation,
       expectedRevision: command.expectedRevision, payload: command.payload as Record<string, unknown> });
@@ -581,13 +597,13 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return res.data ?? null;
   }, [state.workbench]);
 
-  const applyWorkspacePlan = useCallback(async (plan: WorkspacePlan): Promise<CommandResult> => coreBridge.sendCommand({
+  const applyWorkspacePlan = useCallback(async (plan: WorkspacePlan): Promise<CommandResult> => sendWorkspaceCommand({
     messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
     workspaceId: state.workbench?.workspace.id || plan.workspaceId,
     expectedRevision: plan.baseRevision,
     operation: 'apply_workspace_plan',
     payload: { clientMutationId: generateUUID(), plan }
-  }), [state.workbench]);
+  }), [state.workbench, sendWorkspaceCommand]);
 
   const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -784,7 +800,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const runClient = useCallback(async (): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
     const revision = state.workbench?.workspace.revision ?? 0;
-    const res = await coreBridge.sendCommand({
+    const res = await sendWorkspaceCommand({
       messageType: 'command',
       schemaVersion: '1.0',
       requestId: generateUUID(),
@@ -801,15 +817,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsTaskDrawerOpen(true);
     }
     return res;
-  }, [state.workbench]);
+  }, [state.workbench, sendWorkspaceCommand]);
 
   const exportVerifiedArtifact = useCallback(async (taskId: UUID, allowHistorical: boolean): Promise<CommandResult> => {
-    const result = await coreBridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+    const result = await sendWorkspaceCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
       operation: 'export_workspace', payload: { verifiedTaskId: taskId, allowHistorical } });
     if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
     return result;
-  }, [state.workbench]);
+  }, [state.workbench, sendWorkspaceCommand]);
 
   const diagnosticWorkspaceId = state.workbench?.workspace.id;
   const readAcceptanceDiagnostics = useCallback(async (taskId: UUID) => {
@@ -819,11 +835,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const runWorkspaceTask = useCallback(async (
     operation: 'run_server' | 'run_datagen' | 'run_gametest' | 'prepare_game_tests',
-    userApproved?: boolean
+    userApproved?: boolean,
+    requiredCases?: RequiredCaseManifest
   ): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
     const revision = state.workbench?.workspace.revision ?? 0;
-    const res = await coreBridge.sendCommand({
+    const res = await sendWorkspaceCommand({
       messageType: 'command',
       schemaVersion: '1.0',
       requestId: generateUUID(),
@@ -833,6 +850,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       payload: {
         clientMutationId: generateUUID(),
         scope: 'workspace',
+        ...(requiredCases ? { requiredCases } : {}),
         ...(operation === 'run_server' ? { userApproved: userApproved === true } : {})
       }
     });
@@ -841,12 +859,26 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsTaskDrawerOpen(true);
     }
     return res;
-  }, [state.workbench]);
+  }, [state.workbench, sendWorkspaceCommand]);
 
   const runServer = useCallback((userApproved: boolean) => runWorkspaceTask('run_server', userApproved),
     [runWorkspaceTask]);
   const runDatagen = useCallback(() => runWorkspaceTask('run_datagen'), [runWorkspaceTask]);
-  const runGameTest = useCallback(() => runWorkspaceTask('run_gametest'), [runWorkspaceTask]);
+  const runGameTest = useCallback(async (requiredCases?: RequiredCaseManifest) => {
+    if (workspacePreviewTarget && !requiredCases) {
+      setAcceptanceDialogOpen(true);
+      return null;
+    }
+    return runWorkspaceTask('run_gametest', undefined, requiredCases);
+  }, [runWorkspaceTask, workspacePreviewTarget]);
+  const loadAcceptanceManifests = useCallback(async () => {
+    if (!activeWorkspaceId || !activeGeneratorId || !coreBridge.sendPreview) return [];
+    const result = await coreBridge.sendPreview(activeWorkspaceId, { operation: 'acceptance', supportedVersions: ['1'],
+      generatorId: activeGeneratorId, payload: { operation: 'catalog', supportedVersions: ['1'] } });
+    if (result.status !== 'succeeded' || !result.acceptance?.manifests)
+      throw new Error(result.diagnostics.map(d => t(d.message, d.code)).join('; '));
+    return result.acceptance.manifests;
+  }, [activeWorkspaceId, activeGeneratorId]);
   const prepareGameTests = useCallback(() => runWorkspaceTask('prepare_game_tests'), [runWorkspaceTask]);
 
   const listTaskAuthorizations = useCallback(async (): Promise<TaskAuthorization[]> => {
@@ -1590,7 +1622,11 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     ]
   );
 
-  return <WorkbenchContext.Provider value={value}>{children}</WorkbenchContext.Provider>;
+  return <WorkbenchContext.Provider value={value}>{children}
+    {acceptanceDialogOpen && workspacePreviewTarget && <AcceptanceRunDialog
+      key={`${activeWorkspaceId}:${activeGeneratorId}`} loadManifests={loadAcceptanceManifests}
+      onClose={() => setAcceptanceDialogOpen(false)} onRun={runGameTest} />}
+  </WorkbenchContext.Provider>;
 };
 
 export const useWorkbench = () => {

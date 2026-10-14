@@ -7,10 +7,10 @@ const projections = Object.fromEntries(['fabric', 'neoforge'].map(loader => [loa
   newEditor: JSON.parse(readFileSync(new URL(`../../ui-core/fixtures/extensions/preview-blocks/${loader}-block-new-editor.json`, import.meta.url), 'utf8'))
 }]));
 
-async function fixture(page: Page, loader: 'fabric' | 'neoforge') {
+async function fixture(page: Page, loader: 'fabric' | 'neoforge', drift = false) {
   const { editor, newEditor } = projections[loader];
   const targetId = `${loader}-26.3`;
-  await page.addInitScript(({ editor, newEditor, targetId, loader }) => {
+  await page.addInitScript(({ editor, newEditor, targetId, loader, drift }) => {
     const corePromise = import('/src/mock/mockBridge.ts').then(({ MockCoreBridge }) => {
       const core = new MockCoreBridge(); core.loadScenario('ready');
       const state = core.getState();
@@ -45,11 +45,22 @@ async function fixture(page: Page, loader: 'fabric' | 'neoforge') {
             const command = { messageType: 'command' as const, schemaVersion: '1.0' as const, requestId: request.requestId,
               workspaceId: request.workspaceId, expectedRevision: scoped.expectedRevision, operation: scoped.command,
               payload: { ...scoped.payload, clientMutationId: request.requestId } };
-            const response = await core.sendCommand(command);
+            const response = drift && scoped.command === 'apply_workspace_plan'
+              ? { messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId, workspaceId: request.workspaceId,
+                operation: scoped.command, status: 'committed', newRevision: ++core.getState().workbench!.workspace.revision,
+                data: null, task: null, diagnostics: [] } as any : await core.sendCommand(command);
             if (scoped.command === 'create_mod_element' && response.data?.element) {
               currentEditor = structuredClone(newEditor);
               currentEditor.element = response.data.element;
+              if (drift) {
+                const operation = { operation: 'update_mod_element', payload: { elementId: currentEditor.element.id,
+                  changes: [{ path: '/hardness', value: 1 }, { path: '/configurationResolution',
+                    value: { mode: 'adopt_definition', sourceFingerprint: 'a'.repeat(64) } }] } };
+                currentEditor.configuration = { status: 'drift', differences: [{ path: '/hardness', declared: 3, effective: 1 }],
+                  planOperations: { adopt_definition: operation, reapply_declared: operation } };
+              }
             }
+            if (scoped.command === 'apply_workspace_plan' && currentEditor) currentEditor.configuration = { status: 'consistent' };
             if (scoped.command === 'update_mod_element' && currentEditor) {
               for (const change of scoped.payload.changes) for (const section of currentEditor.sections)
                 for (const field of section.fields) if (field.path === change.path) field.value = change.value;
@@ -59,6 +70,11 @@ async function fixture(page: Page, loader: 'fabric' | 'neoforge') {
           }
           return JSON.stringify(result);
         }
+        if (drift && request.operation === 'plan_workspace_changes') return JSON.stringify({
+          messageType: 'query_result', schemaVersion: request.schemaVersion, requestId: request.requestId, workspaceId: request.workspaceId,
+          operation: request.operation, status: 'succeeded', revision: core.getState().workbench!.workspace.revision,
+          data: { workspaceId: request.workspaceId, baseRevision: request.payload.expectedRevision,
+            operations: request.payload.operations, semanticDiff: [], safety: { ready: true } }, diagnostics: [] });
         if (request.operation === 'get_mod_element_editor' && currentEditor) return JSON.stringify({
           messageType: 'query_result', schemaVersion: request.schemaVersion, requestId: request.requestId, workspaceId: request.workspaceId,
           operation: request.operation, status: 'succeeded', revision: core.getState().workbench!.workspace.revision,
@@ -67,7 +83,7 @@ async function fixture(page: Page, loader: 'fabric' | 'neoforge') {
           : request.messageType === 'command' ? await core.sendCommand(request) : await core.sendQuery(request));
       }
     };
-  }, { editor, newEditor, targetId, loader });
+  }, { editor, newEditor, targetId, loader, drift });
   await page.goto('/');
   await page.getByTestId('nav-elements').click();
   await expect(page.getByTestId('workspace-preview-choice')).toBeVisible();
@@ -134,4 +150,26 @@ test(`bounded block preview create/edit/generate (${loader}, ${language})`, asyn
   await page.reload();
   await page.getByTestId('nav-elements').click();
   await expect(page.getByTestId('workspace-preview-choice').getByRole('checkbox')).not.toBeChecked();
+});
+
+test('reviewed block recovery is applied through the preview envelope', async ({ page }) => {
+  await fixture(page, 'fabric', true);
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await page.getByTestId('create-element-btn').click();
+  const create = page.getByTestId('create-element-modal');
+  await create.getByTestId('create-element-name-input').fill('camp_post');
+  await create.getByRole('checkbox').check();
+  await create.getByTestId('create-element-submit-btn').click();
+  await expect(create).toBeHidden();
+  const inspector = page.getByTestId('element-inspector');
+  await inspector.getByRole('button', { name: 'Preview: adopt current definition', exact: true }).click();
+  await inspector.getByRole('button', { name: 'Apply reviewed resolution plan', exact: true }).click();
+  await expect(inspector.getByText('Configuration differs from the generated definition', { exact: true })).toBeHidden();
+  const requests = await page.evaluate(() => (window as any).previewBlockRequests);
+  expect(requests.find((r: any) => r.request?.command === 'apply_workspace_plan').request)
+    .toMatchObject({ operation: 'command', generatorId: 'fabric-26.3', payload: { plan: { operations: [{
+      operation: 'update_mod_element', payload: { changes: expect.arrayContaining([{ path: '/configurationResolution',
+        value: { mode: 'adopt_definition', sourceFingerprint: 'a'.repeat(64) } }]) }
+    }] } } });
+  expect(requests.filter((r: any) => r.messageType === 'command' && r.operation === 'apply_workspace_plan')).toEqual([]);
 });

@@ -55,12 +55,33 @@ public final class PreviewElementFields {
         boolean preview = VersionTrackCatalog.official().requiresPreview(generator);
         if (preview && PreviewCapabilityCatalog.official().fields(generator, type).isEmpty())
             return new BlockFieldContract.Issue("PREVIEW_ELEMENT_UNVERIFIED", "/elementType", "This element type has no verified preview fields.");
+        boolean recovery = preview && configurationRecovery(type, before, after);
+        JsonObject defaults = recovery ? ElementFieldCodec.gson().toJsonTree(
+                StructuredElementDefaults.block(null, null, "")).getAsJsonObject() : new JsonObject();
         Set<String> names = new HashSet<>(oldValues.keySet()); names.addAll(values.keySet());
-        for (String name : names)
+        for (String name : names) {
+            // Recovery metadata is checked against the durable fingerprint by the mutation gateway.
+            // An effective definition also expands omitted defaults; it must not activate new features.
+            if (recovery && (name.equals("configurationResolution")
+                    || !oldValues.has(name) && defaults.has(name) && defaults.get(name).equals(values.get(name)))) continue;
             if (!writable(generator, type, name) && !java.util.Objects.equals(oldValues.get(name), values.get(name)))
                 return new BlockFieldContract.Issue(preview ? "PREVIEW_FIELD_UNVERIFIED" : "FIELD_UNSUPPORTED",
                         BlockFieldContract.path(after, name), "This field is outside the active generator's writable scope: " + name);
+        }
+        if (recovery) return validateGeneration(generator, type, after);
         return preview ? validateValues(type, values) : null;
+    }
+
+    static boolean configurationRecovery(String type, JsonObject before, JsonObject after) {
+        if (!type.equals("block") || before.isEmpty() || !after.has("configurationResolution")
+                || !after.get("configurationResolution").isJsonObject()) return false;
+        JsonObject resolution = after.getAsJsonObject("configurationResolution");
+        return resolution.keySet().equals(Set.of("mode", "sourceFingerprint"))
+                && resolution.get("mode").isJsonPrimitive() && resolution.getAsJsonPrimitive("mode").isString()
+                && Set.of("adopt_definition", "reapply_declared").contains(resolution.get("mode").getAsString())
+                && resolution.get("sourceFingerprint").isJsonPrimitive()
+                && resolution.getAsJsonPrimitive("sourceFingerprint").isString()
+                && resolution.get("sourceFingerprint").getAsString().matches("[a-f0-9]{64}");
     }
 
     /** Imported definitions may contain unchanged defaults and opaque metadata, but not active unverified features. */

@@ -104,8 +104,8 @@ public final class VersionCopyUpgradeExecution {
                 reconciled = false;
             if (!reconciled) entry(entries, at + "/declaredFields", declared, false, "SOURCE_FIELDS_DIVERGED",
                     "The editor values and saved definition differ. Reconcile them in the source before copying.");
-            boolean accepted = string(data, "name").matches("[a-z0-9_]+(?:/[a-z0-9_]+)*")
-                    && resourceNames.add(string(data, "name")) && "mod".equals(string(data, "namespace"))
+            boolean accepted = dev.copperbench.core.application.FunctionFieldContract.validatePreview(data) == null
+                    && !string(data, "name").isEmpty() && resourceNames.add(string(data, "name")) && "mod".equals(string(data, "namespace"))
                     && supportedCode(string(data, "code"));
             entry(entries, at + "/definition", raw, accepted, accepted ? "FUNCTION_COMMANDS_PROVEN" : "FUNCTION_RULE_UNPROVEN",
                     "Preserve command bytes and opaque unknown fields. Only mod-namespace functions with bounded scoreboard and absolute setblock commands have a rule.");

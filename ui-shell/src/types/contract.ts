@@ -1741,6 +1741,26 @@ export interface AcceptanceCoverageDiagnostics {
   missingCases: { className: string; name: string }[];
 }
 
+export interface RequiredCaseManifest {
+  schemaVersion: '1';
+  id: string;
+  identityKind: 'junit_tuple' | 'gametest_resource';
+  minimumTests: number;
+  cases: { className: string; name: string }[];
+  sha256: string;
+}
+
+export interface PreviewAcceptanceResult {
+  contract: 'required_cases';
+  schemaVersion: '1';
+  selectedVersion?: string;
+  requestId: string;
+  status: string;
+  diagnostics?: Diagnostic[];
+  manifests?: RequiredCaseManifest[];
+  core?: CommandResult | QueryResult;
+}
+
 export interface PreviewRequest {
   supportedVersions: string[];
   operation: 'negotiate' | 'catalog' | 'opt_in' | 'revoke' | 'command' | 'acceptance';
@@ -1779,6 +1799,7 @@ export interface PreviewResult {
   diagnostics: Diagnostic[];
   targets?: PreviewTarget[];
   core?: CommandResult;
+  acceptance?: PreviewAcceptanceResult;
 }
 
 /** Separate extension; the frozen UI-Core 1.0 envelope is unchanged. */

@@ -129,6 +129,8 @@ public final class Fabric1211Generator {
 			if (dev.copperbench.core.application.ElementGenerationValidation.nativeDefinitions(workspace)
 					&& dev.copperbench.core.application.ElementFieldContract.supports(element.type()))
 				throw new IllegalArgumentException("Native item/recipe definitions require preparation by the workspace plugin generator.");
+			if (element.type().equals("recipe") && fields(element).has("recipeType"))
+				throw new IllegalArgumentException("Definition-based recipes require the workspace's plugin generator.");
 		}
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
@@ -234,6 +236,10 @@ public final class Fabric1211Generator {
 
 	private static void validateRecipe(JsonObject values, Set<String> availableResults, String base, Element element,
 			List<ValidationIssue> issues) {
+		if (values.has("recipeType")) {
+			validateDefinitionRecipe(values, base, element, issues);
+			return;
+		}
 		String result = string(values, "result", "");
 		if (!availableResults.contains(result))
 			issues.add(issue("FABRIC_RECIPE_RESULT_MISSING", "Recipe result must reference a block or item.",
@@ -248,6 +254,44 @@ public final class Fabric1211Generator {
 				!row.isJsonPrimitive() || row.getAsString().isEmpty() || row.getAsString().length() > 3))
 			issues.add(issue("FABRIC_RECIPE_PATTERN_INVALID", "Recipe pattern must contain one to three rows of up to three symbols.",
 					base + "/pattern", element));
+	}
+
+	private static void validateDefinitionRecipe(JsonObject values, String base,
+			Element element, List<ValidationIssue> issues) {
+		for (var field : net.mcreator.element.types.Recipe.class.getFields()) {
+			if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || !values.has(field.getName())) continue;
+			var invalid = dev.copperbench.core.application.GenericFieldInputContract.validate(field,
+					values.get(field.getName()), base + "/" + field.getName());
+			if (invalid != null) {
+				issues.add(issue(invalid.code(), invalid.message(), invalid.path(), element));
+				return;
+			}
+		}
+		String type = string(values, "recipeType", "");
+		List<String> required = switch (type) {
+			case "Crafting" -> List.of("recipeReturnStack");
+			case "Smelting" -> List.of("smeltingInputStack", "smeltingReturnStack");
+			case "Blasting" -> List.of("blastingInputStack", "blastingReturnStack");
+			case "Smoking" -> List.of("smokingInputStack", "smokingReturnStack");
+			case "Stone cutting" -> List.of("stoneCuttingInputStack", "stoneCuttingReturnStack");
+			case "Campfire cooking" -> List.of("campfireCookingInputStack", "campfireCookingReturnStack");
+			case "Smithing" -> List.of("smithingInputStack", "smithingInputAdditionStack", "smithingReturnStack");
+			case "Brewing" -> List.of("brewingInputStack", "brewingIngredientStack", "brewingReturnStack");
+			default -> List.of(); // The reflected LimitedOptions contract above reports invalid types.
+		};
+		for (String field : required) {
+			String reference = string(values, field, "");
+			if (reference.isBlank())
+				issues.add(issue("FABRIC_RECIPE_RESULT_MISSING", "Recipe must reference an available item or block.",
+						base + "/" + field, element));
+		}
+		if (type.equals("Crafting")) {
+			JsonArray slots = values.has("recipeSlots") && values.get("recipeSlots").isJsonArray()
+					? values.getAsJsonArray("recipeSlots") : new JsonArray();
+			if (slots.size() != 9 || slots.asList().stream().noneMatch(slot -> slot.isJsonPrimitive() && !slot.getAsString().isBlank()))
+				issues.add(issue("FABRIC_RECIPE_PATTERN_INVALID", "Crafting recipes need nine slots and at least one ingredient; use an empty string for an empty slot.",
+						base + "/recipeSlots", element));
+		}
 	}
 
 	private static ValidationIssue issue(String code, String message, String path, Element element) {

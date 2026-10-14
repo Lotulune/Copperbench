@@ -149,7 +149,7 @@ tasks.withType(Copy).matching { it.name in ['exportWin64', 'exportLinux64', 'exp
     into('sdk/python') {
         from('sdk/python') {
             include '*.py', 'pyproject.toml', 'README.md', 'examples/*.py'
-            exclude 'test_*.py', 'native_smoke.py', 'native_desktop_smoke.py'
+            exclude 'test_*.py', 'native_smoke.py', 'native_desktop_smoke.py', 'native_build_recovery_smoke.py'
         }
     }
 }

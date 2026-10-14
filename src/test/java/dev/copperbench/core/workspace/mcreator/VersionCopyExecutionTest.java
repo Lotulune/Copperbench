@@ -78,6 +78,29 @@ class VersionCopyExecutionTest {
         }
     }
     @ParameterizedTest @ValueSource(strings = {"fabric", "neoforge"})
+    void targetInvalidFunctionNamesRemainManualAndNeverCreateACopy(String loader) throws Exception {
+        try (var f = new Fixture(loader)) {
+            Path definition = f.source.resolve("elements/camp_signal.mod.json");
+            var raw = json(Files.readString(definition));
+            f.optIn("copy");
+            for (String name : List.of("folder/signal", "_signal", "1signal", "a".repeat(65), "", "<missing>")) {
+                if (name.equals("<missing>")) raw.getAsJsonObject("definition").remove("name");
+                else raw.getAsJsonObject("definition").addProperty("name", name);
+                Files.writeString(definition, raw.toString());
+                String before = VersionCopyUpgradeExecution.fingerprint(f.source);
+                var plan = f.plan("copy");
+                assertFalse(plan.get("executionAvailable").getAsBoolean(), name);
+                assertTrue(plan.getAsJsonArray("entries").asList().stream().map(JsonElement::getAsJsonObject)
+                        .anyMatch(entry -> entry.get("reasonCode").getAsString().equals("FUNCTION_RULE_UNPROVEN")
+                                && entry.get("disposition").getAsString().equals("manual")), plan.toString());
+                rejected(f.session.uiEntry().versionCopyUpgrade(UUID.randomUUID(), f.session.workspaceId(), execute(plan)), "UPGRADE_MANUAL_TASKS_REQUIRED");
+                assertEquals(before, VersionCopyUpgradeExecution.fingerprint(f.source));
+                assertFalse(Files.exists(root.resolve("copy")));
+            }
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"fabric", "neoforge"})
     void permissionChoiceAuthorityAndRevisionCannotBeForged(String loader) throws Exception {
         try (var f = new Fixture(loader)) {
             var request = execute(f.plan("copy")); String before = VersionCopyUpgradeExecution.fingerprint(f.source);

@@ -28,6 +28,7 @@ on:
       - "platform/export.gradle"
       - "tools/candidate-evidence/**"
       - "tools/portable-evidence/**"
+      - "sdk/python/native_build_recovery_smoke.py"
       - "examples/camp-kit-native/**"
       - "examples/camp-kit-scoped/**"
       - "plugins/generator-fabric-26.3/**"
@@ -497,6 +498,15 @@ jobs:
           xvfb-run -a -s '-screen 0 1280x800x24' \
             /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-runclient-ci-smoke.sh" \
             "$root" "$smoke" "fabric-1.21.1"
+
+      - name: Upload installed Fabric SDK build receipts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-fabric-sdk-build-recovery
+          path: build/stage15-fabric-runclient/evidence/sdk-build-recovery/**
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload Fabric runClient diagnostics on failure
         if: failure()

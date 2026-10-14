@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-14",
+  "sourceBaseHead": "0055a60a81e73b02c9ff3ac61730fdd631bdf0a6",
+  "sourceBranch": "codex/p263-unique-cases",
+  "modifiedSourceFiles": [
+    {
+      "path": ".github/workflows/stage15-linux-candidate.yml",
+      "sha256": "d1cc2a8fb5fb58a5fc3361bbb1d0a456360b3c38b968b2bd0be6bc746fdec65f"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "35efb9ec8a82206bdeb4f2a3010ffe9f3a8e42d7a8a8b90c5c8623f19f670ea8"
+    },
+    {
+      "path": "CHANGES-FROM-UPSTREAM.md",
+      "sha256": "ac25af502f3197e7523716c1021b12133f6379713013aad84275035b57372b4a"
+    },
+    {
+      "path": "platform/export.gradle",
+      "sha256": "f1ed998b5b6b67ad517262c3ee3e46f87d24eb82eb619d95a402cf7c283a913a"
+    },
+    {
+      "path": "plugins/generator-1.20.1/fabric-1.20.1/templates/elementinits/javamodels.java.ftl",
+      "sha256": "ad51f56b2319d0fc65e348ce9080a8fff7aa709f9b31ee4299c4d6503dd649ed"
+    },
+    {
+      "path": "plugins/generator-1.21.1/fabric-1.21.1/templates/elementinits/javamodels.java.ftl",
+      "sha256": "102bb918e0a2ed7f6bc09359a6660a028804e9002f2d3c76bb4a25b49997c8a6"
+    },
+    {
+      "path": "scripts/verify-stage15-linux-runclient-ci-smoke.sh",
+      "sha256": "3fa03c20017e8983918398f663358c6d96c540625af502a844138480fc465a9f"
+    },
+    {
+      "path": "sdk/python/native_build_recovery_smoke.py",
+      "sha256": "dc5da77697d51653c1e6908dd2c27cbd0ac729ac642bb753c198ef91170b4d26"
+    },
+    {
+      "path": "sdk/python/README.md",
+      "sha256": "6189a7749162701b3048ec3ab1d0abf9effc5ecd2c86b095d0235b66c0957954"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/InMemoryWorkspaceTaskGateway.java",
+      "sha256": "5556a0773469ce709687fd9969a908a1e23e957eb2ac12c6edaf0bf79ca56416"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/PreviewAccess.java",
+      "sha256": "9679c7ed4ea51cf33cff3da58aad9af12347b73e7f7f297afc10457b3eff9fcc"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/PreviewElementFields.java",
+      "sha256": "2e1cc95c467b024110c411e6ce062e83a4bdacf3fa9c0a8db436ef8f88905a35"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/ProcedureFieldContract.java",
+      "sha256": "1f6e248d6fadc3a586db49ff3feff5441e1ea1563f8c6f16fa8339de7efe1062"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/WorkspacePlanEngine.java",
+      "sha256": "5e4cb9c16c96a3a83de060bcb9c6f7581e3147ece3120abc3b89d63011894060"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceMutationGateway.java",
+      "sha256": "0475636dcfdb215e7577a617e1d48381ef7e9c485fc8d290df01bdc01a83ffdb"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceStateMapper.java",
+      "sha256": "5431d9f5fa9380ec2091e8bff6672c27b3dcfe2574f9192f5cd5c45dd09ce36a"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/fabric/Fabric1211Generator.java",
+      "sha256": "e5363c9ac7c97d512da27927388b24ac7bcba0e725bb9c27c95c5738dff12fcf"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/migration/VersionCopyUpgradeExecution.java",
+      "sha256": "8f313f9085d7969e892e8aec1e6b155ec3d03369730bf29ed00c3501eded3279"
+    },
+    {
+      "path": "src/main/java/net/mcreator/generator/Generator.java",
+      "sha256": "0a79f53eec23d1e673cc61e45594f518bff324c990ff88dbadb9b61630b382ab"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/application/PreviewAccessTest.java",
+      "sha256": "37a0319a149e9f47e302f023b77bb995bcbd2af90dce0c84db9f55502a7c0226"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/workspace/mcreator/FailedElementMutationRegressionTest.java",
+      "sha256": "f886eeb0c1aa5b869917207e0e58b4d9b59cd297b45631247537ab131b7802ae"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/workspace/mcreator/PreviewBlockRecoveryTest.java",
+      "sha256": "33a6da00b0ff8a99fb073db3f268421dcbfd5c6314f7087bc9b224c4ae3ded1b"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/workspace/mcreator/RecipeProcedureBuildValidationTest.java",
+      "sha256": "3b6aba2896acaff6d0eb75f9d19d17cc267123973d9b6051699af5df6bf5a254"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/workspace/mcreator/VersionCopyExecutionTest.java",
+      "sha256": "5ee5634284a7825089503db9d71b7807a22ca616298412d29225605f256ae567"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/headless/NativeBuildRecoveryTest.java",
+      "sha256": "15db8321056faf244383e0432d01dcbb473432321f7750e47972ff28d3b8609f"
+    },
+    {
+      "path": "ui-shell/e2e/preview-block.spec.ts",
+      "sha256": "e29a25d316aedd1bfb133bf0a6d8fdba599fd3f40a6ec12d6db4725cac211f9f"
+    },
+    {
+      "path": "ui-shell/e2e/preview-lifecycle.spec.ts",
+      "sha256": "e59802ad10dbd7f2cc52d3f437034448951715e03cfdc0ad93222bca76f49fc3"
+    },
+    {
+      "path": "ui-shell/src/bridge/JcefCoreBridge.ts",
+      "sha256": "9abff560bdd395fa4a1b50884e0558ebde88dde99d5df7183b0465276e747f2f"
+    },
+    {
+      "path": "ui-shell/src/components/AcceptanceRunDialog.tsx",
+      "sha256": "42f43eb83a6ee6ab9485af62457f3b1f0df7ab01700d3468d287b721f789d54a"
+    },
+    {
+      "path": "ui-shell/src/context/WorkbenchContext.tsx",
+      "sha256": "2ff07d72ff0ba5d9222d5ec58e1b398f61822bda5bbbf3c9724d32b16e6a45c9"
+    },
+    {
+      "path": "ui-shell/src/types/contract.ts",
+      "sha256": "e40acfea0b1dd47c4da7ed9f8928c2ff30baf50fa24fd07db502abc2818d5c56"
+    },
+    {
+      "path": "ui-shell/tests/bridge-logic.test.mjs",
+      "sha256": "1ed6b1739764bd361b602800d171b4fea74f1d8e000fce9080c3221378ef8d73"
+    }
+  ],
+  "scope": "Windows source product launcher and public Native Python SDK; generated code executed through managed runClient. Real JAR builds were checked separately; this is not installed-package or packaged-JAR runtime certification.",
+  "minecraftMcp": {
+    "projectRegistrationRemoved": true,
+    "globalRegistrationPresent": false,
+    "bridgeSourceDeleted": false
+  },
+  "tests": {
+    "java": 124,
+    "javaFailures": 0,
+    "javaSkipped": 0,
+    "javadoc": "passed",
+    "python": 106,
+    "uiTests": 35,
+    "contractTests": 50,
+    "playwright": 30,
+    "uiVerification": "Prior run retained; SHA256 matches every unchanged UI source and spec",
+    "workflowActionlint": "passed",
+    "markdownLinks": "passed"
+  },
+  "runtime": [
+    {
+      "generatorId": "fabric-26.3",
+      "status": "passed",
+      "world": "Joint Fabric 263 20261014",
+      "checks": [
+        "block and item registration",
+        "Camp Post texture",
+        "right-click placement",
+        "creative left-click destruction",
+        "Trail Marker hand rendering and 16-item stack",
+        "placed block and inventory persisted after save and reopen",
+        "normal client exit and reopened Core task succeeded"
+      ],
+      "taskId": "7c29d711-ff59-465e-aae4-ac19ff5384be",
+      "finalState": "succeeded",
+      "reopenedTaskState": "succeeded",
+      "completedAt": "2026-10-14T04:46:45.992462500Z",
+      "buildArtifacts": [
+        {
+          "file": "joint_acceptance-1.0.0.jar",
+          "sha256": "f7bfc53884f9a5914c1888f3382eb4c120caa743085450f4bd10a239c1495a78"
+        }
+      ],
+      "screenshot": "fabric-263-reopened.png",
+      "screenshotSha256": "1c8a911cb6bf91103e0f14e4fe1694ba285d5aa6cd6bfddf5a8a8f14983d6e6a",
+      "desktopActions": 33,
+      "elapsedMs": 851241,
+      "rawEvidence": "output/minecraft-validation/joint-20261014/fabric-263"
+    },
+    {
+      "generatorId": "neoforge-26.3",
+      "status": "passed",
+      "world": "Joint NeoForge 263 20261014",
+      "checks": [
+        "block and item registration",
+        "Camp Post texture",
+        "right-click placement",
+        "creative left-click destruction",
+        "Trail Marker hand rendering and 16-item stack",
+        "placed block and inventory persisted after save and reopen",
+        "normal client exit and reopened Core task succeeded"
+      ],
+      "taskId": "5c08071f-cd67-4d10-b615-357d3bdfee8e",
+      "finalState": "succeeded",
+      "reopenedTaskState": "succeeded",
+      "completedAt": "2026-10-14T04:56:56.076288Z",
+      "buildArtifacts": [
+        {
+          "file": "joint_acceptance-1.0.0.jar",
+          "sha256": "73dbfc7b1e322626a87da974f9af4aa1365b57e850822940047b135b93eb7dcd"
+        }
+      ],
+      "screenshot": "neoforge-263-reopened.png",
+      "screenshotSha256": "4d324a72b1e02db11e56c8244ad494d5cb92604ee51c36f3519ba147bf604b24",
+      "desktopActions": 31,
+      "elapsedMs": 402965,
+      "rawEvidence": "output/minecraft-validation/joint-20261014/neoforge-263"
+    },
+    {
+      "generatorId": "fabric-1.21.1",
+      "status": "passed",
+      "world": "Xiucopper Repair 20261014",
+      "checks": [
+        "block and item registration",
+        "default stone and barrier textures match generated fixture models",
+        "right-click placement",
+        "creative left-click destruction on confirmed target",
+        "recipe xiucopper:xiucopper_mirror_recipe accepted and unlocked",
+        "placed block and 16-count inventories persisted after save and reopen",
+        "normal client exit and reopened Core task succeeded"
+      ],
+      "taskId": "1b1a9a01-cc5d-4dc2-b20e-17a386967406",
+      "finalState": "succeeded",
+      "reopenedTaskState": "succeeded",
+      "completedAt": "2026-10-14T05:15:16.444620700Z",
+      "buildArtifacts": [
+        {
+          "file": "xiucopper-1.0.jar",
+          "sha256": "75dd74ea8e7286d431330b4f8c16df0a6a8fc6c515f8b67ca235326416a07101"
+        }
+      ],
+      "screenshot": "fabric-1211-reopened.png",
+      "screenshotSha256": "1e5e23a8031e61a6cd9f9227f2075e36012937552b989997999d09b36e4708e1",
+      "desktopActions": 47,
+      "elapsedMs": 1002374,
+      "rawEvidence": "output/minecraft-validation/joint-20261014/fabric-1211"
+    }
+  ],
+  "observations": [
+    "The first Fabric 26.3 build hit a preconfigured Mojang mirror timeout; retry used a fixture-only official-repository override and local proxy, without changing global configuration.",
+    "Windows 26.3 logs include nonfatal system-report performance-counter warnings and development-session online-service warnings.",
+    "Fabric 1.21.1 logged three clipboard access failures during automation; each text operation was reobserved and repeated only after confirming the field was empty.",
+    "A WeType overlay and physical Escape interrupted the earlier control turn; acceptance resumed only after explicit user instruction.",
+    "The 1.21.1 recipe was unlocked successfully in-game; manual crafting and behavior of its intentionally empty Procedure were not claimed."
+  ],
+  "platformLimits": [
+    "Linux installed-package gate awaits PR CI",
+    "No fresh Linux desktop gameplay replay or release publication is claimed"
+  ]
+}
