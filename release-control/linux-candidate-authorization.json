@@ -5,13 +5,13 @@
   "releaseTag": "v0.1.5-linux-stable",
   "releaseEligible": true,
   "formalSupportClaim": false,
-  "candidateId": "sha256:30ec7ef885b3f7074efcbb831e5568ce5fc318f5a8cd83d9e0b82302df226f1d",
-  "candidateSourceCommit": "cb616b878da983864f7747cfa7b0ae09513ffef7",
-  "candidateWorkflowRunId": "38556240467",
-  "debSha256": "5d901fb88255a51e76a2731b88b086b4f1f62b98d74f3f08d8f59345fa57fb18",
-  "portableSha256": "29faf34ef00662a645d11c91a63f4fe943db3989bc811c1559faf35c2c991ae3",
+  "candidateId": "sha256:ea18be795a6266fa5934e75722983ccabf93e62a634c3629494b96768f4e1fac",
+  "candidateSourceCommit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+  "candidateWorkflowRunId": "38568121386",
+  "debSha256": "1af8ffbd49361ef2815053c1d89c4b6b82cbd318a1aa13b9c6934a52b8bda2c4",
+  "portableSha256": "60eb139a5c48e101228378edc0e1d23ea882bc7d33aaa06572a4995839dc07b5",
   "validationReportPath": "docs/testing/maintenance-linux-0.1.5.md",
-  "validationReportSha256": "9597e4a106da6d2d93e19e74bf7bcab287f87c67cb0f3033d3d275c3adf4ded0",
+  "validationReportSha256": "5a64727697107b992454283d5dcc7ac2c53f823a50a1f158d67962121b64a3ab",
   "acceptancePolicy": "maintenance-ci-0.1.5",
   "fullInstalledAcceptance": "not-repeated",
   "maintenanceApproval": {
@@ -23,11 +23,11 @@
   "candidateCi": {
     "run": {
       "path": "evidence/maintenance/2026-10-14/linux-015/candidate-run.json",
-      "sha256": "3105b606bc5db3a506d209ec838bec42aad1c7f6aee2e7fd9157927bb4cf9c12"
+      "sha256": "3a84e47cc7f8208cdd88b5712c73dcfe3561d4d3e711644bfb819cd3fa75d7a9"
     },
     "jobs": {
       "path": "evidence/maintenance/2026-10-14/linux-015/candidate-jobs.json",
-      "sha256": "8d7f8a897b919eaab76dc0ca1e14e16c06e720da79ad1bf24a6f5dcddb68a114"
+      "sha256": "9864559f66631c6926a9837b630d2a37796e616d8d74542186fa1eb6f5b49106"
     }
   }
 }

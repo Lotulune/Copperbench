@@ -32,8 +32,8 @@ export function validateHeader(auth, tag) {
       && auth.candidateWorkflowRunId === '37391113672';
     const approved015 = auth.acceptancePolicy === 'maintenance-ci-0.1.5'
       && tag === 'v0.1.5-linux-stable'
-      && auth.candidateSourceCommit === 'cb616b878da983864f7747cfa7b0ae09513ffef7'
-      && auth.candidateWorkflowRunId === '38556240467';
+      && auth.candidateSourceCommit === '7c9bc2160efe3c1bf89522c0214558a42f51969d'
+      && auth.candidateWorkflowRunId === '38568121386';
     requireValue(approved013 || approved014 || approved015,
       'Maintenance authorization is limited to the approved 0.1.3, 0.1.4 and 0.1.5 candidates');
     requireValue(auth.formalSupportClaim === false && auth.fullInstalledAcceptance === 'not-repeated'
