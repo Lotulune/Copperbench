@@ -14,7 +14,43 @@ import java.util.*;
 /** Versioned, side-effect-free creation discovery; available means all input shapes were projected. */
 public final class ElementFieldContract {
     private ElementFieldContract() {}
-    public static boolean supports(String type) { return Set.of("item", "recipe").contains(type); }
+    public static boolean supports(String type) { return Set.of("item", "recipe", "tool", "livingentity", "specialentity").contains(type); }
+    public static boolean modelledCreator(String type) { return Set.of("tool", "livingentity", "specialentity").contains(type); }
+    public static Set<String> requiredOnCreate(String type) {
+        return switch (type) {
+            case "livingentity" -> Set.of("mobModelTexture");
+            case "specialentity" -> Set.of("entityTexture");
+            default -> Set.of();
+        };
+    }
+
+    public static BlockFieldContract.Issue validateCreation(String type, JsonObject raw) {
+        if (!modelledCreator(type)) return null;
+        JsonObject values = BlockFieldContract.merged(raw);
+        var defaults = StructuredElementDefaults.forType(type, null, null, "");
+        JsonObject effective = ElementFieldCodec.gson().toJsonTree(defaults).getAsJsonObject();
+        for (var entry : values.entrySet()) effective.add(entry.getKey(), entry.getValue());
+        for (var field : defaults.getClass().getFields()) {
+            if (Modifier.isStatic(field.getModifiers()) || Modifier.isTransient(field.getModifiers())) continue;
+            if (values.has(field.getName())) {
+                var issue = GenericFieldInputContract.validate(field, values.get(field.getName()), BlockFieldContract.path(raw, field.getName()));
+                if (issue != null) return issue;
+            }
+        }
+        Set<String> required = switch (type) {
+            case "tool" -> Set.of("texture", "customModelName");
+            case "livingentity" -> Set.of("mobModelTexture", "mobModelName", "aixml");
+            default -> Set.of("entityTexture", "itemTexture");
+        };
+        for (String name : required.stream().sorted().toList()) {
+            JsonElement value = effective.get(name);
+            if (value == null || value.isJsonNull() || value.isJsonPrimitive() && value.getAsString().isBlank())
+                return new BlockFieldContract.Issue("FIELD_REQUIRED", BlockFieldContract.path(raw, name),
+                        "Supply " + name + (requiredOnCreate(type).contains(name)
+                                ? " using an imported entity texture from this workspace." : " before generating this element."));
+        }
+        return null;
+    }
     public static boolean known(String type) {
         return ElementCoverageCatalog.isFirstParty(type) || ElementCoverageCatalog.BEDROCK_ADDON_NOT_APPLICABLE.contains(type);
     }
@@ -39,8 +75,7 @@ public final class ElementFieldContract {
             var upstream = ModElementTypeLoader.getModElementType(type);
             var included = configuration.getSupportedDefinitionFields(upstream);
             var excluded = configuration.getUnsupportedDefinitionFields(upstream);
-            GeneratableElement defaults = type.equals("item") ? StructuredElementDefaults.item(null, null, "") :
-                    StructuredElementDefaults.recipe(null, null, "");
+            GeneratableElement defaults = StructuredElementDefaults.forType(type, null, null, "");
             JsonArray fields = new JsonArray();
             Set<String> covered = new HashSet<>();
             for (var field : upstream.getModElementStorageClass().getFields()) {
@@ -51,7 +86,9 @@ public final class ElementFieldContract {
                 Object value = field.get(defaults);
                 descriptor.add("default", value == null ? JsonNull.INSTANCE : ElementFieldCodec.gson().toJsonTree(value, field.getGenericType()));
                 descriptor.addProperty("defaultStage", "creation_before_generation_validation");
-                descriptor.addProperty("requiredOnCreate", false);
+                descriptor.addProperty("requiredOnCreate", requiredOnCreate(type).contains(name));
+                if (requiredOnCreate(type).contains(name))
+                    descriptor.addProperty("guidance", "Import an entity texture into this workspace before creation.");
                 descriptor.addProperty("requiredByGenerator", field.isAnnotationPresent(javax.annotation.Nonnull.class));
                 if (field.isAnnotationPresent(NonNullMappable.class))
                     descriptor.addProperty("generatorDefault", field.getAnnotation(NonNullMappable.class).value());
@@ -61,7 +98,10 @@ public final class ElementFieldContract {
                 descriptor.addProperty("generatorSupport", used ? "declared" : "excluded");
                 if (name.equals("name")) {
                     descriptor.remove("default"); descriptor.addProperty("readOnlyAfterCreate", true);
-                    descriptor.addProperty("defaultFrom", type.equals("item") ? "displayName" : "payload.name");
+                    descriptor.addProperty("defaultFrom", type.equals("recipe") ? "payload.name" : "displayName");
+                }
+                if (type.equals("livingentity") && name.equals("mobName")) {
+                    descriptor.remove("default"); descriptor.addProperty("defaultFrom", "displayName");
                 }
                 fields.add(descriptor);
             }
@@ -109,15 +149,19 @@ public final class ElementFieldContract {
 
     private static JsonObject example(String type) {
         JsonObject payload = new JsonObject(), values = new JsonObject();
-        payload.addProperty("elementType", type); payload.addProperty("name", type.equals("item") ? "discovery_item" : "discovery_recipe");
+        payload.addProperty("elementType", type); payload.addProperty("name", "discovery_" + type);
         if (type.equals("item")) {
             values.addProperty("displayName", "Discovery Item"); values.addProperty("stackSize", 16);
             values.addProperty("texture", "minecraft:barrier");
-        } else {
+        } else if (type.equals("recipe")) {
             values.addProperty("recipeType", "Crafting"); values.addProperty("recipeShapeless", true);
             JsonArray slots = new JsonArray(); slots.add("Items.STICK");
             for (int i = 1; i < 9; i++) slots.add("");
             values.add("recipeSlots", slots); values.addProperty("recipeReturnStack", "Items.DIAMOND");
+        } else if (type.equals("livingentity")) {
+            values.addProperty("mobModelTexture", "imported_entity.png");
+        } else if (type.equals("specialentity")) {
+            values.addProperty("entityTexture", "imported_boat");
         }
         payload.add("initialValues", values); return payload;
     }

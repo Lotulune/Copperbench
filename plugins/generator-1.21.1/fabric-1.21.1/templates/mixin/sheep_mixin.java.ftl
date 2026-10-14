@@ -28,11 +28,12 @@ public abstract class SheepMixin {
 		ItemStack itemStack = player.getItemInHand(hand);
 
 		if (<#list shears as tool>itemStack.is(${JavaModName}Items.${tool.getModElement().getRegistryNameUpper()})<#sep>||</#list>) {
-			if (sheep.level() instanceof ServerLevel serverLevel && sheep.readyForShearing()) {
-				sheep.shear(serverLevel, SoundSource.PLAYERS, itemStack);
+			if (!sheep.level().isClientSide && sheep.readyForShearing()) {
+				sheep.shear(SoundSource.PLAYERS);
 				sheep.gameEvent(GameEvent.SHEAR, player);
 				itemStack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
-				cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
+				cir.setReturnValue(InteractionResult.SUCCESS);
+				return;
 			}
 
 			cir.setReturnValue(InteractionResult.CONSUME);

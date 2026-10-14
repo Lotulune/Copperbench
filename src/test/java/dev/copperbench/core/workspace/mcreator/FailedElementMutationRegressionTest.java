@@ -43,6 +43,17 @@ class FailedElementMutationRegressionTest {
 						store -> new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID),
 						Clock.systemUTC(), UUID::randomUUID)) {
 			assertTrue(workspace.getGenerator().generateBase());
+			StructuredCreatorPersistenceTest.writeTexture(workspace);
+			// Force a downstream failure after real templates wrote their conditional files.
+			// Incomplete input now fails earlier with a field diagnostic, so it no longer exercises rollback.
+			var generatorField = Workspace.class.getDeclaredField("generator");
+			generatorField.setAccessible(true);
+			generatorField.set(workspace, new net.mcreator.generator.Generator(workspace) {
+				@Override public boolean generateElement(net.mcreator.element.GeneratableElement definition) {
+					assertTrue(super.generateElement(definition), "Valid creator input must generate before the injected failure");
+					return false;
+				}
+			});
 			Path source = workspace.getGenerator().getSourceRoot().toPath();
 			Files.writeString(source.resolve("Unowned.java"), "// Keep unrelated user source\nclass Unowned {}\n");
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
@@ -117,11 +128,11 @@ class FailedElementMutationRegressionTest {
 	private static JsonObject probe(String type) {
 		JsonObject payload = new JsonObject();
 		payload.addProperty("elementType", type); payload.addProperty("name", "probe_" + type);
-		// Missing textures fail after conditional base files have been written. Shears also enables a global template.
+		// Valid inputs reach source generation; Shears also enables a global template.
 		payload.add("initialValues", JsonParser.parseString(switch (type) {
-			case "specialentity" -> "{\"entityType\":\"Boat\"}";
+			case "specialentity" -> "{\"entityType\":\"Boat\",\"entityTexture\":\"creator_entity\"}";
 			case "tool" -> "{\"toolType\":\"Shears\",\"enchantability\":2,\"customModelName\":\"Normal\"}";
-			default -> "{}";
+			default -> "{\"mobModelTexture\":\"creator_entity.png\"}";
 		}));
 		return payload;
 	}

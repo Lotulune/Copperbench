@@ -5752,6 +5752,8 @@ public final class WorkspaceApplicationService {
 	}
 
 	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
+		var creationIssue = ElementFieldContract.validateCreation(elementType, values);
+		if (creationIssue != null) return blockFieldDiagnostic(elementId, creationIssue);
 		if (elementType.equals("procedure")) {
 			var issue = ProcedureFieldContract.validate(values);
 			if (issue != null) return blockFieldDiagnostic(elementId, issue);

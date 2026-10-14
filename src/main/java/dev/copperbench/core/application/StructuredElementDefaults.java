@@ -5,6 +5,9 @@ import net.mcreator.element.parts.*;
 import net.mcreator.element.types.Item;
 import net.mcreator.element.types.Block;
 import net.mcreator.element.types.Recipe;
+import net.mcreator.element.types.Tool;
+import net.mcreator.element.types.LivingEntity;
+import net.mcreator.element.types.SpecialEntity;
 import net.mcreator.element.types.interfaces.LimitedOptions;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.elements.ModElement;
@@ -55,6 +58,71 @@ public final class StructuredElementDefaults {
         recipe.recipeReturnStack = new MItemBlock(workspace, "");
         fillStrings(recipe);
         return recipe;
+    }
+
+    public static GeneratableElement forType(String type, ModElement element, Workspace workspace, String name) {
+        return switch (type) {
+            case "item" -> item(element, workspace, name);
+            case "recipe" -> recipe(element, workspace, name);
+            case "tool" -> tool(element, workspace, name);
+            case "livingentity" -> livingEntity(element, workspace, name);
+            case "specialentity" -> specialEntity(element, workspace, name);
+            default -> throw new IllegalArgumentException("No structured creation defaults for " + type);
+        };
+    }
+
+    private static Tool tool(ModElement element, Workspace workspace, String name) {
+        Tool tool = new Tool(element);
+        tool.name = name;
+        tool.toolType = "Pickaxe";
+        tool.customModelName = "Normal";
+        tool.texture = new TextureHolder(workspace, "minecraft:iron_pickaxe");
+        tool.efficiency = 4;
+        tool.enchantability = 2;
+        tool.damageVsEntity = 4;
+        tool.usageCount = 100;
+        fillStrings(tool);
+        return tool;
+    }
+
+    private static LivingEntity livingEntity(ModElement element, Workspace workspace, String name) {
+        LivingEntity entity = new LivingEntity(element);
+        entity.mobName = name;
+        entity.mobModelName = "Biped";
+        entity.mobBehaviourType = "Creature";
+        entity.modelWidth = 0.6;
+        entity.modelHeight = 1.8;
+        entity.health = 10;
+        entity.movementSpeed = 0.3;
+        entity.mobSpawningType = new MobSpawnType(workspace, "creature");
+        entity.hasSpawnEgg = true;
+        entity.spawnEggBaseColor = new java.awt.Color(0xc47c32);
+        entity.spawnEggDotColor = new java.awt.Color(0x67492c);
+        entity.spawningProbability = 20;
+        entity.minNumberOfMobsPerGroup = 4;
+        entity.maxNumberOfMobsPerGroup = 4;
+        entity.equipmentMainHand = new MItemBlock(workspace, "");
+        entity.equipmentOffHand = new MItemBlock(workspace, "");
+        entity.equipmentHelmet = new MItemBlock(workspace, "");
+        entity.equipmentBody = new MItemBlock(workspace, "");
+        entity.equipmentLeggings = new MItemBlock(workspace, "");
+        entity.equipmentBoots = new MItemBlock(workspace, "");
+        entity.mobDrop = new MItemBlock(workspace, "");
+        try {
+            entity.aixml = LivingEntity.class.getField("aixml")
+                    .getAnnotation(net.mcreator.blockly.data.BlocklyXML.class).defaultXML();
+        } catch (NoSuchFieldException exception) { throw new IllegalStateException(exception); }
+        fillStrings(entity);
+        return entity;
+    }
+
+    private static SpecialEntity specialEntity(ModElement element, Workspace workspace, String name) {
+        SpecialEntity entity = new SpecialEntity(element);
+        entity.name = name;
+        entity.entityType = "Boat";
+        entity.itemTexture = new TextureHolder(workspace, "minecraft:oak_boat");
+        fillStrings(entity);
+        return entity;
     }
 
     public static void fillStrings(GeneratableElement definition) {
