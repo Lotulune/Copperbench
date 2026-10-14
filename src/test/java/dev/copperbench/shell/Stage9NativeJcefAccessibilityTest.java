@@ -268,7 +268,9 @@ class Stage9NativeJcefAccessibilityTest {
 					})()
 					""")), 10, "Procedure tabs did not support End-key navigation in native JCEF");
 
-			assertEquals("true", js(webView, """
+			// The tab mounts before getProcedureEditor completes. Wait for the actual
+			// accessible nodes, keeping every label and port assertion intact.
+			await(() -> "true".equals(js(webView, """
 					(function() {
 					    var canvas = document.querySelector('.procedure-canvas');
 					    var outline = document.querySelector('[data-testid=procedure-node-outline]');
@@ -285,7 +287,17 @@ class Stage9NativeJcefAccessibilityTest {
 					            return name.includes(labels[2]) && name.includes('event_trigger') && name.includes(labels[3]);
 					        });
 					})()
-					"""), "Procedure nodes and ports were not readable through native JCEF semantics");
+					""")), 20, () -> "Procedure nodes and ports were not readable through native JCEF semantics: "
+					+ js(webView, """
+							JSON.stringify({
+							    language: document.documentElement.lang,
+							    loading: document.querySelector('.procedure-loading')?.textContent,
+							    canvas: document.querySelector('.procedure-canvas')?.getAttribute('aria-label'),
+							    outline: document.querySelector('[data-testid=procedure-node-outline]')?.getAttribute('aria-label'),
+							    nodes: Array.from(document.querySelectorAll('[data-testid=procedure-node-outline] button'))
+							        .map(node => node.getAttribute('aria-label'))
+							})
+							"""));
 
 			String procedureMetrics = js(webView, """
 					(function() {
@@ -415,6 +427,11 @@ class Stage9NativeJcefAccessibilityTest {
 	}
 
 	private static void await(BooleanSupplier condition, int timeoutSeconds, String failureMessage) throws Exception {
+		await(condition, timeoutSeconds, () -> failureMessage);
+	}
+
+	private static void await(BooleanSupplier condition, int timeoutSeconds,
+			java.util.function.Supplier<String> failureMessage) throws Exception {
 		long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
 		while (!condition.getAsBoolean() && System.nanoTime() < deadline)
 			Thread.sleep(100);
