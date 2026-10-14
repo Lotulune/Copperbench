@@ -37,6 +37,7 @@ export const zh: Record<string, string> = {
   'diagnostic.preview_version_unsupported': '客户端不支持当前预览协议版本。',
   'diagnostic.preview_request_invalid': '预览请求无效，请刷新能力并重试。',
 
+  'diagnostic.input_preflight': '{field}：需要 {expectedType} 类型。{repairHint}',
   'diagnostic.workspace_source_failed': '源码操作失败：{detail}',
   'diagnostic.workspace_source_not_found': '找不到源码文件。',
   'diagnostic.workspace_source_conflict': '文件已在外部修改，请读取最新版本后继续。',

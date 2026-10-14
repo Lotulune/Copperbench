@@ -2,6 +2,8 @@
 
 Checked on 2026-10-06 (Asia/Tokyo). This index lists published packages; source changes do not update existing downloads.
 
+下载版已有／源码新增／预览能力／未验证范围的一页入口：[当前状态与发布能力](../status.md)。首次使用：[第一件作品](../user/first-creation.md)。
+
 Windows 与 Linux 0.1.4 均已发布（稳定版）。本次更新包含新版 Product Shell、源码编辑、关系图、资产预览和设置。
 
 | Platform / 平台 | Stable release / 稳定版 | Packages / 格式 | Installation / 安装 |

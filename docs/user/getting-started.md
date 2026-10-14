@@ -14,7 +14,7 @@ Copperbench 当前公开稳定版为 **0.1.4**，Windows 与 Linux 下载链接�
 2. 选择是否使用中国大陆镜像。Windows 偏好设置默认位于 `%USERPROFILE%\.copperbench`；Linux 默认位于 `~/.config/copperbench`，并遵循 `XDG_CONFIG_HOME`。显式用户目录覆盖和旧设置迁移见 [Linux 安装说明](./linux-installation.md)。
 3. 在“新建工作区”中选择 Fabric/NeoForge 版本轨道或资源包。
 4. 填写名称、ID、Java 包名和工作区目录，确认后创建。
-5. 先创建一个基础元素并运行“构建”，确认本机依赖环境可用。
+5. 按[第一件作品：步道方块](./first-creation.md)填写具体输入，完成构建、游戏内取得／放置，以及保存后重进世界确认。
 
 ## 当前可编辑范围
 
