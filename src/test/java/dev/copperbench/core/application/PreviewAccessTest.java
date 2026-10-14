@@ -182,4 +182,34 @@ class PreviewAccessTest {
         build.addProperty("expectedRevision", 2); build.addProperty("generatorId", "neoforge-26.3");
         code(send(service, build), "PREVIEW_OPT_IN_REQUIRED");
     }
+
+    @Test
+    @org.junit.jupiter.api.condition.EnabledOnOs(org.junit.jupiter.api.condition.OS.WINDOWS)
+    void shortPathChoiceMatchesCanonicalCopyDestination(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+        var parent = java.nio.file.Files.createDirectory(root.resolve("Preview destination with long name")).toRealPath();
+        char[] buffer = new char[32768];
+        var kernel = com.sun.jna.Native.load("kernel32", ShortPaths.class);
+        int length = kernel.GetShortPathNameW(new com.sun.jna.WString(parent.toString()), buffer, buffer.length);
+        assertTrue(length > 0 && length < buffer.length, "Windows could not resolve the test directory's short path");
+        var alias = java.nio.file.Path.of(new String(buffer, 0, length));
+        org.junit.jupiter.api.Assumptions.assumeFalse(alias.equals(parent), "This volume does not provide short names");
+
+        var access = new PreviewAccess(store, dev.copperbench.tracks.VersionTrackCatalog.official(), fixture());
+        var selection = request("opt_in");
+        selection.addProperty("workspaceFolderPath", alias.resolve("copy").toString());
+        var response = access.dispatch(id, UUID.randomUUID(), selection, writable, null, null);
+        assertEquals("succeeded", response.get("status").getAsString(), response.toString());
+        assertEquals("", access.copyRejection(store.read(id).orElseThrow(), "fabric-26.3", parent.resolve("copy")));
+        assertEquals("PREVIEW_OPT_IN_REQUIRED", access.copyRejection(store.read(id).orElseThrow(), "fabric-26.3", parent.resolve("other")));
+        assertEquals("PREVIEW_OPT_IN_REQUIRED", access.copyRejection(store.read(id).orElseThrow(), "neoforge-26.3", parent.resolve("copy")));
+
+        selection.addProperty("workspaceFolderPath", parent.resolve("copy").toString());
+        assertEquals("succeeded", access.dispatch(id, UUID.randomUUID(), selection, writable, null, null).get("status").getAsString());
+        assertEquals("", access.copyRejection(store.read(id).orElseThrow(), "fabric-26.3", alias.resolve("copy")));
+        assertFalse(java.nio.file.Files.exists(parent.resolve("copy")));
+    }
+
+    interface ShortPaths extends com.sun.jna.win32.StdCallLibrary {
+        int GetShortPathNameW(com.sun.jna.WString longPath, char[] shortPath, int length);
+    }
 }

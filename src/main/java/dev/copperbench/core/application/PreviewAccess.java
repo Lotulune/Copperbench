@@ -8,6 +8,7 @@ import dev.copperbench.core.contract.UiCore.CommandOutcome;
 import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
+import dev.copperbench.core.workspace.WorkspaceFiles;
 import dev.copperbench.tracks.PreviewCapabilityCatalog;
 import dev.copperbench.tracks.VersionTrackCatalog;
 
@@ -259,7 +260,13 @@ final class PreviewAccess {
     private static String path(String value) {
         Path path = Path.of(value);
         if (!path.isAbsolute() || path.getParent() == null) throw new IllegalArgumentException("Absolute child directory required");
-        return path.toAbsolutePath().normalize().toString();
+        try {
+            // Use the same identity as workspace creation and version-copy execution,
+            // including Windows short names, without accepting redirected ancestors.
+            return WorkspaceFiles.canonicalPath(path).toString();
+        } catch (java.io.IOException failure) {
+            throw new IllegalArgumentException("Preview destination is unavailable", failure);
+        }
     }
     private static String string(JsonObject value, String key) {
         if (!value.has(key) || !value.get(key).isJsonPrimitive() || !value.getAsJsonPrimitive(key).isString()
