@@ -273,12 +273,16 @@ class Stage9NativeJcefAccessibilityTest {
 					    var canvas = document.querySelector('.procedure-canvas');
 					    var outline = document.querySelector('[data-testid=procedure-node-outline]');
 					    var nodes = Array.from(outline?.querySelectorAll('button') || []);
-					    return canvas?.getAttribute('aria-label') === '过程可视化画布'
-					        && outline?.getAttribute('aria-label') === '过程节点与端口'
+					    var labels = {
+					        'zh-CN': ['过程可视化画布', '过程节点与端口', '入口触发器', '下一个未连接'],
+					        'en': ['Procedure canvas', 'Procedure nodes and ports', 'Entry trigger', 'Next connection is empty']
+					    }[document.documentElement.lang];
+					    return Boolean(labels) && canvas?.getAttribute('aria-label') === labels[0]
+					        && outline?.getAttribute('aria-label') === labels[1]
 					        && nodes.length >= 1
 					        && nodes.every(function(node) {
 					            var name = node.getAttribute('aria-label') || '';
-					            return name.includes('入口触发器') && name.includes('event_trigger') && name.includes('下一个');
+					            return name.includes(labels[2]) && name.includes('event_trigger') && name.includes(labels[3]);
 					        });
 					})()
 					"""), "Procedure nodes and ports were not readable through native JCEF semantics");
