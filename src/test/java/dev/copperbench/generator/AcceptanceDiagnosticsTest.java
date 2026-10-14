@@ -137,7 +137,7 @@ class AcceptanceDiagnosticsTest {
         java.util.function.Function<JsonObject, JsonObject> dispatch = request -> AcceptanceExtension.dispatch(requestId, workspaceId, request,
                 command -> { throw new AssertionError("No command may run during diagnostics negotiation or read"); },
                 query -> { queries.incrementAndGet(); var data = new JsonObject(); data.add("task", task);
-                    return new UiCore.QueryResult(null, null, requestId, workspaceId, UiCore.Operation.GET_TASK, "succeeded", 4, data, List.of()); },
+                    return new UiCore.QueryResult(null, UiCore.SCHEMA_VERSION, requestId, workspaceId, UiCore.Operation.GET_TASK, "succeeded", 4, data, List.of()); },
                 id -> new JsonObject(), live -> { summaries.incrementAndGet(); return AcceptanceDiagnostics.project(live, live); });
         var request = JsonParser.parseString("{\"supportedVersions\":[\"1\"],\"operation\":\"get\",\"payload\":{\"taskId\":\"33333333-3333-4333-8333-333333333333\"}}").getAsJsonObject();
         var legacy = dispatch.apply(request);

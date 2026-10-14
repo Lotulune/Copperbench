@@ -71,13 +71,13 @@ public final class ReleaseManifest {
 
 		JsonArray golden = new JsonArray();
 		JsonArray generateReady = new JsonArray();
-		for (var track : catalog.tracks()) {
-			for (var loader : track.loaders()) {
-				if ("TRACK_SUPPORTED".equals(loader.reasonCode()))
-					golden.add(loader.generatorId());
-				else if ("TRACK_GENERATE_READY".equals(loader.reasonCode()))
-					generateReady.add(loader.generatorId());
-			}
+		// Rotating display tracks must not erase evidence for registered historical generators.
+		for (var registration : catalog.registrations()) {
+			var loader = registration.status();
+			if ("TRACK_SUPPORTED".equals(loader.reasonCode()))
+				golden.add(loader.generatorId());
+			else if ("TRACK_GENERATE_READY".equals(loader.reasonCode()))
+				generateReady.add(loader.generatorId());
 		}
 		JsonObject claims = new JsonObject();
 		claims.add("goldenCompileClaimed", golden);
