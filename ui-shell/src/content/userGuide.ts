@@ -31,7 +31,7 @@ export interface TrackHonestFact {
   readonly trackName: string;
   readonly minecraftVersion: string;
   readonly statusLabel: string;
-  readonly statusCode: 'TRACK_SUPPORTED' | 'TRACK_GENERATE_READY';
+  readonly statusCode: 'TRACK_SUPPORTED' | 'TRACK_GENERATE_READY' | 'TRACK_PREVIEW';
   readonly isGolden: boolean;
   readonly notes: string;
 }
@@ -49,6 +49,11 @@ export const USER_GUIDE_METADATA = {
 } as const;
 
 export const ABOUT_FACTS: readonly AboutFact[] = [
+  {
+    label: 'Java 生成器',
+    value: 'Fabric / NeoForge · 26.2 / 26.1.2 / 1.21.1 / 1.20.1',
+    description: '每个工作区使用一个活动生成器；可用插件以新建工作区列表为准。另有 resourcepack-1.21.1 资源包生成器。'
+  },
   {
     label: '产品名称与版本',
     value: 'Copperbench 0.1.4',
@@ -88,20 +93,28 @@ export const ABOUT_FACTS: readonly AboutFact[] = [
 
 export const TRACK_HONEST_FACTS: readonly TrackHonestFact[] = [
   {
-    trackName: '最新 26.2',
+    trackName: '预览 26.3',
+    minecraftVersion: '26.3',
+    statusLabel: 'Fabric / NeoForge 预览',
+    statusCode: 'TRACK_PREVIEW',
+    isGolden: false,
+    notes: '需显式启用预览；操作、类型与字段范围以当前环境的能力查询为准。'
+  },
+  {
+    trackName: '支持 26.2',
     minecraftVersion: '26.2',
     statusLabel: 'Fabric / NeoForge 正式支持',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: 'Fabric 与 NeoForge 均已完成编译与游戏内运行验证。'
+    notes: '有黄金生成、编译及 runClient 记录；具体玩法以对应验收场景为准。'
   },
   {
     trackName: '前一 26.1',
-    minecraftVersion: '26.1',
+    minecraftVersion: '26.1.2',
     statusLabel: 'Fabric / NeoForge 正式支持',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: '钉选 Minecraft 26.1.2，已完成编译与游戏内运行验证。'
+    notes: '钉选 Minecraft 26.1.2；具体能力以活动生成器和验收场景为准。'
   },
   {
     trackName: '维护 1.21.1',
@@ -109,7 +122,7 @@ export const TRACK_HONEST_FACTS: readonly TrackHonestFact[] = [
     statusLabel: '正式支持（推荐首选）',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: '验证最完整的轨道，新项目优先推荐。'
+    notes: '第一件作品教程使用本轨道；Fabric 与 NeoForge 均有构建及客户端记录。'
   },
   {
     trackName: '维护 1.20.1',
@@ -117,11 +130,24 @@ export const TRACK_HONEST_FACTS: readonly TrackHonestFact[] = [
     statusLabel: 'Fabric / NeoForge 正式支持',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: 'Fabric 与 NeoForge（钉选 1.20.1-47.1.106）均已完成编译与游戏内运行验证。'
+    notes: 'NeoForge 钉选 1.20.1-47.1.106；具体玩法以对应验收场景为准。'
   }
 ];
 
 export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
+  {
+    id: 'first-creation',
+    title: '第一件作品：步道方块',
+    content: [
+      '新建 Fabric 1.21.1 工作区：名称 First Creation，模组 ID first_creation，Java 包名 com.example.firstcreation，选择一个新的空目录。',
+      '在模组元素中创建方块 trail_block。将显示名称设为 Trail Block，硬度设为 3，爆炸抗性设为 6，保留默认石头纹理并应用更改。',
+      '运行构建，等待任务成功；再运行客户端，进入主菜单。首次构建会下载依赖。',
+      '新建创造模式世界 CB_FirstCreation_日期，开启作弊。在聊天栏输入 /give @s first_creation:trail_block 16，应得到 16 个 Trail Block；将其放在地上，应看到石头外观的方块。',
+      '保存并退出世界，重新进入同一个世界，确认方块仍在；最后退出游戏，等待客户端任务结束。'
+    ],
+    linkView: 'elements',
+    linkLabel: '打开模组元素'
+  },
   {
     id: 'workspace',
     title: '工作区 (Workspace)',
@@ -143,7 +169,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     table: {
       headers: ['轨道', '状态', '说明'],
       rows: [
-        ['最新 26.2', '正式支持', 'Fabric 与 NeoForge 均可用'],
+        ['预览 26.3', '预览', '需显式启用；以能力查询为准'],
+        ['支持 26.2', '正式支持', 'Fabric 与 NeoForge 均可用'],
         ['前一 26.1', '正式支持', '钉选 Minecraft 26.1.2'],
         ['维护 1.21.1', '正式支持（推荐）', '验证最完整，新项目首选'],
         ['维护 1.20.1', '正式支持', 'Fabric 与 NeoForge 均可用']

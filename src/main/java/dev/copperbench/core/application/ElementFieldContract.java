@@ -37,12 +37,7 @@ public final class ElementFieldContract {
                 if (issue != null) return issue;
             }
         }
-        Set<String> required = switch (type) {
-            case "tool" -> Set.of("texture", "customModelName");
-            case "livingentity" -> Set.of("mobModelTexture", "mobModelName", "aixml");
-            default -> Set.of("entityTexture", "itemTexture");
-        };
-        for (String name : required.stream().sorted().toList()) {
+        for (String name : requiredForGeneration(type).stream().sorted().toList()) {
             JsonElement value = effective.get(name);
             if (value == null || value.isJsonNull() || value.isJsonPrimitive() && value.getAsString().isBlank())
                 return new BlockFieldContract.Issue("FIELD_REQUIRED", BlockFieldContract.path(raw, name),
@@ -50,6 +45,15 @@ public final class ElementFieldContract {
                                 ? " using an imported entity texture from this workspace." : " before generating this element."));
         }
         return null;
+    }
+
+    static Set<String> requiredForGeneration(String type) {
+        return switch (type) {
+            case "tool" -> Set.of("texture", "customModelName");
+            case "livingentity" -> Set.of("mobModelTexture", "mobModelName", "aixml");
+            case "specialentity" -> Set.of("entityTexture", "itemTexture");
+            default -> Set.of();
+        };
     }
     public static boolean known(String type) {
         return ElementCoverageCatalog.isFirstParty(type) || ElementCoverageCatalog.BEDROCK_ADDON_NOT_APPLICABLE.contains(type);

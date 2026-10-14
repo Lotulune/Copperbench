@@ -1,10 +1,10 @@
 # 项目文档导航
 
-当前公开稳定版为 Windows **0.1.4** 与 Linux **0.1.4**。下载、安装格式与验证范围统一见[当前下载](./releases/current.md)；后续工作见[持续维护清单](./remaining-work.md)。历史需求与验收保留各自日期、候选和验证范围。
+先看[当前状态与发布能力](./status.md)：一页区分下载版已有、源码新增、预览能力和未验证范围。当前公开稳定版为 Windows 与 Linux **0.1.4**；安装格式见[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
 
 ## 从这里开始
 
-1. 使用产品：[用户指南](./user/README.md)、[Windows 0.1.4](./releases/v0.1.4.md)、[Linux 0.1.4](./releases/v0.1.4-linux.md)。
+1. 使用产品：[第一件作品](./user/first-creation.md)、[用户指南](./user/README.md)、[当前下载](./releases/current.md)。
 2. 开发与维护：[开发环境](./build/development-setup.md)、[剩余完善清单](./remaining-work.md)、[测试与证据索引](./testing/README.md)。
 3. 制作宣传片、封面或产品介绍：[当前宣传素材与截图来源](../assets/screenshots/README.md)。
 4. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。

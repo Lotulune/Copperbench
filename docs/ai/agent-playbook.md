@@ -27,7 +27,7 @@ Agent 必须遵守以下规则：
 一次可靠的内容修改按以下顺序执行：
 
 1. MCP `initialize`，然后发送 `notifications/initialized`。
-2. `get_workspace`，记录 `workspaceId` 和 `revision`。
+2. `get_workspace`，记录 `workspaceId` 和 `revision`；读取 `get_workspace_environment` 确认活动生成器、工具链及字段合同，支持矩阵也可通过 `get_version_tracks` 查询。
 3. `list_mod_elements`，使用 `limit` 和响应中的 `nextCursor` 连续读取，直到响应明确给出 `nextCursor: null`。
 4. 对单个元素先使用 preview 工具；多个内容修改优先使用 `plan_workspace_changes`。
 5. `preview_workspace_plan` 检查语义差异、权限和 stale 状态。
@@ -40,6 +40,8 @@ Agent 必须遵守以下规则：
 ## 3. `create_mod_element` 的 `initialValues`
 
 `create_mod_element` 必须同时提供 `elementType`、`name`、`initialValues` 和 `expectedRevision`。`initialValues` 可以很小；Copperbench 会补齐通用默认值。不要凭空发明当前 schema 没有定义的字段。
+
+当前源码会预检请求形状以及已确认的部分生成前提，返回路径、期望类型和修复提示，详见[输入诊断与修复](./input-diagnostics.md)。完整的创建→构建→游戏确认示例见[第一件作品](../user/first-creation.md)。
 
 ### Item：先创建物品，再实现蓄力逻辑
 

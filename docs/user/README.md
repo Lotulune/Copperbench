@@ -2,6 +2,8 @@
 
 本指南对应 Copperbench 0.1.4。Windows 与 Linux 安装包、发布说明和验证范围见[当前下载](../releases/current.md)。
 
+第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。下载版、源码新增、26.3 预览和未验证范围统一见[当前状态](../status.md)。
+
 ## 工作区
 
 一个工作区同一时间只有一个活动生成器（Fabric 或 NeoForge 的某一个版本）。创建、打开、从官方 MCreator 迁入都走同一套 Java 服务。迁入会复制到新目录，并保留未知字段。

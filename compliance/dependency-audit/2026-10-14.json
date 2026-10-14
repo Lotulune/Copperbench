@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-14",
+  "scope": [
+    "ui-shell/package-lock.json",
+    "ui-core/package-lock.json"
+  ],
+  "releaseScope": "Current working-tree source only; published 0.1.4 packages have not been rebuilt or reassessed by this record.",
+  "findings": [
+    {
+      "package": "source-map-js",
+      "severity": "high",
+      "before": "1.2.1",
+      "after": "1.2.2",
+      "patchedFrom": "1.2.2",
+      "advisories": [
+        "https://github.com/advisories/GHSA-68fv-2mgg-jv7q"
+      ],
+      "dependencyPaths": [
+        "vite > postcss > source-map-js",
+        "blockly > jsdom (peer) > css-tree > source-map-js"
+      ],
+      "developmentImpact": "Parsing an attacker-controlled indexed source map with an excessive section offset can block the Node event loop. The affected version was reachable in the installed build/development dependency tree.",
+      "desktopRuntimeAssessment": "The shipped UI is a Vite browser bundle. PostCSS runs at build time; Blockly's browser mapping excludes jsdom. Source inspection indicates these dependency paths are outside the desktop browser runtime; this is not an exploit test or a claim about every published binary.",
+      "resolution": "Upgrade the existing transitive lock entry within its declared semver range; no override or new direct dependency.",
+      "sourceEvidence": [
+        "ui-shell/package.json",
+        "ui-shell/src/components/ProcedureWorkbench.tsx",
+        "source-map-advisory.json"
+      ]
+    },
+    {
+      "package": "undici",
+      "severity": "high",
+      "before": "7.29.0",
+      "after": "7.30.0",
+      "patchedFrom": "7.29.1",
+      "advisories": [
+        "https://github.com/advisories/GHSA-rfgv-xxqx-mfg5",
+        "https://github.com/advisories/GHSA-w293-vg96-wgc3"
+      ],
+      "dependencyPaths": [
+        "blockly > jsdom (peer) > undici"
+      ],
+      "developmentImpact": "The installed Node dependency is affected. The high advisories concern WebSocket handshake denial of service and BalancedPool dropping function-valued TLS options; exploitability requires using those APIs with the described inputs. No application-specific exploit was run. Other lower-severity advisories are preserved in the before audit receipt.",
+      "desktopRuntimeAssessment": "ProcedureWorkbench imports blockly/core, blockly/blocks and locale modules. Blockly 13.2.1 selects its browser entry for this Vite build and maps jsdom to false. Do not infer runtime exposure or safety solely from npm's prod/dev/peer flags; the Node peer remains installed and is upgraded.",
+      "resolution": "Upgrade the existing transitive lock entry to 7.30.0, above the 7.29.1 fix, within jsdom's ^7.25.0 range.",
+      "sourceEvidence": [
+        "ui-shell/src/components/ProcedureWorkbench.tsx",
+        "undici-websocket-advisory.json",
+        "undici-tls-advisory.json"
+      ]
+    },
+    {
+      "package": "fast-uri",
+      "severity": "high",
+      "before": "3.1.5",
+      "after": "3.1.8",
+      "patchedFrom": "3.1.8 (all advisories in the captured audit; authority injection fixed in 3.1.7)",
+      "advisories": [
+        "https://github.com/advisories/GHSA-5jgf-p345-68v8",
+        "https://github.com/advisories/GHSA-f65p-4m7j-42xc",
+        "https://github.com/advisories/GHSA-fph4-wmhf-6fwf",
+        "https://github.com/advisories/GHSA-jqff-g426-hqxp",
+        "https://github.com/advisories/GHSA-qw65-cvwx-89v3",
+        "https://github.com/advisories/GHSA-hrr3-gc8f-f4qj"
+      ],
+      "dependencyPaths": [
+        "ui-core > ajv > fast-uri"
+      ],
+      "developmentImpact": "URI host/port normalization defects affect code that uses attacker-controlled URI components for request routing. ui-core uses Ajv for local schema/fixture checks; validate.mjs registers local files without a remote loadSchema callback. The dependency is still updated rather than suppressed.",
+      "desktopRuntimeAssessment": "Development-only dependency of ui-core. ui-shell does not depend on Ajv or fast-uri; the local schema checker is not shipped as a Node runtime service.",
+      "resolution": "Upgrade the existing lock entry within Ajv ^3.0.1 to 3.1.8; no new direct dependency or override.",
+      "sourceEvidence": [
+        "ui-core/package.json",
+        "ui-core/scripts/validate.mjs",
+        "fast-uri-advisory.json",
+        "ui-core-2026-10-14.before.json"
+      ]
+    }
+  ],
+  "commands": [
+    "npm audit --prefix ui-shell --json",
+    "npm explain --prefix ui-shell source-map-js undici",
+    "npm update source-map-js undici --prefix ui-shell --package-lock-only --ignore-scripts --no-audit",
+    "npm ci --prefix ui-shell --ignore-scripts --no-audit",
+    "npm audit --prefix ui-shell --json",
+    "npm audit --prefix ui-shell --omit=dev --json",
+    "npm audit --prefix ui-core --json",
+    "npm update fast-uri --prefix ui-core --package-lock-only --ignore-scripts --no-audit",
+    "npm ci --prefix ui-core --ignore-scripts --no-audit",
+    "npm test --prefix ui-core",
+    "npm run validate --prefix ui-core"
+  ],
+  "verification": {
+    "status": "passed",
+    "beforeHighByProject": {
+      "ui-shell": 2,
+      "ui-core": 1
+    },
+    "beforeReceipts": [
+      "ui-shell-2026-10-14.before.json",
+      "ui-core-2026-10-14.before.json"
+    ],
+    "after": [
+      {
+        "path": "ui-shell-2026-10-14.after.json",
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        },
+        "sha256": "9aba33dc1ecd5783b3e977f12f68829e83b7f0e6c39c335009ec9b84631e5240"
+      },
+      {
+        "path": "ui-shell-production-2026-10-14.after.json",
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        },
+        "sha256": "9aba33dc1ecd5783b3e977f12f68829e83b7f0e6c39c335009ec9b84631e5240"
+      },
+      {
+        "path": "ui-core-2026-10-14.json",
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        },
+        "sha256": "b0056bd5145d685f1372622cb098806f05b23f1a656b695c3ecbdf1c8dc813f1"
+      }
+    ],
+    "checks": {
+      "uiCoreTests": 35,
+      "uiCoreSchemas": 12,
+      "uiCoreScenarios": 18,
+      "uiShellUnitTests": 28,
+      "uiPlaywrightCases": 20,
+      "productionBuild": "passed"
+    },
+    "limits": "npm advisory snapshot only; excludes Java libraries, bundled JDK, OS components and published package bytes."
+  },
+  "source": {
+    "head": "b1a69d244ab7337608cc302826ed55d4a707f37f",
+    "workingTree": "Includes pre-existing uncommitted changes; package-lock hashes below identify audited bytes.",
+    "locks": [
+      {
+        "path": "ui-shell/package-lock.json",
+        "sha256": "1d713c2dcdd6be86a16d2b9b6a745e6d4ae34f7656dbc829eb97d9e2d651438d"
+      },
+      {
+        "path": "ui-core/package-lock.json",
+        "sha256": "2f3e0b4c13f9a9f14bf28ab509d36cc5f5fc95ec11534333498c022f0c9c3162"
+      }
+    ]
+  }
+}
