@@ -35,10 +35,44 @@ interface ElementInspectorProps {
   onClose: () => void;
 }
 
+class InvalidNumberInput extends Error {}
+
+function invalidNumberDraft(value: unknown): boolean {
+  return typeof value === 'string' && (value.trim() === '' || !Number.isFinite(Number(value)));
+}
+
+function numberValue(value: unknown): unknown {
+  if (invalidNumberDraft(value)) throw new InvalidNumberInput();
+  return typeof value === 'string' ? Number(value) : value;
+}
+
 function fieldValue(field: EditorField, values: Record<string, unknown>): unknown {
   const value = values[field.path];
   if (field.control === 'json' && typeof value === 'string') return JSON.parse(value);
+  if (field.control === 'number' && !field.readOnly) return numberValue(value);
+  if (field.control === 'structured_list' && Array.isArray(value)) {
+    return value.map(item => {
+      const next = { ...item };
+      for (const itemField of field.itemFields ?? []) {
+        const name = fieldTestSuffix(itemField.path);
+        if (itemField.control === 'number' && !itemField.readOnly && Object.prototype.hasOwnProperty.call(next, name)) {
+          next[name] = numberValue(next[name]);
+        }
+      }
+      return next;
+    });
+  }
   return value;
+}
+
+function valuesForConditions(fields: EditorField[], values: Record<string, unknown>): Record<string, unknown> {
+  const normalized = { ...values };
+  for (const field of fields) {
+    if (field.control === 'number' && typeof normalized[field.path] === 'string') {
+      normalized[field.path] = invalidNumberDraft(normalized[field.path]) ? undefined : Number(normalized[field.path]);
+    }
+  }
+  return normalized;
 }
 
 function comparable(value: unknown): string {
@@ -87,8 +121,8 @@ function conditionActive(field: EditorField, values: Record<string, unknown>): b
 function collectFieldChanges(
   editor: ModElementEditorProjection | null,
   values: Record<string, unknown>
-): { changes: FieldChange[]; invalidJson: boolean } {
-  if (!editor) return { changes: [], invalidJson: false };
+): { changes: FieldChange[]; invalidJson: boolean; invalidNumber: boolean } {
+  if (!editor) return { changes: [], invalidJson: false, invalidNumber: false };
   try {
     const changes = editor.sections
       .flatMap((section) => section.fields)
@@ -97,9 +131,9 @@ function collectFieldChanges(
         const next = fieldValue(field, values);
         return comparable(next) === comparable(field.value) ? [] : [{ path: field.path, value: next }];
       });
-    return { changes, invalidJson: false };
-  } catch {
-    return { changes: [], invalidJson: true };
+    return { changes, invalidJson: false, invalidNumber: false };
+  } catch (error) {
+    return { changes: [], invalidJson: !(error instanceof InvalidNumberInput), invalidNumber: error instanceof InvalidNumberInput };
   }
 }
 
@@ -203,9 +237,10 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   const revisionRef = useRef(baseRevision.current);
   revisionRef.current = state.workbench?.workspace.revision ?? 0;
   const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
-  const hasDraft = pending.invalidJson || pending.changes.length > 0 || Object.values(referenceDrafts).some(value => value.length > 0);
-  const draftRef = useRef({ editor, hasDraft, isSaving });
-  draftRef.current = { editor, hasDraft, isSaving };
+  const conditionValues = useMemo(() => valuesForConditions(editor?.sections.flatMap(section => section.fields) ?? [], values), [editor, values]);
+  const hasDraft = pending.invalidJson || pending.invalidNumber || pending.changes.length > 0 || Object.values(referenceDrafts).some(value => value.length > 0);
+  const draftRef = useRef({ editor, values, hasDraft, isSaving });
+  draftRef.current = { editor, values, hasDraft, isSaving };
 
   useEffect(() => {
     if (editor && hasDraft) {
@@ -300,7 +335,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   }, [editor?.element.id]);
 
   useEffect(() => {
-    if (!editor || pending.invalidJson || pending.changes.length === 0) {
+    if (!editor || pending.invalidJson || pending.invalidNumber || pending.changes.length === 0) {
       setPreview(null);
       setIsPreviewing(false);
       return;
@@ -339,6 +374,11 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
 
     if (pending.invalidJson) {
       setLocalErrors([uiMessage("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]);
+      setIsSaving(false);
+      return;
+    }
+    if (pending.invalidNumber) {
+      setLocalErrors([uiMessage("请填写完整有效的数字后再保存。", "Enter a complete, valid number before saving.")]);
       setIsSaving(false);
       return;
     }
@@ -400,7 +440,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
       // revert them.
       try {
         const refreshed = await getEditorRef.current(element.id);
-        if (refreshed) {
+        // The form is editable again after the command commits. A late query
+        // must not replace a draft started while that query was in flight.
+        if (refreshed && draftRef.current.values === values) {
           const committed = { ...values };
           const rebased = {
             ...refreshed,
@@ -449,6 +491,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
       ? localErrors
       : pending.invalidJson
         ? [uiText("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]
+        : pending.invalidNumber
+          ? [uiText("请填写完整有效的数字后再保存。", "Enter a complete, valid number before saving.")]
         : preview && !preview.canApply
           ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message, d.code))
       : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message, d.code));
@@ -520,7 +564,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
 
   const renderControl = (field: EditorField) => {
     const value = values[field.path];
-    const enabledByCondition = conditionActive(field, values);
+    const enabledByCondition = conditionActive(field, conditionValues);
     const disabled = isSaving || field.readOnly || !enabledByCondition;
     const commonStyle = disabled ? { background: 'var(--bg-hover)' } : {};
     const controlId = fieldControlId(field.path);
@@ -537,8 +581,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
             step={field.constraints?.step ?? 1}
             disabled={disabled}
             readOnly={disabled}
+            aria-invalid={invalidNumberDraft(value) || undefined}
             onChange={(e) =>
-              setValues((prev) => ({ ...prev, [field.path]: parseFloat(e.target.value) || 0 }))
+              setValues((prev) => ({ ...prev, [field.path]: e.target.value }))
             }
             style={commonStyle}
             data-testid={`field-${fieldTestSuffix(field.path)}`}
@@ -667,12 +712,13 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
               candidate.path,
               item[fieldTestSuffix(candidate.path)] ?? candidate.value
             ]));
-            const itemDisabled = disabled || itemField.readOnly || !conditionActive(itemField, itemValuesByPath);
+            const itemDisabled = disabled || itemField.readOnly || !conditionActive(itemField, valuesForConditions(itemFields, itemValuesByPath));
             const itemTestId = `field-${fieldTestSuffix(field.path)}-${index}-${itemName}`;
             if (itemField.control === 'number') {
               return <input type="number" value={itemValue === null || itemValue === undefined ? '' : String(itemValue)}
                 min={itemField.constraints?.min} max={itemField.constraints?.max} step={itemField.constraints?.step ?? 1}
-                disabled={itemDisabled} onChange={(e) => updateItem(index, itemField.path, Number(e.target.value))}
+                aria-invalid={invalidNumberDraft(itemValue) || undefined}
+                disabled={itemDisabled} onChange={(e) => updateItem(index, itemField.path, e.target.value)}
                 data-testid={itemTestId} />;
             }
             if (itemField.control === 'toggle') {
@@ -1049,7 +1095,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 const extensionName = loaderExtensionName(field.path);
                 const isLoaderExtension = field.readOnly && extensionName !== null;
                 const controlId = fieldControlId(field.path);
-                const enabledByCondition = conditionActive(field, values);
+                const enabledByCondition = conditionActive(field, conditionValues);
 
                 const controlBlock = (
                   <>
@@ -1219,7 +1265,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={externalChange || isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)
+            disabled={externalChange || isSaving || !editor || pending.invalidJson || pending.invalidNumber || pending.changes.length === 0 || Boolean(preview && !preview.canApply)
               || Boolean(workspacePreviewTarget && (!workspacePreviewTarget.selected || workspacePreviewTarget.destination !== ''
                 || !workspacePreviewTarget.capabilities.operations?.some(operation => operation.operation === 'update_mod_element' && operation.available)))}
             data-testid="inspector-save-btn"
