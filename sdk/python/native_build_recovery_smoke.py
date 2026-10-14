@@ -71,6 +71,9 @@ def main(config_path):
         create("tool", "xiucopper_shears", {"toolType": "Shears"})
         create("livingentity", "xiucopper_living", {"mobModelTexture": "creator_entity.png"})
         create("specialentity", "xiucopper_boat", {"entityTexture": "creator_entity"})
+        for variant in ("ChestBoat", "Raft", "ChestRaft"):
+            create("specialentity", "xiucopper_" + variant.lower(),
+                   {"entityType": variant, "entityTexture": "creator_entity"})
         task("prepare-generate", workspace.generate)
 
         for kind, suffix, values in [
@@ -98,7 +101,7 @@ def main(config_path):
     # Reopen through the product to cover stored body projection, not just the live state.
     with Workspace.open(config["workspace"], launcher=config["launcher"], cwd=config["cwd"]) as reopened:
         elements = list(reopened.list_mod_elements())
-        assert len(elements) == 8, elements
+        assert len(elements) == 11, elements
         lamp = next(element for element in elements if element["name"] == "xiucopper_mirror")
         editor = reopened.query("get_mod_element_editor", schema_version="1.1", elementId=lamp["id"])
         save("reopened-lamp", editor)
@@ -123,6 +126,8 @@ def main(config_path):
         assert any(name.endswith("/xiucopper_shearsItem.class") for name in names), names
         assert any(name.endswith("/xiucopper_livingEntity.class") for name in names), names
         assert any(name.endswith("/xiucopper_boatEntity.class") for name in names), names
+        for variant in ("boat", "chestboat", "raft", "chestraft"):
+            assert any(name.endswith(f"/xiucopper_{variant}Renderer.class") for name in names), names
         assert f"data/{Path(config['workspace']).stem}/recipe/xiucopper_mirror_recipe.json" in names, names
         assert not any("xiucopper_probe" in name.lower() for name in names), names
     save("jar", {"path": str(jars[0]), "size": jars[0].stat().st_size,

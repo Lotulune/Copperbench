@@ -23,10 +23,11 @@
 
 package ${package}.entity;
 
-public class ${name}Entity extends ${data.entityType} {
+public class ${name}Entity extends <#if data.isBoatChestVariant()>ChestBoat<#else>Boat</#if> {
 
 	public ${name}Entity(EntityType<${name}Entity> type, Level world) {
 		super(type, world);
+		<#if data.isAnyRaft()>setVariant(Boat.Type.BAMBOO);</#if>
 	}
 
 	@Override public Item getDropItem() {

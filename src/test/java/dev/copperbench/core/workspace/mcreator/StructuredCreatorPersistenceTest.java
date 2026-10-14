@@ -5,6 +5,7 @@ import dev.copperbench.core.application.*;
 import dev.copperbench.core.contract.UiCore.*;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.element.types.Block;
+import net.mcreator.element.types.SpecialEntity;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
 import net.mcreator.ui.workspace.resources.TextureType;
@@ -44,6 +45,9 @@ class StructuredCreatorPersistenceTest {
                 assertEquals("committed", result.status(), result.diagnostics().toString());
                 revision = result.newRevision();
                 var definition = workspace.getModElementByName("discovery_" + type).getGeneratableElement();
+                if (definition instanceof SpecialEntity special)
+                    assertEquals(generator.equals("fabric-1.21.1"),
+                            special.getBaseTypesProvided().contains(net.mcreator.element.BaseType.ENTITY));
                 assertTrue(workspace.getGenerator().generateElement(definition), type);
             }
             var payload = JsonParser.parseString("""
@@ -95,6 +99,40 @@ class StructuredCreatorPersistenceTest {
                 assertTrue(workspace.getModElements().isEmpty());
                 assertEquals(0, result.newRevision());
             }
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"Boat", "ChestBoat", "Raft", "ChestRaft"})
+    void fabricBoatOnlyWorkspaceRegistersItsRenderer(String variant) throws Exception {
+        WorkspaceSettings settings = new WorkspaceSettings("boat_only");
+        settings.setModName("Boat Only"); settings.setVersion("1.0.0"); settings.setCurrentGenerator("fabric-1.21.1");
+        try (Workspace workspace = Workspace.createWorkspace(root.resolve("boat_only.mcreator").toFile(), settings);
+             var session = MCreatorWorkspaceSession.attach(workspace,
+                     store -> new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+            assertTrue(workspace.getGenerator().generateBase());
+            writeTexture(workspace);
+            var payload = ElementFieldContract.discover("specialentity", "fabric-1.21.1")
+                    .getAsJsonObject("minimalExample").deepCopy();
+            payload.getAsJsonObject("initialValues").addProperty("entityTexture", "creator_entity");
+            payload.getAsJsonObject("initialValues").addProperty("entityType", variant);
+            var created = session.uiEntry().execute(Command.of(UUID.randomUUID(), session.workspaceId(), 0,
+                    Operation.CREATE_MOD_ELEMENT, payload)).result();
+            assertEquals("committed", created.status(), created.diagnostics().toString());
+            var boat = (SpecialEntity) workspace.getModElementByName("discovery_specialentity").getGeneratableElement();
+            assertTrue(boat.getBaseTypesProvided().contains(net.mcreator.element.BaseType.ENTITY));
+            assertTrue(workspace.getGenerator().generateBase());
+            Path javaRoot = workspace.getGenerator().getSourceRoot().toPath();
+            List<Path> sources;
+            try (var paths = Files.walk(javaRoot)) { sources = paths.filter(path -> path.toString().endsWith(".java")).toList(); }
+            Path registration = sources.stream().filter(path -> path.getFileName().toString().endsWith("EntityRenderers.java")).findFirst().orElseThrow();
+            assertTrue(Files.readString(registration).contains("discovery_specialentityRenderer::new"));
+            Path renderer = sources.stream().filter(path -> path.getFileName().toString().equals("discovery_specialentityRenderer.java")).findFirst().orElseThrow();
+            String rendered = Files.readString(renderer);
+            assertTrue(rendered.contains("textures/entity/" + (variant.startsWith("Chest") ? "chest_boat" : "boat")
+                    + "/discovery_specialentity.png"), rendered);
+            assertTrue(rendered.contains("new " + variant + "Model("), rendered);
+            Path client = sources.stream().filter(path -> path.getFileName().toString().endsWith("ModClient.java")).findFirst().orElseThrow();
+            assertTrue(Files.readString(client).contains("EntityRenderers.clientLoad()"));
         }
     }
 
