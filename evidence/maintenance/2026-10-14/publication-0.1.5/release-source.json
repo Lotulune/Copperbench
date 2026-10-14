@@ -1,0 +1,25 @@
+{
+  "state": "published-and-verified",
+  "releaseSource": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+  "integrationPr": "https://github.com/Lotulune/Copperbench/pull/107",
+  "releaseFixPr": "https://github.com/Lotulune/Copperbench/pull/109",
+  "validatedHead": "65687a6ea459239543d70cade45f41f51e5afa30",
+  "integratedCommits": [
+    "17ab058e6480bb72dcfddd32ac65aa68fc4ce2c7",
+    "db38ab266577048b8287661a9874cd335e3b78f2",
+    "765dd28cc88381a2c1b263e7bf235fead9db74ed",
+    "ccee11b8358aeee8da25e28741cefb3eb98c7048",
+    "8a304de48097a173038a46563cb829d90f2e2135",
+    "a004e6cd0d7f81117328f81b11f66ea10d971867",
+    "65687a6ea459239543d70cade45f41f51e5afa30"
+  ],
+  "ancestryVerified": true,
+  "verifiedAt": "2026-10-14T13:04:37.9299374Z",
+  "nativeReadinessPr": "https://github.com/Lotulune/Copperbench/pull/110",
+  "windowsReleaseRun": "38568259409",
+  "linuxReleaseRun": "38573709058",
+  "linuxReleaseCommit": "98a91e88defdb723ac9e3210d1de60e103d2cc21",
+  "windowsReleaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5",
+  "linuxReleaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable",
+  "publicationVerifiedAt": "2026-10-14T22:50:40.954496+09:00"
+}

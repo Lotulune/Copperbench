@@ -1,0 +1,74 @@
+{
+  "status": "passed",
+  "sourceCommit": "a004e6cd0d7f81117328f81b11f66ea10d971867",
+  "tests": 33,
+  "failures": 0,
+  "skipped": 0,
+  "javadoc": "passed",
+  "markdown": "passed",
+  "productStatus": "passed",
+  "reports": [
+    {
+      "name": "dev.copperbench.core.application.PreviewAccessTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "489f5abd4b6b9e96c6200f3fe724e5087fa98a48ddb235da7f4e5e640f4caefd"
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.VersionCopyExecutionTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6f8d394591c46b40732b8906423a62b8fcbfb1e21f8fa53f6783e273001fbc09"
+    },
+    {
+      "name": "dev.copperbench.core.workspace.WorkspaceFilesTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e8de93a60119c9ed5e9b13aadc63efd9902f1ff499199fb8e954f214d000034d"
+    },
+    {
+      "name": "dev.copperbench.shell.Stage9NativeJcefAccessibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "faa8521d8b5f74e8019d7ba6e0f5d3f5270ee15ce4e0a869093a5862d2e332be"
+    }
+  ],
+  "nativeJcef": {
+    "platform": "windows",
+    "host": "real-jcef-production-shell",
+    "viewportCssWidth": 1267.0,
+    "viewportCssHeight": 763.0,
+    "devicePixelRatio": 1.25,
+    "auditedVisibleTargetCount": 59,
+    "minimumTargetWidthCssPx": 32.0,
+    "minimumTargetHeightCssPx": 32.0,
+    "dialogFocusPlacement": "passed",
+    "dialogTabTrap": "passed",
+    "dialogEscapeAndFocusRestore": "passed",
+    "politeLiveRegionContract": "passed",
+    "rendererAccessibilityMode": "complete",
+    "rendererAxTreeNodeCount": 225,
+    "rendererAxTreeButtonCount": 29,
+    "rendererAxTreeNamedButtonCount": 29,
+    "rendererAxTreeSource": "DevTools Accessibility.getFullAXTree",
+    "selectableTaskLogContract": "passed",
+    "procedureKeyboardTabs": "passed",
+    "procedureNodeAndPortSemantics": "passed",
+    "procedureAccessibleNames": "passed",
+    "procedureAuditedVisibleTargetCount": 31,
+    "procedureMinimumTargetWidthCssPx": 32.0,
+    "procedureMinimumTargetHeightCssPx": 32.0,
+    "scope": "Real Windows JCEF automation; does not close physical high-DPI or screen-reader audit.",
+    "generatedAt": "2026-10-14T12:23:48.659544300Z"
+  },
+  "logSha256": "9348b922362c7dd26d8d8321a780521e23774b5c092885a729e754f8280862a7",
+  "verifiedAt": "2026-10-14T12:25:00.8694896Z"
+}

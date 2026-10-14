@@ -1,6 +1,6 @@
 # Copperbench 图形安装指南
 
-适用于使用统一安装向导的新安装包。已发布的 0.1.4 包仍使用原安装流程，见[当前下载](../releases/current.md)。
+适用于已发布的 Copperbench 0.1.5 双语离线安装包，下载入口见[当前下载](../releases/current.md)。
 
 ## 简体中文
 

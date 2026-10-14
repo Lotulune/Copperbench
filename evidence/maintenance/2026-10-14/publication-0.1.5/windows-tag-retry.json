@@ -1,0 +1,10 @@
+{
+  "tag": "v0.1.5",
+  "commit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+  "tagObject": "f50e99332b0d50ebd07924ba338879047a6bd564",
+  "replacedUnpublishedTag": "a65b3c526c853aadacef92112f2c846a362a79e9",
+  "cancelledRun": "38564677751",
+  "reason": "Include deterministic native readiness acceptance before publication",
+  "signedSourceVerified": true,
+  "pushedAt": "2026-10-14T13:00:34.2431853Z"
+}
