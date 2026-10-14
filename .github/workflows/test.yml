@@ -243,11 +243,14 @@ jobs:
         run: npm ci
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-      - name: Test filesystem boundaries on Windows
+      - name: Test filesystem boundaries and native accessibility on Windows
         shell: pwsh
         run: >-
           .\gradlew.bat --no-daemon --no-build-cache test
           --tests dev.copperbench.core.workspace.WorkspaceFilesTest
+          --tests dev.copperbench.core.application.PreviewAccessTest
+          --tests dev.copperbench.core.workspace.mcreator.VersionCopyExecutionTest
+          --tests dev.copperbench.shell.Stage9NativeJcefAccessibilityTest
           --tests dev.copperbench.history.LegacyHistoryRuntimeFilesTest
           --tests dev.copperbench.assets.ResourcePackExportServiceTest
           --tests dev.copperbench.migration.LoaderMigrationServiceTest
