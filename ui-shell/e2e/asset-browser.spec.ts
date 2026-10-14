@@ -233,7 +233,16 @@ test.describe('U3 asset browser', () => {
 
   test('reports an explicit unavailable state when Blockbench is not configured', async ({ page }) => {
     await page.getByRole('button', { name: '在 Blockbench 打开' }).click();
-    await expect(page.locator('[data-testid="asset-notice"]')).toContainText('尚未配置 Blockbench');
+    const notice = page.getByTestId('asset-blockbench-notice');
+    await expect(notice).toContainText('尚未配置 Blockbench');
+    await expect(notice).toBeInViewport();
+    const setupButton = notice.getByRole('button', { name: '设置 Blockbench', exact: true });
+    await setupButton.click();
+    const dialog = page.getByRole('dialog', { name: 'Blockbench 设置' });
+    await expect(dialog.getByRole('button', { name: '选择安装位置' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    await expect(setupButton).toBeFocused();
   });
 
   test('empty, loading and error scenario states remain explicit', async ({ page }) => {
@@ -291,8 +300,8 @@ test.describe('U3 managed Blockbench roundtrip', () => {
 
   test('refreshes Asset Center after a managed Blockbench save exits', async ({ page }) => {
     await page.getByTestId('asset-open-blockbench').click();
-    await expect(page.getByTestId('asset-notice')).toContainText('revision 7');
-    await expect(page.getByTestId('asset-notice')).toContainText('rp-blockbench-1');
+    await expect(page.getByTestId('asset-blockbench-notice')).toContainText('revision 7');
+    await expect(page.getByTestId('asset-blockbench-notice')).toContainText('rp-blockbench-1');
     await expect.poll(() => page.evaluate(() =>
       (window as unknown as { __blockbenchStatusCalls: number }).__blockbenchStatusCalls)).toBeGreaterThan(0);
   });

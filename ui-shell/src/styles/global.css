@@ -507,8 +507,9 @@ input:disabled, select:disabled, textarea:disabled {
 .modal-card {
   background: var(--modal-bg);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-top: 3px solid var(--accent-copper);
+  border-radius: 2px;
+  box-shadow: 5px 5px 0 var(--bg-base), var(--shadow-lg);
   max-width: 520px;
   width: 100%;
   overflow: hidden;
@@ -548,6 +549,30 @@ input:disabled, select:disabled, textarea:disabled {
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.modal-card .btn-primary,
+.modal-card .btn-secondary {
+  min-height: 38px;
+  border-radius: 2px;
+}
+
+.modal-card .btn-primary {
+  background: var(--accent-copper-fill);
+  border-color: var(--accent-copper-fill);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 0 var(--accent-copper-active);
+}
+.modal-card .btn-primary:hover:not(:disabled) {
+  background: var(--accent-copper-fill-hover);
+  border-color: var(--accent-copper-fill-hover);
+}
+
+.modal-card details summary { cursor: pointer; color: var(--text-muted); }
+.modal-card details[open] summary { margin-bottom: 10px; }
+
+@media (max-width: 560px) {
+  .modal-footer { flex-wrap: wrap; }
 }
 
 /* Responsive Grid Helpers */

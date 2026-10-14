@@ -17,7 +17,11 @@ import org.cef.handler.CefMessageRouterHandlerAdapter;
 import java.io.Closeable;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nullable;
 
 /** Narrow JCEF transport for the path-scoped Blockbench process service. */
 public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandlerAdapter implements Closeable {
@@ -25,33 +29,37 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 	public static final String QUERY_PREFIX = "copperbench:blockbench:";
 	private static final Gson JSON = new GsonBuilder().serializeNulls().create();
 
-	private final WebView webView;
+	@Nullable private final WebView webView;
 	private final BlockbenchProcessService service;
-	private final CefBrowser expectedBrowser;
-	private final CefMessageRouter router;
+	@Nullable private final CefBrowser expectedBrowser;
+	@Nullable private final CefMessageRouter router;
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	private final ExecutorService requests = Executors.newSingleThreadExecutor(
+			Thread.ofVirtual().name("copperbench-blockbench-", 0).factory());
 
-	private JcefBlockbenchBridgeTransport(WebView webView, BlockbenchProcessService service) {
-		this.webView = Objects.requireNonNull(webView);
+	JcefBlockbenchBridgeTransport(@Nullable WebView webView, BlockbenchProcessService service) {
+		this.webView = webView;
 		this.service = Objects.requireNonNull(service);
-		this.expectedBrowser = webView.getBrowser();
-		this.router = webView.getRouter();
+		this.expectedBrowser = webView == null ? null : webView.getBrowser();
+		this.router = webView == null ? null : webView.getRouter();
 		this.loadStartListener = this::installHost;
 		this.closeListener = this::close;
-		this.router.addHandler(this, false);
-		this.webView.addLoadStartListener(loadStartListener);
-		this.webView.addCloseListener(closeListener);
+		if (webView != null) {
+			this.router.addHandler(this, false);
+			webView.addLoadStartListener(loadStartListener);
+			webView.addCloseListener(closeListener);
+		}
 		installHost();
 	}
 
 	public static JcefBlockbenchBridgeTransport attach(WebView webView, BlockbenchProcessService service) {
-		return new JcefBlockbenchBridgeTransport(webView, service);
+		return new JcefBlockbenchBridgeTransport(Objects.requireNonNull(webView), service);
 	}
 
 	private void installHost() {
-		if (!closed.get()) webView.executeScriptAsync(generateBootstrapScript());
+		if (!closed.get() && webView != null) webView.executeScriptAsync(generateBootstrapScript());
 	}
 
 	@Override public boolean onQuery(CefBrowser browser, CefFrame frame, long queryId, String request,
@@ -61,7 +69,7 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 			callback.failure(503, "Blockbench bridge is closed");
 			return true;
 		}
-		if (browser != expectedBrowser) return false;
+		if (expectedBrowser != null && browser != expectedBrowser) return false;
 		if (frame != null && !frame.isMain()) {
 			callback.failure(403, "Blockbench bridge is only available to the main frame");
 			return true;
@@ -69,12 +77,8 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 		try {
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
 			String operation = payload.has("operation") ? payload.get("operation").getAsString() : "";
-			if (operation.equals("dismiss_setup")) {
-				dev.copperbench.assets.BlockbenchConfiguration.productDefault().dismissOnboarding();
-				callback.success("{\"dismissed\":true}");
-				return true;
-			}
 			if (operation.equals("select_executable")) {
+				if (webView == null) throw new IllegalStateException("Native file picker is unavailable");
 				javax.swing.SwingUtilities.invokeLater(() -> {
 					if (closed.get()) { callback.failure(503, "Blockbench bridge is closed"); return; }
 					try {
@@ -87,20 +91,37 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 				});
 				return true;
 			}
+			// Creating a recovery point and starting the editor can take time. Keep Chromium responsive.
+			requests.execute(() -> handleRequest(operation, payload, callback));
+		} catch (RejectedExecutionException exception) {
+			callback.failure(503, "Blockbench bridge is closed");
+		} catch (RuntimeException exception) {
+			callback.failure(400, exception.getMessage());
+		}
+		return true;
+	}
+
+	private void handleRequest(String operation, JsonObject payload, CefQueryCallback callback) {
+		if (closed.get()) return;
+		try {
+			if (operation.equals("dismiss_setup")) {
+				dev.copperbench.assets.BlockbenchConfiguration.productDefault().dismissOnboarding();
+				if (!closed.get()) callback.success("{\"dismissed\":true}");
+				return;
+			}
 			BlockbenchProcessService.Snapshot snapshot = switch (operation) {
 				case "status" -> service.status();
 				case "open_asset" -> service.openAsset(requiredString(payload, "assetId"));
 				case "open_task" -> service.openTask(java.util.UUID.fromString(requiredString(payload, "taskId")));
 				default -> throw new IllegalArgumentException("Unsupported Blockbench bridge operation");
 			};
-			callback.success(toWireJson(snapshot));
+			if (!closed.get()) callback.success(toWireJson(snapshot));
 		} catch (BlockbenchBridgeException exception) {
-			callback.failure(exception.code().equals("BLOCKBENCH_ALREADY_RUNNING") ? 409 : 400,
+			if (!closed.get()) callback.failure(exception.code().equals("BLOCKBENCH_ALREADY_RUNNING") ? 409 : 400,
 					exception.code() + ": " + exception.getMessage());
 		} catch (RuntimeException exception) {
-			callback.failure(400, exception.getMessage());
+			if (!closed.get()) callback.failure(400, exception.getMessage());
 		}
-		return true;
 	}
 
 	@Override public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
@@ -171,9 +192,12 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true)) return;
-		webView.removeLoadStartListener(loadStartListener);
-		webView.removeCloseListener(closeListener);
-		try { router.removeHandler(this); } catch (Exception ignored) { }
+		requests.shutdownNow();
+		if (webView != null) {
+			webView.removeLoadStartListener(loadStartListener);
+			webView.removeCloseListener(closeListener);
+		}
+		try { if (router != null) router.removeHandler(this); } catch (Exception ignored) { }
 		service.close();
 	}
 }

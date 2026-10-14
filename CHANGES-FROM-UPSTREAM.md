@@ -14,6 +14,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Open indexed JSON models in Blockbench with the existing recovery lifecycle, prepare launches off Chromium's callback thread, and show setup and launch feedback directly at their entry points.
 - Dispatch Core bridge requests in order off Chromium's message-router thread, prune non-asset directories from resource listing, and reject dependency snapshots with newer workspace inputs before hashing contents or loading unusable vanilla catalogs.
 - Compare recovery points with the working tree without staging files or writing Git objects during history/health reads; stop comparing a recovery point at its first changed input.
 - Reuse desktop-compatible request IDs for preview capability and version-copy queries on JCEF origins without `crypto.randomUUID`.

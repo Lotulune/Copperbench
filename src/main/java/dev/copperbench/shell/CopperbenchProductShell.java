@@ -140,8 +140,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				? "There are " + count + (count == 1 ? " unsaved draft" : " unsaved drafts") + ". Close and discard these drafts?"
 				: "还有 " + count + " 份修改尚未保存。关闭并放弃这些草稿？";
 		Object[] options = english ? new Object[]{"Keep editing", "Close and discard"} : new Object[]{"继续编辑", "关闭并放弃"};
-		return JOptionPane.showOptionDialog(owner, message, english ? "Unsaved changes" : "未保存的修改",
-				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1;
+		return ProductDialogs.show(owner, message, english ? "Unsaved changes" : "未保存的修改",
+				JOptionPane.WARNING_MESSAGE, options, options[0]) == 1;
 	}
 
 	@Override public void close() {

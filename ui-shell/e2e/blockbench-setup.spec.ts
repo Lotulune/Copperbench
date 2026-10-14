@@ -1,4 +1,100 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+async function installNativeWorkspace(page: Page) {
+  await page.addInitScript(() => {
+    const modulePath = '/src/mock/mockBridge.ts';
+    const ready = import(modulePath).then(({ MockCoreBridge }) => new MockCoreBridge());
+    (window as any).blockbenchProbes = 0;
+    window.copperbenchHost = {
+      workspaceId: '11111111-1111-4111-8111-111111111111', onEvent() { return () => {}; },
+      async invoke(raw) {
+        const request = JSON.parse(raw), core = await ready;
+        const result = request.messageType === 'handshake' ? await core.negotiateHandshake(request) : await core.sendQuery(request);
+        if (request.operation === 'get_blockbench_environment') {
+          if (request.payload.probeMcp) (window as any).blockbenchProbes += 1;
+          result.data = {
+            editor: { state: 'ready', available: true, version: '5.1.6' },
+            mcp: { state: 'not_checked' }, inspectionState: 'completed', onboardingDismissed: false
+          };
+        }
+        if (request.operation === 'list_assets') result.data.assets[0].relativePath = 'assets/coppertrails/models/item/staff.json';
+        return JSON.stringify(result);
+      }
+    };
+  });
+}
+
+test('onboarding opens usable settings without navigating away from the workspace', async ({ page }, testInfo) => {
+  await installNativeWorkspace(page);
+  await page.goto('/');
+  const trigger = page.getByTestId('blockbench-onboarding').getByRole('button', { name: '设置 Blockbench', exact: true });
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Blockbench 设置' });
+  await expect(dialog.getByRole('button', { name: '选择安装位置' })).toBeVisible();
+  await expect(dialog).toContainText('编辑器：已检测到编辑器（5.1.6）');
+  await expect(dialog.getByLabel('Blockbench MCP 本机地址')).toBeVisible();
+  await expect(page.locator('.app-content-canvas')).toHaveAttribute('data-active-view', 'hub');
+  expect(await page.evaluate(() => (window as any).blockbenchProbes)).toBe(0);
+  expect(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('blockbench-settings-dialog.png') });
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await expect(dialog.getByRole('button', { name: '重新检测安装' })).toBeVisible();
+});
+
+test('English setup translates detection details and retains results across locale changes', async ({ page }) => {
+  await installNativeWorkspace(page);
+  await page.addInitScript(() => { window.__COPPERBENCH_UI_LOCALE__ = 'en'; });
+  await page.goto('/');
+  await page.getByTestId('nav-assets').click();
+  await page.getByRole('button', { name: 'Blockbench setup', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Blockbench setup' });
+  await expect(dialog.getByRole('status').last()).toContainText('Editor detection complete; MCP connection not tested.');
+  await dialog.getByText('Detection and runtime details', { exact: true }).click();
+  await expect(dialog).toContainText('Development build or unconfirmed source');
+  expect(await dialog.innerText()).not.toMatch(/[\u3400-\u9fff]/);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('copperbench:locale-changed', { detail: 'zh' })));
+  const chineseDialog = page.getByRole('dialog', { name: 'Blockbench 设置' });
+  await expect(chineseDialog).toContainText('编辑器检测完成；尚未测试 MCP 连接。');
+  await expect(chineseDialog.getByLabel('Blockbench MCP 本机地址')).toHaveValue('http://127.0.0.1:3000/bb-mcp');
+  expect(await page.evaluate(() => (window as any).blockbenchProbes)).toBe(0);
+});
+
+test('JSON model launch shows pending and failure feedback beside the action and allows retry', async ({ page }, testInfo) => {
+  await installNativeWorkspace(page);
+  await page.addInitScript(() => {
+    (window as any).__COPPERBENCH_BLOCKBENCH_HOST__ = {
+      schemaVersion: '1.0',
+      openAsset: (assetId: string) => {
+        (window as any).openedModelId = assetId;
+        return new Promise((_resolve, reject) => { (window as any).rejectBlockbenchOpen = reject; });
+      }
+    };
+  });
+  await page.goto('/');
+  await page.getByTestId('nav-assets').click();
+  await expect(page.getByTestId('asset-details')).toContainText('staff.json');
+  const open = page.getByTestId('asset-open-blockbench');
+  await open.click();
+  await expect(open).toBeDisabled();
+  await expect(open).toHaveAttribute('aria-busy', 'true');
+  const notice = page.getByTestId('asset-blockbench-notice');
+  await expect(notice).toContainText('正在准备模型并启动 Blockbench');
+  await expect(notice).toBeInViewport();
+  await page.getByRole('button', { name: 'Blockbench 设置', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Blockbench 设置' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => (window as any).rejectBlockbenchOpen(new Error('BLOCKBENCH_RECOVERY_FAILED')));
+  await expect(notice).toContainText('BLOCKBENCH_RECOVERY_FAILED');
+  await expect(open).toBeEnabled();
+  await expect(notice).toBeInViewport();
+  expect(await page.evaluate(() => (window as any).openedModelId)).toBe('asset:' + '1'.repeat(64));
+  await page.screenshot({ path: testInfo.outputPath('blockbench-launch-feedback.png') });
+  await open.click();
+  await expect(notice).toContainText('正在准备模型并启动 Blockbench');
+});
 
 // Installed JCEF uses a custom scheme without crypto.randomUUID.
 test.beforeEach(async ({ page }) => {
@@ -8,7 +104,8 @@ test.beforeEach(async ({ page }) => {
 test('optional setup is keyboard reachable and never pretends preview can connect', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
-  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
   const setup = page.getByTestId('blockbench-setup');
   await expect(setup).not.toHaveAttribute('open', '');
   await setup.locator(':scope > summary').focus();

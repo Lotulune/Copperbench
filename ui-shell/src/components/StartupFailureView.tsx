@@ -21,17 +21,20 @@ export const StartupFailureView: React.FC = () => {
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="startup-failure-title"
+        aria-describedby="startup-failure-description"
         style={{ width: '460px' }}
       >
         <div className="modal-header" style={{ background: 'var(--badge-red-bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontWeight: 700 }}>
             <AlertTriangle size={18} aria-hidden="true" />
-            <span id="startup-failure-title">{tr("桌面核心未连接")}</span>
+            <span id="startup-failure-title">{tr("暂时无法打开工作区")}</span>
           </div>
         </div>
         <div className="modal-body" style={{ gap: '12px' }}>
-          <p style={{ fontSize: '13px', lineHeight: 1.6 }}>
-            {tr("无法建立 UI-Core 原生桥接。为防止误把演示数据当作真实工作区，发行构建不会回退到 Mock 数据。")}</p>
+          <p id="startup-failure-description" style={{ fontSize: '13px', lineHeight: 1.6 }}>
+            {tr("界面未能连接到 Copperbench。请重新加载；若问题持续，请关闭并重新启动应用。")}</p>
+          <details>
+            <summary>{tr("查看错误详情")}</summary>
           <div
             style={{
               padding: '10px 12px',
@@ -46,8 +49,10 @@ export const StartupFailureView: React.FC = () => {
           >
             {diagnostic ? `${diagnostic.code}: ${t(diagnostic.message, diagnostic.code)}` : 'UI_CORE_STARTUP_FAILED'}
           </div>
-          <p style={{ color: 'var(--text-sub)', fontSize: '11px' }}>
-            {tr("请从 Copperbench 桌面程序启动，或检查 JCEF 宿主初始化日志后重启应用。")}</p>
+          </details>
+        </div>
+        <div className="modal-footer">
+          <button className="btn-primary" onClick={() => window.location.reload()}>{tr("重新加载")}</button>
         </div>
       </div>
     </div>

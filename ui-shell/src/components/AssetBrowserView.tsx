@@ -14,6 +14,7 @@ import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t, uiText, useUiLocale, UI_LOCALE } from '../i18n';
 import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
+import { BlockbenchSetupDialog } from './BlockbenchSetupDialog';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
 import { AssetPreview } from './AssetPreview';
 import './assetBrowser.css';
@@ -32,6 +33,7 @@ function resourceResolutionLabel(resolution: string): string {
 }
 
 type AssetMessage = string | LocalizedText | { zh: string; en: string };
+interface BlockbenchNotice { assetId: string; message: AssetMessage; setupRequired?: boolean }
 const assetMessage = (zh: string, en: string): AssetMessage => ({ zh, en });
 function renderAssetMessage(message: AssetMessage): string {
   return typeof message === 'string' ? message : 'key' in message ? t(message) : uiText(message.zh, message.en);
@@ -161,6 +163,8 @@ const WorkspaceAssetBrowser: React.FC = () => {
   const [modeOverride, setModeOverride] = useState<BrowserMode | null>(null);
   const [notice, setNotice] = useState<AssetMessage | null>(null);
   const [openingBlockbench, setOpeningBlockbench] = useState(false);
+  const [blockbenchNotice, setBlockbenchNotice] = useState<BlockbenchNotice | null>(null);
+  const [blockbenchSetupOpen, setBlockbenchSetupOpen] = useState(false);
   const [blockbenchSessionAssetId, setBlockbenchSessionAssetId] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<{ id: string; status: 'success' | 'error' } | null>(null);
   const copyRequest = useRef(0);
@@ -447,18 +451,20 @@ const WorkspaceAssetBrowser: React.FC = () => {
 
   const openInBlockbench = async (asset: AssetRecord) => {
     setOpeningBlockbench(true);
+    const notify = (message: AssetMessage, setupRequired = false) => setBlockbenchNotice({ assetId: asset.id, message, setupRequired });
+    notify(assetMessage('正在准备模型并启动 Blockbench…', 'Preparing the model and starting Blockbench…'));
     try {
       const result = await blockbenchBridge.openAsset(asset.id);
       if (result.state === 'running') {
         setBlockbenchSessionAssetId(asset.id);
-        setNotice(assetMessage(`Blockbench 桥接就绪：已打开模型 ${asset.name}。`, `Blockbench bridge ready: opened model ${asset.name}.`));
+        notify(assetMessage(`已启动 Blockbench，正在打开 ${asset.name}。`, `Blockbench started; opening ${asset.name}.`));
       } else if (result.diagnosticCode === 'BLOCKBENCH_NOT_CONFIGURED') {
-        setNotice(assetMessage("尚未配置 Blockbench，请展开“Blockbench 工具”进行连接。", "Blockbench is not configured. Open Blockbench tools to connect it."));
+        notify(assetMessage('尚未配置 Blockbench，请选择已安装的编辑器。', 'Blockbench is not configured. Select your installed editor.'), true);
       } else {
-        setNotice(assetMessage(`Blockbench 无法打开该资产（${result.diagnosticCode ?? result.state}）。`, `Blockbench could not open this asset (${result.diagnosticCode ?? result.state}).`));
+        notify(assetMessage(`Blockbench 无法打开该资产（${result.diagnosticCode ?? result.state}）。`, `Blockbench could not open this asset (${result.diagnosticCode ?? result.state}).`), true);
       }
     } catch (error) {
-      setNotice(error instanceof Error ? assetMessage(`Blockbench 桥接调用失败：${error.message}`, `Blockbench bridge call failed: ${error.message}`) : assetMessage("Blockbench 桥接调用失败。", "The Blockbench bridge call failed."));
+      notify(error instanceof Error ? assetMessage(`无法打开 Blockbench：${error.message}`, `Could not open Blockbench: ${error.message}`) : assetMessage('无法打开 Blockbench，请重试。', 'Could not open Blockbench. Try again.'));
     } finally {
       setOpeningBlockbench(false);
     }
@@ -466,6 +472,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
 
   useEffect(() => {
     if (!blockbenchSessionAssetId) return;
+    const notify = (message: AssetMessage) => setBlockbenchNotice({ assetId: blockbenchSessionAssetId, message });
     let active = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const poll = async () => {
@@ -482,17 +489,17 @@ const WorkspaceAssetBrowser: React.FC = () => {
           const recovery = result.recoveryPointId == null ? '' : `，恢复点 ${result.recoveryPointId}`;
           const englishRevision = result.workspaceRevision == null ? '' : `; workspace revision ${result.workspaceRevision}`;
           const englishRecovery = result.recoveryPointId == null ? '' : `; recovery point ${result.recoveryPointId}`;
-          setNotice(assetMessage(`Blockbench 保存已同步，资产索引与引用已刷新${revision}${recovery}。`, `Blockbench changes synced; asset index and references refreshed${englishRevision}${englishRecovery}.`));
+          notify(assetMessage(`Blockbench 保存已同步，资产索引与引用已刷新${revision}${recovery}。`, `Blockbench changes synced; asset index and references refreshed${englishRevision}${englishRecovery}.`));
           setReloadToken((token) => token + 1);
         } else if (result.diagnosticCode) {
-          setNotice(assetMessage(`Blockbench 会话已结束：${result.diagnosticCode}。`, `Blockbench session ended: ${result.diagnosticCode}.`));
+          notify(assetMessage(`Blockbench 会话已结束：${result.diagnosticCode}。`, `Blockbench session ended: ${result.diagnosticCode}.`));
         } else {
-          setNotice(assetMessage("Blockbench 会话已结束，文件内容未发生变化。", "The Blockbench session ended without file changes."));
+          notify(assetMessage("Blockbench 会话已结束，文件内容未发生变化。", "The Blockbench session ended without file changes."));
         }
       } catch (error) {
         if (!active) return;
         setBlockbenchSessionAssetId(null);
-        setNotice(error instanceof Error ? assetMessage(`读取 Blockbench 状态失败：${error.message}`, `Could not read Blockbench status: ${error.message}`) : assetMessage("读取 Blockbench 状态失败。", "Could not read Blockbench status."));
+        notify(error instanceof Error ? assetMessage(`读取 Blockbench 状态失败：${error.message}`, `Could not read Blockbench status: ${error.message}`) : assetMessage("读取 Blockbench 状态失败。", "Could not read Blockbench status."));
       }
     };
     timer = setTimeout(() => void poll(), 500);
@@ -510,6 +517,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
           <h1>{uiText('资产与模型', 'Assets and models')}</h1>
           <p>{uiText(`${assets.length} 个资源文件`, `${assets.length} resource files`)}</p></div>
         <div className="asset-library-heading-actions">
+          <button type="button" className="asset-library-button" onClick={() => setBlockbenchSetupOpen(true)}>{uiText('Blockbench 设置', 'Blockbench setup')}</button>
           <button type="button" className="asset-library-button" data-testid="asset-import-button" onClick={() => void beginImport()}><Upload size={14} />{uiText('导入资产', 'Import assets')}</button>
           <details className="asset-library-more"><summary aria-label={uiText('更多资产操作', 'More asset actions')}>•••</summary><div>
             <button type="button" data-testid="asset-batch-import-button" onClick={() => void beginBatchImport()}><PackageOpen size={14} />{uiText('批量导入', 'Batch import')}</button>
@@ -549,6 +557,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
         </aside>
         <AssetDetails asset={selectedAsset} copyStatus={copyFeedback && copyFeedback.id === selectedAsset?.id ? copyFeedback.status : undefined}
           openingBlockbench={openingBlockbench} onCopyId={copyStableId} onImport={asset => void beginImport(asset)} onMove={beginMove} onOpenBlockbench={openInBlockbench}
+          blockbenchNotice={blockbenchNotice?.assetId === selectedAsset?.id ? blockbenchNotice : null} onSetupBlockbench={() => setBlockbenchSetupOpen(true)}
           assets={assets} onSelectAsset={id => setAssetFocusId(id)} />
       </div>}
       <div className="asset-library-secondary">
@@ -609,6 +618,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
       </div>
       </div>
 
+      <BlockbenchSetupDialog open={blockbenchSetupOpen} onClose={() => setBlockbenchSetupOpen(false)} />
       {importReview && (
         <AssetImportReview
           state={importReview}
@@ -999,12 +1009,14 @@ const AssetDetails: React.FC<{
   assets: readonly AssetRecord[];
   copyStatus?: 'success' | 'error';
   openingBlockbench: boolean;
+  blockbenchNotice: BlockbenchNotice | null;
+  onSetupBlockbench: () => void;
   onCopyId: (id: string) => void;
   onImport: (asset: AssetRecord) => void;
   onMove: (asset: AssetRecord) => void;
   onOpenBlockbench: (asset: AssetRecord) => void;
   onSelectAsset: (id: string) => void;
-}> = ({ asset, assets, copyStatus, openingBlockbench, onCopyId, onImport, onMove, onOpenBlockbench, onSelectAsset }) => {
+}> = ({ asset, assets, copyStatus, openingBlockbench, blockbenchNotice, onSetupBlockbench, onCopyId, onImport, onMove, onOpenBlockbench, onSelectAsset }) => {
   const { state, openSource } = useWorkbench();
   const inspector = useRef<HTMLElement>(null);
   useEffect(() => { if (inspector.current) inspector.current.scrollTop = 0; }, [asset?.id]);
@@ -1022,13 +1034,17 @@ const AssetDetails: React.FC<{
     <AssetPreview key={asset.id} workspaceId={state.workbench?.workspace.id} asset={asset} />
     <div className="asset-library-file-actions">
       {canOpenSource && <button type="button" className="asset-library-source-link" onClick={() => openSource(asset.path)}><FileText size={14} />{uiText('查看文件源码', 'View source')}</button>}
-      {asset.category === 'model' && <button type="button" className="asset-library-button" data-testid="asset-open-blockbench" disabled={openingBlockbench}
+      {asset.category === 'model' && /\.(bbmodel|json)$/i.test(asset.path) && <button type="button" className="asset-library-button" data-testid="asset-open-blockbench" disabled={openingBlockbench} aria-busy={openingBlockbench}
         onClick={() => onOpenBlockbench(asset)}><Box size={14} />{openingBlockbench ? uiText('正在打开…', 'Opening…') : uiText('在 Blockbench 打开', 'Open in Blockbench')}</button>}
       <details className="asset-library-more"><summary aria-label={uiText('文件操作', 'File actions')}>•••</summary><div>
         <button type="button" data-testid="asset-move-button" onClick={() => onMove(asset)}><CornerDownRight size={14} />{uiText('重命名 / 移动', 'Rename / move')}</button>
         <button type="button" onClick={() => onImport(asset)}><Upload size={14} />{uiText('替换文件', 'Replace file')}</button>
       </div></details>
     </div>
+    {blockbenchNotice && <div className="asset-library-blockbench-notice" data-testid="asset-blockbench-notice">
+      <p role="status">{renderAssetMessage(blockbenchNotice.message)}</p>
+      {blockbenchNotice.setupRequired && <button type="button" className="asset-library-button" onClick={onSetupBlockbench}>{uiText('设置 Blockbench', 'Set up Blockbench')}</button>}
+    </div>}
     <details className="asset-library-disclosure" data-testid="asset-references-disclosure"><summary><Link2 size={13} />{uiText('引用关系', 'References')}<span>{asset.inboundCount ?? asset.references.length} / {asset.outboundCount ?? asset.outgoingReferences?.length ?? 0}</span></summary>
       <div className="asset-library-reference-group"><h3>{uiText('入站引用', 'Inbound references')}</h3>
         {asset.references.length === 0 ? <p>{uiText('暂无入站引用', 'No inbound references')}</p>

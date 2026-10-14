@@ -66,6 +66,9 @@ java {
 // Keep that tiny transported boundary on a bytecode level accepted by the
 // oldest supported Java tracks while the main application remains Java 25.
 sourceSets {
+    installer {
+        java.srcDir 'platform/installer/src'
+    }
     gradleBridge {
         java.srcDir 'src/gradleBridge/java'
         compileClasspath = configurations.compileClasspath
@@ -78,8 +81,12 @@ sourceSets {
     test {
         compileClasspath += gradleBridge.output
         runtimeClasspath += gradleBridge.output
+        compileClasspath += installer.output
+        runtimeClasspath += installer.output
     }
 }
+
+tasks.named('compileInstallerJava', JavaCompile) { options.release = 17 }
 
 tasks.named('compileGradleBridgeJava', JavaCompile) {
     javaCompiler = javaToolchains.compilerFor {

@@ -21,6 +21,8 @@ package net.mcreator;
 import dev.copperbench.headless.HeadlessProductLauncher;
 import dev.copperbench.headless.BootstrapProductLauncher;
 import dev.copperbench.ProductIdentity;
+import dev.copperbench.shell.ProductDialogs;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 import dev.copperbench.release.SupportedPlatform;
 import net.mcreator.io.LoggingSystem;
 import net.mcreator.io.OS;
@@ -124,11 +126,11 @@ public class Launcher {
 
 		// check if proper version of MCreator per architecture is used
 		if (OS.getSystemBits() == OS.BIT32) {
-			JOptionPane.showOptionDialog(null,
-					"<html>当前系统为 32 位，无法运行 64 位 " + ProductIdentity.NAME + "。<br>"
-							+ ProductIdentity.NAME + " 不支持 32 位系统。",
-					ProductIdentity.NAME + " 启动错误", JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.WARNING_MESSAGE, null, new Object[]{"确定"}, "确定");
+			ProductDialogs.show(null,
+					text("Copperbench 需要 64 位系统，请在支持的 64 位设备上安装。",
+							"Copperbench requires a 64-bit system. Please install it on a supported 64-bit device."),
+					text("无法启动 Copperbench", "Could not start Copperbench"), JOptionPane.ERROR_MESSAGE,
+					new Object[]{text("确定", "OK")}, text("确定", "OK"));
 			System.exit(-1);
 		}
 
@@ -145,12 +147,12 @@ public class Launcher {
 				System.exit(10);
 				return;
 			}
-			JOptionPane.showOptionDialog(null,
-					"<html><b>" + ProductIdentity.NAME + " 无法写入用户数据目录！</b><br><br>"
-							+ "请确认当前用户具有以下应用数据目录的读取和写入权限：<br><br>"
-							+ UserFolderManager.getFileFromUserFolder("/") + "<br>",
-					ProductIdentity.NAME + " 文件系统错误", JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.WARNING_MESSAGE, null, new Object[]{"确定"}, "确定");
+			ProductDialogs.show(null,
+					text("无法保存应用数据。请检查以下目录的读写权限和磁盘剩余空间：\n\n",
+							"Could not save app data. Check write access and available disk space for this folder:\n\n")
+							+ UserFolderManager.getFileFromUserFolder("/"),
+					text("无法启动 Copperbench", "Could not start Copperbench"), JOptionPane.ERROR_MESSAGE,
+					new Object[]{text("确定", "OK")}, text("确定", "OK"));
 			System.exit(-2);
 		}
 
@@ -160,6 +162,9 @@ public class Launcher {
 			System.exit(exitCode);
 			return;
 		}
+
+		try { dev.copperbench.shell.UiLocalePreferences.initialize(); }
+		catch (IOException exception) { LOG.warn("Could not persist the initial UI language preference", exception); }
 
 		if (bootstrap) {
 			int exitCode = BootstrapProductLauncher.run(Arrays.copyOfRange(args, 1, args.length), machineOutput);

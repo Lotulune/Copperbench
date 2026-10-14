@@ -24,6 +24,8 @@ on:
       - "gradlew.bat"
       - "gradle/**"
       - "platform/linux/**"
+      - "platform/installer/**"
+      - "src/test/java/dev/copperbench/installer/**"
       - "platform/setup.gradle"
       - "platform/export.gradle"
       - "tools/candidate-evidence/**"
@@ -259,6 +261,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon test -x buildUiShell \
+            --tests dev.copperbench.installer.InstallEngineTest \
             --tests dev.copperbench.platform.DesktopSessionCapabilitiesTest \
             --tests dev.copperbench.platform.ExecutableFilePermissionsTest \
             --tests dev.copperbench.platform.GraphicalCiModeTest \
@@ -453,6 +456,34 @@ jobs:
             /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-x11-ci-smoke.sh" \
             "$root" "$smoke"
 
+      - name: Verify graphical installer package and render its bilingual wizard
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          setup_archive="$(find build/export -maxdepth 1 -type f -name '*Linux x86_64 Setup.tar.gz' -print -quit)"
+          test -n "$setup_archive"
+          mkdir -p build/stage15-installer-smoke
+          tar -xzf "$setup_archive" -C build/stage15-installer-smoke
+          setup_root="$(find build/stage15-installer-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -x "$setup_root/Install Copperbench"
+          test "$(head -n 1 "$setup_root/Install Copperbench")" = '#!/bin/sh'
+          test -x "$setup_root/payload/jdk/bin/java"
+          test -x "$setup_root/payload/copperbench.sh"
+          test -f "$setup_root/payload.tsv"
+          xvfb-run -a "$setup_root/payload/jdk/bin/java" -jar "$setup_root/copperbench-setup.jar" \
+            --preview build/stage15-installer-previews
+          test -f build/stage15-installer-previews/installer-zh-dark.png
+          test -f build/stage15-installer-previews/installer-en-light.png
+
+      - name: Upload graphical installer previews
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-installer-previews
+          path: build/stage15-installer-previews/*.png
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload X11 graphical smoke diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v7
@@ -574,7 +605,7 @@ jobs:
         run: |
           set -euo pipefail
           find build/export -maxdepth 1 -type f \( \
-            -name '*Linux x86_64.tar.gz' -o -name 'copperbench_*_amd64.deb' -o \
+            -name '*Linux x86_64.tar.gz' -o -name '*Linux x86_64 Setup.tar.gz' -o -name '*Setup.tar.gz.build.json' -o -name 'copperbench_*_amd64.deb' -o \
             -name 'copperbench-linux.spdx.json' -o -name 'linux-candidate-manifest.json' -o \
             -name 'LINUX-CANDIDATE-METADATA.json' \) -print0 \
             | sort -z | xargs -0 sha256sum | tee build/export/linux-candidate-sha256.txt
@@ -585,6 +616,8 @@ jobs:
         with:
           subject-path: |
             build/export/*Linux x86_64.tar.gz
+            build/export/*Linux x86_64 Setup.tar.gz
+            build/export/*Setup.tar.gz.build.json
             build/export/copperbench_*_amd64.deb
             build/export/copperbench-linux.spdx.json
             build/export/linux-candidate-manifest.json
@@ -597,6 +630,8 @@ jobs:
           name: stage15-linux-candidate
           path: |
             build/export/*Linux x86_64.tar.gz
+            build/export/*Linux x86_64 Setup.tar.gz
+            build/export/*Setup.tar.gz.build.json
             build/export/copperbench_*_amd64.deb
             build/export/copperbench-linux.spdx.json
             build/export/linux-candidate-manifest.json

@@ -51,7 +51,7 @@ class RecoverableBrowserHostTest {
 			flushEdt();
 			assertTrue(host.isRecovering());
 			assertTrue(host.isRetryEnabled());
-			assertTrue(host.recoveryStatus().contains("Java 服务保留"));
+			assertEquals(UiLocalePreferences.text("工作区仍保持打开。", "Your workspace is still open."), host.recoveryStatus());
 
 			onEdt(host::retryRecovery);
 			assertTrue(first.closed);
@@ -83,7 +83,7 @@ class RecoverableBrowserHostTest {
 			onEdt(host::retryRecovery);
 			assertTrue(host.isRecovering());
 			assertTrue(host.isRetryEnabled());
-			assertTrue(host.recoveryStatus().contains("重新加载失败"));
+			assertEquals(UiLocalePreferences.text("界面重新加载失败，请重试。", "Could not reload the interface. Please try again."), host.recoveryStatus());
 		} finally {
 			onEdt(host::close);
 		}
