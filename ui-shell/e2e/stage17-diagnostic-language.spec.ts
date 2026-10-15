@@ -24,6 +24,8 @@ async function installFixture(page: Page, mode: 'saveFailure' | 'invalidJson' | 
         if (request.messageType === 'command') {
           const calls = JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]');
           sessionStorage.setItem('diagnosticCommands', JSON.stringify([...calls, request.operation]));
+          const revisions = JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]');
+          sessionStorage.setItem('diagnosticRevisions', JSON.stringify([...revisions, request.expectedRevision]));
         }
         if (request.operation === 'update_mod_element' && (mode === 'saveFailure' || mode === 'invalidRevision')) {
           return JSON.stringify({ messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
@@ -104,14 +106,44 @@ for (const [name, revision] of [['missing', undefined], ['null', null], ['string
     await page.goto('/');
     await page.getByTestId('nav-elements').click();
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
-    await page.getByTestId('field-displayName').fill('Preserved draft');
+    const field = page.getByTestId('field-displayName');
+    const fieldPath = await field.locator('xpath=ancestor::*[@data-field-path][1]').getAttribute('data-field-path');
+    const snapshot = () => page.evaluate(async path => {
+      const modulePath = '/src/bridge/index.ts';
+      const { coreBridge } = await import(modulePath);
+      const state = coreBridge.getState();
+      const editor = state.elementEditors['22222222-2222-4222-8222-222222222221'];
+      return { revision: state.workbench?.workspace.revision,
+        value: editor?.sections.flatMap(section => section.fields).find(field => field.path === path)?.value };
+    }, fieldPath);
+    const before = await snapshot();
+    expect(before.revision).toBe(42);
+    await field.fill('Preserved draft');
     await page.getByTestId('inspector-save-btn').click();
-    await expect(page.getByTestId('validation-alert')).toContainText('保存失败');
+    const alert = page.getByTestId('validation-alert');
+    await expect(alert).toContainText('保存结果待确认');
+    await expect(alert).not.toContainText('草稿未保存。请修正下方字段');
+    await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
     await page.getByTestId('ui-language-select').selectOption('en');
-    await expect(page.getByTestId('validation-alert')).toContainText('Save failed.');
-    await expectWorkspaceRevision(page, 42);
-    await expect(page.getByTestId('field-displayName')).toHaveValue('Preserved draft');
+    await expect(alert).toContainText('Save result unknown');
+    await expect(alert).not.toContainText('Your draft is unsaved. Correct the fields');
+    await expect(field).toHaveValue('Preserved draft');
+    expect(await snapshot()).toEqual(before);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42]);
     expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]'))).toEqual(['update_mod_element']);
+    await page.getByTestId('inspector-confirm-save-result').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('inspector-confirm-save-result')).toHaveCount(0);
+    await expect(page.getByTestId('inspector-save-btn')).toBeEnabled();
+    await expect(field).toHaveValue('Preserved draft');
+    expect(await snapshot()).toEqual(before);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42]);
+    await page.getByTestId('inspector-save-btn').click();
+    await expect(alert).toContainText('Save result unknown');
+    await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
+    await expect(field).toHaveValue('Preserved draft');
+    expect(await snapshot()).toEqual(before);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42, 42]);
   });
 }
 

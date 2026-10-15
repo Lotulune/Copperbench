@@ -1,14 +1,16 @@
 <div align="center">
   <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
   <h1>Copperbench</h1>
-  <p><strong>在桌面上制作、构建和测试 Minecraft Java 模组。</strong></p>
+  <p><strong>让可视化编辑、手写 Java 和本地 Agent 在同一个 Minecraft 模组工程中协作。</strong></p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="docs/releases/current.md">下载 0.1.5</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
+  <p><a href="docs/releases/current.md">下载 0.1.6</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
 
-Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fabric 和 NeoForge。用模组元素编辑器和 Blockly 制作内容，也可以编辑手写源码、管理模型与纹理，并通过本机 MCP 接入外部 AI 工具。
+Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 
-**当前稳定版：0.1.5，Windows 与 Linux 均已发布。** 本次更新带来双语离线安装器、结构化输入诊断与首作教程，并修复编辑器、创建默认值和 Fabric 模板。
+**当前稳定版：0.1.6。** 首作引导、草稿恢复、诊断定位与 SDK 交付改进已整合；Windows／Linux 的实际公开状态与验证范围见[当前下载](docs/releases/current.md)。
+
+源码与二进制来源为 `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；Linux promotion 来源另记。历史候选的检查保留原身份，见[发布记录](docs/testing/maintenance-release-0.1.6.md)。
 
 <a id="getting-started"></a>
 
@@ -16,18 +18,18 @@ Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fa
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 新建工作区，选择加载器和 Minecraft 版本。
-3. 按[第一件作品](docs/user/first-creation.md)创建方块，构建后在 Minecraft 中取得、放置，并保存重进世界确认。
+3. 按[第一件作品](docs/user/first-creation.md)创建方块，再看[构建失败与导出](docs/user/build-and-export.md)。持久化确认须正常退出 Minecraft，再启动新客户端进程，打开同一个世界。
 
 工作台支持简体中文和英文。内置 Fabric / NeoForge 生成器覆盖 Minecraft **26.2、26.1.2、1.21.1、1.20.1**；一个工作区同时使用一个活动生成器。
 
-另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.5 的支持声明。
+另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.6 的支持声明。
 
-Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.5 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
+Windows 安装包未做 Authenticode 签名，首次构建需要联网，Blockbench 单独安装。最终包的来源、资产核验及未重复的安装／玩法范围见[当前下载](docs/releases/current.md)。
 
 <a id="showcase"></a>
 
@@ -50,21 +52,18 @@ Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。
 
 ## 能做什么
 
-| 功能 | 用法 |
+| 一条工程工作流 | 用法 |
 | --- | --- |
-| 模组元素与逻辑 | 编辑方块、物品、实体等元素，用 Blockly 编排 Procedure。 |
-| 源码 | 浏览、搜索和编辑手写文件；保留草稿，检查外部修改冲突。生成文件只读。 |
-| 资产与模型 | 按类型筛选模型、纹理等资产，检查引用，预览图片和支持的模型，连接 Blockbench。 |
-| 关系图 | 搜索、折叠、平移、缩放和移动节点，点击打开元素或资产；不修改业务引用。 |
-| 工作区工具 | 编辑变量、标签与翻译，查看诊断、本地历史、版本迁移和设置。 |
-| 构建与自动化 | 构建、运行客户端或服务端，通过 MCP / SDK / headless 驱动工作区操作。 |
+| 可视化创建 | 保存步道方块、方块物品和纹理，查看元素与资产的关系。 |
+| 源码扩展与协作 | 从「源码」编辑手写 Java，或把 Agent 接到同一桌面工作区；保存前审阅字段诊断与外部修改冲突，生成文件保持只读。 |
+| 修复与交付 | 从构建诊断定位源码，修复后重跑相关任务，在 Minecraft 确认行为并导出；精确已验证导出绑定所选验收任务的 JAR／报告 hash。 |
 
 具体功能与生成器范围见[使用说明](docs/user/README.md)。Bedrock Add-on 不属于当前第一方 Java 模组编辑范围。
 
 ## 文档
 
-- [文档导航](docs/README.md) · [使用说明](docs/user/README.md) · [故障排查](docs/user/troubleshooting.md)
-- [MCP 接入](docs/ai/getting-started.md) · [Agent 操作示例](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
+- [文档导航](docs/README.md) · [第一件作品](docs/user/first-creation.md) · [构建失败与导出](docs/user/build-and-export.md)
+- [Agent 接入](docs/ai/getting-started.md) · [用公开 API 创建同一个步道方块](docs/ai/trail-block.md) · [SDK](sdk/README.md)
 - [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [项目目录与维护](docs/maintenance/repository-maintenance.md)
 - [当前状态：下载版／源码／预览／未验证](docs/status.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
 

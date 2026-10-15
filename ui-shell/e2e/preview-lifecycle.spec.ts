@@ -113,6 +113,25 @@ for (const loader of ['fabric', 'neoforge']) test(`preview lifecycle and explici
     && ['run_client', 'run_server', 'run_datagen', 'run_gametest', 'export_workspace'].includes(r.operation))).toEqual([]);
 });
 
+for (const loader of ['fabric', 'neoforge']) test(`preview ordinary export preserves its output and command route (${loader})`, async ({ page }) => {
+  await fixture(page, `${loader}-26.3`);
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await page.getByTestId('workspace-preview-choice').getByRole('checkbox').check();
+  await page.getByTestId('compact-run-menu').click();
+  await page.getByTestId('compact-export-btn').click();
+  const output = `build/libs/chosen-delivery/${loader}-creation.jar`;
+  await page.getByTestId('delivery-output').fill(output);
+  await page.getByTestId('delivery-export').click();
+  const requests = () => page.evaluate(() => (window as any).lifecycleRequests);
+  await expect.poll(async () => (await requests()).some((request: any) => request.request?.command === 'export_workspace')).toBe(true);
+  const exportRequest = (await requests()).find((request: any) => request.request?.command === 'export_workspace');
+  expect(exportRequest.request).toMatchObject({ operation: 'command', generatorId: `${loader}-26.3`,
+    command: 'export_workspace', payload: { output, scope: 'workspace' } });
+  expect(exportRequest.request.payload.verifiedTaskId).toBeUndefined();
+  expect((await requests()).filter((request: any) => request.messageType === 'command' && request.operation === 'export_workspace')).toEqual([]);
+  expect((await requests()).filter((request: any) => request.request?.operation === 'acceptance' && request.request?.payload?.operation === 'export')).toEqual([]);
+});
+
 test('preview acceptance imports custom cases and rejects malformed manifests', async ({ page }) => {
   await fixture(page, 'fabric-26.3');
   await page.getByTestId('ui-language-select').selectOption('en');

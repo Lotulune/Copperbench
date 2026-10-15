@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Cog, DatabaseZap, Ellipsis, FolderOpen, Hammer, Play, Server, TestTube2 } from 'lucide-react';
+import { Cog, DatabaseZap, Ellipsis, FileArchive, FolderOpen, Hammer, Play, Server, TestTube2 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
 import { uiText } from '../i18n';
+import { isNativeHostPresent } from '../bridge';
+import { useFirstCreation } from '../onboarding/FirstCreationContext';
 
 export const WorkspaceActions: React.FC = () => {
   const { state, generateWorkspace, buildWorkspace, runClient, runServer, runDatagen, runGameTest } = useWorkbench();
+  const { openDelivery } = useFirstCreation();
   const [openingFolder, setOpeningFolder] = useState(false);
   const menu = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -48,6 +51,9 @@ export const WorkspaceActions: React.FC = () => {
         <button type="button" data-testid="titlebar-generate-btn" aria-label={uiText('生成工作区源码', 'Generate workspace sources')} onClick={() => void generateWorkspace()}>
           <Cog size={15} aria-hidden="true" />{uiText('生成源码', 'Generate sources')}
         </button>
+        <button type="button" data-testid="compact-export-btn" disabled={!state.workbench || !isNativeHostPresent()}
+          title={!isNativeHostPresent() ? uiText('在桌面应用中导出本机工作区', 'Export a local workspace in the desktop app') : undefined}
+          onClick={() => { menu.current?.querySelector('summary')?.focus(); openDelivery(); }}><FileArchive size={15} aria-hidden="true" />{uiText('交付与导出', 'Delivery & export')}</button>
         <button type="button" data-testid="compact-open-jar-folder-btn" aria-label={uiText('打开 JAR 文件夹', 'Open JAR folder')}
           disabled={!state.workbench || !workspaceOpenBridge.buildFolderAvailable || openingFolder} aria-busy={openingFolder}
           title={workspaceOpenBridge.buildFolderAvailable ? uiText('打开 JAR 文件夹', 'Open JAR folder') : uiText('需要桌面版本', 'Requires the desktop app')}

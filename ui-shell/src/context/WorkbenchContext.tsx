@@ -1,4 +1,4 @@
-import { safeRandomUUID } from '../bridge/JcefCoreBridge';
+import { safeRandomUUID, taskLogWatermark } from '../bridge/JcefCoreBridge';
 import { tr } from '../i18n/locale';
 import { useTheme, ThemePreference } from '../hooks/useTheme';
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
@@ -51,7 +51,8 @@ import {
 } from '../bridge';
 import { windowBridge } from '../bridge/windowBridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
-import { t } from '../i18n';
+import { t, uiMessage } from '../i18n';
+import { OperationFailure } from '../bridge/operationFailure';
 
 export type NavView = 'hub' | 'elements' | 'relations' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help' | 'python' | 'source' | 'settings';
 
@@ -63,9 +64,17 @@ export interface SourceFocusRequest {
 }
 
 export interface ProcedureFocusRequest {
+  workspaceId: UUID;
   elementId: UUID;
   nodeId: string;
   port: string | null;
+  requestId: UUID;
+}
+
+export interface FieldFocusRequest {
+  workspaceId: UUID;
+  elementId: UUID;
+  path: string;
   requestId: UUID;
 }
 
@@ -86,6 +95,8 @@ interface WorkbenchContextType {
   setAssetFocusId: (id: string | null) => void;
   procedureFocusRequest: ProcedureFocusRequest | null;
   clearProcedureFocusRequest: () => void;
+  fieldFocusRequest: FieldFocusRequest | null;
+  clearFieldFocusRequest: () => void;
   isTaskDrawerOpen: boolean;
   setIsTaskDrawerOpen: (open: boolean) => void;
   activeTaskId: UUID | null;
@@ -107,7 +118,7 @@ interface WorkbenchContextType {
   previewModElementChange: (elementId: UUID, changes: FieldChange[]) => Promise<ModElementChangePreview | null>;
   getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
   previewProcedureChange: (elementId: UUID, edits: ProcedureEdit[]) => Promise<ProcedureChangePreview | null>;
-  updateProcedure: (elementId: UUID, edits: ProcedureEdit[]) => Promise<CommandResult>;
+  updateProcedure: (elementId: UUID, edits: ProcedureEdit[], expectedRevision?: number) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
   createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
@@ -124,6 +135,7 @@ interface WorkbenchContextType {
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   generateWorkspace: () => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
+  exportWorkspace: (output: string) => Promise<CommandResult>;
   exportVerifiedArtifact: (taskId: UUID, allowHistorical: boolean) => Promise<CommandResult>;
   readAcceptanceDiagnostics: (taskId: UUID) => Promise<import('../types/contract').AcceptanceCoverageDiagnostics | null>;
   runClient: () => Promise<CommandResult>;
@@ -199,11 +211,15 @@ function generateUUID(): UUID {
  */
 function focusByContractSelector(selector: string): void {
   if (selector.startsWith('/')) {
-    selector = `[data-field-path=${selector}]`;
+    const container = [...document.querySelectorAll<HTMLElement>('[data-field-path]')].find(element => element.dataset.fieldPath === selector);
+    const control = container?.matches('input, select, textarea, button') ? container : container?.querySelector<HTMLElement>('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+    (control ?? container)?.focus();
+    return;
   }
   const match = /^\[([A-Za-z0-9_-]+)=(.+)\]$/.exec(selector.trim());
   const query = match ? `[${match[1]}="${match[2]}"]` : selector;
-  const el = document.querySelector(query);
+  let el: Element | null;
+  try { el = document.querySelector(query); } catch { return; }
   if (el instanceof HTMLElement) {
     if (!el.hasAttribute('tabindex')) {
       el.setAttribute('tabindex', '-1');
@@ -234,8 +250,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const sendWorkspaceCommand = useCallback(async (command: Command): Promise<CommandResult> => {
     if (!workspacePreviewTarget) return coreBridge.sendCommand(command);
     if (!coreBridge.sendPreview) throw new Error(tr("当前客户端无法协商预览能力。"));
-    if (command.operation === 'run_gametest' || command.operation === 'export_workspace') {
-      const payload = command.payload as Record<string, unknown>;
+    const payload = command.payload as Record<string, unknown>;
+    if (command.operation === 'run_gametest' || command.operation === 'export_workspace' && payload.verifiedTaskId) {
       const result = await coreBridge.sendPreview(command.workspaceId, {
         operation: 'acceptance', supportedVersions: ['1'], generatorId: workspacePreviewTarget.generatorId,
         payload: { operation: command.operation === 'run_gametest' ? 'run' : 'export', supportedVersions: ['1'],
@@ -266,6 +282,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
   const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
   const [procedureFocusRequest, setProcedureFocusRequest] = useState<ProcedureFocusRequest | null>(null);
+  const [fieldFocusRequest, setFieldFocusRequest] = useState<FieldFocusRequest | null>(null);
+  const clearFieldFocusRequest = useCallback(() => setFieldFocusRequest(null), []);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -295,8 +313,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const taskWorkspaceId = state.workbench?.workspace.id;
   useEffect(() => {
     if (!isTaskDrawerOpen || !visibleTaskId || !taskWorkspaceId) return;
+    const afterLogSequence = taskLogWatermark(coreBridge.getState().taskLogs[visibleTaskId] ?? []);
     void coreBridge.sendQuery({ messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
-      workspaceId: taskWorkspaceId, operation: 'get_task', payload: { taskId: visibleTaskId, afterLogSequence: 0 } });
+      workspaceId: taskWorkspaceId, operation: 'get_task', payload: { taskId: visibleTaskId, afterLogSequence } })
+      .catch(() => { /* The bridge preserves the task and exposes the read failure. */ });
   }, [isTaskDrawerOpen, visibleTaskId, taskWorkspaceId]);
 
   useEffect(() => {
@@ -442,8 +462,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { items }
       });
       if (res.status !== 'succeeded' || !res.data) {
-        const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("资产批量导入预览失败。"));
+        throw new OperationFailure(res.diagnostics, uiMessage('资产批量导入预览失败。', 'Could not preview the asset batch import.'));
       }
       return res.data as AssetImportBatchPreview;
     },
@@ -479,8 +498,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { sourceAssetId, targetRelativePath }
       });
       if (res.status !== 'succeeded' || !res.data) {
-        const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("资产移动预览失败。"));
+        throw new OperationFailure(res.diagnostics, uiMessage('资产移动预览失败。', 'Could not preview this asset move.'));
       }
       return res.data as AssetMovePreview;
     },
@@ -615,14 +633,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     payload: { clientMutationId: generateUUID(), plan }
   }), [state.workbench, sendWorkspaceCommand]);
 
-  const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
+  const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[], expectedRevision?: number): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
     return coreBridge.sendCommand({
       messageType: 'command',
       schemaVersion: '1.0',
       requestId: generateUUID(),
       workspaceId,
-      expectedRevision: state.workbench?.workspace.revision ?? 0,
+      expectedRevision: expectedRevision ?? state.workbench?.workspace.revision ?? 0,
       operation: 'update_procedure',
       payload: { clientMutationId: generateUUID(), elementId, edits }
     });
@@ -843,6 +861,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return coreBridge.readAcceptanceDiagnostics(diagnosticWorkspaceId, taskId);
   }, [diagnosticWorkspaceId]);
 
+  const exportWorkspace = useCallback(async (output: string): Promise<CommandResult> => {
+    const result = await sendWorkspaceCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'export_workspace', payload: { clientMutationId: generateUUID(), scope: 'workspace', output } });
+    if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
+    return result;
+  }, [state.workbench, sendWorkspaceCommand]);
+
   const runWorkspaceTask = useCallback(async (
     operation: 'run_server' | 'run_datagen' | 'run_gametest' | 'prepare_game_tests',
     userApproved?: boolean,
@@ -934,7 +960,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     taskId: UUID,
     sourcePath: string
   ): Promise<TaskSourcePreview | null> => {
-    const afterLogSequence = state.taskLogs[taskId]?.at(-1)?.sequence ?? 0;
+    const afterLogSequence = taskLogWatermark(state.taskLogs[taskId] ?? []);
     const res = await coreBridge.sendQuery<TaskProjection>({
       messageType: 'query',
       schemaVersion: '1.0',
@@ -943,7 +969,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       operation: 'get_task',
       payload: { taskId, afterLogSequence, sourcePath }
     });
-    return res.status === 'succeeded' ? res.data?.source ?? null : null;
+    if (res.status !== 'succeeded') {
+      throw new OperationFailure(res.diagnostics, uiMessage('源码预览不可用。', 'Source preview is unavailable.'));
+    }
+    return res.data?.source ?? null;
   }, [state.taskLogs, state.workbench]);
 
   const publishDatagenOutput = useCallback(async (
@@ -1238,8 +1267,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { sourceGrantId, targetRelativePath }
       });
       if (res.status !== 'succeeded' || !res.data) {
-        const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("资产导入预览失败。"));
+        throw new OperationFailure(res.diagnostics, uiMessage('资产导入预览失败。', 'Could not preview the asset import.'));
       }
       return res.data as AssetImportPreview;
     },
@@ -1411,6 +1439,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             if (nodeId) {
               const port = typeof action.payload?.port === 'string' ? action.payload.port : null;
               setProcedureFocusRequest({
+                workspaceId: state.workbench?.workspace.id ?? '',
                 elementId: diagnostic.elementId,
                 nodeId,
                 port,
@@ -1427,21 +1456,28 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             setActiveView('assets');
           }
           break;
+        case 'open_source':
+          if (action.target) {
+            const line = action.payload?.line;
+            openSource(action.target, typeof line === 'number' && Number.isSafeInteger(line) && line > 0 ? line : undefined);
+          }
+          break;
         case 'open_field':
           if (diagnostic.elementId) {
             setSelectedElementId(diagnostic.elementId);
             setActiveView('elements');
-          }
-          if (action.target) {
-            const target = action.target;
-            window.setTimeout(() => focusByContractSelector(target), 80);
+            if (action.target && state.workbench) {
+              const prefix = `/elements/${diagnostic.elementId}`;
+              const path = action.target.startsWith(`${prefix}/`) ? action.target.slice(prefix.length) : action.target;
+              setFieldFocusRequest({ workspaceId: state.workbench.workspace.id, elementId: diagnostic.elementId, path, requestId: generateUUID() });
+            }
           }
           break;
         default:
           break;
       }
     },
-    [elevatePermission, state.tasks]
+    [elevatePermission, state.tasks, state.workbench?.workspace.id, openSource]
   );
 
   const value = useMemo(
@@ -1461,6 +1497,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       assetFocusId,
       procedureFocusRequest,
       clearProcedureFocusRequest,
+      fieldFocusRequest,
+      clearFieldFocusRequest,
       setAssetFocusId,
       isTaskDrawerOpen,
       setIsTaskDrawerOpen,
@@ -1497,6 +1535,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteModElement,
       generateWorkspace,
       buildWorkspace,
+      exportWorkspace,
       exportVerifiedArtifact,
       readAcceptanceDiagnostics,
       runClient,
@@ -1556,6 +1595,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       assetFocusId,
       procedureFocusRequest,
       clearProcedureFocusRequest,
+      fieldFocusRequest,
+      clearFieldFocusRequest,
       isTaskDrawerOpen,
       activeTaskId,
       isMaximized,
@@ -1587,6 +1628,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteModElement,
       generateWorkspace,
       buildWorkspace,
+      exportWorkspace,
       exportVerifiedArtifact,
       readAcceptanceDiagnostics,
       runClient,

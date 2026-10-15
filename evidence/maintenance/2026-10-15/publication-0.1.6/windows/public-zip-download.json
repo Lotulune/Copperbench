@@ -1,0 +1,103 @@
+{
+  "schema": "copperbench-public-windows-zip-download-v1",
+  "status": "succeeded",
+  "stage": "complete",
+  "started_at": "2026-10-15T15:40:11Z",
+  "cdn_transport": "urllib-default",
+  "api_transport": "urllib-default",
+  "trusted_cdn_host": "release-assets.githubusercontent.com",
+  "workers": 4,
+  "chunk_bytes": 33554432,
+  "completed_ranges": [
+    [
+      0,
+      33554432
+    ],
+    [
+      33554432,
+      67108864
+    ],
+    [
+      67108864,
+      100663296
+    ],
+    [
+      100663296,
+      134217728
+    ],
+    [
+      134217728,
+      167772160
+    ],
+    [
+      167772160,
+      201326592
+    ],
+    [
+      201326592,
+      234881024
+    ],
+    [
+      234881024,
+      268435456
+    ],
+    [
+      268435456,
+      301989888
+    ],
+    [
+      301989888,
+      335544320
+    ],
+    [
+      335544320,
+      369098752
+    ],
+    [
+      369098752,
+      402653184
+    ],
+    [
+      402653184,
+      436207616
+    ],
+    [
+      436207616,
+      469762048
+    ],
+    [
+      469762048,
+      503316480
+    ],
+    [
+      503316480,
+      536870912
+    ],
+    [
+      536870912,
+      570425344
+    ],
+    [
+      570425344,
+      602441329
+    ]
+  ],
+  "completed_bytes": 602441329,
+  "zip_verified": true,
+  "helper_sha256": "66f1f00c01ee875f2cefdd563ad08c74b9162c92ec6ae98da897ec2bf8d12c39",
+  "shared_helper_sha256": "224fb3aac16f5333fe6d41db32cf3ba39424467c235660b0ecef6ace71454b6f",
+  "updated_at": "2026-10-15T15:45:32Z",
+  "repository": "Lotulune/Copperbench",
+  "tag": "v0.1.6",
+  "release_id": 413978638,
+  "asset_id": 644314816,
+  "asset_name": "Copperbench.0.1.6.Windows.64bit.zip",
+  "asset_size": 602441329,
+  "sha256_expected": "87e6295c6eab9de371f1c8d6ac3a1c61aa4b3810ed26394045fbb87cef827b90",
+  "release_json_sha256": "26331662ae18645f59e7f55420d5c644058d9067221fc79a761393bcb45329f0",
+  "live_metadata_verified_at": "2026-10-15T15:40:13Z",
+  "zip_path": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\download-tools\\public-windows\\public-win-001\\Copperbench.0.1.6.Windows.64bit.zip",
+  "signed_expiry_at": "2026-10-15T16:38:18Z",
+  "sha256_actual": "87e6295c6eab9de371f1c8d6ac3a1c61aa4b3810ed26394045fbb87cef827b90",
+  "finished_at": "2026-10-15T15:45:32Z"
+}

@@ -1,6 +1,8 @@
-# 项目文档导航
+# Documentation / 项目文档导航
 
-先看[当前状态与发布能力](./status.md)：一页区分下载版已有、源码新增、预览能力和未验证范围。当前公开稳定版为 Windows 与 Linux **0.1.5**；安装格式见[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
+先看[当前状态与发布能力](./status.md)：Windows 与 Linux 0.1.6 的公开状态与资产证明统一列在[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
+
+0.1.6 的二进制来源为 `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；[发布记录](./testing/maintenance-release-0.1.6.md)分别记录主线检查、冻结候选、Linux promotion 与公开资产结果。
 
 ## 从这里开始
 
@@ -9,6 +11,16 @@
 3. 制作宣传片、封面或产品介绍：[当前宣传素材与截图来源](../assets/screenshots/README.md)。
 4. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
 5. 只有遇到专项问题时，才从本页选择对应附件。
+
+Choose a route below. Each key guide links directly to the same topic in the other language. Published/source/preview limits are maintained only in [current status](./status.md); historical records keep their original scope.
+
+| Route / 路线 | 简体中文 | English |
+| --- | --- | --- |
+| Install / 安装 | [快速开始](./user/getting-started.md) · [Ubuntu](./user/linux-installation.md) | [Quick start](./user/getting-started.en.md) · [Ubuntu](./user/linux-installation.en.md) |
+| First creation / 首作 | [步道方块](./user/first-creation.md) | [Trail Block](./user/first-creation.en.md) |
+| Build failure → export / 失败到导出 | [修复与交付](./user/build-and-export.md) | [Recovery and delivery](./user/build-and-export.en.md) |
+| Agent / 自动化 | [选择接入](./ai/getting-started.md) · [同一作品](./ai/trail-block.md) | [Choose an entry](./ai/getting-started.en.md) · [The same creation](./ai/trail-block.en.md) |
+| Contribute / 源码贡献 | [开发环境](./build/development-setup.md) | [Development setup](./build/development-setup.en.md) · [Contributing](../CONTRIBUTING.md) |
 
 ## 决策记录
 

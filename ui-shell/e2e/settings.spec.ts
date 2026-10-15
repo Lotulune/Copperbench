@@ -47,7 +47,9 @@ test('settings save only explicit changed fields and reload persisted values', a
   await expect(settings.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   await settings.getByRole('checkbox', { name: 'System file picker' }).uncheck();
   await settings.getByRole('button', { name: 'Code editor', exact: true }).click();
-  await settings.getByRole('spinbutton', { name: 'Code font size', exact: true }).fill('18');
+  const fontSize = settings.getByRole('textbox', { name: 'Code font size', exact: true });
+  await expect(fontSize).toHaveAttribute('inputmode', 'numeric');
+  await fontSize.fill('18');
   await expect(settings.getByText('Unsaved changes', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { __SETTINGS_PATCHES__: unknown[] }).__SETTINGS_PATCHES__)).toEqual([]);
   await settings.getByRole('button', { name: 'Save changes', exact: true }).click();
@@ -57,7 +59,7 @@ test('settings save only explicit changed fields and reload persisted values', a
     { revision: 'preferences-1', changes: { 'ui.nativeFileChooser': false, 'ide.fontSize': 18 } }
   ]);
   await settings.getByRole('button', { name: 'Reload', exact: true }).click();
-  await expect(settings.getByRole('spinbutton', { name: 'Code font size', exact: true })).toHaveValue('18');
+  await expect(settings.getByRole('textbox', { name: 'Code font size', exact: true })).toHaveValue('18');
   await expect(settings.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
   if (testInfo.project.name === 'compact-1366') await page.screenshot({ path: testInfo.outputPath('settings.png') });
 });
@@ -66,7 +68,8 @@ test('host ranges govern validation and search finds settings across categories'
   await settingsHost(page);
   const settings = await openSettings(page);
   await settings.getByRole('searchbox', { name: 'Search settings' }).fill('memory');
-  const memory = settings.getByRole('spinbutton', { name: 'Maximum build memory (MB)', exact: true });
+  const memory = settings.getByRole('textbox', { name: 'Maximum build memory (MB)', exact: true });
+  await expect(memory).toHaveAttribute('inputmode', 'numeric');
   await memory.fill('8193');
   await expect(memory).toHaveAttribute('aria-invalid', 'true');
   await expect(settings.getByText('Enter a whole number in range: 128–8192')).toBeVisible();
@@ -82,13 +85,15 @@ test('rejected save retains draft and never announces success', async ({ page })
   await settingsHost(page, true);
   const settings = await openSettings(page);
   await settings.getByRole('button', { name: 'Code editor', exact: true }).click();
-  await settings.getByRole('spinbutton', { name: 'Code font size', exact: true }).fill('20');
+  await settings.getByRole('textbox', { name: 'Code font size', exact: true }).fill('20');
   await settings.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(settings.getByRole('alert')).toContainText('PREFERENCES_CONFLICT');
-  await expect(settings.getByRole('spinbutton', { name: 'Code font size', exact: true })).toHaveValue('20');
+  await expect(settings.getByRole('alert').filter({ hasText: 'PREFERENCES_CONFLICT' })).toContainText('PREFERENCES_CONFLICT');
+  await expect(settings.getByTestId('settings-save-unknown')).toBeVisible();
+  await expect(settings.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
+  await expect(settings.getByRole('textbox', { name: 'Code font size', exact: true })).toHaveValue('20');
   await expect(settings.getByText('Settings saved', { exact: true })).toHaveCount(0);
   await settings.getByRole('button', { name: 'Discard & reload', exact: true }).click();
-  await expect(settings.getByRole('spinbutton', { name: 'Code font size', exact: true })).toHaveValue('12');
+  await expect(settings.getByRole('textbox', { name: 'Code font size', exact: true })).toHaveValue('12');
 });
 
 test('browser without preferences host shows availability instead of fake controls', async ({ page }) => {

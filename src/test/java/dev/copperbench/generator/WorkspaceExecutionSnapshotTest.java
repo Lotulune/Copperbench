@@ -81,6 +81,26 @@ class WorkspaceExecutionSnapshotTest {
         assertEquals(snapshot.sha256(), second.sha256());
     }
 
+    @Test void newerOwnedDeliveriesRemainExcludedUntilTheirBytesChange() throws Exception {
+        Path root = temp.resolve("delivered");
+        Path input = root.resolve("build.gradle");
+        write(input, "authored input");
+        Path artifact = root.resolve("build/libs/actual.jar");
+        write(artifact, "built archive");
+        String fingerprint = WorkspaceExecutionSnapshot.fingerprint(root, () -> false);
+        var capturedAt = Files.getLastModifiedTime(input);
+        var payload = new com.google.gson.JsonObject();
+        payload.addProperty("output", "deliveries/result.jar");
+        Path delivered = WorkspaceDeliveryOutputs.prepare(root, payload).publish(artifact, null);
+        Files.setLastModifiedTime(delivered, java.nio.file.attribute.FileTime.fromMillis(capturedAt.toMillis() + 1000));
+        assertEquals(fingerprint, WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+        assertTrue(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+        Files.writeString(delivered, "user-replaced bytes");
+        Files.setLastModifiedTime(delivered, java.nio.file.attribute.FileTime.fromMillis(capturedAt.toMillis() + 1000));
+        assertFalse(WorkspaceExecutionSnapshot.matchesFingerprint(root, fingerprint, capturedAt, () -> false));
+        assertNotEquals(fingerprint, WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+    }
+
     @Test void detectsConcurrentNativeEditAndCannotPublishAMixedSnapshot() throws Exception {
         Path root = temp.resolve("project");
         Path first = root.resolve("a.java"), second = root.resolve("b.java");

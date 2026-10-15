@@ -1,0 +1,61 @@
+Build traceable Windows packages	Generate build provenance	﻿2026-10-15T14:49:04.6874412Z ##[group]Run actions/attest-build-provenance@v3
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6875031Z with:
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6875375Z   subject-path: build/release/*
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6875804Z   push-to-registry: false
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6876188Z   show-summary: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6881636Z   github-token: ***
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6881985Z env:
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6882276Z   RELEASE_TAG: v0.1.6
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6882631Z   SHOULD_PUBLISH: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6883211Z   JAVA_HOME: C:\hostedtoolcache\windows\Java_JetBrains_jdk+jcef\25.0.2-432.48\x64
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6884122Z   JAVA_HOME_25_X64: C:\hostedtoolcache\windows\Java_JetBrains_jdk+jcef\25.0.2-432.48\x64
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6884693Z   MAVEN_ARGS: -ntp
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6884985Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6885602Z   GRADLE_USER_HOME: D:\a\.gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6885906Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6886422Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6887038Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6887398Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6887698Z ##[endgroup]
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.6996440Z ##[start-action display=Run actions/attest-build-provenance/predicate@864457a58d4733d7f1574bd8821fa24e02cf7538;id=__actions_attest-build-provenance.generate-build-provenance-predicate]
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7176660Z ##[group]Run actions/attest-build-provenance/predicate@864457a58d4733d7f1574bd8821fa24e02cf7538
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7177230Z env:
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7177440Z   RELEASE_TAG: v0.1.6
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7177684Z   SHOULD_PUBLISH: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7178080Z   JAVA_HOME: C:\hostedtoolcache\windows\Java_JetBrains_jdk+jcef\25.0.2-432.48\x64
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7178706Z   JAVA_HOME_25_X64: C:\hostedtoolcache\windows\Java_JetBrains_jdk+jcef\25.0.2-432.48\x64
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7179178Z   MAVEN_ARGS: -ntp
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7179468Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7179825Z   GRADLE_USER_HOME: D:\a\.gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7180125Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7180637Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7181328Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7181690Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:04.7181986Z ##[endgroup]
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3084039Z ##[end-action id=__actions_attest-build-provenance.generate-build-provenance-predicate;outcome=success;conclusion=success;duration_ms=608]
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3091018Z ##[start-action display=Run actions/attest@daf44fb950173508f38bd2406030372c1d1162b1;id=__actions_attest-build-provenance.attest]
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3271477Z ##[group]Run actions/attest@daf44fb950173508f38bd2406030372c1d1162b1
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3271871Z with:
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3272088Z   subject-path: build/release/*
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3272460Z   predicate-type: https://slsa.dev/provenance/v1
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3275328Z   predicate: {"buildDefinition":{"buildType":"https://actions.github.io/buildtypes/workflow/v1","externalParameters":{"workflow":{"ref":"refs/tags/v0.1.6","repository":"https://github.com/Lotulune/Copperbench","path":".github/workflows/deploy.yml"}},"internalParameters":{"github":{"event_name":"push","repository_id":"1340939724","repository_owner_id":"54838716","runner_environment":"github-hosted"}},"resolvedDependencies":[{"uri":"git+https://github.com/Lotulune/Copperbench@refs/tags/v0.1.6","digest":{"gitCommit":"9e3dfdeab1bc19c099e739bcda14940d9a6fee30"}}]},"runDetails":{"builder":{"id":"https://github.com/Lotulune/Copperbench/.github/workflows/deploy.yml@refs/tags/v0.1.6"},"metadata":{"invocationId":"https://github.com/Lotulune/Copperbench/actions/runs/38748647623/attempts/1"}}}
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3278217Z   push-to-registry: false
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3278473Z   show-summary: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3284263Z   github-token: ***
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3284503Z env:
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3284694Z   RELEASE_TAG: v0.1.6
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3284925Z   SHOULD_PUBLISH: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3285666Z   JAVA_HOME: C:\hostedtoolcache\windows\Java_JetBrains_jdk+jcef\25.0.2-432.48\x64
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3286256Z   JAVA_HOME_25_X64: C:\hostedtoolcache\windows\Java_JetBrains_jdk+jcef\25.0.2-432.48\x64
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3286684Z   MAVEN_ARGS: -ntp
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3286938Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3287253Z   GRADLE_USER_HOME: D:\a\.gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3287535Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3287995Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3288492Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3288990Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3289299Z   NODE_OPTIONS: --max-http-header-size=32768
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:49:05.3289589Z ##[endgroup]
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:50:10.6201314Z ##[error]InternalError: error fetching tlog entry
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:50:10.6203090Z ^[[38;5;244mFetchError: network timeout at: https://rekor.sigstore.dev/api/v1/log/entries/108e9186e8c5677a08f29e95d35de8f7d69b0e553e4c580440c0ac8f051185015d5bc35591e37623^[[39m
+Build traceable Windows packages	Generate build provenance	2026-10-15T14:50:10.6274400Z ##[end-action id=__actions_attest-build-provenance.attest;outcome=failure;conclusion=failure;duration_ms=65318]

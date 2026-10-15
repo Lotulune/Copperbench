@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from copperbench import Workspace, NativeApiError
+from copperbench import ClientMetrics, Workspace, NativeApiError
 
 
 HOST = r'''
@@ -17,6 +17,8 @@ import json, pathlib, sys, time
 mode = sys.argv[1]
 initial_response_delay = float(sys.argv[2])
 log = pathlib.Path(__file__).with_suffix('.requests')
+if mode == 'startup_hang':
+    time.sleep(30)
 if mode == 'startup_failure':
     print(json.dumps({'status': 'failed', 'code': 'WORKSPACE_WRITE_LOCKED'}), flush=True)
     sys.exit(1)
@@ -33,6 +35,7 @@ for line in sys.stdin:
         time.sleep(initial_response_delay)
         initial_response_delay = 0
     if operation == 'slow':
+        log.with_suffix('.blocked').write_text('ready', encoding='utf-8')
         time.sleep(30)
     if operation == 'crash':
         sys.exit(2)
@@ -88,23 +91,29 @@ for line in sys.stdin:
                   'diagnostics': [{'code': 'FIELD_TYPE_INVALID', 'path': '/commands/0',
                                    'message': request['payload']['message']}]}
     if operation == 'get_task':
-        result['data'] = {'task': {'state': 'succeeded'}, 'logs': []}
+        result['data'] = {'task': {'id': request['payload']['taskId'], 'state': 'succeeded'}, 'logs': [], 'diagnostics': []}
         if mode == 'task_logs':
             polls += 1
-            result['data'] = {'task': {'state': 'running' if polls == 1 else 'succeeded'},
-                              'logs': [{'sequence': polls, 'text': 'first' if polls == 1 else 'last'}]}
+            result['data'] = {'task': {'id': request['payload']['taskId'], 'state': 'running' if polls == 1 else 'succeeded'},
+                              'logs': [{'sequence': polls, 'text': 'first' if polls == 1 else 'last'}], 'diagnostics': []}
     print(json.dumps({'id': 'wrong' if operation == 'bad_id' else request['id'], 'result': result}), flush=True)
     if mode == 'blocked_write' and operation == 'get_workbench':
         time.sleep(30)
+if mode == 'slow_clean_close':
+    time.sleep(2.5)
+    log.with_suffix('.closed').write_text('saved', encoding='utf-8')
 '''
 
 
 class NativeApiTest(unittest.TestCase):
     def test_editor_version_is_explicit_and_legacy_downgrade_is_rejected(self):
-        with self.open() as workspace:
+        metrics = ClientMetrics()
+        with self.open(metrics=metrics) as workspace:
             self.assertEqual('1.1', workspace.query('get_mod_element_editor', elementId='element')['schemaVersion'])
             self.assertEqual('1.0', workspace.query('get_mod_element_editor', schema_version='1.0', elementId='element')['schemaVersion'])
             self.assertEqual(['1.1', '1.0'], [r['schemaVersion'] for r in self.requests() if r['operation'] == 'get_mod_element_editor'])
+            self.assertEqual(2, metrics.snapshot()['operations']['get_mod_element_editor']['logicalCalls'])
+            self.assertEqual(2, metrics.snapshot()['operations']['get_mod_element_editor']['attempts'])
         with self.open('legacy_editor') as workspace:
             with self.assertRaises(NativeApiError) as failure:
                 workspace.query('get_mod_element_editor', elementId='element')
@@ -341,6 +350,31 @@ class NativeApiTest(unittest.TestCase):
             self.open('startup_failure')
         self.assertEqual('WORKSPACE_WRITE_LOCKED', raised.exception.code)
 
+    def test_startup_timeout_keeps_short_cleanup_and_reaps_host(self):
+        processes = []
+        popen = subprocess.Popen
+        def launch(*args, **kwargs):
+            process = popen(*args, **kwargs)
+            processes.append(process)
+            return process
+        started = time.monotonic()
+        with patch('copperbench_native.subprocess.Popen', side_effect=launch):
+            with self.assertRaises(NativeApiError) as raised:
+                self.open('startup_hang', startup_timeout=0.1)
+        self.assertEqual('NATIVE_TIMEOUT', raised.exception.code)
+        self.assertLess(time.monotonic() - started, 3)
+        self.assertEqual(1, len(processes))
+        self.assertIsNotNone(processes[0].poll())
+
+    def test_idle_close_waits_for_slow_clean_eof_exit(self):
+        client = self.open('slow_clean_close')
+        client.close()
+        self.assertEqual(0, client._process.returncode)
+        self.assertEqual('saved', self.host.with_suffix('.closed').read_text(encoding='utf-8'))
+        with self.assertRaises(NativeApiError) as closed:
+            client.get_workspace()
+        self.assertEqual('NATIVE_SESSION_CLOSED', closed.exception.code)
+
     def test_mismatched_response_closes_process(self):
         client = self.open()
         with self.assertRaises(NativeApiError) as raised:
@@ -355,9 +389,11 @@ class NativeApiTest(unittest.TestCase):
         # Healthy initialization may exceed the deadline of the operation under test.
         client = self.open(initial_response_delay=0.2)
         client.request_timeout = 0.1
+        started = time.monotonic()
         with self.assertRaises(NativeApiError) as raised:
             client.command('slow')
         self.assertEqual('NATIVE_TIMEOUT', raised.exception.code)
+        self.assertLess(time.monotonic() - started, 3)
         self.assertEqual(1, len([r for r in self.requests() if r['operation'] == 'slow']))
         self.assertIsNotNone(client._process.poll())
 
@@ -396,6 +432,30 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual(1, len(errors))
         self.assertIsNotNone(client._process.poll())
 
+    def test_close_from_another_thread_interrupts_a_blocked_read(self):
+        client = self.open(request_timeout=60)
+        errors = []
+        def call():
+            try:
+                client.query('slow')
+            except NativeApiError as error:
+                errors.append(error)
+        worker = threading.Thread(target=call, daemon=True)
+        worker.start()
+        deadline = time.monotonic() + 5
+        while not self.host.with_suffix('.blocked').is_file():
+            if time.monotonic() >= deadline:
+                self.fail('Fixture never entered its blocking operation')
+            time.sleep(0.01)
+        started = time.monotonic()
+        client.close()
+        worker.join(timeout=3)
+        self.assertLess(time.monotonic() - started, 3)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(1, len(errors))
+        self.assertEqual('NATIVE_SESSION_CLOSED', errors[0].code)
+        self.assertIsNotNone(client._process.poll())
+
     def test_wait_task_returns_actual_terminal_state(self):
         client = self.open()
         self.assertEqual('succeeded', client.wait_task('task')['data']['task']['state'])
@@ -405,12 +465,23 @@ class NativeApiTest(unittest.TestCase):
         result = client.wait_task('task', poll_interval=0.01)
         self.assertEqual(['first', 'last'], [entry['text'] for entry in result['data']['logs']])
 
+    def test_native_metrics_count_actual_ipc_without_payloads(self):
+        metrics = ClientMetrics()
+        client = self.open(metrics=metrics, task_authorization_id='secret-grant')
+        client.command('build_workspace', content='secret-content')
+        rows = metrics.snapshot()['operations']
+        self.assertEqual(1, rows['get_workbench']['logicalCalls'])
+        self.assertEqual(1, rows['build_workspace']['attempts'])
+        self.assertGreater(rows['build_workspace']['responseBytes'], 0)
+        self.assertNotIn('secret-grant', json.dumps(metrics.snapshot()))
+        self.assertNotIn('secret-content', json.dumps(metrics.snapshot()))
+
     def test_nonfinite_timeouts_are_rejected_before_launch(self):
         for value in (float('nan'), float('inf'), 0, -1):
             with self.assertRaises(ValueError):
                 self.open(request_timeout=value)
 
-    def test_legacy_mcp_client_remains_usable_as_a_single_file(self):
+    def test_current_mcp_client_remains_usable_as_a_single_file(self):
         source = Path(__file__).with_name('copperbench.py')
         (self.root / 'copperbench.py').write_text(source.read_text(encoding='utf-8'), encoding='utf-8')
         result = subprocess.run([sys.executable, '-c',

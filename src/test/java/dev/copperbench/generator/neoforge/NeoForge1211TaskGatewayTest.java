@@ -52,11 +52,12 @@ class NeoForge1211TaskGatewayTest {
 		AtomicLong sequence = new AtomicLong(900);
 		Supplier<UUID> ids = ids(sequence);
 		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
-			if (arguments.equals(List.of("build"))) {
+			if (arguments.getFirst().equals("build")) {
 				output.accept("NEOFORGE_BUILD_OK copper_trails-1.0.0.jar");
 				Path jar = root.resolve("build/libs/copper_trails-1.0.0.jar");
 				Files.createDirectories(jar.getParent());
 				Files.write(jar, new byte[] { 0x50, 0x4b, 0x03, 0x04 });
+				dev.copperbench.generator.GradleArchiveOutputFixture.record(arguments, jar);
 				return new Fabric1211ProcessRunner.ProcessResult(0, false);
 			}
 			output.accept("COPPERBENCH_STAGE5_NEOFORGE_READY");

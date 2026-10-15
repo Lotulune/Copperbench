@@ -1,0 +1,36 @@
+2026-10-15T13:08:23.2602682Z > Task :export_plugin_mcreator-link
+2026-10-15T13:08:25.8601632Z > Task :export_plugin_mcreator-localization
+2026-10-15T13:08:26.0585146Z > Task :export_plugin_mcreator-themes
+2026-10-15T13:08:26.1584935Z > Task :exportPlugins
+2026-10-15T13:08:31.7614359Z > Task :exportWin64 FAILED
+2026-10-15T13:08:31.8594878Z gradle/actions: Writing build results to D:\a\_temp\.gradle-actions\build-results\__run_7-1792069670034.json
+2026-10-15T13:08:31.8595793Z 
+2026-10-15T13:08:31.8597298Z FAILURE: Build failed with an exception.
+2026-10-15T13:08:31.8598564Z 
+2026-10-15T13:08:31.8609151Z * What went wrong:
+2026-10-15T13:08:31.8609711Z 24 actionable tasks: 19 executed, 5 up-to-date
+2026-10-15T13:08:31.8611730Z Execution failed for task ':exportWin64' (registered in script 'platform\windows\windows.gradle').
+2026-10-15T13:08:31.8614289Z > Entry sdk/typescript/copperbench.ts is a duplicate but no duplicate handling strategy has been set. Please refer to https://docs.gradle.org/9.6.0/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy for details.
+2026-10-15T13:08:31.8616181Z 
+2026-10-15T13:08:31.8616460Z * Try:
+2026-10-15T13:08:31.8617079Z > Run with --stacktrace option to get the stack trace.
+2026-10-15T13:08:31.8617903Z > Run with --info or --debug option to get more log output.
+2026-10-15T13:08:31.8618702Z > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-10-15T13:08:31.8619379Z > Get more help at https://help.gradle.org.
+2026-10-15T13:08:31.8619679Z 
+2026-10-15T13:08:31.8619839Z BUILD FAILED in 45s
+2026-10-15T13:08:31.9860064Z ##[error]Process completed with exit code 1.
+2026-10-15T13:08:32.0027614Z ##[group]Run actions/upload-artifact@v7
+2026-10-15T13:08:32.0028003Z with:
+2026-10-15T13:08:32.0028224Z   name: windows-application-identity
+2026-10-15T13:08:32.0028519Z   path: build/windows-application-identity/
+2026-10-15T13:08:32.0028792Z   if-no-files-found: warn
+2026-10-15T13:08:32.0029037Z   retention-days: 14
+2026-10-15T13:08:32.0029261Z   compression-level: 6
+2026-10-15T13:08:32.0029475Z   overwrite: false
+2026-10-15T13:08:32.0029688Z   include-hidden-files: false
+2026-10-15T13:08:32.0029927Z   archive: true
+2026-10-15T13:08:32.0030118Z env:
+2026-10-15T13:08:32.0030375Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-10-15T13:08:32.0030810Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.11.9\x64/lib/pkgconfig
+2026-10-15T13:08:32.0031204Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64

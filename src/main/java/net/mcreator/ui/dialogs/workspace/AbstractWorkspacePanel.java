@@ -211,6 +211,23 @@ public abstract class AbstractWorkspacePanel {
 		workspaceDialogPanel.modName.requestFocusInWindow();
 	}
 
+	/** Prefills the existing form without changing the ordinary generator recommendation. */
+	public boolean configureFirstCreation() {
+		GeneratorConfiguration generator = Generator.GENERATOR_CACHE.values().stream()
+				.filter(candidate -> candidate.getGeneratorFlavor() == GeneratorFlavor.FABRIC
+						&& dev.copperbench.shell.FirstCreationPreferences.GENERATOR_ID.equals(candidate.getGeneratorName()))
+				.findFirst().orElse(null);
+		workspaceDialogPanel.modName.setText("First Creation");
+		workspaceDialogPanel.modID.setText("first_creation");
+		workspaceDialogPanel.packageName.setText("com.example.firstcreation");
+		workspaceDialogPanel.generator.setSelectedItem(generator);
+		workspaceDialogPanel.generator.setEnabled(false);
+		workspaceDialogPanel.generatorSelector.setEnabled(false);
+		// GeneratorSelector includes a separate chooser button; disable its children too.
+		for (Component child : workspaceDialogPanel.generatorSelector.getComponents()) child.setEnabled(false);
+		return generator != null;
+	}
+
 	public GeneratorFlavor getGeneratorFlavor() {
 		return generatorFlavor;
 	}

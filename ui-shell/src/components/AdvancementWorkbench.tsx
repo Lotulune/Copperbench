@@ -1,6 +1,6 @@
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ArrowLeft,
   Trophy,
@@ -17,8 +17,13 @@ import {
   Eye
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementSummary, FieldChange, EditorField, ModElementEditorProjection } from '../types/contract';
-import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
+import { ModElementSummary, FieldChange, ModElementEditorProjection } from '../types/contract';
+import { uiText, uiMessage, diagnosticMessages, renderUiMessage, useUiLocale, type UiMessage } from '../i18n';
+import { numericDraftValue } from '../hooks/editorFieldChanges';
+import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadToken, rebaseEditor,
+  specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
+import { EditorRecoveryNotice } from './EditorRecoveryNotice';
+import { confirmEditorRead } from '../bridge/editorRecovery';
 
 interface AdvancementWorkbenchProps {
   element: ModElementSummary;
@@ -165,105 +170,99 @@ export function detectAdvancementCycle(
   return false;
 }
 
-export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ element, onClose }) => {
-  const { updateModElement, getModElementEditor, state } = useWorkbench();
+interface AdvancementData {
+  achievementName: string; achievementDescription: string; achievementIcon: string;
+  achievementType: 'task' | 'goal' | 'challenge'; background: string; parent: string;
+  showPopup: boolean; announceToChat: boolean; hideIfNotCompleted: boolean; disableDisplay: boolean;
+  triggerXml: string; rewardXP: string | number; rewardLoot: string[]; rewardRecipes: string[];
+  rewardFunction: string; newRewardLoot: string;
+}
+const initialAdvancement = (): AdvancementData => ({ achievementName: '', achievementDescription: '', achievementIcon: 'Blocks.STONE',
+  achievementType: 'task', background: 'Default', parent: 'root', showPopup: true, announceToChat: true,
+  hideIfNotCompleted: false, disableDisplay: false, triggerXml: '', rewardXP: 0, rewardLoot: [], rewardRecipes: [], rewardFunction: '', newRewardLoot: '' });
+
+function advancementData(editor: ModElementEditorProjection): AdvancementData {
+  const data = initialAdvancement();
+  const allFields = editor.sections.flatMap(section => section.fields);
+  const names: Record<string, string[]> = {
+    achievementName: ['title', 'achievementName'], achievementDescription: ['description', 'achievementDescription'],
+    achievementIcon: ['icon', 'achievementIcon'], achievementType: ['frame', 'achievementType'], background: ['background'],
+    parent: ['parent'], showPopup: ['showPopup'], announceToChat: ['announceToChat'], hideIfNotCompleted: ['hideIfNotCompleted'],
+    disableDisplay: ['disableDisplay'], triggerXml: ['triggerxml'], rewardXP: ['rewardXP'], rewardLoot: ['rewardLoot'],
+    rewardRecipes: ['rewardRecipes'], rewardFunction: ['rewardFunction']
+  };
+  for (const [key, aliases] of Object.entries(names)) {
+    const field = allFields.find(field => aliases.some(name => field.path === `/${name}` || field.path === `/fields/${name}`));
+    const baseline = data[key as keyof AdvancementData];
+    if (field && (Array.isArray(baseline) ? Array.isArray(field.value) : typeof field.value === typeof baseline)) {
+      (data as unknown as Record<string, unknown>)[key] = field.value;
+    }
+  }
+  if (data.parent === 'ROOT') data.parent = 'root';
+  return data;
+}
+
+export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = props => {
+  const { state } = useWorkbench();
+  const key = specializedEditorKey(state.workbench?.workspace.id ?? '', props.element.id, 'advancement');
+  return <AdvancementEditor key={key} sessionKey={key} {...props} />;
+};
+const AdvancementEditor: React.FC<AdvancementWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
+  const { updateModElement, getModElementEditor, refreshWorkspace, state } = useWorkbench();
+  const current = useSpecializedEditorSession(sessionKey, initialAdvancement);
+  const { achievementName, achievementDescription, achievementIcon, achievementType, background, parent,
+    showPopup, announceToChat, hideIfNotCompleted, disableDisplay, triggerXml, rewardXP, rewardLoot,
+    rewardRecipes, rewardFunction, newRewardLoot } = current.data;
+  const changeSession = (patch: Partial<typeof current>) => updateSpecializedSession(sessionKey, initialAdvancement, old => ({ ...old, ...patch }));
+  const setter = <K extends keyof AdvancementData,>(key: K) => (value: React.SetStateAction<AdvancementData[K]>) =>
+    updateSpecializedSession(sessionKey, initialAdvancement, old => ({ ...old,
+      data: { ...old.data, [key]: typeof value === 'function' ? (value as (value: AdvancementData[K]) => AdvancementData[K])(old.data[key]) : value }, dirty: true }));
+  const setAchievementName = setter('achievementName'), setAchievementDescription = setter('achievementDescription'),
+    setAchievementIcon = setter('achievementIcon'), setAchievementType = setter('achievementType'), setBackground = setter('background'),
+    setParent = setter('parent'), setShowPopup = setter('showPopup'), setAnnounceToChat = setter('announceToChat'),
+    setHideIfNotCompleted = setter('hideIfNotCompleted'), setDisableDisplay = setter('disableDisplay'),
+    setTriggerXml = setter('triggerXml'), setRewardXP = setter('rewardXP'), setRewardLoot = setter('rewardLoot'),
+    setRewardFunction = setter('rewardFunction'), setNewRewardLoot = setter('newRewardLoot');
+  const fields = useMemo(() => Object.fromEntries((current.editor?.sections.flatMap(section => section.fields) ?? [])
+    .map(field => [field.path.split('/').pop()!, field])), [current.editor]);
+  const projectionLoaded = current.editor !== null && !current.loading;
+  const canEdit = (name: string) => projectionLoaded && !current.saving && fields[name]?.readOnly === false;
+  const { saving: isSaving, dirty: isDirty, error: message } = current;
+  const setIsSaving = (saving: boolean) => changeSession({ saving });
+  const setIsDirty = (dirty: boolean) => changeSession({ dirty });
+  const setMessage = (error: UiMessage | null) => changeSession({ error });
+  const actions = useRef({ getModElementEditor, refreshWorkspace });
+  actions.current = { getModElementEditor, refreshWorkspace };
+  const locale = useUiLocale();
 
   const [activeTab, setActiveTab] = useState<AdvancementTab>('display');
-  const [achievementName, setAchievementName] = useState<string>(element.displayName || tr("新进度"));
-  const [achievementDescription, setAchievementDescription] = useState<string>('');
-  const [achievementIcon, setAchievementIcon] = useState<string>('Blocks.STONE');
-  const [achievementType, setAchievementType] = useState<'task' | 'goal' | 'challenge'>('task');
-  const [background, setBackground] = useState<string>('Default');
-  const [parent, setParent] = useState<string>('root');
-  const [showPopup, setShowPopup] = useState<boolean>(true);
-  const [announceToChat, setAnnounceToChat] = useState<boolean>(true);
-  const [hideIfNotCompleted, setHideIfNotCompleted] = useState<boolean>(false);
-  const [disableDisplay, setDisableDisplay] = useState<boolean>(false);
-
-  const [triggerXml, setTriggerXml] = useState('');
-  const [fields, setFields] = useState<Record<string, EditorField>>({});
-  const [projectionLoaded, setProjectionLoaded] = useState(false);
-  const canEdit = (name: string) => projectionLoaded && fields[name]?.readOnly === false;
-
-  const [rewardXP, setRewardXP] = useState<number>(0);
-  const [rewardLoot, setRewardLoot] = useState<string[]>([]);
-  const [rewardRecipes, setRewardRecipes] = useState<string[]>([]);
-  const [rewardFunction, setRewardFunction] = useState<string>('');
-  const [newRewardLoot, setNewRewardLoot] = useState<string>('');
-
-  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
-  const [message, setMessage] = useState<UiMessage | null>(null);
-  const [isDirty, setIsDirty] = useState<boolean>(false);
 
-  // Load existing projection
+  // Re-entering the workbench observes the same workspace/object session.
   useEffect(() => {
-    let cancelled = false;
-    setProjectionLoaded(false);
-    setFields({});
-    setTriggerXml('');
-    setAchievementName(element.displayName || ''); setAchievementDescription('');
-    setAchievementIcon('Blocks.STONE'); setAchievementType('task'); setParent('root');
-    setBackground('Default'); setShowPopup(true); setAnnounceToChat(true);
-    setHideIfNotCompleted(false); setDisableDisplay(false);
-    setRewardXP(0); setRewardLoot([]); setRewardRecipes([]); setRewardFunction('');
-    setMessage(null);
-    setIsDirty(false);
-    getModElementEditor(element.id).then((projection) => {
-      if (cancelled) return;
-      if (!projection) throw new Error('Editor projection unavailable');
-      const allFields = projection.sections.flatMap((s) => s.fields);
-      const nameField = allFields.find((f) => f.path === '/title' || f.path === '/fields/title' || f.path === '/fields/achievementName');
-      const descField = allFields.find((f) => f.path === '/description' || f.path === '/fields/description' || f.path === '/fields/achievementDescription');
-      const iconField = allFields.find((f) => f.path === '/icon' || f.path === '/fields/icon' || f.path === '/fields/achievementIcon');
-      const typeField = allFields.find((f) => f.path === '/frame' || f.path === '/fields/frame' || f.path === '/fields/achievementType');
-      const parentField = allFields.find((f) => f.path === '/parent' || f.path === '/fields/parent');
-      const bgField = allFields.find((f) => f.path === '/background' || f.path === '/fields/background');
-      const popupField = allFields.find((f) => f.path === '/showPopup' || f.path === '/fields/showPopup');
-      const chatField = allFields.find((f) => f.path === '/announceToChat' || f.path === '/fields/announceToChat');
-      const hideField = allFields.find((f) => f.path === '/hideIfNotCompleted' || f.path === '/fields/hideIfNotCompleted');
-      const disableDisplayField = allFields.find((f) => f.path === '/disableDisplay' || f.path === '/fields/disableDisplay');
-      const xpField = allFields.find((f) => f.path === '/rewardXP' || f.path === '/fields/rewardXP');
-      const lootField = allFields.find((f) => f.path === '/rewardLoot' || f.path === '/fields/rewardLoot');
-      const recipesField = allFields.find((f) => f.path === '/rewardRecipes' || f.path === '/fields/rewardRecipes');
-      const functionField = allFields.find((f) => f.path === '/rewardFunction' || f.path === '/fields/rewardFunction');
-      const triggerField = allFields.find((f) => f.path === '/triggerxml' || f.path === '/fields/triggerxml');
-      setFields(Object.fromEntries(allFields.map((field) => [field.path.split('/').pop()!, field])));
-
-      if (nameField && typeof nameField.value === 'string') setAchievementName(nameField.value);
-      if (descField && typeof descField.value === 'string') setAchievementDescription(descField.value);
-      if (iconField && typeof iconField.value === 'string') setAchievementIcon(iconField.value);
-      if (typeField && typeof typeField.value === 'string') setAchievementType(typeField.value as 'task' | 'goal' | 'challenge');
-      if (parentField && typeof parentField.value === 'string') setParent(parentField.value === 'ROOT' ? 'root' : parentField.value);
-      if (bgField && typeof bgField.value === 'string') setBackground(bgField.value);
-      if (popupField && typeof popupField.value === 'boolean') setShowPopup(popupField.value);
-      if (chatField && typeof chatField.value === 'boolean') setAnnounceToChat(chatField.value);
-      if (hideField && typeof hideField.value === 'boolean') setHideIfNotCompleted(hideField.value);
-      if (disableDisplayField && typeof disableDisplayField.value === 'boolean') setDisableDisplay(disableDisplayField.value);
-      if (xpField && typeof xpField.value === 'number') setRewardXP(xpField.value);
-      if (lootField && Array.isArray(lootField.value)) setRewardLoot(lootField.value as string[]);
-      if (recipesField && Array.isArray(recipesField.value)) setRewardRecipes(recipesField.value as string[]);
-      if (functionField && typeof functionField.value === 'string') setRewardFunction(functionField.value);
-      if (triggerField && typeof triggerField.value === 'string') setTriggerXml(triggerField.value);
-      setProjectionLoaded(true);
-      setIsDirty(false);
+    const existing = getSpecializedSession(sessionKey, initialAdvancement);
+    if (existing.dirty || existing.saving || existing.loading || existing.saveUnknown) return;
+    const readToken = nextSpecializedReadToken();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    changeSession({ loading: true, readToken });
+    void actions.current.getModElementEditor(element.id).then(editor => {
+      if (!editor || editor.element.id !== element.id) throw new Error('Advancement editor projection unavailable');
+      updateSpecializedSession(sessionKey, initialAdvancement, old => old.readToken !== readToken ? old
+        : { ...old, editor, data: old.dirty ? old.data : advancementData(editor), revision, loading: false, error: null });
     }).catch(() => {
-      if (!cancelled) setMessage(tr("无法加载进度编辑信息，请返回后重试。"));
+      updateSpecializedSession(sessionKey, initialAdvancement, old => old.readToken !== readToken ? old
+        : { ...old, loading: false, error: uiMessage('无法加载进度编辑信息。请返回后重试，原草稿已保留。', 'Could not load the advancement editor. Return and try again; your draft is preserved.') });
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [element.id, getModElementEditor]);
-
+  }, [sessionKey, element.id, element.updatedAt]);
   // Prefetch workspace advancements editors so parent relationships are readily accessible
   useEffect(() => {
     const achievements = state.elements.filter((e) => e.type === 'achievement');
     achievements.forEach((adv) => {
       if (!state.elementEditors[adv.id]) {
-        void getModElementEditor(adv.id);
+        void actions.current.getModElementEditor(adv.id);
       }
     });
-  }, [state.elements, state.elementEditors, getModElementEditor]);
+  }, [state.elements, state.elementEditors]);
 
   // Available advancements in workspace
   const workspaceAdvancements = useMemo(() => {
@@ -290,6 +289,9 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
     if (!achievementIcon.trim()) {
       diags.push(tr("进度图标 (Icon) 不能为空。"));
     }
+    if (numericDraftValue(rewardXP) === undefined || !Number.isInteger(numericDraftValue(rewardXP))) {
+      diags.push(uiText('奖励经验必须是有效整数。', 'Reward XP must be a valid whole number.'));
+    }
     if (fields.triggerxml && triggerXml !== fields.triggerxml.value) {
       const xml = new DOMParser().parseFromString(triggerXml, 'application/xml');
       if (xml.querySelector('parsererror') || xml.documentElement.localName !== 'xml'
@@ -301,7 +303,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       diags.push(tr("检测到循环父级进度依赖，不能将自身或其子级设为父级。"));
     }
     return diags;
-  }, [achievementName, achievementIcon, triggerXml, fields, isParentCycle]);
+  }, [achievementName, achievementIcon, triggerXml, fields, isParentCycle, rewardXP, locale]);
 
   const handleAddRewardLoot = () => {
     const trimmed = newRewardLoot.trim();
@@ -314,9 +316,10 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
   };
 
   const handleSave = async () => {
-    if (!projectionLoaded || isSaving) return;
+    const submitted = getSpecializedSession(sessionKey, initialAdvancement);
+    if (!projectionLoaded || submitted.saving || submitted.saveUnknown || !submitted.editor) return;
     if (diagnostics.length > 0) {
-      setMessage(tr("请先修复配置错误：{0}", [diagnostics[0]]));
+      setMessage(uiMessage('请先修复下方配置错误。', 'Correct the configuration errors below before saving.'));
       return;
     }
 
@@ -335,7 +338,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       { path: '/announceToChat', value: announceToChat },
       { path: '/hideIfNotCompleted', value: hideIfNotCompleted },
       { path: '/disableDisplay', value: disableDisplay },
-      { path: '/rewardXP', value: rewardXP },
+      { path: '/rewardXP', value: numericDraftValue(rewardXP) },
       { path: '/rewardLoot', value: rewardLoot },
       { path: '/rewardRecipes', value: rewardRecipes },
       { path: '/rewardFunction', value: rewardFunction },
@@ -348,31 +351,43 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
     });
 
     if (changes.length === 0) {
-      setIsSaving(false);
+      changeSession({ saving: false, data: { ...submitted.data, rewardXP: numericDraftValue(rewardXP)! }, dirty: newRewardLoot.length > 0 });
       setSaveSuccess(true);
-      setIsDirty(false);
       setTimeout(() => setSaveSuccess(false), 2500);
       return;
     }
 
     try {
-      const result = await updateModElement(element.id, changes);
+      const result = await updateModElement(element.id, changes, submitted.revision);
       setIsSaving(false);
       if (result.status === 'committed') {
         setSaveSuccess(true);
-        setFields((previous) => Object.fromEntries(Object.entries(previous).map(([name, field]) => {
-          const change = changes.find((candidate) => candidate.path === field.path);
-          return [name, change ? { ...field, value: change.value } : field];
-        })));
-        setIsDirty(false);
+        commitSpecializedSession(sessionKey, initialAdvancement, submitted.data,
+          rebaseEditor(submitted.editor, changes, result.data?.element ?? submitted.editor.element), result.newRevision, result.diagnostics,
+          { ...submitted.data, rewardXP: numericDraftValue(rewardXP)! });
+        updateSpecializedSession(sessionKey, initialAdvancement, old => ({ ...old, dirty: old.dirty || old.data.newRewardLoot.length > 0 }));
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("保存进度失败。")));
+        changeSession({ diagnostics: result.diagnostics });
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), uiMessage('保存进度被拒绝。草稿已保留。', 'Saving the advancement was rejected. Your draft is preserved.')));
       }
     } catch {
       setIsSaving(false);
-      setMessage(tr("保存进度时发生错误。"));
+      changeSession({ saveUnknown: true });
+      setMessage(uiMessage('未收到保存回执。', 'No save receipt was received.'));
     }
+  };
+  const readLatest = async () => {
+    if (getSpecializedSession(sessionKey, initialAdvancement).saving) return;
+    setIsSaving(true);
+    try {
+      const { editor, revision: confirmedRevision } = await confirmEditorRead(state.workbench!.workspace.id, actions.current.refreshWorkspace, () => actions.current.getModElementEditor(element.id));
+      if (!editor || editor.element.id !== element.id) throw new Error('Advancement editor projection unavailable');
+      updateSpecializedSession(sessionKey, initialAdvancement, old => ({ ...old, editor, revision: confirmedRevision,
+        dirty: JSON.stringify(old.data) !== JSON.stringify(advancementData(editor)), saveUnknown: false,
+        error: uiMessage('已读取最新版本。请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.') }));
+    } catch { setMessage(uiMessage('无法读取最新版本，草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.')); }
+    finally { setIsSaving(false); }
   };
 
   return (
@@ -573,7 +588,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             type="button"
             className="btn-primary"
             onClick={handleSave}
-            disabled={!projectionLoaded || isSaving || diagnostics.length > 0 || !Object.values(fields).some((field) => !field.readOnly)}
+            disabled={!projectionLoaded || isSaving || current.saveUnknown || !isDirty || diagnostics.length > 0 || !Object.values(fields).some((field) => !field.readOnly)}
             data-testid="advancement-save-btn"
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
@@ -622,12 +637,16 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
           <button
             type="button"
             onClick={() => setMessage(null)}
+            aria-label={uiText('关闭提示', 'Dismiss feedback')}
             style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
           >
             <X size={13} />
           </button>
         </div>
       )}
+
+      <EditorRecoveryNotice editor="advancement" saveUnknown={current.saveUnknown} diagnostics={current.diagnostics}
+        busy={isSaving || current.loading} onRead={() => void readLatest()} />
 
       {/* Main Body Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
@@ -892,12 +911,12 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                 <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("奖励经验值 (XP)")}</span>
                 <input
-                  type="number"
+                  type="text" inputMode="numeric"
                   min={0}
                   max={64000}
                   value={rewardXP}
                   onChange={(e) => {
-                    setRewardXP(parseInt(e.target.value) || 0);
+                    setRewardXP(e.target.value);
                     setIsDirty(true);
                   }}
                   data-testid="advancement-reward-xp-input"
@@ -1060,7 +1079,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               </div>
 
               {/* XP Badge */}
-              {rewardXP > 0 && (
+              {(numericDraftValue(rewardXP) ?? 0) > 0 && (
                 <div
                   style={{
                     background: '#1d3a26',

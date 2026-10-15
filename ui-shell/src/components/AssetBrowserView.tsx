@@ -1,5 +1,5 @@
 import { valueLabel } from '../i18n/labels';
-import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   AlertCircle, AlertTriangle, Box, CheckCircle2,
   Copy, CornerDownRight, FileJson, FileText,
@@ -17,6 +17,11 @@ import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
 import { BlockbenchSetupDialog } from './BlockbenchSetupDialog';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
 import { AssetPreview } from './AssetPreview';
+import { DiagnosticDetails } from './DiagnosticDetails';
+import { OperationFailure, operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
+import { coreBridge } from '../bridge';
+import { safeRandomUUID } from '../bridge/JcefCoreBridge';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 import './assetBrowser.css';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
@@ -39,7 +44,16 @@ function renderAssetMessage(message: AssetMessage): string {
   return typeof message === 'string' ? message : 'key' in message ? t(message) : uiText(message.zh, message.en);
 }
 
-interface AssetImportReviewState {
+interface AssetReviewRecovery {
+  readonly unknown?: boolean;
+  readonly diagnostics?: Diagnostic[];
+  readonly failure?: unknown;
+  readonly requestId?: number;
+  readonly hidden?: boolean;
+  readonly submittedTargets?: string[];
+  readonly observedTargets?: Array<{ path: string; sha256: string | null }>;
+}
+interface AssetImportReviewState extends AssetReviewRecovery {
   readonly grant: AssetImportSelectionGrant;
   readonly targetRelativePath: string;
   readonly preview: AssetImportPreview | null;
@@ -47,7 +61,7 @@ interface AssetImportReviewState {
   readonly error: AssetMessage | null;
 }
 
-interface AssetBatchImportReviewState {
+interface AssetBatchImportReviewState extends AssetReviewRecovery {
   readonly grants: AssetImportSelectionGrant[];
   readonly targetRelativePaths: string[];
   readonly preview: AssetImportBatchPreview | null;
@@ -55,12 +69,51 @@ interface AssetBatchImportReviewState {
   readonly error: AssetMessage | null;
 }
 
-interface AssetMoveReviewState {
+interface AssetMoveReviewState extends AssetReviewRecovery {
   readonly asset: AssetRecord;
   readonly targetRelativePath: string;
   readonly preview: AssetMovePreview | null;
   readonly busy: boolean;
   readonly error: AssetMessage | null;
+}
+
+interface AssetReviewSession {
+  importReview: AssetImportReviewState | null;
+  batchImportReview: AssetBatchImportReviewState | null;
+  moveReview: AssetMoveReviewState | null;
+}
+// Review state and uncertain writes survive route changes, scoped to the actual workspace.
+const reviewSessions = new Map<string, AssetReviewSession>();
+const reviewListeners = new Set<() => void>();
+let reviewRequestSequence = 0;
+function reviewSession(workspaceId: string): AssetReviewSession {
+  if (!reviewSessions.has(workspaceId)) reviewSessions.set(workspaceId, { importReview: null, batchImportReview: null, moveReview: null });
+  return reviewSessions.get(workspaceId)!;
+}
+function updateReview<K extends keyof AssetReviewSession>(workspaceId: string, kind: K, action: React.SetStateAction<AssetReviewSession[K]>) {
+  const old = reviewSession(workspaceId);
+  const value = typeof action === 'function' ? action(old[kind]) : action;
+  if (value === old[kind]) return;
+  reviewSessions.set(workspaceId, { ...old, [kind]: value });
+  reviewListeners.forEach(listener => listener());
+}
+
+function AssetReviewFeedback({ state, kind, onDiscard }: { state: AssetReviewRecovery & { error: AssetMessage | null; busy: boolean }; kind: string; onDiscard: () => void }) {
+  return <>
+    {state.unknown && <p role="alert" data-testid={`asset-${kind}-unknown`}>{uiText(
+      '操作结果待确认。请读取资产并重新预览核对；确认前不会再次提交。',
+      'The operation result is unknown. Read assets and preview again to compare before submitting another operation.')}</p>}
+    {state.error && <div className="asset-import-review-error" role="alert">{renderAssetMessage(state.error)}</div>}
+    {Boolean(state.failure) && <details><summary>{uiText('错误详情', 'Error details')}</summary><pre tabIndex={0} style={{ whiteSpace: 'pre-wrap', userSelect: 'text' }}>{operationFailureText(state.failure)}</pre></details>}
+    {state.submittedTargets && <details><summary>{uiText('原请求目标与读取结果', 'Original targets and observed state')}</summary>
+      {state.submittedTargets.map(path => <p key={path}><code>{path}</code>{state.observedTargets && <span> · {state.observedTargets.find(item => item.path === path)?.sha256 ?? uiText('当前未找到', 'Not currently found')}</span>}</p>)}
+    </details>}
+    <DiagnosticDetails diagnostics={state.diagnostics ?? []} />
+    {state.unknown && <div>
+      <p>{uiText('放弃计划不会撤销可能已完成的更改。', 'Discarding the plan does not undo changes that may have completed.')}</p>
+      <button type="button" className="btn-secondary" disabled={state.busy} data-testid={`asset-${kind}-discard`} onClick={onDiscard}>{uiText('放弃待确认计划', 'Discard unconfirmed plan')}</button>
+    </div>}
+  </>;
 }
 
 function assetNamespace(assets: readonly AssetRecord[]): string {
@@ -147,7 +200,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
   const CATEGORY_ITEMS = categoryItems();
   const {
     state, listAssets, previewAssetImport, importAsset, previewAssetImportBatch, importAssetBatch,
-    previewAssetMove, moveAsset, assetFocusId, setAssetFocusId, runDiagnosticAction
+    previewAssetMove, moveAsset, refreshWorkspace, assetFocusId, setAssetFocusId, runDiagnosticAction
   } = useWorkbench();
   const [assetProjection, setAssetProjection] = useState<AssetProjection | null>(null);
   const assets = useMemo(() => assetProjection ? assetRecordsFromProjection(assetProjection) : [], [assetProjection, locale]);
@@ -169,9 +222,41 @@ const WorkspaceAssetBrowser: React.FC = () => {
   const [copyFeedback, setCopyFeedback] = useState<{ id: string; status: 'success' | 'error' } | null>(null);
   const copyRequest = useRef(0);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [importReview, setImportReview] = useState<AssetImportReviewState | null>(null);
-  const [batchImportReview, setBatchImportReview] = useState<AssetBatchImportReviewState | null>(null);
-  const [moveReview, setMoveReview] = useState<AssetMoveReviewState | null>(null);
+  const workspaceId = state.workbench?.workspace.id ?? state.currentScenarioId;
+  const reviews = useSyncExternalStore(listener => { reviewListeners.add(listener); return () => { reviewListeners.delete(listener); }; }, () => reviewSession(workspaceId));
+  const { importReview, batchImportReview, moveReview } = reviews;
+  const setImportReview = (action: React.SetStateAction<AssetImportReviewState | null>) => updateReview(workspaceId, 'importReview', action);
+  const setBatchImportReview = (action: React.SetStateAction<AssetBatchImportReviewState | null>) => updateReview(workspaceId, 'batchImportReview', action);
+  const setMoveReview = (action: React.SetStateAction<AssetMoveReviewState | null>) => updateReview(workspaceId, 'moveReview', action);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const assertWorkspace = () => {
+    if (coreBridge.getState().workbench?.workspace.id !== workspaceId) throw new Error('The workspace changed during asset confirmation.');
+  };
+  const readAssetsForConfirmation = async () => {
+    assertWorkspace();
+    await refreshWorkspace();
+    assertWorkspace();
+    const result = await coreBridge.sendQuery<AssetProjection>({ messageType: 'query', schemaVersion: '1.0',
+      requestId: safeRandomUUID(), workspaceId, operation: 'list_assets', payload: {} });
+    assertWorkspace();
+    if (result.workspaceId !== workspaceId || result.status !== 'succeeded' || !result.data
+      || result.revision !== coreBridge.getState().workbench?.workspace.revision)
+      throw new OperationFailure(result.diagnostics, { zh: '无法读取最新资产，原操作结果仍待确认。', en: 'Could not read the latest assets. The original operation is still unconfirmed.' });
+    if (alive.current) setAssetProjection(result.data);
+    return result.data;
+  };
+  const observeTargets = (projection: AssetProjection, targets: string[] = []) => targets.map(path => ({
+    path, sha256: projection.assets.find(asset => asset.relativePath === path)?.sha256 ?? null
+  }));
+
+  const closeReview = (kind: keyof AssetReviewSession, discard = false) => {
+    updateReview(workspaceId, kind, old => old && !discard && (old.busy || old.unknown) ? { ...old, hidden: true } : null);
+    window.requestAnimationFrame(() => {
+      if (alive.current && document.activeElement === document.body)
+        (document.querySelector<HTMLElement>('[data-testid="asset-search"]') ?? document.querySelector<HTMLElement>('[data-testid="asset-import-button"]'))?.focus();
+    });
+  };
 
   const scenarioMode = modeForScenario(state.currentScenarioId);
   const mode = modeOverride ?? (state.currentScenarioId !== 'native'
@@ -306,43 +391,70 @@ const WorkspaceAssetBrowser: React.FC = () => {
   };
 
   const beginMove = (asset: AssetRecord) => {
+    const pending = reviewSession(workspaceId).moveReview;
+    if (pending?.busy || pending?.unknown) { setMoveReview({ ...pending, hidden: false }); return; }
     setMoveReview({ asset, targetRelativePath: asset.path, preview: null, busy: false, error: null });
   };
 
   const runMovePreview = async () => {
-    const current = moveReview;
-    if (!current) return;
-    setMoveReview({ ...current, busy: true, error: null, preview: null });
+    const current = reviewSession(workspaceId).moveReview;
+    if (!current || current.busy) return;
+    const requestId = ++reviewRequestSequence;
+    setMoveReview({ ...current, busy: true, error: null, preview: null, requestId });
     try {
+      if (current.unknown) {
+        const projection = await readAssetsForConfirmation();
+        setMoveReview(old => old?.requestId !== requestId ? old : { ...old, observedTargets: observeTargets(projection, old.submittedTargets) });
+      }
+      assertWorkspace();
       const preview = await previewAssetMove(current.asset.id, current.targetRelativePath);
-      setMoveReview({ ...current, busy: false, preview, error: null });
-    } catch (error) {
-      setMoveReview({ ...current, busy: false, preview: null,
-        error: error instanceof Error ? error.message : assetMessage("资产移动预览失败。", "Could not preview this asset move.") });
+      assertWorkspace();
+      if (!preview) throw new OperationFailure([], { zh: '资产移动预览不可用。', en: 'The asset move preview is unavailable.' });
+      setMoveReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, preview, unknown: false, error: null });
+    } catch (failure) {
+      setMoveReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, preview: null, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)],
+        error: assetMessage('无法读取或预览资产，请查看详情。', 'Could not read or preview the asset. Review the details.') });
     }
   };
 
   useEffect(() => assetImportBridge.subscribeDroppedSources((grants) => {
+    const pending = reviewSession(workspaceId).batchImportReview;
+    if (pending?.busy || pending?.unknown) { setBatchImportReview({ ...pending, hidden: false }); return; }
     const namespace = assetNamespace(assets);
     const targets = grants.map((grant) => defaultImportTarget(grant.fileName, namespace));
     void runBatchImportPreview(grants, targets);
   }), [assets, previewAssetImportBatch]);
 
   const runBatchImportPreview = async (grants: AssetImportSelectionGrant[], targetRelativePaths: string[]) => {
-    setBatchImportReview({ grants, targetRelativePaths, preview: null, busy: true, error: null });
+    const existing = reviewSession(workspaceId).batchImportReview;
+    if (existing?.busy) return;
+    const requestId = ++reviewRequestSequence;
+    const recovery = existing?.unknown ? existing : {};
+    setBatchImportReview({ ...recovery, grants, targetRelativePaths, preview: null, busy: true, error: null, requestId, hidden: false });
     try {
+      if (existing?.unknown) {
+        const projection = await readAssetsForConfirmation();
+        setBatchImportReview(old => old?.requestId !== requestId ? old : { ...old, observedTargets: observeTargets(projection, old.submittedTargets) });
+      }
+      assertWorkspace();
       const preview = await previewAssetImportBatch(grants.map((grant, index) => ({
         sourceGrantId: grant.id,
         targetRelativePath: targetRelativePaths[index] ?? defaultImportTarget(grant.fileName, assetNamespace(assets))
       })));
-      setBatchImportReview({ grants, targetRelativePaths, preview, busy: false, error: null });
-    } catch (error) {
-      setBatchImportReview({ grants, targetRelativePaths, preview: null, busy: false,
-        error: error instanceof Error ? error.message : assetMessage("资产批量导入预览失败。", "Could not preview the asset batch import.") });
+      assertWorkspace();
+      if (!preview) throw new OperationFailure([], { zh: '资产批量导入预览不可用。', en: 'The asset batch import preview is unavailable.' });
+      setBatchImportReview(old => old?.requestId !== requestId ? old : { ...old, preview, busy: false, unknown: false, error: null });
+    } catch (failure) {
+      setBatchImportReview(old => old?.requestId !== requestId ? old : { ...old, preview: null, busy: false, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)],
+        error: assetMessage('无法读取或预览资产，请查看详情。', 'Could not read or preview assets. Review the details.') });
     }
   };
 
   const beginBatchImport = async () => {
+    const pending = reviewSession(workspaceId).batchImportReview;
+    if (pending?.busy || pending?.unknown) { setBatchImportReview({ ...pending, hidden: false }); return; }
     try {
       const selection = await assetImportBridge.selectSources();
       if (selection.cancelled || selection.grants.length === 0) return;
@@ -355,90 +467,105 @@ const WorkspaceAssetBrowser: React.FC = () => {
   };
 
   const commitBatchImport = async () => {
-    const current = batchImportReview;
+    const current = reviewSession(workspaceId).batchImportReview;
     const preview = current?.preview;
-    if (!current || !preview?.canApply) return;
-    setBatchImportReview({ ...current, busy: true, error: null });
+    if (!current || current.busy || current.unknown || !preview?.canApply) return;
+    assertWorkspace();
+    const requestId = ++reviewRequestSequence;
+    setBatchImportReview({ ...current, busy: true, error: null, requestId, submittedTargets: [...current.targetRelativePaths], observedTargets: undefined });
     try {
       const result = await importAssetBatch(preview.planToken, preview.requiresReplacementConfirmation);
       if (result.status !== 'committed') {
-        setBatchImportReview({ ...current, busy: false,
+        setBatchImportReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: false, diagnostics: result.diagnostics,
           error: result.diagnostics[0]?.message ?? assetMessage("资产批量导入未提交。", "The asset batch import was not committed.") });
         return;
       }
-      setBatchImportReview(null);
+      setBatchImportReview(old => old?.requestId === requestId ? null : old);
       const importedCount = result.data?.importedCount ?? preview.changedCount;
       const skipped = result.data?.skippedIdenticalCount ?? preview.identicalCount;
       setNotice(assetMessage(`已批量导入 ${importedCount} 个资产，跳过 ${skipped} 个相同文件；整个批次只创建一个恢复点。`, `Imported assets: ${importedCount}; skipped identical files: ${skipped}. One recovery point was created for the batch.`));
       setReloadToken((token) => token + 1);
-    } catch (error) {
-      setBatchImportReview({ ...current, busy: false,
-        error: error instanceof Error ? error.message : assetMessage("资产批量导入失败。", "The asset batch import failed.") });
+    } catch (failure) {
+      setBatchImportReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: true, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)], error: null });
     }
   };
 
   const commitMove = async () => {
-    const current = moveReview;
+    const current = reviewSession(workspaceId).moveReview;
     const preview = current?.preview;
-    if (!current || !preview?.canApply) return;
-    setMoveReview({ ...current, busy: true, error: null });
+    if (!current || current.busy || current.unknown || !preview?.canApply) return;
+    assertWorkspace();
+    const requestId = ++reviewRequestSequence;
+    setMoveReview({ ...current, busy: true, error: null, requestId, submittedTargets: [current.targetRelativePath], observedTargets: undefined });
     try {
       const result = await moveAsset(preview.planToken);
       if (result.status !== 'committed') {
-        setMoveReview({ ...current, busy: false,
+        setMoveReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: false, diagnostics: result.diagnostics,
           error: result.diagnostics[0]?.message ?? assetMessage("资产移动未提交。", "The asset move was not committed.") });
         return;
       }
-      setMoveReview(null);
+      setMoveReview(old => old?.requestId === requestId ? null : old);
       setNotice(assetMessage(`已移动到 ${preview.targetRelativePath}；更新 ${preview.referenceCount} 条引用并创建恢复点。`, `Moved to ${preview.targetRelativePath}; updated references: ${preview.referenceCount}. A recovery point was created.`));
       setSelectedId('');
       setReloadToken((token) => token + 1);
-    } catch (error) {
-      setMoveReview({ ...current, busy: false,
-        error: error instanceof Error ? error.message : assetMessage("资产移动失败。", "The asset move failed.") });
+    } catch (failure) {
+      setMoveReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: true, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)], error: null });
     }
   };
 
   const runImportPreview = async (grant: AssetImportSelectionGrant, targetRelativePath: string) => {
-    setImportReview({ grant, targetRelativePath, preview: null, busy: true, error: null });
+    const existing = reviewSession(workspaceId).importReview;
+    if (existing?.busy) return;
+    const requestId = ++reviewRequestSequence;
+    const recovery = existing?.unknown ? existing : {};
+    setImportReview({ ...recovery, grant, targetRelativePath, preview: null, busy: true, error: null, requestId, hidden: false });
     try {
+      if (existing?.unknown) {
+        const projection = await readAssetsForConfirmation();
+        setImportReview(old => old?.requestId !== requestId ? old : { ...old, observedTargets: observeTargets(projection, old.submittedTargets) });
+      }
+      assertWorkspace();
       const preview = await previewAssetImport(grant.id, targetRelativePath);
-      setImportReview({ grant, targetRelativePath, preview, busy: false, error: null });
-    } catch (error) {
-      setImportReview({
-        grant,
-        targetRelativePath,
-        preview: null,
-        busy: false,
-        error: error instanceof Error ? error.message : assetMessage("资产导入预览失败。", "Could not preview the asset import.")
-      });
+      assertWorkspace();
+      if (!preview) throw new OperationFailure([], { zh: '资产导入预览不可用。', en: 'The asset import preview is unavailable.' });
+      setImportReview(old => old?.requestId !== requestId ? old : { ...old, preview, busy: false, unknown: false, error: null });
+    } catch (failure) {
+      setImportReview(old => old?.requestId !== requestId ? old : { ...old, preview: null, busy: false, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)],
+        error: assetMessage('无法读取或预览资产，请查看详情。', 'Could not read or preview the asset. Review the details.') });
     }
   };
 
   const commitImport = async () => {
-    const current = importReview;
+    const current = reviewSession(workspaceId).importReview;
     const preview = current?.preview;
-    if (!current || !preview?.canApply) return;
-    setImportReview({ ...current, busy: true, error: null });
+    if (!current || current.busy || current.unknown || !preview?.canApply) return;
+    assertWorkspace();
+    const requestId = ++reviewRequestSequence;
+    setImportReview({ ...current, busy: true, error: null, requestId, submittedTargets: [current.targetRelativePath], observedTargets: undefined });
     try {
       const result = await importAsset(preview.planToken, preview.conflict === 'REPLACE');
       if (result.status !== 'committed') {
-        setImportReview({ ...current, busy: false,
+        setImportReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: false, diagnostics: result.diagnostics,
           error: result.diagnostics[0]?.message ?? assetMessage("资产导入未提交。", "The asset import was not committed.") });
         return;
       }
-      setImportReview(null);
+      setImportReview(old => old?.requestId === requestId ? null : old);
       setNotice(preview.conflict === 'REPLACE'
         ? assetMessage(`已安全替换 ${preview.targetRelativePath}；已创建恢复点。`, `Safely replaced ${preview.targetRelativePath}. A recovery point was created.`)
         : assetMessage(`已导入 ${preview.targetRelativePath}；已创建恢复点。`, `Imported ${preview.targetRelativePath}. A recovery point was created.`));
       setReloadToken((token) => token + 1);
-    } catch (error) {
-      setImportReview({ ...current, busy: false,
-        error: error instanceof Error ? error.message : assetMessage("资产导入失败。", "The asset import failed.") });
+    } catch (failure) {
+      setImportReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: true, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)], error: null });
     }
   };
 
   const beginImport = async (replacement?: AssetRecord) => {
+    const pending = reviewSession(workspaceId).importReview;
+    if (pending?.busy || pending?.unknown) { setImportReview({ ...pending, hidden: false }); return; }
     try {
       const grant = await assetImportBridge.selectSource();
       if (grant.cancelled) return;
@@ -619,7 +746,16 @@ const WorkspaceAssetBrowser: React.FC = () => {
       </div>
 
       <BlockbenchSetupDialog open={blockbenchSetupOpen} onClose={() => setBlockbenchSetupOpen(false)} />
-      {importReview && (
+      {(importReview?.hidden || batchImportReview?.hidden || moveReview?.hidden) && <section className="asset-import-review-error" role="status" data-testid="asset-pending-recovery">
+        <p>{importReview?.unknown || batchImportReview?.unknown || moveReview?.unknown
+          ? uiText('资产操作结果待确认。打开原计划读取最新内容，页面返回不会再次提交。', 'The asset operation result is unknown. Open its original plan to read the latest state; returning to this page does not submit it again.')
+          : uiText('资产操作仍在进行。打开原计划查看状态。', 'An asset operation is still in progress. Open its original plan to review the status.')}</p>
+        {importReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-import-resume" onClick={() => setImportReview(old => old && { ...old, hidden: false })}>{uiText('继续核对导入', 'Review pending import')}</button>}
+        {batchImportReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-batch-resume" onClick={() => setBatchImportReview(old => old && { ...old, hidden: false })}>{uiText('继续核对批量导入', 'Review pending batch import')}</button>}
+        {moveReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-move-resume" onClick={() => setMoveReview(old => old && { ...old, hidden: false })}>{uiText('继续核对移动', 'Review pending move')}</button>}
+      </section>}
+
+      {importReview && !importReview.hidden && (
         <AssetImportReview
           state={importReview}
           onTargetChange={(targetRelativePath) => setImportReview({
@@ -630,11 +766,12 @@ const WorkspaceAssetBrowser: React.FC = () => {
           })}
           onPreview={() => void runImportPreview(importReview.grant, importReview.targetRelativePath)}
           onCommit={() => void commitImport()}
-          onCancel={() => setImportReview(null)}
+          onCancel={() => closeReview('importReview')}
+          onDiscard={() => closeReview('importReview', true)}
         />
       )}
 
-      {batchImportReview && (
+      {batchImportReview && !batchImportReview.hidden && (
         <AssetBatchImportReview
           state={batchImportReview}
           onTargetChange={(index, targetRelativePath) => {
@@ -646,11 +783,12 @@ const WorkspaceAssetBrowser: React.FC = () => {
             batchImportReview.grants, batchImportReview.targetRelativePaths
           )}
           onCommit={() => void commitBatchImport()}
-          onCancel={() => setBatchImportReview(null)}
+          onCancel={() => closeReview('batchImportReview')}
+          onDiscard={() => closeReview('batchImportReview', true)}
         />
       )}
 
-      {moveReview && (
+      {moveReview && !moveReview.hidden && (
         <AssetMoveReview
           state={moveReview}
           onTargetChange={(targetRelativePath) => setMoveReview({
@@ -661,7 +799,8 @@ const WorkspaceAssetBrowser: React.FC = () => {
           })}
           onPreview={() => void runMovePreview()}
           onCommit={() => void commitMove()}
-          onCancel={() => setMoveReview(null)}
+          onCancel={() => closeReview('moveReview')}
+          onDiscard={() => closeReview('moveReview', true)}
         />
       )}
 
@@ -675,11 +814,13 @@ const AssetBatchImportReview: React.FC<{
   onPreview: () => void;
   onCommit: () => void;
   onCancel: () => void;
-}> = ({ state, onTargetChange, onPreview, onCommit, onCancel }) => {
+  onDiscard: () => void;
+}> = ({ state, onTargetChange, onPreview, onCommit, onCancel, onDiscard }) => {
   const preview = state.preview;
+  const dialogRef = useDialogA11y(true, onCancel);
   return (
     <div className="asset-import-review-backdrop" role="presentation">
-      <section className="asset-import-review" role="dialog" aria-modal="true"
+      <section ref={dialogRef} className="asset-import-review" role="dialog" aria-modal="true"
         aria-label={uiText("资产批量导入预览", "Asset batch import preview")} data-testid="asset-batch-import-review">
         <div className="asset-import-review-heading">
           <div>
@@ -733,17 +874,17 @@ const AssetBatchImportReview: React.FC<{
           <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy}
             data-testid="asset-batch-preview">
             <RefreshCw size={13} aria-hidden="true" />
-            <span>{preview ? uiText("重新预览全部", "Preview all again") : uiText("预览全部", "Preview all")}</span>
+            <span>{state.unknown ? uiText("读取资产并重新预览", "Read assets and preview again") : preview ? uiText("重新预览全部", "Preview all again") : uiText("预览全部", "Preview all")}</span>
           </button>
           <button type="button" className="btn-primary" onClick={onCommit}
-            disabled={state.busy || !preview?.canApply} data-testid="asset-batch-commit">
+            disabled={state.busy || state.unknown || !preview?.canApply} data-testid="asset-batch-commit">
             <PackageOpen size={13} aria-hidden="true" />
             <span>{preview?.requiresReplacementConfirmation ? uiText("确认替换并批量导入", "Confirm replacements and import batch") : uiText("确认批量导入", "Confirm batch import")}</span>
           </button>
           <button type="button" className="btn-secondary" onClick={onCancel} disabled={state.busy}>{uiText("取消", "Cancel")}</button>
         </div>
         {state.busy && <div className="asset-import-review-status" role="status">{uiText("正在校验整个导入批次…", "Validating the import batch…")}</div>}
-        {state.error && <div className="asset-import-review-error" role="alert">{renderAssetMessage(state.error)}</div>}
+        <AssetReviewFeedback state={state} kind="batch" onDiscard={onDiscard} />
       </section>
     </div>
   );
@@ -755,11 +896,13 @@ const AssetMoveReview: React.FC<{
   onPreview: () => void;
   onCommit: () => void;
   onCancel: () => void;
-}> = ({ state, onTargetChange, onPreview, onCommit, onCancel }) => {
+  onDiscard: () => void;
+}> = ({ state, onTargetChange, onPreview, onCommit, onCancel, onDiscard }) => {
   const preview = state.preview;
+  const dialogRef = useDialogA11y(true, onCancel);
   return (
     <div className="asset-import-review-backdrop" role="presentation">
-      <section className="asset-import-review" role="dialog" aria-modal="true"
+      <section ref={dialogRef} className="asset-import-review" role="dialog" aria-modal="true"
         aria-label={uiText("资产重命名或移动预览", "Asset rename or move preview")} data-testid="asset-move-review">
         <div className="asset-import-review-heading">
           <div>
@@ -787,10 +930,10 @@ const AssetMoveReview: React.FC<{
           <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy}
             data-testid="asset-move-preview">
             <RefreshCw size={13} aria-hidden="true" />
-            <span>{preview ? uiText("重新预览", "Preview again") : uiText("预览影响", "Preview impact")}</span>
+            <span>{state.unknown ? uiText("读取资产并重新预览", "Read assets and preview again") : preview ? uiText("重新预览", "Preview again") : uiText("预览影响", "Preview impact")}</span>
           </button>
           <button type="button" className="btn-primary" onClick={onCommit}
-            disabled={state.busy || !preview?.canApply} data-testid="asset-move-commit">
+            disabled={state.busy || state.unknown || !preview?.canApply} data-testid="asset-move-commit">
             <CornerDownRight size={13} aria-hidden="true" />
             <span>{uiText("确认移动并更新引用", "Confirm move and update references")}</span>
           </button>
@@ -798,7 +941,7 @@ const AssetMoveReview: React.FC<{
         </div>
 
         {state.busy && <div className="asset-import-review-status" role="status">{uiText("正在计算引用影响…", "Calculating reference impact…")}</div>}
-        {state.error && <div className="asset-import-review-error" role="alert">{renderAssetMessage(state.error)}</div>}
+        <AssetReviewFeedback state={state} kind="move" onDiscard={onDiscard} />
         {preview && (
           <div className="asset-import-preview-summary" data-testid="asset-move-preview-summary">
             <div><span>{uiText("旧路径", "Old path")}</span><code>{preview.sourceRelativePath}</code></div>
@@ -837,14 +980,16 @@ const AssetImportReview: React.FC<{
   onPreview: () => void;
   onCommit: () => void;
   onCancel: () => void;
-}> = ({ state, onTargetChange, onPreview, onCommit, onCancel }) => {
+  onDiscard: () => void;
+}> = ({ state, onTargetChange, onPreview, onCommit, onCancel, onDiscard }) => {
   const preview = state.preview;
+  const dialogRef = useDialogA11y(true, onCancel);
   const conflictLabel = preview?.conflict === 'REPLACE'
     ? uiText("将替换现有资产", "Will replace existing asset")
     : preview?.conflict === 'IDENTICAL' ? uiText("目标内容已相同", "Target content is identical") : uiText("新建资产", "Create asset");
   return (
     <div className="asset-import-review-backdrop" role="presentation">
-      <section className="asset-import-review" role="dialog" aria-modal="true"
+      <section ref={dialogRef} className="asset-import-review" role="dialog" aria-modal="true"
         aria-label={uiText("资产导入预览", "Asset import preview")} data-testid="asset-import-review">
         <div className="asset-import-review-heading">
           <div>
@@ -872,10 +1017,10 @@ const AssetImportReview: React.FC<{
           <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy}
             data-testid="asset-import-preview">
             <RefreshCw size={13} aria-hidden="true" />
-            <span>{preview ? uiText("重新预览", "Preview again") : uiText("预览导入", "Preview import")}</span>
+            <span>{state.unknown ? uiText("读取资产并重新预览", "Read assets and preview again") : preview ? uiText("重新预览", "Preview again") : uiText("预览导入", "Preview import")}</span>
           </button>
           <button type="button" className="btn-primary" onClick={onCommit}
-            disabled={state.busy || !preview?.canApply} data-testid="asset-import-commit">
+            disabled={state.busy || state.unknown || !preview?.canApply} data-testid="asset-import-commit">
             <Upload size={13} aria-hidden="true" />
             <span>{preview?.conflict === 'REPLACE' ? uiText("确认替换并导入", "Confirm replacement and import") : uiText("确认导入", "Confirm import")}</span>
           </button>
@@ -884,9 +1029,7 @@ const AssetImportReview: React.FC<{
         </div>
 
         {state.busy && <div className="asset-import-review-status" role="status">{uiText("正在校验导入计划…", "Validating the import plan…")}</div>}
-        {state.error && <div className="asset-import-review-error" role="alert" data-testid="asset-import-error">
-          {renderAssetMessage(state.error)}
-        </div>}
+        <div data-testid="asset-import-error"><AssetReviewFeedback state={state} kind="import" onDiscard={onDiscard} /></div>
         {preview && (
           <div className="asset-import-preview-summary" data-testid="asset-import-preview-summary">
             <div><span>{uiText("操作", "Action")}</span><strong data-testid="asset-import-conflict">{conflictLabel}</strong></div>

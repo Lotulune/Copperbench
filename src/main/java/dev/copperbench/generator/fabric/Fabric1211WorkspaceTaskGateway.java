@@ -82,6 +82,10 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 						+ "view-distance=2\nsimulation-distance=2\nmax-players=1\n", java.nio.charset.StandardCharsets.UTF_8);
 			}
 
+			@Override public List<String> archiveTaskNames() {
+				return profile.unobfuscated() ? List.of("jar") : List.of("remapJar", "jar");
+			}
+
 			@Override public List<ValidationIssue> validate(dev.copperbench.core.workspace.WorkspaceState workspace) {
 				return generator.validate(workspace).stream().map(issue -> new ValidationIssue(issue.code(),
 						issue.message(), issue.path(), issue.elementId(), issue.repairValue())).toList();
@@ -90,7 +94,7 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 			@Override public GenerationResult generate(Path targetRoot,
 					dev.copperbench.core.workspace.WorkspaceState workspace) throws Exception {
 				var result = generator.generate(targetRoot, workspace);
-				return new GenerationResult(result.generatorId(), result.modId(), result.generatedPaths());
+				return new GenerationResult(result.generatorId(), result.modId(), result.generatedPaths(), result.sourceElementOwners());
 			}
 		};
 		GradleProcessRunner processAdapter = (root, arguments, timeout, output) -> {

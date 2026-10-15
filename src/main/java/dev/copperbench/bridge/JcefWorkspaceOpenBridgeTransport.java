@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -45,16 +46,18 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 	private final WebView webView;
 	private final Consumer<File> openAction;
 	private final Path workspaceRoot;
+	private final UUID workspaceId;
 	private final CefBrowser expectedBrowser;
 	private final CefMessageRouter router;
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
-	private JcefWorkspaceOpenBridgeTransport(WebView webView, Consumer<File> openAction, Path workspaceRoot) {
+	private JcefWorkspaceOpenBridgeTransport(WebView webView, Consumer<File> openAction, Path workspaceRoot, UUID workspaceId) {
 		this.webView = Objects.requireNonNull(webView, "webView must not be null");
 		this.openAction = openAction;
 		this.workspaceRoot = workspaceRoot == null ? null : workspaceRoot.toAbsolutePath().normalize();
+		this.workspaceId = workspaceId;
 		this.expectedBrowser = webView.getBrowser();
 		this.router = webView.getRouter();
 		this.loadStartListener = this::installHost;
@@ -71,12 +74,17 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 
 	public static JcefWorkspaceOpenBridgeTransport attach(WebView webView, Consumer<File> openAction,
 			Path workspaceRoot) {
-		return new JcefWorkspaceOpenBridgeTransport(webView, openAction, workspaceRoot);
+		return attach(webView, openAction, workspaceRoot, null);
+	}
+
+	public static JcefWorkspaceOpenBridgeTransport attach(WebView webView, Consumer<File> openAction,
+			Path workspaceRoot, UUID workspaceId) {
+		return new JcefWorkspaceOpenBridgeTransport(webView, openAction, workspaceRoot, workspaceId);
 	}
 
 	private void installHost() {
 		if (!closed.get())
-			webView.executeScriptAsync(generateBootstrapScript(openAction != null, workspaceRoot != null));
+			webView.executeScriptAsync(generateBootstrapScript(openAction != null, workspaceRoot != null, workspaceRoot != null && workspaceId != null));
 	}
 
 	@Override public boolean onQuery(CefBrowser browser, CefFrame frame, long queryId, String request,
@@ -98,7 +106,15 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 		try {
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
 			if (payload.has("operation")) {
-				if (!"open_build_folder".equals(requiredString(payload, "operation")) || payload.size() != 1)
+				String operation = requiredString(payload, "operation");
+				if ("open_verified_export_folder".equals(operation) && payload.size() == 2) {
+					String taskId = requiredString(payload, "taskId");
+					UUID id = UUID.fromString(taskId);
+					if (!id.toString().equalsIgnoreCase(taskId)) throw new IllegalArgumentException("Invalid export task UUID");
+					openVerifiedExportFolder(id, callback);
+					return true;
+				}
+				if (!"open_build_folder".equals(operation) || payload.size() != 1)
 					throw new IllegalArgumentException("Unknown workspace open operation");
 				openBuildFolder(callback);
 				return true;
@@ -142,7 +158,23 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 			callback.failure(404, "Build output directory does not exist. Build the workspace first.");
 			return;
 		}
-		Thread.ofVirtual().name("Copperbench-Open-Build-Folder").start(() -> {
+		openFolder(directory, callback);
+	}
+
+	private void openVerifiedExportFolder(UUID taskId, CefQueryCallback callback) {
+		if (workspaceRoot == null || workspaceId == null) {
+			callback.failure(503, "Verified export folder is not configured"); return;
+		}
+		try {
+			Path directory = dev.copperbench.generator.VerifiedArtifactExporter.exportDirectory(workspaceRoot, workspaceId, taskId);
+			openFolder(directory, callback);
+		} catch (java.io.IOException exception) {
+			callback.failure(404, exception.getMessage());
+		}
+	}
+
+	private void openFolder(Path directory, CefQueryCallback callback) {
+		Thread.ofVirtual().name("Copperbench-Open-Output-Folder").start(() -> {
 			try {
 				if (!java.awt.Desktop.isDesktopSupported()
 						|| !java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN))
@@ -150,22 +182,30 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 				java.awt.Desktop.getDesktop().open(directory.toFile());
 				callback.success("{\"status\":\"opened\"}");
 			} catch (Exception exception) {
-				LOG.warn("Failed to open build output directory {}", directory, exception);
-				callback.failure(500, "Could not open build output directory");
+				LOG.warn("Failed to open output directory {}", directory, exception);
+				callback.failure(500, "Could not open output directory");
 			}
 		});
 	}
 
 	public static String generateBootstrapScript() {
-		return generateBootstrapScript(true, false);
+		return generateBootstrapScript(true, false, false);
 	}
 
-	private static String generateBootstrapScript(boolean available, boolean buildFolderAvailable) {
+	private static String generateBootstrapScript(boolean available, boolean buildFolderAvailable, boolean verifiedExportFolderAvailable) {
 		return """
 				(function() {
 				    window.__COPPERBENCH_WORKSPACE_OPEN_HOST__ = {
 				        available: %s,
 				        buildFolderAvailable: %s,
+				        verifiedExportFolderAvailable: %s,
+				        openVerifiedExportFolder: function(taskId) {
+				            return new Promise(function(resolve, reject) {
+				                if (typeof window.cefQuery !== 'function') { reject(new Error('JCEF workspace open transport is not available')); return; }
+				                window.cefQuery({ request: %s + JSON.stringify({ operation: 'open_verified_export_folder', taskId: taskId }), persistent: false,
+				                    onSuccess: function() { resolve(); }, onFailure: function(code, message) { var error = new Error(message); error.code = code; reject(error); } });
+				            });
+				        },
 				        openBuildFolder: function() {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') {
@@ -202,7 +242,7 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 				        }
 				    };
 				})();
-				""".formatted(available, buildFolderAvailable, JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
+				""".formatted(available, buildFolderAvailable, verifiedExportFolderAvailable, JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
 	}
 
 	private static String requiredString(JsonObject payload, String name) {

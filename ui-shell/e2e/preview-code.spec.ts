@@ -147,7 +147,9 @@ test(`a stale source rejection retains the manual code draft and does not retry 
   await inspector.getByTestId('field-code').fill(draft);
   await page.evaluate(() => { (window as any).rejectCodeSave = true; });
   await inspector.getByTestId('inspector-save-btn').click();
-  await expect(inspector.getByTestId('validation-alert').getByText(/source file changed outside Copperbench/i)).toBeVisible();
+  const validation = inspector.getByTestId('validation-alert');
+  await expect(validation.locator(':scope > div').filter({ hasText: /source file changed outside Copperbench/i })).toBeVisible();
+  await expect(validation.locator('.recovery-diagnostic-details pre')).toContainText('SOURCE_CONTENT_CONFLICT');
   await expect(inspector.getByTestId('field-code')).toHaveValue(draft);
   const count = () => page.evaluate(() => (window as any).previewCodeRequests.filter((r: any) => r.request?.command === 'update_mod_element').length);
   expect(await count()).toBe(1);

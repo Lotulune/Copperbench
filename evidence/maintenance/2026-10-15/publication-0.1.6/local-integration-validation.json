@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "local-source-integration-checks",
+  "recordedAt": "2026-10-15T12:55:08.090643+00:00",
+  "integrationBaseCommit": "bc2a512ca07b8c38fe1ff3140b3954563925bc6a",
+  "checks": [
+    {
+      "name": "ui-unit-1",
+      "status": "passed",
+      "tests": 68,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:37.8200217Z",
+      "completedAt": "2026-10-15T12:28:41.7341310Z",
+      "receiptSha256": "3d00b1a799afc4237a7327e09fcae0c7cd2abfaa990cef09d532933607e0806f",
+      "logSha256": "d41aa70bca5274b1e20439297867ecc9e8d5dd615831537aa251c060f2b7e07e"
+    },
+    {
+      "name": "ui-contract-1",
+      "status": "passed",
+      "tests": 50,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:41.8178325Z",
+      "completedAt": "2026-10-15T12:28:52.3843220Z",
+      "receiptSha256": "6643f62cfce147d472729885f91d61e81914e8967557df0487edd4e4c067941e",
+      "logSha256": "b53623286a50d6dee7207f0623ae531b473510733e15e0038d5902ce5128c424"
+    },
+    {
+      "name": "typescript-sdk-1",
+      "status": "passed",
+      "tests": 33,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:52.4053071Z",
+      "completedAt": "2026-10-15T12:28:55.6705271Z",
+      "receiptSha256": "7bd0abc6834ded41aaa4284e84a8ad54797ead8a013f9e6af6a52ad20ffadfe5",
+      "logSha256": "b89f597af5eec67c12f4fe81c1c0e9d8d1fb7020435c449ab748865ea779f575"
+    },
+    {
+      "name": "tooling-node-1",
+      "status": "passed",
+      "tests": 32,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:37.8335351Z",
+      "completedAt": "2026-10-15T12:28:48.2640102Z",
+      "receiptSha256": "f6e29e078c5dd870569b5bd48bc6dc98d793ef79998b059374673a8d39013f71",
+      "logSha256": "cd0e25e2a31e2ff50c18ff1a8ec9707ed8a79878a2c5a94ae93a491c63dee35f"
+    },
+    {
+      "name": "contributor-python-1",
+      "status": "passed",
+      "tests": 17,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:48.3343739Z",
+      "completedAt": "2026-10-15T12:28:48.8764162Z",
+      "receiptSha256": "3570cbe9061bb7ba0eb71bd00c7644dbcce70d09387650d10aa845b99d56cba7",
+      "logSha256": "8974e26a09d681f2aebfa6648b02fe56275c2c7ed134dd9ce49822a7b6bbc999"
+    },
+    {
+      "name": "python-sdk-2",
+      "status": "passed",
+      "tests": 141,
+      "sourceSha256": "41575d3906477dda382cb26ac4e64666cb36ace2ecddaff23ff24d133c9060e7",
+      "startedAt": "2026-10-15T12:39:13.4363405Z",
+      "completedAt": "2026-10-15T12:39:27.2491278Z",
+      "receiptSha256": "b326f18495e1941aa07d161d938cd72949234863d5bf08e9bd502854e6d828f1",
+      "logSha256": "6d4a14ae35450c0b740bb13f44408bbaf96c54467d790ab5e9b298e0f6df7267"
+    },
+    {
+      "name": "markdown-links-1",
+      "status": "passed",
+      "tests": null,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:48.8917342Z",
+      "completedAt": "2026-10-15T12:28:54.7731644Z",
+      "receiptSha256": "04743913fa44d2f0f472e722e54dd3fa903e82a5abda8382b393d0866633ec94",
+      "logSha256": "4316b98b75b29f31c705481fe5cc6dcb9a15a4c6f9e59ff6f999429d0c2a7021"
+    },
+    {
+      "name": "product-status-1",
+      "status": "passed",
+      "tests": null,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "startedAt": "2026-10-15T12:28:54.7866394Z",
+      "completedAt": "2026-10-15T12:28:55.4313129Z",
+      "receiptSha256": "32f95fb6f2d6040713401cbeb2210a85ebb3816c3bd68b541e00ae35f65ff9d6",
+      "logSha256": "69ef575ffdce7ea407b285eee8a564f4fb3a937706c2d91fa01d7841cfa68ce9"
+    },
+    {
+      "name": "packaging-configuration-1",
+      "status": "passed",
+      "tests": null,
+      "sourceSha256": "e13fb595d071c5e9a7af7589fe202724d6ef151df5cdaae292e4cd32dcff8817",
+      "startedAt": "2026-10-15T12:51:36.9205961Z",
+      "completedAt": "2026-10-15T12:51:57.9379176Z",
+      "receiptSha256": "79a5ba614aacca426b8c9f836d2752ce91f02b0a6f367ab7a2cf03e451840310",
+      "logSha256": "e18a054de50b7f126feac758771b83e06da75de88a52942f2fbf443099d26248"
+    },
+    {
+      "name": "headless-browser",
+      "status": "passed",
+      "tests": 105,
+      "sourceSha256": "7b977b0a958c25a8df4b78cb873d1a6d73642477a67b89827b3cb297e692403d",
+      "reporterSha256": "cc1aba0ff78bb5553ae4daffceee265d0559f4a8440ea5f75a35ea39af5bf814",
+      "scope": "Ten affected specs, Chromium headless; includes responsive viewport and26.3 preview-export cases."
+    },
+    {
+      "name": "java-and-production-build",
+      "status": "passed",
+      "tests": 111,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 110,
+      "sourceSha256": "41575d3906477dda382cb26ac4e64666cb36ace2ecddaff23ff24d133c9060e7",
+      "suites": [
+        {
+          "name": "dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceStateMapperTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.core.WorkspaceApplicationServiceTest",
+          "tests": 27,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 1
+        },
+        {
+          "name": "dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest",
+          "tests": 22,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.generator.LoaderRoutingSourcePreviewTest",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.generator.WorkspaceTaskInputIdentityTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "dev.copperbench.mcp.McpHttpServerTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "receiptSha256": "03907920bb842a25fdf7d0a666dfce279352f963752e6c104609b4064d4ad2ce",
+      "scope": "Selected Java suites, production UI build, application JAR and Javadoc.",
+      "skipReason": "Existing DataPack real-build opt-in case; flag not enabled."
+    }
+  ],
+  "compiledApplicationJar": {
+    "version": "0.1.6",
+    "bytes": 8050993,
+    "sha256": "91593f4e23871df7a5c85b45ae8eabc3bf333b35417bc22b8c74ccc8c987654f",
+    "published": false
+  },
+  "retainedFailures": [
+    {
+      "check": "java-build-1",
+      "reason": "Unused NewWorkspaceView state binding blocked TypeScript production compilation; removed without disabling the compiler check.",
+      "logSha256": "2b6ed819c4d3d8928f7c9267047a17c2c5bb76f4a20f9b15aa1d713f160149fc"
+    },
+    {
+      "check": "python-sdk-1",
+      "tests": 140,
+      "failures": 2,
+      "errors": 2,
+      "reason": "Merged strict task receipts, abort seam and current conflict alias exposed outdated fixtures; corrected fixtures and added malformed-receipt coverage. Production validation and no-replay behavior retained.",
+      "logSha256": "3ed885b6309506c56eeae0e3fc7f3fc630b501c55399df8c45d94b46770b9a1b"
+    }
+  ],
+  "boundaries": [
+    "Each check retains its actual source snapshot; unrelated successful checks were not rerun after test-fixture or unused-binding corrections.",
+    "The final small packaging change adds existing Markdown routes; its Gradle configuration was checked. Final distribution content will be checked against immutable CI assets.",
+    "No new local native/JCEF, graphical installer, Minecraft player or same-world acceptance was performed.",
+    "Historical C4 and Linux run3 records keep their old source/artifact identities.",
+    "Protected PR/main CI and release/candidate provenance are separate from this local preflight."
+  ]
+}

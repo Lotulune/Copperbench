@@ -2,10 +2,12 @@
 
 ## 当前交付基线
 
-当前稳定版为 Windows `v0.1.4`、Linux `v0.1.4-linux-stable`，下载入口见[当前下载](../releases/current.md)。
+当前稳定版为 Windows 0.1.6 与 Linux 0.1.6，公开状态和资产证明见[当前下载](../releases/current.md)及[发布记录](maintenance-release-0.1.6.md)。下方旧版本记录保留原来源与验收范围。
 
 | 内容 | 入口 |
 | --- | --- |
+| 0.1.6 优化整合与发布 | [准备记录](maintenance-release-0.1.6.md) · [历史优化候选与 13 项补修](optimization-2026-10-15.md) |
+| Windows／Linux 0.1.5 发布与验证 | [公开发布记录](maintenance-release-0.1.5.md) · [Linux 固定候选范围](maintenance-linux-0.1.5.md) |
 | 首次成功、输入诊断与依赖告警（源码） | [原始检查](first-success-2026-10-14.md) · [最新主线整合](first-success-integration-2026-10-14.md) |
 | Windows 0.1.4 发布与验证 | [发布记录](product-shell-release-0.1.4.md) |
 | Linux 0.1.4 发布与验证 | [发布记录](product-shell-linux-publication-0.1.4.md)、[本次验收范围](product-shell-linux-release-0.1.4.md) |

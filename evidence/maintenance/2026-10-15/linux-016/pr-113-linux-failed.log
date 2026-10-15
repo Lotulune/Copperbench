@@ -1,0 +1,123 @@
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	﻿2026-10-15T13:03:27.7470572Z ##[group]Run if [ "$P263_LOADER" = "none" ]; then
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7471032Z ^[[36;1mif [ "$P263_LOADER" = "none" ]; then^[[0m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7471453Z ^[[36;1m  bash ./gradlew --no-daemon exportLinuxCandidate^[[0m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7471833Z ^[[36;1melse^[[0m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7472243Z ^[[36;1m  python3 tools/candidate-evidence/package_candidate.py --platform ubuntu \^[[0m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7472850Z ^[[36;1m    --loader "$P263_LOADER" --level "$P263_LEVEL" --output build/p263-candidate^[[0m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7473296Z ^[[36;1mfi^[[0m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7543722Z shell: /usr/bin/bash -e {0}
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7544054Z env:
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7544430Z   JAVA_HOME: /opt/hostedtoolcache/Java_JetBrains_jdk+jcef/25.0.2-432.48/x64
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7545010Z   JAVA_HOME_25_X64: /opt/hostedtoolcache/Java_JetBrains_jdk+jcef/25.0.2-432.48/x64
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7545859Z   MAVEN_ARGS: -ntp
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7546167Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7546539Z   GRADLE_USER_HOME: /home/runner/.gradle
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7547009Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7547515Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7548048Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7548417Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7548744Z   P263_LOADER: none
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7548996Z   P263_LEVEL: G1
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:27.7549250Z ##[endgroup]
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:28.4719089Z To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:29.5712508Z Daemon will be stopped at the end of the build 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2702153Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2727248Z > Configure project :
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2755332Z Directory '/home/runner/work/Copperbench/Copperbench/jdk/jbr25_linux_64' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2758509Z Directory '/home/runner/work/Copperbench/Copperbench/jdk/jdk21_win_64' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2761298Z Directory '/home/runner/work/Copperbench/Copperbench/jdk/jbr25_mac_x64/Contents/Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2764124Z Directory '/home/runner/work/Copperbench/Copperbench/jdk/jbr25_mac_aarch64/Contents/Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:34.2767076Z Directory '/home/runner/work/Copperbench/Copperbench/jdk/jbr25_win_64' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:37.6695567Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:37.6696439Z > Task :downloadJDK21Linux64
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:37.6698449Z Download https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12_8.tar.gz
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:42.8693709Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:42.8694669Z > Task :downloadJDKLinux64
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:42.8695795Z Download https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-25.0.2-linux-x64-b329.117.tar.gz
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:50.5689161Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:50.5690214Z > Task :cleanupPlugins
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:51.1690039Z > Task :export_plugin_generator-1201
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:51.6691985Z > Task :export_plugin_generator-1211
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:51.9690072Z > Task :export_plugin_generator-261x
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:52.1690180Z > Task :export_plugin_generator-262
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:52.1691564Z > Task :export_plugin_generator-addon-261x
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:52.3689813Z > Task :export_plugin_generator-fabric-2612
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:52.5690345Z > Task :export_plugin_generator-fabric-262
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:52.5691430Z > Task :export_plugin_generator-fabric-263
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:52.5693907Z > Task :export_plugin_generator-neoforge-263
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:53.4701191Z > Task :export_plugin_mcreator-core
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:53.4701976Z > Task :export_plugin_mcreator-link
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:55.4697226Z > Task :export_plugin_mcreator-localization
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:55.6690204Z > Task :export_plugin_mcreator-themes
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:55.6691312Z > Task :exportPlugins
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:55.7697093Z > Task :compileGradleBridgeJava UP-TO-DATE
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:55.7698031Z > Task :processGradleBridgeResources NO-SOURCE
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:55.7706488Z > Task :gradleBridgeClasses UP-TO-DATE
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:56.0690223Z > Task :compileJava UP-TO-DATE
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0702906Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0704191Z > Task :buildUiShell
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0704731Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0705206Z > @mod-creator/ui-shell@0.1.6 build
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0707144Z > npm run check:i18n && tsc && node scripts/build-dependency-evidence.mjs
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0707861Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0708042Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0708517Z > @mod-creator/ui-shell@0.1.6 check:i18n
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0709267Z > node scripts/check-i18n.mjs
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0709747Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0710445Z Chinese localization gate passed: 424/424 referenced keys translated.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:03:58.0711827Z English localization gate passed: 1746 messages; source coverage and placeholders verified.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:06.4691562Z ^[[36mvite v6.4.3 ^[[32mbuilding for production...^[[36m^[[39m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:06.5689929Z transforming...
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.1694318Z ^[[32m✓^[[39m 1966 modules transformed.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.4696786Z rendering chunks...
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7689179Z computing gzip size...
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7697560Z ^[[2mdist/^[[22m^[[32mindex.html                               ^[[39m^[[1m^[[2m    1.17 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.64 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7699465Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32micon-1wFYZ4cS.png                 ^[[39m^[[1m^[[2m   83.02 kB^[[22m^[[1m^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7701235Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-x1eZASht.css                ^[[39m^[[1m^[[2m  155.29 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  25.61 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7703396Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mcode-xml-DakowrlQ.js              ^[[39m^[[1m^[[2m    0.38 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.28 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7705261Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mEditorRecoveryNotice-DR870TIU.js  ^[[39m^[[1m^[[2m    1.04 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.70 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7712345Z ^[[33m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7712892Z (!) Some chunks are larger than 500 kB after minification. Consider:
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7713525Z - Using dynamic import() to code-split the application
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7714488Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7719621Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7721311Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mlayoutNumericDrafts-BMsOSfUD.js   ^[[39m^[[1m^[[2m    1.10 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.57 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7722553Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mFunctionWorkbench-CsJzN0nC.js     ^[[39m^[[1m^[[2m   21.73 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   7.03 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7723731Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mGuiWorkbench-CPP2ImtI.js          ^[[39m^[[1m^[[2m   21.78 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   7.51 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7724890Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mOverlayWorkbench-C2K3cyEd.js      ^[[39m^[[1m^[[2m   24.12 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   7.53 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7726421Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mAdvancementWorkbench-u9bFQ7ly.js  ^[[39m^[[1m^[[2m   25.96 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   7.75 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7727609Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mLootTableWorkbench-C2JpwuDv.js    ^[[39m^[[1m^[[2m   26.94 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   7.64 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7728766Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mProcedureWorkbench-DxOuHlV2.js    ^[[39m^[[1m^[[33m  902.60 kB^[[39m^[[22m^[[2m │ gzip: 236.75 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7730364Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-iIswFO17.js                 ^[[39m^[[1m^[[33m1,020.51 kB^[[39m^[[22m^[[2m │ gzip: 303.63 kB^[[22m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.7731089Z ^[[32m✓ built in 5.28s^[[39m
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.9688172Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.9689298Z > Task :processResources
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.9689840Z > Task :classes
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:11.9690228Z > Task :localIpcAgentJar UP-TO-DATE
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:12.5689065Z > Task :jar
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:14.5688976Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:14.5689766Z > Task :prepareLinuxGradleDistPool
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:14.5690692Z Download https://services.gradle.org/distributions/gradle-9.7.0-bin.zip
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:15.5689919Z Download https://services.gradle.org/distributions/gradle-9.6.1-bin.zip
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:18.2689525Z Download https://services.gradle.org/distributions/gradle-9.6.0-bin.zip
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:20.8689181Z Download https://services.gradle.org/distributions/gradle-8.8-bin.zip
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:24.3688963Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:24.3691354Z > Task :writeLinuxCandidateManifest
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.6692996Z > Task :exportLinux64 FAILED
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7689382Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1792069411411.json
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7690080Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7690717Z FAILURE: Build failed with an exception.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7704671Z 25 actionable tasks: 22 executed, 3 up-to-date
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7716197Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7716611Z * What went wrong:
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7717514Z Execution failed for task ':exportLinux64' (registered in script 'platform/linux/linux.gradle').
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7718990Z > Entry sdk/typescript/copperbench.ts is a duplicate but no duplicate handling strategy has been set. Please refer to https://docs.gradle.org/9.6.0/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy for details.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7720107Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7720219Z * Try:
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7720598Z > Run with --stacktrace option to get the stack trace.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7721116Z > Run with --info or --debug option to get more log output.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7721711Z > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7722246Z > Get more help at https://help.gradle.org.
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7722487Z 
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.7722619Z BUILD FAILED in 1m 4s
+Ubuntu 24.04 package candidate smoke	Build portable and deb candidates	2026-10-15T13:04:32.9378988Z ##[error]Process completed with exit code 1.

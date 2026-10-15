@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Grid2X2, Minus, Plus, RotateCcw } from 'lucide-react';
-import { getAssetPreview, renderAssetPreviewFailure } from '../bridge/assetPreviewBridge';
+import { getAssetPreview } from '../bridge/assetPreviewBridge';
+import { operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
+import { DiagnosticDetails } from './DiagnosticDetails';
 import { uiText, useUiLocale } from '../i18n';
 import type { AssetRecord } from '../types/assets';
 import type { AssetPreviewImage, AssetPreviewProjection } from '../types/assetPreview';
@@ -128,19 +130,21 @@ function ModelPreview({ preview }: { preview: AssetPreviewProjection }) {
 export function AssetPreview({ workspaceId, asset }: { workspaceId?: string; asset: AssetRecord }) {
   useUiLocale();
   const [preview, setPreview] = useState<AssetPreviewProjection | null>(null);
-  const [error, setError] = useState<{ failure: unknown } | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [reload, setReload] = useState(0);
   useEffect(() => {
     let cancelled = false;
     setPreview(null); setError(null);
     if (!workspaceId || !asset.sha256) return;
     void getAssetPreview(workspaceId, asset.id, asset.sha256).then(result => { if (!cancelled) setPreview(result); })
-      .catch(failure => { if (!cancelled) setError({ failure }); });
+      .catch(failure => { if (!cancelled) setError(failure); });
     return () => { cancelled = true; };
   }, [workspaceId, asset.id, asset.sha256, reload]);
   return <section className="asset-content-preview" aria-label={uiText('资产预览', 'Asset preview')} data-testid="asset-content-preview">
     {!workspaceId || !asset.sha256 ? <p className="asset-preview-note">{uiText('尚未取得资产内容。', 'Asset content is not available.')}</p>
-      : error ? <div className="asset-preview-error" role="alert"><p>{renderAssetPreviewFailure(error.failure)}</p><button type="button" onClick={() => setReload(value => value + 1)}>{uiText('重试预览', 'Retry preview')}</button></div>
+      : error ? <div className="asset-preview-error" role="alert"><p>{operationFailureText(error)}</p>
+        <DiagnosticDetails diagnostics={operationDiagnostics(error)} />
+        <button type="button" onClick={() => setReload(value => value + 1)}>{uiText('重试预览', 'Retry preview')}</button></div>
         : !preview ? <p className="asset-preview-note" role="status">{uiText('正在读取资产…', 'Loading asset…')}</p>
           : preview.kind === 'image' && preview.image ? <ImagePreview key={preview.sha256} image={preview.image} />
             : preview.kind === 'model_json' ? <ModelPreview key={preview.sha256} preview={preview} />

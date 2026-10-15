@@ -1,6 +1,6 @@
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ArrowLeft,
   Gift,
@@ -16,8 +16,13 @@ import {
   Layers
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementSummary, FieldChange } from '../types/contract';
-import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
+import { ModElementSummary, FieldChange, ModElementEditorProjection } from '../types/contract';
+import { uiText, uiMessage, diagnosticMessages, renderUiMessage, useUiLocale, type UiMessage } from '../i18n';
+import { numericDraftValue } from '../hooks/editorFieldChanges';
+import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadToken, rebaseEditor,
+  specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
+import { EditorRecoveryNotice } from './EditorRecoveryNotice';
+import { confirmEditorRead } from '../bridge/editorRecovery';
 
 interface LootTableWorkbenchProps {
   element: ModElementSummary;
@@ -108,58 +113,86 @@ function createDefaultPool(name = tr("战利品池 1")): LootPool {
   };
 }
 
-export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element, onClose }) => {
-  const { updateModElement, getModElementEditor } = useWorkbench();
+interface LootData { lootType: string; pools: LootPool[]; numericDrafts: Record<string, string> }
+const initialLoot = (): LootData => ({ lootType: 'Block', pools: [createDefaultPool()], numericDrafts: {} });
+function lootData(editor: ModElementEditorProjection): LootData {
+  const allFields = editor.sections.flatMap(section => section.fields);
+  const typeField = allFields.find(field => field.path === '/type' || field.path === '/fields/type');
+  const poolsField = allFields.find(field => field.path === '/pools' || field.path === '/fields/pools');
+  const pools = Array.isArray(poolsField?.value) ? (poolsField.value as Array<Record<string, unknown>>).map((pool, index) => ({
+    ...pool, id: typeof pool.id === 'string' ? pool.id : `pool_${index + 1}`,
+    name: typeof pool.name === 'string' ? pool.name : `Pool ${index + 1}`,
+    minrolls: typeof pool.minrolls === 'number' ? pool.minrolls : typeof pool.minRolls === 'number' ? pool.minRolls : 1,
+    maxrolls: typeof pool.maxrolls === 'number' ? pool.maxrolls : typeof pool.maxRolls === 'number' ? pool.maxRolls : 1,
+    hasbonusrolls: typeof pool.hasbonusrolls === 'boolean' ? pool.hasbonusrolls : pool.hasBonusRolls === true,
+    minbonusrolls: typeof pool.minbonusrolls === 'number' ? pool.minbonusrolls : typeof pool.minBonusRolls === 'number' ? pool.minBonusRolls : 0,
+    maxbonusrolls: typeof pool.maxbonusrolls === 'number' ? pool.maxbonusrolls : typeof pool.maxBonusRolls === 'number' ? pool.maxBonusRolls : 0,
+    conditions: Array.isArray(pool.conditions) ? pool.conditions : [], entries: Array.isArray(pool.entries) ? pool.entries : []
+  })) as LootPool[] : [];
+  return { lootType: typeof typeField?.value === 'string' ? typeField.value : 'Block', pools, numericDrafts: {} };
+}
+export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = props => {
+  const { state } = useWorkbench();
+  const key = specializedEditorKey(state.workbench?.workspace.id ?? '', props.element.id, 'loot');
+  return <LootEditor key={key} sessionKey={key} {...props} />;
+};
+const LootEditor: React.FC<LootTableWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
+  const { updateModElement, getModElementEditor, refreshWorkspace, state } = useWorkbench();
+  const current = useSpecializedEditorSession(sessionKey, initialLoot);
+  const { lootType, pools, numericDrafts } = current.data;
+  const { saving: isSaving, dirty: isDirty, error: message } = current;
+  const changeSession = (patch: Partial<typeof current>) => updateSpecializedSession(sessionKey, initialLoot, old => ({ ...old, ...patch }));
+  const setLootType = (lootType: string) => updateSpecializedSession(sessionKey, initialLoot, old => ({ ...old, data: { ...old.data, lootType }, dirty: true }));
+  const setPools = (change: React.SetStateAction<LootPool[]>) => updateSpecializedSession(sessionKey, initialLoot, old => ({ ...old,
+    data: { ...old.data, pools: typeof change === 'function' ? change(old.data.pools) : change }, dirty: true }));
+  const setIsSaving = (saving: boolean) => changeSession({ saving });
+  const setIsDirty = (dirty: boolean) => changeSession({ dirty });
+  const setMessage = (error: UiMessage | null) => changeSession({ error });
+  const actions = useRef({ getModElementEditor, refreshWorkspace });
+  actions.current = { getModElementEditor, refreshWorkspace };
+  const locale = useUiLocale();
+  const numericKey = (field: string, entryId?: string) => JSON.stringify([pools[selectedPoolIndex]?.id, entryId ?? null, field]);
+  const editNumber = (key: string, value: string, commit: (value: number) => void) => {
+    updateSpecializedSession(sessionKey, initialLoot, old => ({ ...old,
+      data: { ...old.data, numericDrafts: { ...old.data.numericDrafts, [key]: value } }, dirty: true }));
+    const number = numericDraftValue(value);
+    if (number !== undefined) commit(number);
+  };
 
-  const [lootType, setLootType] = useState<string>('Block');
-  const [pools, setPools] = useState<LootPool[]>([createDefaultPool()]);
   const [selectedPoolIndex, setSelectedPoolIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'designer' | 'json'>('designer');
-  const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [message, setMessage] = useState<UiMessage | null>(null);
-  const [isDirty, setIsDirty] = useState<boolean>(false);
 
-  // Load existing data if projection provides it
   useEffect(() => {
-    let cancelled = false;
-    getModElementEditor(element.id).then((projection) => {
-      if (cancelled || !projection) return;
-      const allFields = projection.sections.flatMap((s) => s.fields);
-      const typeField = allFields.find((f) => f.path === '/type' || f.path === '/fields/type');
-      const poolsField = allFields.find((f) => f.path === '/pools' || f.path === '/fields/pools');
-
-      if (typeField && typeof typeField.value === 'string') {
-        setLootType(typeField.value);
-      }
-      if (poolsField && Array.isArray(poolsField.value) && poolsField.value.length > 0) {
-        const normalized = (poolsField.value as Array<Record<string, unknown>>).map((p, idx) => ({
-          id: typeof p.id === 'string' ? p.id : `pool_${idx + 1}`,
-          name: typeof p.name === 'string' ? p.name : tr("战利品池 {0}", [idx + 1]),
-          minrolls: typeof p.minrolls === 'number' ? p.minrolls : (typeof p.minRolls === 'number' ? p.minRolls : 1),
-          maxrolls: typeof p.maxrolls === 'number' ? p.maxrolls : (typeof p.maxRolls === 'number' ? p.maxRolls : 1),
-          hasbonusrolls: typeof p.hasbonusrolls === 'boolean' ? p.hasbonusrolls : (typeof p.hasBonusRolls === 'boolean' ? p.hasBonusRolls : false),
-          minbonusrolls: typeof p.minbonusrolls === 'number' ? p.minbonusrolls : (typeof p.minBonusRolls === 'number' ? p.minBonusRolls : 0),
-          maxbonusrolls: typeof p.maxbonusrolls === 'number' ? p.maxbonusrolls : (typeof p.maxBonusRolls === 'number' ? p.maxBonusRolls : 0),
-          conditions: Array.isArray(p.conditions) ? (p.conditions as Array<{ type: string; chance?: number }>) : [],
-          entries: Array.isArray(p.entries) ? (p.entries as LootEntry[]) : []
-        }));
-        setPools(normalized as LootPool[]);
-      }
-      setIsDirty(false);
+    const existing = getSpecializedSession(sessionKey, initialLoot);
+    if (existing.dirty || existing.saving || existing.loading || existing.saveUnknown) return;
+    const readToken = nextSpecializedReadToken();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    changeSession({ loading: true, readToken });
+    void actions.current.getModElementEditor(element.id).then(editor => {
+      if (!editor || editor.element.id !== element.id) throw new Error('Loot editor projection unavailable');
+      updateSpecializedSession(sessionKey, initialLoot, old => old.readToken !== readToken ? old
+        : { ...old, editor, data: old.dirty ? old.data : lootData(editor), revision, loading: false, error: null });
     }).catch(() => {
-      // Keep defaults
+      updateSpecializedSession(sessionKey, initialLoot, old => old.readToken !== readToken ? old
+        : { ...old, loading: false, error: uiMessage('无法加载战利品表。请返回后重试，原草稿已保留。', 'Could not load the loot table. Return and try again; your draft is preserved.') });
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [element.id, getModElementEditor]);
-
+  }, [sessionKey, element.id, element.updatedAt]);
   const selectedPool = pools[selectedPoolIndex] ?? pools[0];
 
   // Validation rules
   const diagnostics = useMemo(() => {
     const diags: string[] = [];
+    for (const [key, text] of Object.entries(numericDrafts)) {
+      const [poolId, entryId, field] = JSON.parse(key) as [string, string | null, string];
+      const pool = pools.find(pool => pool.id === poolId);
+      if (!pool || entryId && !pool.entries.some(entry => entry.id === entryId)) continue;
+      const number = numericDraftValue(text);
+      const min = ['weight', 'minCount', 'maxCount'].includes(field) ? 1 : 0;
+      if (number === undefined || !Number.isInteger(number) || number < min) {
+        diags.push(uiText(`请输入有效整数：${pool.name} / ${field}`, `Enter a valid whole number: ${pool.name} / ${field}`));
+      }
+    }
     if (pools.length === 0) {
       diags.push(tr("战利品表必须包含至少一个战利品池。"));
     }
@@ -186,7 +219,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
       });
     });
     return diags;
-  }, [pools]);
+  }, [pools, numericDrafts, locale]);
 
   const updatePool = useCallback((index: number, updater: (p: LootPool) => LootPool) => {
     setPools((prev) => {
@@ -361,8 +394,10 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
   }, [lootType, pools]);
 
   const handleSave = async () => {
+    const submitted = getSpecializedSession(sessionKey, initialLoot);
+    if (!submitted.editor || submitted.saving || submitted.saveUnknown) return;
     if (diagnostics.length > 0) {
-      setMessage(tr("请先解决配置错误：{0}", [diagnostics[0]]));
+      setMessage(uiMessage('请先修正下方配置错误。', 'Correct the configuration errors below before saving.'));
       return;
     }
 
@@ -387,23 +422,51 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
     const changes: FieldChange[] = [
       { path: '/type', value: lootType },
       { path: '/pools', value: payloadPools }
-    ];
+    ].flatMap(change => {
+      const field = submitted.editor!.sections.flatMap(section => section.fields)
+        .find(field => field.path === change.path || field.path === `/fields${change.path}`);
+      return field && !field.readOnly && JSON.stringify(field.value) !== JSON.stringify(change.value)
+        ? [{ path: field.path, value: change.value }] : [];
+    });
+    if (!changes.length) {
+      changeSession({ saving: false, dirty: false, data: { ...submitted.data, numericDrafts: {} } });
+      return;
+    }
 
     try {
-      const result = await updateModElement(element.id, changes);
+      const result = await updateModElement(element.id, changes, submitted.revision);
       setIsSaving(false);
       if (result.status === 'committed') {
         setSaveSuccess(true);
-        setIsDirty(false);
+        commitSpecializedSession(sessionKey, initialLoot, submitted.data,
+          rebaseEditor(submitted.editor, changes, result.data?.element ?? submitted.editor.element), result.newRevision, result.diagnostics,
+          { ...submitted.data, numericDrafts: {} });
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("保存战利品表失败。")));
+        changeSession({ diagnostics: result.diagnostics });
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), uiMessage('保存战利品表被拒绝。草稿已保留。', 'Saving the loot table was rejected. Your draft is preserved.')));
       }
     } catch {
       setIsSaving(false);
-      setMessage(tr("保存战利品表时发生错误。"));
+      changeSession({ saveUnknown: true });
+      setMessage(uiMessage('未收到保存回执。', 'No save receipt was received.'));
     }
   };
+  const readLatest = async () => {
+    if (getSpecializedSession(sessionKey, initialLoot).saving) return;
+    setIsSaving(true);
+    try {
+      const { editor, revision: confirmedRevision } = await confirmEditorRead(state.workbench!.workspace.id, actions.current.refreshWorkspace, () => actions.current.getModElementEditor(element.id));
+      if (!editor || editor.element.id !== element.id) throw new Error('Loot editor projection unavailable');
+      updateSpecializedSession(sessionKey, initialLoot, old => ({ ...old, editor, revision: confirmedRevision,
+        dirty: JSON.stringify(old.data) !== JSON.stringify(lootData(editor)), saveUnknown: false,
+        error: uiMessage('已读取最新版本。请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.') }));
+    } catch { setMessage(uiMessage('无法读取最新版本，草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.')); }
+    finally { setIsSaving(false); }
+  };
+
+  if (!current.editor) return <div role="status" data-testid="loottable-workbench-loading" style={{ padding: 24 }}>
+    {message ? renderUiMessage(message) : uiText('正在读取战利品表…', 'Loading the loot table…')}</div>;
 
   return (
     <div
@@ -573,7 +636,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
             type="button"
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || diagnostics.length > 0}
+            disabled={isSaving || current.saveUnknown || !isDirty || diagnostics.length > 0}
             data-testid="loottable-save-btn"
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
@@ -621,12 +684,16 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
           <button
             type="button"
             onClick={() => setMessage(null)}
+            aria-label={uiText('关闭提示', 'Dismiss feedback')}
             style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
           >
             <X size={13} />
           </button>
         </div>
       )}
+
+      <EditorRecoveryNotice editor="loot" saveUnknown={current.saveUnknown} diagnostics={current.diagnostics}
+        busy={isSaving || current.loading} onRead={() => void readLatest()} />
 
       {/* Main Body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -763,11 +830,11 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                       <span>{tr("最小掷骰次数 (minrolls)")}</span>
                       <input
-                        type="number"
+                        type="text" inputMode="numeric"
                         min={0}
                         max={64000}
-                        value={selectedPool.minrolls}
-                        onChange={(e) => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, minrolls: parseInt(e.target.value) || 0 }))}
+                        value={numericDrafts[numericKey('minrolls')] ?? selectedPool.minrolls}
+                        onChange={(e) => editNumber(numericKey('minrolls'), e.target.value, value => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, minrolls: value })))}
                         data-testid="pool-minrolls-input"
                       />
                     </label>
@@ -775,11 +842,11 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                       <span>{tr("最大掷骰次数 (maxrolls)")}</span>
                       <input
-                        type="number"
+                        type="text" inputMode="numeric"
                         min={0}
                         max={64000}
-                        value={selectedPool.maxrolls}
-                        onChange={(e) => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, maxrolls: parseInt(e.target.value) || 0 }))}
+                        value={numericDrafts[numericKey('maxrolls')] ?? selectedPool.maxrolls}
+                        onChange={(e) => editNumber(numericKey('maxrolls'), e.target.value, value => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, maxrolls: value })))}
                         data-testid="pool-maxrolls-input"
                       />
                     </label>
@@ -799,19 +866,19 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                           <span>{tr("最小额外 (min)")}</span>
                           <input
-                            type="number"
+                            type="text" inputMode="numeric"
                             min={0}
-                            value={selectedPool.minbonusrolls}
-                            onChange={(e) => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, minbonusrolls: parseInt(e.target.value) || 0 }))}
+                            value={numericDrafts[numericKey('minbonusrolls')] ?? selectedPool.minbonusrolls}
+                            onChange={(e) => editNumber(numericKey('minbonusrolls'), e.target.value, value => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, minbonusrolls: value })))}
                           />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
                           <span>{tr("最大额外 (max)")}</span>
                           <input
-                            type="number"
+                            type="text" inputMode="numeric"
                             min={0}
-                            value={selectedPool.maxbonusrolls}
-                            onChange={(e) => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, maxbonusrolls: parseInt(e.target.value) || 0 }))}
+                            value={numericDrafts[numericKey('maxbonusrolls')] ?? selectedPool.maxbonusrolls}
+                            onChange={(e) => editNumber(numericKey('maxbonusrolls'), e.target.value, value => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, maxbonusrolls: value })))}
                           />
                         </label>
                       </div>
@@ -886,11 +953,11 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '90px', fontSize: '10px', color: 'var(--text-sub)' }}>
                             <span>{tr("权重 (Weight)")}</span>
                             <input
-                              type="number"
+                              type="text" inputMode="numeric"
                               min={1}
                               max={64000}
-                              value={entry.weight}
-                              onChange={(e) => handleUpdateEntry(entry.id, { weight: parseInt(e.target.value) || 1 })}
+                              value={numericDrafts[numericKey('weight', entry.id)] ?? entry.weight}
+                              onChange={(e) => editNumber(numericKey('weight', entry.id), e.target.value, value => handleUpdateEntry(entry.id, { weight: value }))}
                               data-testid={`entry-weight-input-${eIdx}`}
                             />
                           </label>
@@ -919,11 +986,11 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px', color: 'var(--text-sub)' }}>
                             <span>{tr("最小数量 (minCount)")}</span>
                             <input
-                              type="number"
+                              type="text" inputMode="numeric"
                               min={1}
                               max={64000}
-                              value={entry.minCount}
-                              onChange={(e) => handleUpdateEntry(entry.id, { minCount: parseInt(e.target.value) || 1 })}
+                              value={numericDrafts[numericKey('minCount', entry.id)] ?? entry.minCount}
+                              onChange={(e) => editNumber(numericKey('minCount', entry.id), e.target.value, value => handleUpdateEntry(entry.id, { minCount: value }))}
                               data-testid={`entry-mincount-${eIdx}`}
                             />
                           </label>
@@ -931,11 +998,11 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px', color: 'var(--text-sub)' }}>
                             <span>{tr("最大数量 (maxCount)")}</span>
                             <input
-                              type="number"
+                              type="text" inputMode="numeric"
                               min={1}
                               max={64000}
-                              value={entry.maxCount}
-                              onChange={(e) => handleUpdateEntry(entry.id, { maxCount: parseInt(e.target.value) || 1 })}
+                              value={numericDrafts[numericKey('maxCount', entry.id)] ?? entry.maxCount}
+                              onChange={(e) => editNumber(numericKey('maxCount', entry.id), e.target.value, value => handleUpdateEntry(entry.id, { maxCount: value }))}
                               data-testid={`entry-maxcount-${eIdx}`}
                             />
                           </label>
