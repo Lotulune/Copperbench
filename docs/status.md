@@ -1,16 +1,14 @@
 # 当前状态与发布能力
 
-更新：2026-10-15。当前公开下载为 [Windows／Linux 0.1.5](releases/current.md)。源码已进入 **0.1.6 发布准备**，以最新主线 `bc2a512ca07b8c38fe1ff3140b3954563925bc6a` 为整合基线；最终主线 CI、发行候选、包哈希和发布结果尚待取得，见[准备记录](testing/maintenance-release-0.1.6.md)。
+当前稳定版为 **0.1.6**，各平台公开链接与实际核验见[当前下载](releases/current.md)。二进制来源为 A `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；Linux 晋级来源另记，后续文档提交不替换这两种身份。
 
-Current public packages are **0.1.5**. The **0.1.6** source preparation integrates the optimization work with the current main branch. Earlier checks retain their tested source and artifact identities; they do not establish validation of the final 0.1.6 packages.
-
-| 层次 | 当前可用范围 | 入口与证据 |
+| 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **下载版已有 / Published 0.1.5** | Windows `v0.1.5`、Linux `v0.1.5-linux-stable`；双语离线安装器、结构化输入诊断、首作教程、草稿与数字输入修复、创建默认值、光照和 Fabric 模板修复，以及既有工作台和 Native／MCP 路线 | [下载安装](releases/current.md) · [0.1.5 发布记录](testing/maintenance-release-0.1.5.md) |
-| **0.1.6 源码准备 / Unreleased source** | 首作快捷入口与任务引导、普通和精确交付、跨页面草稿保护、外部修改与未知保存状态恢复、编译诊断定位、SDK 增量任务恢复和传输计量、贡献者与测量工具；含后续独立复审的 13 项补修 | [0.1.6 准备记录](testing/maintenance-release-0.1.6.md) · [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) · [Agent 路线](../sdk/agent-workflows.md) |
-| **历史优化候选与补修检查** | Windows C1–C4、Linux run3 和 13 项补修保留各自源码、包、通过、失败与复验记录。C4 的 Fabric 玩家操作／同世界重开及 NeoForge 加载 smoke、Linux run3 的受限无界面构建／交付和补修阶段自动化检查均只属于原身份 | [历史优化报告](testing/optimization-2026-10-15.md) · [实施计划](roadmap/optimization-plan-2026-10-15.md) |
-| **预览／有边界的能力** | Fabric／NeoForge 26.3 需显式预览协商；editor schema 1.1、字段发现、doctor、生成预检及版本复制保持实际协商范围。资源包客户端准备只落地文件，Blockbench 建模、datagen 和迁移依现有预览与授权流程执行 | [26.3 候选](releases/copperbench-26-3-candidate-2026-10-14.md) · [编辑器合同](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent 接入](ai/getting-started.md) |
-| **最终 0.1.6 尚待验证** | 合并后的必需 CI、Windows 包及 Linux 冻结候选／精确授权／来源证明／发布资产核验尚待执行。没有据旧候选新增最终包的完整安装、GNOME Wayland/Xorg、玩家玩法或同世界重开结论；历史性能、暖缓存和已知问题保留原范围 | [准备状态](testing/maintenance-release-0.1.6.md) · [历史边界](testing/optimization-2026-10-15.md) |
+| **0.1.6 已交付能力** | 首作入口和引导、普通／精确交付、草稿保护和外部修改恢复、编译诊断定位、SDK 增量恢复与计量、贡献者工具；保留 0.1.5 修复及双语离线安装器 | [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) |
+| **发布验证** | A 的主线 CI 和 Linux 冻结候选通过；Windows 十项 API／来源及 ZIP／23 项内容核验通过；Linux 公开资产核验 passed | [发布记录](testing/maintenance-release-0.1.6.md) |
+| **历史验收** | VM r14/r12、C1–C4、Linux run3 和十三项补修保留原来源、失败和复验，不转作新包的完整安装／玩法通过 | [历史优化报告](testing/optimization-2026-10-15.md) |
+| **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
+| **未重复的验收** | 最终包完整安装、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开未重跑；旧性能和暖缓存结论保留原范围 | [具体边界](testing/maintenance-linux-0.1.6.md) |
 
 ## 支持范围
 

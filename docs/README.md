@@ -1,8 +1,8 @@
 # Documentation / 项目文档导航
 
-先看[当前状态与发布能力](./status.md)：一页区分下载版已有、源码新增、预览能力和未验证范围。当前公开稳定版为 Windows 与 Linux **0.1.5**；安装格式见[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
+先看[当前状态与发布能力](./status.md)：Windows 与 Linux 0.1.6 的公开状态与资产证明统一列在[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
 
-源码正在准备 **0.1.6**；[发布准备记录](./testing/maintenance-release-0.1.6.md)单独记录整合、版本与尚待执行的验证，不改变当前下载。
+0.1.6 的二进制来源为 `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；[发布记录](./testing/maintenance-release-0.1.6.md)分别记录主线检查、冻结候选、Linux promotion 与公开资产结果。
 
 ## 从这里开始
 

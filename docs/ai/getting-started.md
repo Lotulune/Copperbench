@@ -2,9 +2,9 @@
 
 [English](getting-started.en.md) · [同一个步道方块](trail-block.md) · [SDK 兼容边界](../../sdk/compatibility.md)
 
-先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。启动窗口的「连接外部 Agent」只给接入帮助，不签发 token；它是尚未发布的源码入口。没有该入口仍可直接打开工作区使用原页面。
+先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。启动窗口的「连接外部 Agent」只给接入帮助，不签发 token；这是 0.1.6 的接入帮助入口。没有该入口仍可直接打开工作区使用原页面。
 
-三个[最小可执行示例](../../sdk/agent-workflows.md)说明前提和退出方式。本批新便捷方法进入 0.1.6 发布准备，不承诺当前 0.1.5 安装包已包含，见[状态页](../status.md)。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0` 与实际目录；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。下文继续适用原有权限和计划边界。
+三个[最小可执行示例](../../sdk/agent-workflows.md)说明 0.1.6 的入口、前提和退出方式；旧宿主仍须按实际能力发现，见[状态页](../status.md)。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0`；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。原有权限和计划边界继续适用。
 
 只读发现先核对 ready operations／MCP `tools/list`，再取 `get_workspace_environment` 的生成器、工具链、应用身份与 `data.fieldContracts`。当前主线提供 `get_mod_element_field_contract` 和 `get_field_reference_options`；Native `discover_field_contract(...)` 区分 available／not_exposed／unsupported，不创建探针元素。Native 旧环境提取的缺类型诊断为 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，MCP／TypeScript 的旧环境便捷方法使用 `FIELD_CONTRACT_NOT_EXPOSED`；两者均保留 Core 诊断与格式错误。修改前重读适用 revision／hash，分页遍历到 `nextCursor=null`。从 [W1/W2/W3](../../sdk/agent-workflows.md)进入失败修复、原任务恢复与精确导出。
 

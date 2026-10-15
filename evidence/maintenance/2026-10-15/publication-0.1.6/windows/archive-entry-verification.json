@@ -1,0 +1,204 @@
+{
+  "kind": "release-archive-selected-entry-inspection",
+  "sourceA": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+  "archive": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\download-tools\\public-windows\\public-win-001\\Copperbench.0.1.6.Windows.64bit.zip",
+  "archiveBytes": 602441329,
+  "archiveSha256": "87e6295c6eab9de371f1c8d6ac3a1c61aa4b3810ed26394045fbb87cef827b90",
+  "expectationsSha256": "ca36bae5d74c86d9daefe1a709bb3f3e23fdac74f0e7baba4400a6a5ce964989",
+  "status": "passed",
+  "errors": [],
+  "entries": {
+    "docs/ai/editor-schema.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/ai/editor-schema.md",
+        "bytes": 2934,
+        "sha256": "aff2ac83c73997231aeab529894a0be623d7516552e91d7a5c1096665f2ab006",
+        "sourceSha256": "aff2ac83c73997231aeab529894a0be623d7516552e91d7a5c1096665f2ab006"
+      }
+    ],
+    "docs/ai/version-copy-upgrade.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/ai/version-copy-upgrade.md",
+        "bytes": 8857,
+        "sha256": "ae8b3ec9de2c0b38ba30eac3b4ac83250ca227b23b4a21d12b1b33e4a8226386",
+        "sourceSha256": "ae8b3ec9de2c0b38ba30eac3b4ac83250ca227b23b4a21d12b1b33e4a8226386"
+      }
+    ],
+    "docs/releases/v0.1.5.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/releases/v0.1.5.md",
+        "bytes": 2994,
+        "sha256": "339c5fdf1c476009af8855d8330f024355c8b421f67c7b87fbd5eba397a18644",
+        "sourceSha256": "339c5fdf1c476009af8855d8330f024355c8b421f67c7b87fbd5eba397a18644"
+      }
+    ],
+    "docs/releases/v0.1.5-linux.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/releases/v0.1.5-linux.md",
+        "bytes": 1706,
+        "sha256": "5bb7558705cb8747cf20487a74221cf664a92cc7e285d3853feeefc38ae9e17e",
+        "sourceSha256": "5bb7558705cb8747cf20487a74221cf664a92cc7e285d3853feeefc38ae9e17e"
+      }
+    ],
+    "docs/releases/v0.1.6.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/releases/v0.1.6.md",
+        "bytes": 2622,
+        "sha256": "7fd435e87b5305ec9bfe88142e1d41ed186b3028f7edd6a878cdd39c60764b79",
+        "sourceSha256": "7fd435e87b5305ec9bfe88142e1d41ed186b3028f7edd6a878cdd39c60764b79"
+      }
+    ],
+    "docs/releases/v0.1.6-linux.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/releases/v0.1.6-linux.md",
+        "bytes": 1587,
+        "sha256": "270e0f08f46e5138371978baf479151678d17a3ca4eb7fa0c10c5b054683ce32",
+        "sourceSha256": "270e0f08f46e5138371978baf479151678d17a3ca4eb7fa0c10c5b054683ce32"
+      }
+    ],
+    "docs/releases/copperbench-26-3-candidate-2026-10-14.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/releases/copperbench-26-3-candidate-2026-10-14.md",
+        "bytes": 7889,
+        "sha256": "6beab29a6fbe1ec1fefce996c65886c1d32d01819ac9b5bb96623e6d61585e64",
+        "sourceSha256": "6beab29a6fbe1ec1fefce996c65886c1d32d01819ac9b5bb96623e6d61585e64"
+      }
+    ],
+    "docs/testing/maintenance-release-0.1.5.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/testing/maintenance-release-0.1.5.md",
+        "bytes": 7723,
+        "sha256": "9ccfb8abee6c40428c4e2506fab64e00759864a17607e42c40ecaf74cf88c271",
+        "sourceSha256": "9ccfb8abee6c40428c4e2506fab64e00759864a17607e42c40ecaf74cf88c271"
+      }
+    ],
+    "docs/testing/maintenance-linux-0.1.5.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/testing/maintenance-linux-0.1.5.md",
+        "bytes": 4030,
+        "sha256": "5a64727697107b992454283d5dcc7ac2c53f823a50a1f158d67962121b64a3ab",
+        "sourceSha256": "5a64727697107b992454283d5dcc7ac2c53f823a50a1f158d67962121b64a3ab"
+      }
+    ],
+    "docs/testing/maintenance-release-0.1.6.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/testing/maintenance-release-0.1.6.md",
+        "bytes": 6417,
+        "sha256": "d56a2901cebbd28d5c4ff6f138eb5a27577c4cfca562c48063b6638ab344891b",
+        "sourceSha256": "d56a2901cebbd28d5c4ff6f138eb5a27577c4cfca562c48063b6638ab344891b"
+      }
+    ],
+    "docs/testing/first-success-integration-2026-10-14.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/testing/first-success-integration-2026-10-14.md",
+        "bytes": 3588,
+        "sha256": "cb62521e8ec22a1c1e7e4763aa287c9e7476993d5ec19293be5780bba24cda7f",
+        "sourceSha256": "cb62521e8ec22a1c1e7e4763aa287c9e7476993d5ec19293be5780bba24cda7f"
+      }
+    ],
+    "docs/roadmap/optimization-plan-2026-10-15.md": [
+      {
+        "archiveEntry": "Copperbench016/docs/roadmap/optimization-plan-2026-10-15.md",
+        "bytes": 12747,
+        "sha256": "f0a592dfe7a1a0a584fcfd305ca416b4d0f5f2303f820b160d54f1b0f52e8d31",
+        "sourceSha256": "f0a592dfe7a1a0a584fcfd305ca416b4d0f5f2303f820b160d54f1b0f52e8d31"
+      }
+    ],
+    "sdk/python/READINESS.md": [
+      {
+        "archiveEntry": "Copperbench016/sdk/python/READINESS.md",
+        "bytes": 6397,
+        "sha256": "dc53e5aae84cd54b3d7fa6e2ae036a8dad39586b6f74a27cf539187fc2be2dc5",
+        "sourceSha256": "dc53e5aae84cd54b3d7fa6e2ae036a8dad39586b6f74a27cf539187fc2be2dc5"
+      }
+    ],
+    "sdk/README.md": [
+      {
+        "archiveEntry": "Copperbench016/sdk/README.md",
+        "bytes": 4636,
+        "sha256": "e44eb12577e0b4075a15c10b67a32bcfd505293d0e56d7c5b4a1f27500d13757",
+        "sourceSha256": "e44eb12577e0b4075a15c10b67a32bcfd505293d0e56d7c5b4a1f27500d13757"
+      }
+    ],
+    "sdk/protocol.md": [
+      {
+        "archiveEntry": "Copperbench016/sdk/protocol.md",
+        "bytes": 11782,
+        "sha256": "d52e84562b3ed81adcd2abbb29fbeccc5cc6d636477e1889fe9bab0dc2d0bea4",
+        "sourceSha256": "d52e84562b3ed81adcd2abbb29fbeccc5cc6d636477e1889fe9bab0dc2d0bea4"
+      }
+    ],
+    "sdk/agent-workflows.md": [
+      {
+        "archiveEntry": "Copperbench016/sdk/agent-workflows.md",
+        "bytes": 9559,
+        "sha256": "8e2e90b648018609735ab644d06a4e7318857a7b8d261bfc68882e8939fd53b9",
+        "sourceSha256": "8e2e90b648018609735ab644d06a4e7318857a7b8d261bfc68882e8939fd53b9"
+      }
+    ],
+    "sdk/compatibility.md": [
+      {
+        "archiveEntry": "Copperbench016/sdk/compatibility.md",
+        "bytes": 7487,
+        "sha256": "9c7df2c5c473c83b418995fb1fbe61c93451e5c6839e7ce775ecca3ed9ff8bfb",
+        "sourceSha256": "9c7df2c5c473c83b418995fb1fbe61c93451e5c6839e7ce775ecca3ed9ff8bfb"
+      }
+    ],
+    "sdk/typescript/copperbench.ts": [
+      {
+        "archiveEntry": "Copperbench016/sdk/typescript/copperbench.ts",
+        "bytes": 32638,
+        "sha256": "14022f2f8e87cd644582edc3439ec1baa2734dc4c66b52716690f153b4c6c2da",
+        "sourceSha256": "14022f2f8e87cd644582edc3439ec1baa2734dc4c66b52716690f153b4c6c2da"
+      }
+    ],
+    "sdk/python/README.md": [
+      {
+        "archiveEntry": "Copperbench016/sdk/python/README.md",
+        "bytes": 18723,
+        "sha256": "fa68a521a42d8490ceb743d0217c9140bc2a94374fd4d85a4c98bab28034818f",
+        "sourceSha256": "fa68a521a42d8490ceb743d0217c9140bc2a94374fd4d85a4c98bab28034818f"
+      }
+    ],
+    "sdk/python/copperbench.py": [
+      {
+        "archiveEntry": "Copperbench016/sdk/python/copperbench.py",
+        "bytes": 37650,
+        "sha256": "90a7020d6d28e6bb1ff0dd3e1697a33d7a83e9f8c157c83124e4fc9bf7224c92",
+        "sourceSha256": "90a7020d6d28e6bb1ff0dd3e1697a33d7a83e9f8c157c83124e4fc9bf7224c92"
+      }
+    ],
+    "sdk/python/copperbench_native.py": [
+      {
+        "archiveEntry": "Copperbench016/sdk/python/copperbench_native.py",
+        "bytes": 47365,
+        "sha256": "84718015ef1df6f669f5897d8ceba7423aa8f6dcfaca6b547f242c413a0dd270",
+        "sourceSha256": "84718015ef1df6f669f5897d8ceba7423aa8f6dcfaca6b547f242c413a0dd270"
+      }
+    ],
+    "sdk/python/pyproject.toml": [
+      {
+        "archiveEntry": "Copperbench016/sdk/python/pyproject.toml",
+        "bytes": 354,
+        "sha256": "9a7c60b3e516c67f0400346e192cc1fb0c2734a2bf5565a59ebffb47a2dbefb4",
+        "sourceSha256": "9a7c60b3e516c67f0400346e192cc1fb0c2734a2bf5565a59ebffb47a2dbefb4"
+      }
+    ],
+    "ui-core/schemas/v1.1/editor.schema.json": [
+      {
+        "archiveEntry": "Copperbench016/ui-core/schemas/v1.1/editor.schema.json",
+        "bytes": 18316,
+        "sha256": "d06f1169d2302b1194b66c858751cf34de8e03b765fda9cc4a7c5fac0874942f",
+        "sourceSha256": "d06f1169d2302b1194b66c858751cf34de8e03b765fda9cc4a7c5fac0874942f"
+      }
+    ]
+  },
+  "membersEnumerated": 1764,
+  "scope": "Selected A-bound documentation/SDK/schema entries only; no extraction, build, installed-product or gameplay acceptance.",
+  "limits": {
+    "chunkBytes": 1048576,
+    "maxMembers": 100000,
+    "maxZipCentralDirectoryBytes": 33554432,
+    "maxExpectedEntryBytes": 33554432
+  }
+}
