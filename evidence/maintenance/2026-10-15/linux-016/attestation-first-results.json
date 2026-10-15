@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.build.json",
+    "exitCode": 1,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.build.json.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.build.json.stderr.log"
+  },
+  {
+    "name": "Copperbench 0.1.6 Linux x86_64.tar.gz",
+    "exitCode": 1,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\Copperbench 0.1.6 Linux x86_64.tar.gz.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\Copperbench 0.1.6 Linux x86_64.tar.gz.stderr.log"
+  },
+  {
+    "name": "copperbench-linux.spdx.json",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\copperbench-linux.spdx.json.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\copperbench-linux.spdx.json.stderr.log"
+  },
+  {
+    "name": "Copperbench 0.1.6 Linux x86_64 Setup.tar.gz",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.stderr.log"
+  },
+  {
+    "name": "copperbench_0.1.6_amd64.deb",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\copperbench_0.1.6_amd64.deb.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\copperbench_0.1.6_amd64.deb.stderr.log"
+  },
+  {
+    "name": "linux-candidate-manifest.json",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\linux-candidate-manifest.json.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\linux-candidate-manifest.json.stderr.log"
+  },
+  {
+    "name": "LINUX-CANDIDATE-METADATA.json",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\LINUX-CANDIDATE-METADATA.json.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\LINUX-CANDIDATE-METADATA.json.stderr.log"
+  },
+  {
+    "name": "linux-candidate-sha256.txt",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\linux-candidate-sha256.txt.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations\\linux-candidate-sha256.txt.stderr.log"
+  }
+]

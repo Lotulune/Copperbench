@@ -1,0 +1,168 @@
+{
+  "sourceA": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+  "state": "expected-from-source-not-archive-verified",
+  "entries": [
+    {
+      "packageRelativePath": "docs/ai/editor-schema.md",
+      "sourceSha256": "aff2ac83c73997231aeab529894a0be623d7516552e91d7a5c1096665f2ab006",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 2934
+    },
+    {
+      "packageRelativePath": "docs/ai/version-copy-upgrade.md",
+      "sourceSha256": "ae8b3ec9de2c0b38ba30eac3b4ac83250ca227b23b4a21d12b1b33e4a8226386",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 8857
+    },
+    {
+      "packageRelativePath": "docs/releases/v0.1.5.md",
+      "sourceSha256": "339c5fdf1c476009af8855d8330f024355c8b421f67c7b87fbd5eba397a18644",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 2994
+    },
+    {
+      "packageRelativePath": "docs/releases/v0.1.5-linux.md",
+      "sourceSha256": "5bb7558705cb8747cf20487a74221cf664a92cc7e285d3853feeefc38ae9e17e",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 1706
+    },
+    {
+      "packageRelativePath": "docs/releases/v0.1.6.md",
+      "sourceSha256": "7fd435e87b5305ec9bfe88142e1d41ed186b3028f7edd6a878cdd39c60764b79",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 2622
+    },
+    {
+      "packageRelativePath": "docs/releases/v0.1.6-linux.md",
+      "sourceSha256": "270e0f08f46e5138371978baf479151678d17a3ca4eb7fa0c10c5b054683ce32",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 1587
+    },
+    {
+      "packageRelativePath": "docs/releases/copperbench-26-3-candidate-2026-10-14.md",
+      "sourceSha256": "6beab29a6fbe1ec1fefce996c65886c1d32d01819ac9b5bb96623e6d61585e64",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 7889
+    },
+    {
+      "packageRelativePath": "docs/testing/maintenance-release-0.1.5.md",
+      "sourceSha256": "9ccfb8abee6c40428c4e2506fab64e00759864a17607e42c40ecaf74cf88c271",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 7723
+    },
+    {
+      "packageRelativePath": "docs/testing/maintenance-linux-0.1.5.md",
+      "sourceSha256": "5a64727697107b992454283d5dcc7ac2c53f823a50a1f158d67962121b64a3ab",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 4030
+    },
+    {
+      "packageRelativePath": "docs/testing/maintenance-release-0.1.6.md",
+      "sourceSha256": "d56a2901cebbd28d5c4ff6f138eb5a27577c4cfca562c48063b6638ab344891b",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 6417
+    },
+    {
+      "packageRelativePath": "docs/testing/first-success-integration-2026-10-14.md",
+      "sourceSha256": "cb62521e8ec22a1c1e7e4763aa287c9e7476993d5ec19293be5780bba24cda7f",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 3588
+    },
+    {
+      "packageRelativePath": "docs/roadmap/optimization-plan-2026-10-15.md",
+      "sourceSha256": "f0a592dfe7a1a0a584fcfd305ca416b4d0f5f2303f820b160d54f1b0f52e8d31",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 12747
+    },
+    {
+      "packageRelativePath": "sdk/python/READINESS.md",
+      "sourceSha256": "dc53e5aae84cd54b3d7fa6e2ae036a8dad39586b6f74a27cf539187fc2be2dc5",
+      "expectedOccurrences": 1,
+      "group": "13-added-offline-targets",
+      "sourceBytes": 6397
+    },
+    {
+      "packageRelativePath": "sdk/README.md",
+      "sourceSha256": "e44eb12577e0b4075a15c10b67a32bcfd505293d0e56d7c5b4a1f27500d13757",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 4636
+    },
+    {
+      "packageRelativePath": "sdk/protocol.md",
+      "sourceSha256": "d52e84562b3ed81adcd2abbb29fbeccc5cc6d636477e1889fe9bab0dc2d0bea4",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 11782
+    },
+    {
+      "packageRelativePath": "sdk/agent-workflows.md",
+      "sourceSha256": "8e2e90b648018609735ab644d06a4e7318857a7b8d261bfc68882e8939fd53b9",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 9559
+    },
+    {
+      "packageRelativePath": "sdk/compatibility.md",
+      "sourceSha256": "9c7df2c5c473c83b418995fb1fbe61c93451e5c6839e7ce775ecca3ed9ff8bfb",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 7487
+    },
+    {
+      "packageRelativePath": "sdk/typescript/copperbench.ts",
+      "sourceSha256": "14022f2f8e87cd644582edc3439ec1baa2734dc4c66b52716690f153b4c6c2da",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 32638
+    },
+    {
+      "packageRelativePath": "sdk/python/README.md",
+      "sourceSha256": "fa68a521a42d8490ceb743d0217c9140bc2a94374fd4d85a4c98bab28034818f",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 18723
+    },
+    {
+      "packageRelativePath": "sdk/python/copperbench.py",
+      "sourceSha256": "90a7020d6d28e6bb1ff0dd3e1697a33d7a83e9f8c157c83124e4fc9bf7224c92",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 37650
+    },
+    {
+      "packageRelativePath": "sdk/python/copperbench_native.py",
+      "sourceSha256": "84718015ef1df6f669f5897d8ceba7423aa8f6dcfaca6b547f242c413a0dd270",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 47365
+    },
+    {
+      "packageRelativePath": "sdk/python/pyproject.toml",
+      "sourceSha256": "9a7c60b3e516c67f0400346e192cc1fb0c2734a2bf5565a59ebffb47a2dbefb4",
+      "expectedOccurrences": 1,
+      "group": "existing-sdk-entry",
+      "sourceBytes": 354
+    },
+    {
+      "packageRelativePath": "ui-core/schemas/v1.1/editor.schema.json",
+      "sourceSha256": "d06f1169d2302b1194b66c858751cf34de8e03b765fda9cc4a7c5fac0874942f",
+      "expectedOccurrences": 1,
+      "group": "existing-editor-schema-1.1",
+      "sourceBytes": 18316
+    }
+  ],
+  "checkoutBytePolicy": ".gitattributes has * -text and * -crlf; preserve A raw bytes including existing CRLF schema JSON. No line-ending normalization is permitted for archive acceptance."
+}

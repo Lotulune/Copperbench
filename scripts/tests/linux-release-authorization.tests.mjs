@@ -319,3 +319,94 @@ test('0.1.5 publication rejects a skipped graphical installer check or a non-mai
   });
   assert.throws(check, /step did not pass/);
 });
+
+function maintenance016UnitFixture(t) {
+  // Synthetic unit-only data. These temporary files are never production CI,
+  // candidate metadata, approval or installed-acceptance evidence.
+  const { root } = fixture(t);
+  const commit = '9e3dfdeab1bc19c099e739bcda14940d9a6fee30';
+  const runId = '38748273030';
+  const releaseTag = 'v0.1.6-linux-stable';
+  const reportPath = 'docs/testing/linux-016-unit-fixture.md';
+  mkdirSync(dirname(resolve(root, reportPath)), { recursive: true });
+  writeFileSync(resolve(root, reportPath), 'Synthetic unit fixture; not candidate acceptance evidence.\n');
+  const stepNames = [
+    'Run Linux platform and generator regressions', 'Run Linux candidate and installed-gate contract tests',
+    'Build portable and deb candidates', 'Verify portable candidate contents and executable modes',
+    'Launch packaged headless bootstrap without system Java Gradle or Git',
+    'Launch packaged JCEF product shell under Xvfb',
+    'Run packaged NeoForge 1.21.1 X11 render preflight under Xvfb',
+    'Run packaged Fabric 1.21.1 X11 render preflight under Xvfb',
+    'Verify deb candidate layout', 'Freeze Linux candidate metadata',
+    'Attest Linux candidate provenance', 'Upload Linux candidate artifacts',
+    'Verify graphical installer package and render its bilingual wizard'
+  ];
+  const writeBound = (path, data) => {
+    const target = resolve(root, path);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, JSON.stringify(data));
+    return { path, sha256: sha(readFileSync(target)) };
+  };
+  const run = { id: runId, head_sha: commit, repository: { full_name: 'Lotulune/Copperbench' },
+    path: '.github/workflows/stage15-linux-candidate.yml', head_branch: 'main', event: 'push',
+    status: 'completed', conclusion: 'success' };
+  const jobs = { jobs: [{ name: 'Ubuntu 24.04 package candidate smoke', run_id: runId, head_sha: commit,
+    status: 'completed', conclusion: 'success',
+    steps: stepNames.map(name => ({ name, status: 'completed', conclusion: 'success' })) }] };
+  const auth = { schemaVersion: '1.0', kind: 'linux-release-authorization', status: 'approved',
+    releaseEligible: true, releaseTag, formalSupportClaim: false, fullInstalledAcceptance: 'not-repeated',
+    acceptancePolicy: 'maintenance-ci-0.1.6', candidateSourceCommit: commit, candidateWorkflowRunId: runId,
+    candidateId: 'sha256:' + 'c'.repeat(64), debSha256: 'd'.repeat(64), portableSha256: 'e'.repeat(64),
+    validationReportPath: reportPath, validationReportSha256: sha(readFileSync(resolve(root, reportPath))),
+    maintenanceApproval: { approved: true, releaseTag, scope: 'Synthetic unit fixture only.' },
+    candidateCi: {
+      run: writeBound('evidence/maintenance/unit-fixtures/linux-016/run.json', run),
+      jobs: writeBound('evidence/maintenance/unit-fixtures/linux-016/jobs.json', jobs)
+    } };
+  const metadata = { kind: 'stage15-linux-immutable-candidate', status: 'development-not-certified',
+    formalSupportClaim: false, exactBinaryPromotionEligible: false, candidateId: auth.candidateId,
+    source: { commit, workflowRunId: runId },
+    assets: { deb: { sha256: auth.debSha256 }, portable: { sha256: auth.portableSha256 } } };
+  const check = () => validateAuthorization(auth, metadata, root, auth.releaseTag);
+  const mutate = (kind, update) => {
+    const entry = auth.candidateCi[kind], path = resolve(root, entry.path), data = read(path);
+    update(data); writeFileSync(path, JSON.stringify(data)); entry.sha256 = sha(readFileSync(path));
+  };
+  return { auth, check, mutate };
+}
+
+test('0.1.6 exact maintenance tuple requires thirteen CI steps without installed certification', (t) => {
+  const { auth, check } = maintenance016UnitFixture(t);
+  assert.equal(check().ciStepsVerified, 13);
+  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
+  assert.equal(auth.formalSupportClaim, false);
+});
+
+test('0.1.6 cannot reuse a PR candidate, another tuple or installed-support claim', (t) => {
+  const { auth, check } = maintenance016UnitFixture(t);
+  for (const [key, invalid] of [['releaseTag', 'v0.1.7-linux-stable'],
+    ['candidateSourceCommit', 'a'.repeat(40)], ['candidateWorkflowRunId', '38744646888'],
+    ['acceptancePolicy', 'maintenance-ci-0.1.5']]) {
+    const original = auth[key]; auth[key] = invalid;
+    assert.throws(check, /limited to the approved/); auth[key] = original;
+  }
+  auth.formalSupportClaim = true;
+  assert.throws(check, /honest installed-acceptance/);
+  auth.formalSupportClaim = false;
+  auth.fullInstalledAcceptance = 'passed';
+  assert.throws(check, /honest installed-acceptance/);
+  auth.fullInstalledAcceptance = 'not-repeated';
+  auth.maintenanceApproval.approved = false;
+  assert.throws(check, /explicit approval/);
+});
+
+test('0.1.6 rejects a non-push run and a skipped graphical installer check', (t) => {
+  const { check, mutate } = maintenance016UnitFixture(t);
+  mutate('run', run => { run.event = 'pull_request'; });
+  assert.throws(check, /CI identity or result mismatch/);
+  mutate('run', run => { run.event = 'push'; });
+  mutate('jobs', receipt => {
+    receipt.jobs[0].steps.find(step => step.name === 'Verify graphical installer package and render its bilingual wizard').conclusion = 'skipped';
+  });
+  assert.throws(check, /step did not pass/);
+});
