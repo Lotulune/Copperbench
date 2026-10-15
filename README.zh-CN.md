@@ -3,14 +3,14 @@
   <h1>Copperbench</h1>
   <p><strong>让可视化编辑、手写 Java 和本地 Agent 在同一个 Minecraft 模组工程中协作。</strong></p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="docs/releases/current.md">下载 0.1.5</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
+  <p><a href="docs/releases/current.md">下载 0.1.6</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
 
 Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 
-**当前稳定版：0.1.5，Windows 与 Linux 均已发布。** 本次更新带来双语离线安装器、结构化输入诊断与首作教程，并修复编辑器、创建默认值和 Fabric 模板。
+**当前稳定版：0.1.6。** 首作引导、草稿恢复、诊断定位与 SDK 交付改进已整合；Windows／Linux 的实际公开状态与验证范围见[当前下载](docs/releases/current.md)。
 
-**0.1.6 正在准备发布**，整合首作快捷入口、草稿恢复、诊断定位与 SDK 交付改进，尚待本次发布验证。[当前状态](docs/status.md)区分这些源码改动与已发布安装包。
+源码与二进制来源为 `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；Linux promotion 来源另记。历史候选的检查保留原身份，见[发布记录](docs/testing/maintenance-release-0.1.6.md)。
 
 <a id="getting-started"></a>
 
@@ -18,8 +18,8 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 新建工作区，选择加载器和 Minecraft 版本。
@@ -27,9 +27,9 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 工作台支持简体中文和英文。内置 Fabric / NeoForge 生成器覆盖 Minecraft **26.2、26.1.2、1.21.1、1.20.1**；一个工作区同时使用一个活动生成器。
 
-另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.5 的支持声明。
+另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布 0.1.6 的支持声明。
 
-Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.5 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
+Windows 安装包未做 Authenticode 签名，首次构建需要联网，Blockbench 单独安装。最终包的来源、资产核验及未重复的安装／玩法范围见[当前下载](docs/releases/current.md)。
 
 <a id="showcase"></a>
 

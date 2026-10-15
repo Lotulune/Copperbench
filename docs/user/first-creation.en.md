@@ -4,7 +4,7 @@
 
 The goal is to obtain 16 **Trail Blocks**, place one, quit Minecraft normally and find it in the same world from a **new client process**, then export a JAR. Use **Fabric 1.21.1** and the built-in stone texture; no image, Blockbench or Java is needed.
 
-Official 0.1.5 includes the first-creation tutorial using ordinary workspace, block, build and client entry points; historical 0.1.4 also provides those manual entries. This batch's new native startup/closable **First creation** guide and **Delivery & export** controls are unreleased candidate changes. Use them if present; otherwise follow the manual steps. [Current status](../status.md) preserves those boundaries. The [Agent example](../ai/trail-block.en.md) is a separate public API route.
+Version 0.1.6 provides the native First creation entry, closable workspace guide and Delivery & export controls. Earlier packages can use the ordinary workspace, block, build and client entries. [Current status](../status.md) records capability and acceptance scope. The [Agent example](../ai/trail-block.en.md) is a separate public API route.
 
 ## Create an isolated workspace
 

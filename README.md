@@ -3,14 +3,14 @@
   <h1>Copperbench</h1>
   <p><strong>Visual editing, manual Java and local Agent collaboration in one Minecraft mod project.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="docs/releases/current.md">Download 0.1.5</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
+  <p><a href="docs/releases/current.md">Download 0.1.6</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable release: 0.1.5 for Windows and Linux.** This release adds bilingual offline installers, clearer input diagnostics and a first-creation tutorial, with editor, creator and Fabric template fixes.
+**Current stable release: 0.1.6.** It integrates first-creation guidance, draft recovery, diagnostic navigation and SDK delivery improvements. See [current downloads](docs/releases/current.md) for actual Windows/Linux publication and verification records.
 
-Source preparation for **0.1.6** adds first-creation shortcuts, draft recovery, diagnostic navigation and SDK delivery improvements. These changes are awaiting release verification; [current status](docs/status.md) distinguishes them from the published packages.
+Product and binary source is `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`; Linux promotion source is recorded separately. Historical candidate checks keep their original identities in the [release record](docs/testing/maintenance-release-0.1.6.md).
 
 <a id="getting-started"></a>
 
@@ -18,8 +18,8 @@ Source preparation for **0.1.6** adds first-creation shortcuts, draft recovery, 
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
+| Windows 11 x64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
@@ -27,9 +27,9 @@ Source preparation for **0.1.6** adds first-creation shortcuts, draft recovery, 
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
 
-Additional bundled **26.3 preview** targets require explicit opt-in and expose bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.5 support claim.
+Additional bundled **26.3 preview** targets require explicit opt-in and expose bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.6 support claim.
 
-Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access; Blockbench is installed separately. Release checks passed for 0.1.5, while full installed-product and gameplay acceptance were not repeated. See [current downloads](docs/releases/current.md) for each platform's verification scope and known issues.
+Windows packages remain unsigned for Authenticode; first builds need network access and Blockbench is installed separately. [Current downloads](docs/releases/current.md) records source/asset verification and the installed/gameplay checks not repeated on final packages.
 
 <a id="showcase"></a>
 

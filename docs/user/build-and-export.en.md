@@ -2,7 +2,7 @@
 
 [简体中文](build-and-export.md) · [First creation](first-creation.en.md)
 
-Ordinary build/export entry points already exist. **Delivery & export** and **Rebuild and export** are unreleased source controls; use them when present, or the installed package's existing entry. Exact verified export requires a real packaged-JAR acceptance task exposed by the host; neither a version number nor an ordinary successful build establishes it. See [current status](../status.md).
+Version 0.1.6 connects Delivery & export and Rebuild and export to the existing build/export flow; earlier packages use their original entry. Exact verified export still requires a real packaged-JAR acceptance task. A version number or ordinary successful build does not establish acceptance. See [current status](../status.md).
 
 ## Recover a failed build
 

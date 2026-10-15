@@ -10,11 +10,11 @@
 | Independent Python automation | `Workspace.open(...)` | Existing `.mcreator`, installed launcher and exclusive write lock. Keep this host alive until its tasks/client exit. |
 | General MCP client | Desktop **Tools → AI & MCP** | User pairs and supplies a workspace-scoped token. Discover the random loopback endpoint from `.copperbench/mcp-connection.json`; credentials are not in that file. |
 
-Use the [minimal executable examples](../../sdk/agent-workflows.md). The startup **Connect external Agent** help is an unreleased source entry; it only explains setup, never issues a token. Older packages can open the workspace and use the existing AI/MCP page. A lost desktop session never automatically becomes an independent writing host.
+Use the [minimal executable examples](../../sdk/agent-workflows.md). Version 0.1.6 provides the startup **Connect external Agent** help; it only explains setup, never issues a token. Older packages can open the workspace and use the existing AI/MCP page. A lost desktop session never automatically becomes an independent writing host.
 
 ## Discover before writing
 
-The new helpers are part of the **0.1.6 release preparation**; [current status](../status.md) distinguishes them from published 0.1.5 packages. Check MCP `2025-11-25`, Native transport `1`, Core handshake/ordinary operations `1.0`, and actual catalog/ready operations. Editor queries separately select `1.1`; a successful `1.0` handshake does not establish editor support. Required semantics must not silently downgrade; see [contract floors](../../sdk/compatibility.md).
+These examples describe the 0.1.6 client routes. Older hosts still require actual capability discovery; see [current status](../status.md). Check MCP `2025-11-25`, Native transport `1`, Core handshake/ordinary operations `1.0`, and actual catalog/ready operations. Editor queries separately select `1.1`; a successful `1.0` handshake does not establish editor support. Required semantics must not silently downgrade; see [contract floors](../../sdk/compatibility.md).
 
 1. Negotiate/initialize; for MCP inspect `tools/list`, not guessed tool names.
 2. Read `get_workspace_environment`: active generator, toolchain/execution, application identity and `data.fieldContracts`. Current main exposes `get_mod_element_field_contract` and `get_field_reference_options`. Native `discover_field_contract(...)` reports available/not_exposed/unsupported without creating probe elements. The Native legacy environment helper uses `NATIVE_FIELD_CONTRACT_UNAVAILABLE` for an absent type; MCP/TypeScript legacy helpers use `FIELD_CONTRACT_NOT_EXPOSED`. Core unavailability and malformed metadata retain their distinct errors.

@@ -1,0 +1,82 @@
+{
+  "kind": "windows-016-public-asset-verification",
+  "status": "passed",
+  "verifiedAtUtc": "2026-10-15T15:40:11.727703+00:00",
+  "releaseTag": "v0.1.6",
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6",
+  "releaseId": 413978638,
+  "publishedAt": "2026-10-15T15:35:41Z",
+  "draft": false,
+  "prerelease": false,
+  "sourceCommit": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+  "workflowRunId": "38748647623",
+  "workflowAttempt": 2,
+  "assetCount": 10,
+  "assets": [
+    {
+      "name": "Copperbench.0.1.6.Windows.64bit.exe",
+      "size": 501380411,
+      "sha256": "59d394b969b3e573e4d851828d8a9aa51d99e62c0fd4fa680d3f3a429e8d31c1"
+    },
+    {
+      "name": "Copperbench.0.1.6.Windows.64bit.msix",
+      "size": 623131998,
+      "sha256": "548d3f957235f527c2408adbd11663a00da14bfaa521d42788447060c549e623"
+    },
+    {
+      "name": "Copperbench.0.1.6.Windows.64bit.zip",
+      "size": 602441329,
+      "sha256": "87e6295c6eab9de371f1c8d6ac3a1c61aa4b3810ed26394045fbb87cef827b90"
+    },
+    {
+      "name": "copperbench.spdx.json",
+      "size": 737051,
+      "sha256": "aa37e0062803046a1649fd9444b80c71be6311c234eb6d785ee2d1ddebd07fbb"
+    },
+    {
+      "name": "LICENSE-ADDITIONAL-TERMS.md",
+      "size": 2484,
+      "sha256": "8d1a71caa1e2829c91d3a6b4b41ec7eea5525a63a796eca37f3d917818a9936e"
+    },
+    {
+      "name": "LICENSE.txt",
+      "size": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "name": "product-status.json",
+      "size": 29075,
+      "sha256": "3103357aaa2a100440833ff5396cf5fa55ab4ac836eb795d60c77e0070c2c1ec"
+    },
+    {
+      "name": "RELEASE-METADATA.json",
+      "size": 416,
+      "sha256": "59fcedc22f39f54ae3c6ebfaadf8e91b95bb52cec101cd81ed411d7b0c29f177"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 839,
+      "sha256": "1802b61939b071a515a9b09c71e35b103c2c1118849d4b5c312dcea5b7124ca8"
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.md",
+      "size": 3463,
+      "sha256": "1705c3fc3238ea5a583cf19a27a4c9f2d784429eb1b968c719d4645dc164902c"
+    }
+  ],
+  "publicApiHashesMatchChecksumList": true,
+  "allPublicAssetDigestsMatchVerifiedSignedProvenance": true,
+  "publicSmallAssetBytesVerified": [
+    "product-status.json",
+    "RELEASE-METADATA.json",
+    "SHA256SUMS.txt"
+  ],
+  "releaseApiReceiptSha256": "26331662ae18645f59e7f55420d5c644058d9067221fc79a761393bcb45329f0",
+  "runReceiptSha256": "a494f758adaf8ca4bb608657a35bdec180cb0accad01ce97232030986836a87c",
+  "jobsReceiptSha256": "077fb85be2a79f53cf4e092062182f531327258a30c16da503bba298584e5353",
+  "provenanceReceiptSha256": "c9adebf1c793e703586716978a2c96234101fad5507c5ea12ded4748921d7e84",
+  "zipArchiveInspection": "pending in a separate record; this receipt covers public API digests, checksum list, signed provenance and downloaded metadata",
+  "fullInstalledAcceptance": "not-repeated",
+  "fullGameplayAcceptance": "not-repeated",
+  "previousAttempt": "Attempt 1 failed only fetching Sigstore tlog entry; its failure records are preserved separately."
+}

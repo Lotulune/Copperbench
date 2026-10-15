@@ -1,13 +1,13 @@
-# Copperbench 0.1.6 release preparation
+# Copperbench 0.1.6 integration and publication
 
-The owner explicitly requested pushing and publishing the optimization work as a new installer version on 2026-10-15. This record describes source preparation. It does not assert that final main CI, release packaging, Linux candidate authorization or publication has completed.
+The owner requested pushing and publishing the optimization release on 2026-10-15. This record separates local preflight, binary source A, exact Linux candidate, promotion source and public outcomes. Historical installed/gameplay evidence keeps its original identity.
 
 ## Source integration
 
-- Integration base: latest main `bc2a512ca07b8c38fe1ff3140b3954563925bc6a`, which already includes published Windows/Linux 0.1.5 and the later editor-schema, field-discovery, doctor, preview and version-copy work.
+- Integration base: main commit `bc2a512ca07b8c38fe1ff3140b3954563925bc6a` at the start of source integration, already including published Windows/Linux 0.1.5 and the later editor-schema, field-discovery, doctor, preview and version-copy work.
 - The optimization work originated from the older `b1a69d244ab7337608cc302826ed55d4a707f37f` checkout. Its C1–C4, Linux run3 and later review-fix evidence retain those exact source/artifact identities.
 - Integration keeps the main branch's existing capabilities and applies the optimization's first-creation, draft-recovery, diagnostic, delivery, SDK and contributor-tool changes.
-- Product configuration and release-owned manifest fixtures are prepared for 0.1.6. The approved `ready` declaration records the authorized release target; it is not a successful validation or public-release receipt.
+- Product configuration and release-owned manifest fixtures were prepared for 0.1.6. The approved `ready` declaration at A recorded the authorized release target; the subsequent public receipts below establish publication.
 - The [previous 0.1.5 declarations](../../evidence/maintenance/2026-10-15/publication-0.1.6/previous-release-state.json) preserve their source, timestamps, workflow results and proof paths. Historical gates, Beta provenance, the product snapshot and the Linux support record retain their original scope.
 
 ## Included review-fix scope
@@ -38,26 +38,34 @@ The coordinated local preflight passed the affected checks after integration ont
 | Node tooling / contributor planner | 32 / 17 passed |
 | Production UI, application JAR and Javadoc | Passed; compiled JAR is a local 0.1.6 artifact, not a published distribution |
 | Repository Markdown links and product status | Passed before this report update |
-| Documentation packaging configuration | Gradle configuration passed after adding the missing offline Markdown routes; final package contents remain to be verified |
+| Documentation packaging | Configuration passed locally; actual Windows ZIP and Linux portable archives each passed all 23 A-bound entry checks |
 
 The first Java attempt stopped on an unused TypeScript binding; the first Python attempt exposed outdated merged fixtures. Their failures and hashes remain in the evidence. Successful checks retain their individual source identities rather than being described as one full rerun after every correction. This preflight did not add native/JCEF, graphical installer, player-controlled Minecraft or same-world reopening acceptance.
 
 ## Current evidence state
 
-| Item | Preparation state |
+| Item | Recorded state |
 | --- | --- |
-| Final integration source commit | Not yet assigned; no invented commit or source digest |
+| Product/binary source A | `9e3dfdeab1bc19c099e739bcda14940d9a6fee30` |
 | Local integration preflight | Passed within the scope above |
-| Protected PR/main required CI | Pending |
-| Windows signed tag, packaging and public assets | Pending |
-| Linux successful main-push candidate and frozen identity | Pending |
-| Linux exact-candidate hashes, provenance and authorization | Pending; existing 0.1.5 authorization is unchanged |
-| Final 0.1.6 installed-product and gameplay acceptance | Not performed by this preparation task |
-| Current public downloads | Windows `v0.1.5` and Linux `v0.1.5-linux-stable` |
+| Protected source CI | Main A run 38748273169 passed; PR #114 authorization contracts passed, and promotion follows its separately recorded source |
+| Windows publication | [Public stable 0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6), 2026-10-15T15:35:41Z; ten assets and source A |
+| Linux frozen candidate | Main push 38748273030 passed on A; candidate `sha256:ea64a9f7126e7cab62343780704837b62ffbd93010ae2603d0d2992444c508d1` |
+| Linux candidate verification | Eight byte hashes/provenance subjects and 23 portable entries passed; [immutable report](maintenance-linux-0.1.6.md) and exact authorization are unchanged |
+| Final 0.1.6 installed-product and gameplay acceptance | Not repeated; historical records retain their original scope |
+| Linux publication | https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable, published 2026-10-15T16:17:00Z; source b9383631ec6e800aa327f9f583fc48213a969648, run 38766657314, 9 assets |
 
 Protected CI, immutable candidate/package checks and publication remain separate from the local preflight. No fresh final-package installed-product or gameplay acceptance is claimed; historical C4 and Linux run3 results retain their original identities.
 
-## Publication sequence
+## Verified public records
+
+Windows `v0.1.6` was published by run `38748647623` attempt 2 at `2026-10-15T15:35:41Z`, release ID `413978638`, from A. Attempt 1 passed tests and packaging but failed fetching a Sigstore Rekor entry; its raw failure remains archived. The [public verification](../../evidence/maintenance/2026-10-15/publication-0.1.6/windows/windows-public-verification.json) matched nine checksum-list entries against API digests, separately byte-checked SHA256SUMS and the other two downloaded metadata files, and verified all ten source-A/attempt-2 provenance subjects. The public ZIP, `602441329` bytes / SHA-256 `87e6295c6eab9de371f1c8d6ac3a1c61aa4b3810ed26394045fbb87cef827b90`, was [downloaded and hashed](../../evidence/maintenance/2026-10-15/publication-0.1.6/windows/public-zip-download.json); [all 23 selected ZIP entries](../../evidence/maintenance/2026-10-15/publication-0.1.6/windows/archive-entry-verification.json) matched A. This does not claim complete re-downloads of EXE/MSIX or new installed/gameplay acceptance.
+
+Linux `v0.1.6-linux-stable` public release ID `414016224` was published at `2026-10-15T16:17:00Z` by run `38766657314` on promotion source `b9383631ec6e800aa327f9f583fc48213a969648`; result `success`. [Public asset verification](../../evidence/maintenance/2026-10-15/publication-0.1.6/linux/linux-public-verification.json) matched all nine API sizes/digests to the eight frozen candidate files and exact approved authorization. The downloaded public metadata, checksum list and authorization were byte-identical to their originals; the protected promotion also verified frozen provenance and compared all nine downloaded draft assets byte-for-byte. Binary source stays A and main-push candidate run `38748273030`; the [immutable candidate report](maintenance-linux-0.1.6.md) and `maintenance-ci-0.1.6` approval are not rewritten. Full installed acceptance remains `not-repeated`, formal support claim `false`.
+
+B's local promotion checks passed all five checks, including 30 authorization contracts and the exact metadata/13-step/source-delta/link checks, on implementation commit `2bb9544833ff87bf9e9d18f4e73f884b2d79c59f` / Git tree `248060a6eee0aff2c87baaacf583762b859ef047`. PR [#114](https://github.com/Lotulune/Copperbench/pull/114) and the final promotion source remain distinct identities. Later documentation C does not rebuild or alter A's packages.
+
+## Publication procedure
 
 1. Finish implementation and applicable verification, then merge the versioned source through the required PR checks. Retain the successful main CI and the Stage 15 candidate generated by that exact main push.
 2. Sign and publish the Windows `v0.1.6` tag on latest main. Keep main unchanged through the workflow's source, draft and publication checks.
