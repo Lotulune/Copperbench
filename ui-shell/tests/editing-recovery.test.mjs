@@ -1,19 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
-import { createServer } from 'vite';
+import { loadSsrTestModules } from './helpers/vite-ssr-loader.mjs';
 
-const loader = await createServer({ configFile: false, root: fileURLToPath(new URL('../', import.meta.url)),
-  server: { middlewareMode: true, hmr: false, watch: null }, appType: 'custom', optimizeDeps: { noDiscovery: true } });
-let fields, failures, sessions, locale, layouts;
-try {
-  fields = await loader.ssrLoadModule('/src/hooks/editorFieldChanges.ts');
-  failures = await loader.ssrLoadModule('/src/bridge/operationFailure.ts');
-  sessions = await loader.ssrLoadModule('/src/hooks/specializedEditorSessions.ts');
-  locale = await loader.ssrLoadModule('/src/i18n/locale.ts');
-  layouts = await loader.ssrLoadModule('/src/hooks/layoutNumericDrafts.ts');
-} finally { await loader.close(); }
+const [fields, failures, sessions, locale, layouts] = await loadSsrTestModules([
+  '/src/hooks/editorFieldChanges.ts',
+  '/src/bridge/operationFailure.ts',
+  '/src/hooks/specializedEditorSessions.ts',
+  '/src/i18n/locale.ts',
+  '/src/hooks/layoutNumericDrafts.ts'
+]);
 
 const field = (path, value, control = 'number', extra = {}) => ({ path, value, control, readOnly: false,
   required: true, label: { key: 'fixture.field', fallback: path }, diagnostics: [], options: [], ...extra });

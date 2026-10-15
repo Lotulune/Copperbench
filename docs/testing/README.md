@@ -1,5 +1,9 @@
 # 测试与验收证据索引
 
+两项优化联合提交：[最新主线整合与集中检查](joint-review-uiux-integration-2026-10-16.md)。
+
+本轮新增：[复评优化 spec](../roadmap/review-optimization-spec-2026-10-16.md)、[统一验收记录](review-optimization-2026-10-16.md)、[决策看板](../maintenance/review-improvement-board-2026-10-16.md)、[最终包验收准备](final-package-acceptance-2026-10-16.md)、[任务研究合同](task-evaluation.md)、[原生首作演示准备](first-creation-demo.md)。准备文档不代表对应实测已经通过。
+
 ## 当前交付基线
 
 当前稳定版为 Windows 0.1.6 与 Linux 0.1.6，公开状态和资产证明见[当前下载](../releases/current.md)及[发布记录](maintenance-release-0.1.6.md)。下方旧版本记录保留原来源与验收范围。

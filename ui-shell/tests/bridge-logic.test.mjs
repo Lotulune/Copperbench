@@ -1,24 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
-import { createServer } from 'vite';
+import { loadSsrTestModules } from './helpers/vite-ssr-loader.mjs';
 
 // Load the production TypeScript and its real imports through the existing Vite
 // toolchain. There is no copied bridge implementation or browser server to test.
-const loader = await createServer({
-  configFile: false,
-  root: fileURLToPath(new URL('../', import.meta.url)),
-  server: { middlewareMode: true, hmr: false, watch: null },
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true }
-});
-let JcefCoreBridge, taskLogWatermark;
-try {
-  ({ JcefCoreBridge, taskLogWatermark } = await loader.ssrLoadModule('/src/bridge/JcefCoreBridge.ts'));
-} finally {
-  await loader.close();
-}
+const [{ JcefCoreBridge, taskLogWatermark }] = await loadSsrTestModules(['/src/bridge/JcefCoreBridge.ts']);
 
 const workspaceId = '11111111-1111-4111-8111-111111111111';
 const taskId = '44444444-4444-4444-8444-444444444444';

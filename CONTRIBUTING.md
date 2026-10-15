@@ -2,6 +2,8 @@
 
 Copperbench is an independent derivative of MCreator. Use this repository's [issue tracker](https://github.com/Lotulune/Copperbench/issues) for Copperbench bugs and proposals, and open pull requests against **`main`**. Upstream source and attribution records are in [UPSTREAM.md](UPSTREAM.md).
 
+Start with the [one-page contributor route（简体中文）](docs/build/contributor-quickstart.md) to choose the minimum environment, shortest checks and completion criteria for your layer. The detailed commands below remain references; do not run every layer for a documentation change.
+
 Bug reports are useful contributions. Include the Copperbench version, operating system and desktop session, generator, steps to reproduce, and the expected and actual result. The bug-report form accepts Windows 11 and Ubuntu 24.04 GNOME Wayland/Xorg. Review diagnostic bundles before attaching them; include only information needed to reproduce the problem.
 
 ## Run from source

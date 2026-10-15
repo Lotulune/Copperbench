@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { LanguageSelector } from './LanguageSelector';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -290,8 +291,12 @@ export const FramelessTitlebar: React.FC = () => {
             <button
               type="button"
               className="titlebar-window-button titlebar-close-button"
-              onClick={() => {
-                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedDrafts() || window.confirm(uiText('有未保存的修改。关闭窗口并放弃这些草稿？', 'There are unsaved changes. Close the window and discard these drafts?'))) windowBridge.close();
+              onClick={async () => {
+                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedDrafts() || await confirmAction({
+                  title: { zh: '关闭窗口', en: 'Close window' }, danger: true,
+                  message: { zh: '有未保存的修改。关闭窗口并放弃这些草稿？', en: 'There are unsaved changes. Close the window and discard these drafts?' },
+                  confirmLabel: { zh: '放弃并关闭', en: 'Discard and close' }
+                })) windowBridge.close();
               }}
               title={uiText('关闭', 'Close')}
               aria-label={uiText('关闭', 'Close')}

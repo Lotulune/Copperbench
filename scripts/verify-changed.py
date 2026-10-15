@@ -198,7 +198,8 @@ def make_plan(paths, environment, allow_downloads=False, windows=None):
                                    "scripts/tests/performance-fixtures.tests.mjs",
                                    "scripts/tests/performance-runner.tests.mjs",
                                    "scripts/tests/source-identity.tests.mjs",
-                                   "scripts/tests/native-observation.tests.mjs"],
+                                   "scripts/tests/native-observation.tests.mjs",
+                                   "scripts/tests/task-evaluation.tests.mjs"],
             ["node", "git"], "CI selected measurement-tooling and source-identity regression tests; these do not collect native acceptance or performance samples.")
     if checks["python"]:
         add("contributor-unit", [sys.executable, "-m", "unittest", "discover", "-s", "scripts/tests", "-p", "test_verify_changed.py"],

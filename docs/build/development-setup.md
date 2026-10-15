@@ -1,6 +1,8 @@
 # Copperbench 开发环境
 
-[English](development-setup.en.md) · [贡献与验证选择](../../CONTRIBUTING.md#choose-verification-for-the-change)
+[English](development-setup.en.md) · [贡献者一页入口](contributor-quickstart.md) · [贡献与验证选择](../../CONTRIBUTING.md#choose-verification-for-the-change)
+
+第一次贡献先按[一页入口](contributor-quickstart.md)选择改动层；本页用于补齐对应环境和排查启动问题。
 
 ## 前置条件
 
@@ -47,22 +49,12 @@ python scripts/verify-changed.py --base origin/main --dry-run
 `--paths` 与 `--base` 二选一；无完整 diff／未知路径时保守全选。环境准备好后才显式执行：
 
 ```powershell
-python scripts/verify-changed.py --run --allow-downloads --output output/contributor-validation/my-change-01
+python scripts/verify-changed.py --paths docs/user/first-creation.md --run --allow-downloads --output output/contributor-validation/my-change-01
 ```
 
 `--run` 默认阻止可能下载的 Gradle；`--allow-downloads` 才允许调用既有 Wrapper。工具不会替你 `npm ci`、安装 Chromium 或修改系统设置；缺项只阻塞依赖它的检查。输出须是仓库 `output/` 或 `build/` 内的新目录。报告保留实际命令、退出码、日志、源码摘要及可获得的测试数（缺失为 `null`）。执行失败／超时返回 `1`，环境阻塞返回 `2`，纯计划返回 `0`。详见[贡献者验证入口](../../scripts/performance/README.md#contributor-verification)。这是源码开发工具，不是发布包中的产品 doctor。
 
-按本次改动选择下面的命令；[贡献指南](../../CONTRIBUTING.md#choose-verification-for-the-change)列出了各层对应的检查。`gradlew test` 已通过资源任务构建 UI，同一工作区不需要紧接着再运行一次 `npm run build`；仅改前端、没有运行 Gradle 时，仍应执行前端生产构建。PR 的自动分流规则见[CI 检查选择](../../CONTRIBUTING.md#how-ci-selects-checks)。
-
-```powershell
-.\gradlew.bat --no-daemon test javadoc
-npm test --prefix ui-core
-npm run build --prefix ui-shell
-Push-Location ui-shell
-npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts
-Pop-Location
-node scripts/verify-markdown-links.mjs
-```
+按[一页入口](contributor-quickstart.md)选择本次检查；[贡献指南](../../CONTRIBUTING.md#choose-verification-for-the-change)保留各层的手动命令。完成全部实现后统一执行所选计划，已由计划运行的定向检查不再重复。`gradlew test` 已通过资源任务构建 UI，同一份输入不需要紧接着再运行一次 `npm run build`；仅改前端、没有运行 Gradle 时，计划会执行一次前端生产构建。PR 的自动分流规则见[CI 检查选择](../../CONTRIBUTING.md#how-ci-selects-checks)。
 
 如果当前 Windows 终端由受限的宿主进程启动，Java NIO 可能无法创建
 Gradle daemon 所需的本地回环管道，并报 `Unable to establish loopback

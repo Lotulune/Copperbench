@@ -45,6 +45,9 @@ test('settings save only explicit changed fields and reload persisted values', a
     (window as unknown as { __SAVED_PREFERENCES__: unknown }).__SAVED_PREFERENCES__ = (event as CustomEvent).detail;
   }));
   await expect(settings.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  await expect(settings.getByText('Use the operating system’s file open and save dialogs.', { exact: true })).toBeVisible();
+  await settings.getByRole('checkbox', { name: 'System file picker' }).focus();
+  await expect(settings.getByRole('checkbox', { name: 'System file picker' })).toHaveAttribute('aria-describedby', 'preference-ui.nativeFileChooser-hint');
   await settings.getByRole('checkbox', { name: 'System file picker' }).uncheck();
   await settings.getByRole('button', { name: 'Code editor', exact: true }).click();
   const fontSize = settings.getByRole('textbox', { name: 'Code font size', exact: true });

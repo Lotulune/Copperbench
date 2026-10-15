@@ -103,7 +103,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-revision-conflict"]');
 
     await expect(page.locator('[data-testid="revision-conflict-dialog"]')).toBeVisible();
-    await expect(page.getByRole('dialog', { name: '工作区已有新修改' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: '工作区已有新修改', exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="conflict-refresh-btn"]')).toBeVisible();
 
     // Click refresh to resolve

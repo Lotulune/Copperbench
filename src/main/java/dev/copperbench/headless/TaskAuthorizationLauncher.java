@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.automation.security.TaskAuthorizationStore;
 import dev.copperbench.core.contract.UiCore.Actor;
 
-import javax.swing.JOptionPane;
+import dev.copperbench.shell.UiLocalePreferences;
 import java.awt.GraphicsEnvironment;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
@@ -22,6 +22,7 @@ final class TaskAuthorizationLauncher {
     private TaskAuthorizationLauncher() {}
 
     static int run(String[] arguments, PrintWriter output) {
+        String locale = UiLocalePreferences.read();
         var json = new GsonBuilder().disableHtmlEscaping().create();
         JsonObject result = new JsonObject(); result.addProperty("schemaVersion", "1.0");
         result.addProperty("operation", arguments[0]);
@@ -50,17 +51,14 @@ final class TaskAuthorizationLauncher {
                     if (!TaskAuthorizationStore.CAPABILITIES.containsAll(capabilities) || ttl < 60 || ttl > 86400)
                         throw new IllegalArgumentException("Unknown capabilities or invalid lifetime");
                     new PrintWriter(new FileOutputStream(FileDescriptor.err), true).println(
-                            "Copperbench is waiting for task approval. Root: " + root + "; capabilities: " + capabilities + "; lifetime: " + ttl + " seconds.");
-                    String text = "任务：" + label + "\n授权目录（Root，包含子目录）：" + root
-                            + "\n允许的操作（Capabilities）：" + capabilities.stream().map(TaskAuthorizationLauncher::capabilityLabel)
-                                    .collect(java.util.stream.Collectors.joining("、"))
-                            + "\n有效期（Lifetime）：" + ttl + " 秒"
-                            + "\n\n是否允许此任务通过命令行（CLI）和 MCP 执行上述操作，直至授权到期或被撤销？"
-                            + "\n仅授权所列目录和操作，不扩大 MCP 连接本身的权限。";
-                    boolean approved = LocalApprovalWindow.confirm("Copperbench 任务授权", text);
+                            TaskAuthorizationCopy.text(locale, "Copperbench 正在等待任务授权。目录：", "Copperbench is waiting for task approval. Root: ") + root
+                            + TaskAuthorizationCopy.text(locale, "；操作：", "; capabilities: ") + capabilities
+                            + TaskAuthorizationCopy.text(locale, "；有效期：", "; lifetime: ") + ttl + TaskAuthorizationCopy.text(locale, " 秒。", " seconds."));
+                    boolean approved = LocalApprovalWindow.confirm(TaskAuthorizationCopy.title(locale),
+                            TaskAuthorizationCopy.body(locale, label, root, capabilities, ttl), locale);
                     boolean eula = false;
-                    if (approved && capabilities.contains("run_server")) eula = LocalApprovalWindow.confirm("Copperbench 服务器授权",
-                            "运行专用服务器需要接受 Minecraft 最终用户许可协议（EULA）：https://aka.ms/MinecraftEULA\n是否同意该协议，并将其用于此任务创建的服务器？");
+                    if (approved && capabilities.contains("run_server")) eula = LocalApprovalWindow.confirm(
+                            TaskAuthorizationCopy.serverTitle(locale), TaskAuthorizationCopy.eula(locale), locale);
                     result.add("data", store.issue(Actor.UI, approved, label, root, capabilities, ttl, eula));
                 }
                 default -> throw new IllegalArgumentException("Unknown authorization command");
@@ -70,23 +68,11 @@ final class TaskAuthorizationLauncher {
             boolean denied = exception instanceof TaskAuthorizationStore.AuthorizationException;
             result.addProperty("status", "rejected");
             result.addProperty("code", denied ? ((TaskAuthorizationStore.AuthorizationException) exception).code() : "TASK_AUTHORIZATION_INVALID");
-            result.addProperty("message", exception.getMessage()); result.addProperty("exitCode", denied ? 3 : 4);
+            result.addProperty("message", TaskAuthorizationCopy.error(locale, result.get("code").getAsString()));
+            result.addProperty("detail", exception.getMessage()); result.addProperty("exitCode", denied ? 3 : 4);
         }
         output.println(json.toJson(result)); output.flush(); return result.get("exitCode").getAsInt();
     }
-    private static String capabilityLabel(String capability) {
-        return switch (capability) {
-            case "create" -> "创建工作区（create）";
-            case "edit" -> "修改内容（edit）";
-            case "build" -> "生成与构建（build）";
-            case "test" -> "校验与测试（test）";
-            case "run_client" -> "运行客户端（run_client）";
-            case "run_server" -> "运行专用服务器（run_server）";
-            case "restore" -> "恢复历史版本（restore）";
-            default -> capability;
-        };
-    }
-
     private static String required(Map<String, String> options, String name) {
         String value = options.get(name);
         if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " is required");

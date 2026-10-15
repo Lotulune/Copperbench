@@ -3,9 +3,14 @@ export const DEFAULT_CELLS = ['small:navigation', 'small:element-search', 'mediu
   'medium:element-search', 'medium:editor-open', 'large:element-search', 'large:asset-search', 'large:graph-open', 'large:graph-search'];
 
 export function parseCells(value = DEFAULT_CELLS.join(',')) {
-  const cells = value.split(',');
+  if (typeof value !== 'string') throw new Error('Performance cells must be a comma-separated string.');
+  return validateCellIds(value.split(','));
+}
+
+function validateCellIds(cells) {
   if (!cells.length || new Set(cells).size !== cells.length) throw new Error('Performance cells must be nonempty and unique.');
   for (const cell of cells) {
+    if (typeof cell !== 'string' || !cell) throw new Error('Performance cell IDs must be nonempty strings.');
     const [size, operation, extra] = cell.split(':');
     if (!['small', 'medium', 'large'].includes(size) || !OPERATIONS.includes(operation) || extra !== undefined)
       throw new Error(`Unknown performance cell: ${cell}`);
@@ -76,10 +81,23 @@ function canonicalConditions(conditions) {
 
 const COMPARISON_METRICS = ['endToEnd', 'browserInputToReady', 'feedback'];
 
-export function compareReports(baseline, candidate) {
+export function compareReports(baseline, candidate, { partial = false } = {}) {
   if (!baseline || !candidate || !Array.isArray(baseline.cells) || !Array.isArray(candidate.cells))
     throw new Error('Expected two performance reports with cells.');
+  if (typeof partial !== 'boolean') throw new Error('The partial comparison option must be boolean.');
   const sameConditions = canonicalConditions(baseline.comparisonConditions) === canonicalConditions(candidate.comparisonConditions);
+  const baselineIds = validateCellIds(baseline.cells.map(cell => cell?.id));
+  const candidateIds = validateCellIds(candidate.cells.map(cell => cell?.id));
+  const baselineById = new Map(baseline.cells.map(cell => [cell.id, cell]));
+  const candidateIdSet = new Set(candidateIds);
+  const baselineOnlyCells = baselineIds.filter(id => !candidateIdSet.has(id));
+  const candidateOnlyCells = candidateIds.filter(id => !baselineById.has(id));
+  const sharedCells = candidateIds.filter(id => baselineById.has(id));
+  const coverageComplete = !baselineOnlyCells.length && !candidateOnlyCells.length;
+  const reasons = [];
+  if (!sameConditions) reasons.push('Environment, fixture, measurement, or cache conditions differ.');
+  if (!partial && !coverageComplete) reasons.push('Cell coverage differs; a full comparison requires identical cell sets.');
+  if (!sharedCells.length) reasons.push('There are no shared cells to compare.');
   for (const report of [baseline, candidate]) for (const cell of report.cells) for (const name of COMPARISON_METRICS) {
     const metric = cell[name];
     // Older reports may omit a metric; its absence must be visible in the result.
@@ -93,9 +111,13 @@ export function compareReports(baseline, candidate) {
   return { thresholdRatio: 1.2, metricNames: [...COMPARISON_METRICS],
     conclusion: 'Each metric is checked separately. Review triggers require a repeat under the same conditions; no automatic regression verdict. Missing or low-sample metrics cannot establish an all-metrics-clear result.',
     legacyCellFields: 'baselineP95Ms, candidateP95Ms and ratio retain their endToEnd meaning; metrics contain per-metric results.',
-    comparable: sameConditions, reason: sameConditions ? null : 'Environment, fixture, measurement, or cache conditions differ.',
+    comparisonMode: partial ? 'partial' : 'full', baselineOnlyCells, candidateOnlyCells, coverageComplete,
+    scope: { sharedCells, baselineCellCount: baselineIds.length, candidateCellCount: candidateIds.length,
+      description: partial ? 'Explicit partial comparison: metric conclusions apply only to shared cells; differences remain unmeasured.'
+        : 'Full comparison requires identical nonempty cell sets; individual metric conclusions do not clear a coverage gap.' },
+    comparable: reasons.length === 0, reason: reasons.length ? reasons.join(' ') : null,
     cells: candidate.cells.map(cell => {
-      const before = baseline.cells.find(entry => entry.id === cell.id);
+      const before = baselineById.get(cell.id);
       const metrics = Object.fromEntries(COMPARISON_METRICS.map(name => {
         const earlier = before?.[name];
         const later = cell[name];

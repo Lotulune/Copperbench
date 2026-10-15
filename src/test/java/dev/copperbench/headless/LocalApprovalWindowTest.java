@@ -6,8 +6,13 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -20,10 +25,18 @@ class LocalApprovalWindowTest {
     @Test @Timeout(20) void cancelIsDefaultAndReturnsFalse() throws Exception { exercise("Cancel", false); }
     @Test @Timeout(20) void closingTheWindowReturnsFalse() throws Exception { exercise(null, false); }
     @Test @Timeout(20) void explicitAllowReturnsTrue() throws Exception { exercise("Allow", true); }
+    @Test @Timeout(20) void chineseCancelIsDefault() throws Exception { exercise("zh", "取消", false); }
+    @Test @Timeout(20) void chineseAllowReturnsTrue() throws Exception { exercise("zh", "允许", true); }
 
     private static void exercise(String choice, boolean expected) throws Exception {
+        exercise("en", choice, expected);
+    }
+
+    private static void exercise(String locale, String choice, boolean expected) throws Exception {
         String title = "Approval window test " + UUID.randomUUID();
-        var result = CompletableFuture.supplyAsync(() -> LocalApprovalWindow.confirm(title, "Test fixture only"));
+        String message = TaskAuthorizationCopy.body(locale, "Test fixture only", Path.of("approval-window-fixture").toAbsolutePath(),
+                List.of("create", "edit", "build", "test", "run_client", "run_server", "restore"), 7200);
+        var result = CompletableFuture.supplyAsync(() -> LocalApprovalWindow.confirm(title, message, locale));
         JFrame frame = null;
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         while (frame == null && System.nanoTime() < deadline) {
@@ -42,8 +55,16 @@ class LocalApprovalWindowTest {
                 assertNull(visible.getOwner(), "Approval must not depend on a hidden shared owner");
                 assertTrue(visible.isDisplayable());
                 var pane = (JOptionPane) visible.getContentPane();
-                assertEquals("Cancel", pane.getInitialValue());
-                assertEquals("Cancel", visible.getRootPane().getDefaultButton().getText());
+                assertEquals(TaskAuthorizationCopy.cancel(locale), pane.getInitialValue());
+                assertEquals(TaskAuthorizationCopy.cancel(locale), visible.getRootPane().getDefaultButton().getText());
+                assertArrayEquals(new String[]{TaskAuthorizationCopy.cancel(locale), TaskAuthorizationCopy.allow(locale)}, pane.getOptions());
+                var scroll = assertInstanceOf(JScrollPane.class, pane.getMessage());
+                assertEquals(message, assertInstanceOf(JTextArea.class, scroll.getViewport().getView()).getText());
+                var screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+                assertTrue(visible.getWidth() <= screen.width && visible.getHeight() <= screen.height);
+                var button = visible.getRootPane().getDefaultButton();
+                var buttonBounds = SwingUtilities.convertRectangle(button.getParent(), button.getBounds(), visible);
+                assertTrue(buttonBounds.y + buttonBounds.height <= visible.getHeight(), "Cancel stays inside the packed window");
                 if (choice == null) visible.dispose(); else pane.setValue(choice);
             });
             assertEquals(expected, result.get(5, TimeUnit.SECONDS));

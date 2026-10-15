@@ -221,7 +221,7 @@ test('successful source reads preserve a later original-status failure and its e
   await page.evaluate(() => (window as unknown as { releaseDiagnosticStatusRead(): void }).releaseDiagnosticStatusRead());
   const status = page.getByTestId('task-status-unavailable');
   await expect(status).toBeVisible();
-  await expect(status).toContainText('读取原任务状态');
+  await expect(status).toContainText('检查任务状态');
   await page.getByTestId('ui-language-select').selectOption('en');
   await expect(status).toContainText('Task status is temporarily unavailable');
   await page.getByTestId('task-diag-action-open_generated_source').click();
@@ -232,7 +232,7 @@ test('successful source reads preserve a later original-status failure and its e
   await status.getByText('Read error details', { exact: true }).click();
   await expect(status.locator('pre')).toContainText('TASK_STATUS_UNAVAILABLE');
   await page.evaluate(() => sessionStorage.removeItem('failDiagnosticStatusReads'));
-  await status.getByRole('button', { name: 'Read original task status', exact: true }).click();
+  await status.getByRole('button', { name: 'Check task status', exact: true }).click();
   await expect(status).toHaveCount(0);
   await expect(page.getByTestId('task-source-content')).toBeVisible();
   expect((await bridgeObservation(page)).readError).toBeNull();

@@ -196,7 +196,7 @@ test('created element references survive guide close, navigation and language ch
   await page.getByTestId('ui-language-select').selectOption('en');
   await page.getByTestId('nav-hub').click();
   await page.getByTestId('nav-first-creation').click();
-  await expect(page.getByTestId('first-creation-step-element')).toContainText('Real element created');
+  await expect(page.getByTestId('first-creation-step-element')).toContainText('Block created');
   await expect(page.getByTestId('first-creation-create-element')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('nav-first-creation')).toBeFocused();

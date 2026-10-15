@@ -6,6 +6,8 @@
 
 ## 从这里开始
 
+本轮维护：[复评优化 spec](./roadmap/review-optimization-spec-2026-10-16.md) · [决策看板](./maintenance/review-improvement-board-2026-10-16.md)。贡献代码可先看[一页入口](./build/contributor-quickstart.md)，历史证据仍在原测试索引中。
+
 1. 使用产品：[第一件作品](./user/first-creation.md)、[用户指南](./user/README.md)、[当前下载](./releases/current.md)。
 2. 开发与维护：[开发环境](./build/development-setup.md)、[剩余完善清单](./remaining-work.md)、[测试与证据索引](./testing/README.md)。
 3. 制作宣传片、封面或产品介绍：[当前宣传素材与截图来源](../assets/screenshots/README.md)。

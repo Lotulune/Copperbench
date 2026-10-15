@@ -18,6 +18,9 @@
   --text-muted: #b1b6ac;
   /* Secondary text remains readable on both canvas and panel surfaces. */
   --text-sub: #9da596;
+  --scrollbar-thumb: #737b6d;
+  --scrollbar-thumb-hover: #99a18f;
+  --scrollbar-track: #242624;
 
   --accent-copper: #e2aa7a;
   --accent-copper-hover: #f2bd90;
@@ -80,7 +83,10 @@
   --text-main: #242622;
   --text-muted: #696d66;
   /* Secondary text meets normal-text contrast on light surfaces. */
-  --text-sub: #71766c;
+  --text-sub: #61675c;
+  --scrollbar-thumb: #737d6c;
+  --scrollbar-thumb-hover: #53604c;
+  --scrollbar-track: #f4f4f3;
 
   --accent-copper: #985029;
   --accent-copper-hover: #833e11;

@@ -15,7 +15,7 @@ const MEASUREMENT = 'browser-interaction-v1';
 
 export function parseOptions(arguments_) {
   const options = { cells: [...DEFAULT_CELLS], repetitions: 20, warmups: 2, maxAttempts: 25,
-    timeoutMs: 10000, port: 5179, locale: 'zh', headed: false, dryRun: false };
+    timeoutMs: 10000, port: 5179, locale: 'zh', headed: false, dryRun: false, partial: false };
   const values = { '--cells': 'cells', '--repetitions': 'repetitions', '--warmups': 'warmups',
     '--max-attempts': 'maxAttempts', '--timeout-ms': 'timeoutMs', '--port': 'port', '--locale': 'locale',
     '--output': 'output', '--browser-executable': 'browserExecutable', '--baseline': 'baseline' };
@@ -23,6 +23,7 @@ export function parseOptions(arguments_) {
     const argument = arguments_[index];
     if (argument === '--dry-run') options.dryRun = true;
     else if (argument === '--headed') options.headed = true;
+    else if (argument === '--partial') options.partial = true;
     else if (argument === '--help') options.help = true;
     else {
       const key = values[argument];
@@ -38,6 +39,7 @@ export function parseOptions(arguments_) {
     throw new Error('Use at least 20 valid repetitions, nonnegative warmups, and a sufficient attempt cap.');
   if (options.port < 1024 || options.port > 65535) throw new Error('The loopback port must be between 1024 and 65535.');
   if (!['zh', 'en'].includes(options.locale)) throw new Error('Locale must be zh or en.');
+  if (options.partial && !options.baseline) throw new Error('--partial requires --baseline.');
   return options;
 }
 
@@ -60,6 +62,7 @@ export function buildRunPlan(options, root = ROOT) {
   for (const path of ['ui-shell/node_modules/@playwright/test/cli.js', 'ui-shell/node_modules/vite/bin/vite.js'])
     if (!existsSync(resolve(root, path))) gaps.push(`Missing ${path}; install repository dependencies manually.`);
   return { schemaVersion: '1.0', kind: 'browser-performance-plan', cells: options.cells,
+    comparisonMode: options.baseline ? (options.partial ? 'partial' : 'full') : null,
     validRepetitionsPerCell: options.repetitions, warmupsPerCell: options.warmups, maxAttemptsPerCell: options.maxAttempts,
     command: ['node', 'node_modules/@playwright/test/cli.js', 'test', '--config=performance/playwright.config.ts'],
     cwd: 'ui-shell', output: relative(root, output).split(sep).join('/'), environmentGaps: gaps,
@@ -213,19 +216,31 @@ export async function measure(options, root = ROOT) {
       dirtyDeltaSha256: sourceAfter.dirtyDeltaSha256 }, browserConsistent, comparisonConditions, cells,
     endLoadObservation: { freeMemoryBytes: os.freemem(), loadAverage: os.loadavg() },
     resultMeaning: 'passed means repeat collection plus the declared browser correctness checks completed. Advisory budgets and other runtime layers remain separate.' };
-  if (options.baseline) {
-    try { report.comparison = compareReports(JSON.parse(readFileSync(resolve(root, options.baseline), 'utf8')), report); }
-    catch (error) { report.comparison = { status: 'invalid_comparison', reason: error.message }; }
-  }
-  save('report.json', report);
+  const exitCode = finalizeReport(report, options, root, output);
   console.log(`Performance collection ${report.status}; local report: ${plan.output}/report.json`);
-  return report.status === 'passed' ? 0 : 1;
+  return exitCode;
+}
+
+// Keep collection status separate from comparison validity, while returning a
+// failing command status for invalid baselines and unrequested coverage gaps.
+export function finalizeReport(report, options, root, output) {
+  if (options.baseline) {
+    try { report.comparison = compareReports(JSON.parse(readFileSync(resolve(root, options.baseline), 'utf8')), report,
+      { partial: options.partial ?? false }); }
+    catch (error) { report.comparison = { status: 'invalid_comparison',
+      reason: sanitizeFailure(error.message, [root, os.homedir()]) }; }
+  }
+  writeFileSync(resolve(output, 'report.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+  const comparisonFailed = report.comparison?.status === 'invalid_comparison'
+    || (report.comparison?.comparisonMode === 'full' && !report.comparison.coverageComplete)
+    || report.comparison?.scope?.sharedCells.length === 0;
+  return report.status === 'passed' && !comparisonFailed ? 0 : 1;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const options = parseOptions(process.argv.slice(2));
-    if (options.help) console.log('node scripts/performance/measure.mjs [--dry-run] [--cells small:navigation,large:graph-search] [--repetitions 20] [--warmups 2] [--max-attempts 25] [--timeout-ms 10000] [--locale zh|en] [--headed] [--browser-executable PATH] [--output output/performance/NEW-RUN] [--baseline REPORT]');
+    if (options.help) console.log('node scripts/performance/measure.mjs [--dry-run] [--cells small:navigation,large:graph-search] [--repetitions 20] [--warmups 2] [--max-attempts 25] [--timeout-ms 10000] [--locale zh|en] [--headed] [--browser-executable PATH] [--output output/performance/NEW-RUN] [--baseline REPORT [--partial]]');
     else process.exitCode = await measure(options);
   } catch (error) { console.error(`performance collection: ${error.message}`); process.exitCode = 1; }
 }

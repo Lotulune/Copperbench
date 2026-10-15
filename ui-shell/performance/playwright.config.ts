@@ -1,10 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
-import { fileURLToPath } from 'node:url';
+import { playwrightTestServer } from '../tests/helpers/playwright-server.mjs';
 
 if (!process.env.COPPERBENCH_PERF_OUTPUT) throw new Error('Use scripts/performance/measure.mjs to select and retain performance samples.');
-const port = Number(process.env.COPPERBENCH_PERF_PORT ?? '5179');
-if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid performance fixture port.');
-const baseURL = `http://127.0.0.1:${port}`;
+const webServer = playwrightTestServer('COPPERBENCH_PERF_PORT', 5179, 30000);
+const baseURL = webServer.url;
 const executablePath = process.env.COPPERBENCH_PERF_BROWSER_EXECUTABLE;
 
 // This directory is outside e2e/ and is selected only by the dedicated runner.
@@ -19,9 +18,5 @@ export default defineConfig({
     headless: process.env.COPPERBENCH_PERF_HEADED !== '1',
     launchOptions: executablePath ? { executablePath } : {},
   },
-  webServer: {
-    command: `node node_modules/vite/bin/vite.js --host 127.0.0.1 --port ${port} --strictPort`,
-    cwd: fileURLToPath(new URL('../', import.meta.url)),
-    url: baseURL, reuseExistingServer: false, timeout: 30000,
-  },
+  webServer,
 });

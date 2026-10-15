@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "task-evaluation-plan-v1",
+  "studyId": "novice-first-export",
+  "cohort": "novice",
+  "state": "planned",
+  "dataKind": "participant",
+  "registeredAt": null,
+  "product": {
+    "version": null,
+    "source": {
+      "commit": null,
+      "sourceSha256": null,
+      "dirtyDeltaSha256": null,
+      "pathFilterVersion": "source-paths-v2",
+      "manifest": { "path": null, "sha256": null }
+    },
+    "artifact": { "path": null, "size": null, "sha256": null }
+  },
+  "environment": null,
+  "model": null,
+  "prompt": "Create a new isolated NeoForge 1.21.1 workspace. Make a block named Study Block with an available built-in texture, build the workspace and export the resulting mod JAR to the study output directory. Show the exported file and the final build result. You may use the product's built-in guide. Do not use an existing personal workspace. Stop when the observer ends the registered time budget.",
+  "permissions": {
+    "allowed": ["Use the Copperbench graphical interface and built-in guide", "Build and export within the isolated study workspace"],
+    "prohibited": ["Modify personal workspaces", "Use external tutorials or another person to perform task steps"]
+  },
+  "rules": {
+    "timeBudgetSeconds": 1800,
+    "tokenBudget": null,
+    "maxAttempts": 2,
+    "retryPolicy": "One retry after a recorded failed, timeout or abandoned attempt; preserve the original workspace, attempt records and evidence. The budget starts with the first attempt and includes retry gaps.",
+    "allowIntervention": false,
+    "interventionPolicy": "No hints, task execution or takeover. Record any deviation as an intervention, including its time, reason and evidence. Safety or environment assistance ends the current attempt and must not be hidden."
+  },
+  "tasks": [
+    {
+      "id": "first-export",
+      "description": "Create Study Block, obtain a successful build and export the mod JAR in the isolated workspace.",
+      "successCriteria": ["Study Block exists in the task workspace", "The final build completes successfully", "The exported JAR is present at the selected study output location"],
+      "requiredEvidence": ["actions", "outcome"],
+      "materials": []
+    }
+  ],
+  "subjectSlots": ["novice-01", "novice-02"]
+}

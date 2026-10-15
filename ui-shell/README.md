@@ -75,6 +75,10 @@ npm run build
 npm run test:e2e
 ```
 
+Playwright 会从当前 `ui-shell` 目录启动独立的 `http://127.0.0.1:5183` 服务；端口占用时明确失败，不复用已有开发服务或其他工作树。可在 PowerShell 中用 `$env:COPPERBENCH_E2E_PORT = '5184'` 选择 `1024–65535` 范围内的端口。性能测量继续使用独立的 `COPPERBENCH_PERF_PORT`（默认 `5179`）。
+
+`npm test` 包含真实 Vite 监听、HMR 握手和 Playwright 服务冲突回归；SSR 单元测试只加载生产模块，不创建 HTTP 或 WebSocket 监听。普通 `npm run dev` 保留 HMR。
+
 ## 需求映射
 
 | 能力 | 需求编号 |

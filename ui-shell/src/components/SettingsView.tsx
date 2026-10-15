@@ -138,9 +138,9 @@ export function SettingsView() {
     const id = `preference-${entry.key}`;
     const fieldValid = valid(entry, draft[entry.key]);
     return <div className="settings-row" key={entry.key}>
-      <div className="settings-label"><label htmlFor={id} title={hint}>{name}</label>
+      <div className="settings-label"><label htmlFor={id}>{name}</label>
         {['ui.remindOfUnsavedChanges', 'ui.autoReloadTabs', 'ui.expandSectionsByDefault'].includes(entry.key) && <small>{uiText('原生编辑器', 'Native editors')}</small>}
-        <p id={`${id}-hint`} className={entry.key === 'gradle.offline' ? undefined : 'settings-sr-only'}>{hint}</p>
+        <p id={`${id}-hint`} className="settings-help">{hint}</p>
         {!fieldValid && <p className="settings-field-error" id={`${id}-error`}>{uiText('请输入范围内的整数', 'Enter a whole number in range')}: {entry.min}–{entry.max}</p>}</div>
       {entry.type === 'boolean' ? <input id={id} type="checkbox" checked={draft[entry.key] === true}
         aria-describedby={`${id}-hint`} onChange={event => edit(entry.key, event.target.checked)} />

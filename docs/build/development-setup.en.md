@@ -1,6 +1,8 @@
 # Copperbench development setup
 
-[简体中文](development-setup.md) · [Contributing](../../CONTRIBUTING.md)
+[简体中文](development-setup.md) · [One-page contributor route（简体中文）](contributor-quickstart.md) · [Contributing](../../CONTRIBUTING.md)
+
+Choose the affected layer in the one-page route first; use this page for its environment details and launcher troubleshooting. Finish the implementation before running the selected checks together.
 
 ## Prepare the affected layer
 
@@ -49,7 +51,7 @@ python scripts/verify-changed.py --base origin/main --dry-run
 Choose `--paths` or `--base`, not both. Base mode adds staged/unstaged/untracked changes to the merge-base diff. Unknown paths or an incomplete comparison conservatively select all checks. After reviewing the plan and preparing dependencies:
 
 ```sh
-python scripts/verify-changed.py --run --allow-downloads --output output/contributor-validation/my-change-01
+python scripts/verify-changed.py --paths docs/user/first-creation.md --run --allow-downloads --output output/contributor-validation/my-change-01
 ```
 
 `--run` without `--allow-downloads` blocks Gradle tasks that can download. The helper never installs npm dependencies/Chromium, changes proxies, elevates or clears caches. Missing tools/display block only dependent checks. Reports use a new directory inside repository `output/` or `build/`, retaining commands, exit codes, logs, source hashes and available counts (`null` if absent). Failed/timed-out execution returns `1`, blocked execution `2`, plan-only `0`.

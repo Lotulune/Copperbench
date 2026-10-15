@@ -11,7 +11,10 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { useDialogA11y } from '../hooks/useDialogA11y';
+import { ConfirmDialog } from './Dialog';
+import { TaskLogView, newLogReadingState, type LogReadingState } from './TaskLogView';
+import { newestTasks, taskTone } from './taskPresentation';
+import { formatDateTime } from '../i18n/dateTime';
 import { coreBridge } from '../bridge';
 import { safeRandomUUID, taskLogWatermark } from '../bridge/JcefCoreBridge';
 import { OperationFailure, operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
@@ -27,7 +30,7 @@ export const TaskDrawer: React.FC = () => {
     isTaskDrawerOpen,
     setIsTaskDrawerOpen,
     activeTaskId,
-    setActiveTaskId,
+    openTask, taskFocusRequest,
     state,
     cancelTask,
     prepareGameTests,
@@ -42,7 +45,7 @@ export const TaskDrawer: React.FC = () => {
     applyWorkspacePlan
   } = useWorkbench();
 
-  const logContainerRef = useRef<HTMLDivElement>(null);
+  const logViews = useRef(new Map<string, LogReadingState>());
   const [datagenPreview, setDatagenPreview] = useState<DatagenPreview | null>(null);
   const [datagenBusy, setDatagenBusy] = useState(false);
   const [datagenError, setDatagenError] = useState<UiMessage | null>(null);
@@ -55,14 +58,13 @@ export const TaskDrawer: React.FC = () => {
   const [repairError, setRepairError] = useState<UiMessage | null>(null);
   const [repairApplied, setRepairApplied] = useState(false);
   const [confirmPublish, setConfirmPublish] = useState(false);
-  const publishDialogRef = useDialogA11y(confirmPublish, () => setConfirmPublish(false));
   const [cancelRequests, setCancelRequests] = useState<Record<string, { status: 'requesting' | 'pending' | 'unknown' | 'rejected'; diagnostics: Diagnostic[] }>>({});
   const cancellationRequests = useRef(new Set<string>());
 
   // Active task and logs
   const activeTask = activeTaskId
     ? state.tasks[activeTaskId]
-    : Object.values(state.tasks)[0] || null;
+    : newestTasks(Object.values(state.tasks))[0] || null;
 
   const logs = activeTask ? state.taskLogs[activeTask.id] || [] : [];
   const diagnostics = activeTask ? state.taskDiagnostics[activeTask.id] || [] : [];
@@ -82,13 +84,20 @@ export const TaskDrawer: React.FC = () => {
     && requestSequences.current.get(request.kind) === request.sequence;
   const cancelRequest = cancelRequests[scopeKey];
   const taskRunning = activeTask?.state === 'queued' || activeTask?.state === 'running';
-  const readError = activeTask ? state.taskReadErrors?.[activeTask.id] : undefined;
+  const readError = state.taskReadErrors?.[activeTaskId ?? activeTask?.id ?? ''];
+  if (!logViews.current.has(scopeKey)) logViews.current.set(scopeKey, newLogReadingState());
 
   useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, [logs]);
+    if (!isTaskDrawerOpen || !taskFocusRequest || taskFocusRequest.taskId !== activeTaskId) return;
+    const frame = requestAnimationFrame(() => {
+      const target = taskFocusRequest.target === 'diagnostics' ? 'task-diagnostics' : 'task-log-stream';
+      const element = document.querySelector<HTMLElement>(`[data-testid="${target}"]`)
+        ?? document.querySelector<HTMLElement>('[data-testid="task-status-unavailable"]');
+      element?.focus({ preventScroll: true });
+      element?.scrollIntoView({ block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isTaskDrawerOpen, taskFocusRequest?.requestId, activeTaskId, activeTask?.id]);
 
   useEffect(() => {
     setDatagenPreview(null);
@@ -251,11 +260,12 @@ export const TaskDrawer: React.FC = () => {
     }
   };
   const refreshActiveTask = async () => {
-    if (!activeTask || !state.workbench) return;
+    const taskId = activeTaskId ?? activeTask?.id;
+    if (!taskId || !state.workbench) return;
     const afterLogSequence = taskLogWatermark(logs);
     try {
       await coreBridge.sendQuery({ messageType: 'query', schemaVersion: '1.0', requestId: safeRandomUUID(), workspaceId: state.workbench.workspace.id,
-        operation: 'get_task', payload: { taskId: activeTask.id, afterLogSequence } });
+        operation: 'get_task', payload: { taskId, afterLogSequence } });
     } catch { /* The read error remains associated with the original task. */ }
   };
 
@@ -265,6 +275,7 @@ export const TaskDrawer: React.FC = () => {
     <div
       className="task-drawer animate-fade-in"
       data-testid="task-drawer"
+      data-task-id={activeTaskId ?? activeTask?.id ?? undefined}
       style={{
         position: 'absolute',
         bottom: 0,
@@ -298,12 +309,13 @@ export const TaskDrawer: React.FC = () => {
             <span>{uiText('任务控制台与日志流', 'Task console and logs')}</span>
           </div>
 
-          {Object.keys(state.tasks).length > 1 && <select
+          {(Object.keys(state.tasks).length > 1 || (activeTaskId && !activeTask && Object.keys(state.tasks).length > 0)) && <select
             aria-label={t({ key: 'task.recent_selector', fallback: 'Recent tasks' })}
-            value={activeTask?.id ?? ''} onChange={(event) => setActiveTaskId(event.target.value)}
+            value={activeTaskId ?? activeTask?.id ?? ''} onChange={(event) => openTask(event.target.value)}
             style={{ maxWidth: 220, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-            {Object.values(state.tasks).map((task) => <option key={task.id} value={task.id}>
-              {valueLabel(task.kind)} · {valueLabel(task.state)} · {new Date(task.startedAt).toLocaleString()}
+            {activeTaskId && !activeTask && <option value={activeTaskId} disabled>{uiText('任务不可用', 'Task unavailable')} · {activeTaskId}</option>}
+            {newestTasks(Object.values(state.tasks)).map((task) => <option key={task.id} value={task.id}>
+              {valueLabel(task.kind)} · {valueLabel(task.state)} · {formatDateTime(task.startedAt)}
             </option>)}
           </select>}
 
@@ -314,7 +326,7 @@ export const TaskDrawer: React.FC = () => {
               </span>
               <span
                 data-testid="task-current-state"
-                className={`badge badge-${activeTask.state === 'succeeded' ? 'green' : activeTask.state === 'running' ? 'amber' : 'red'}`}
+                className={`badge badge-${taskTone[activeTask.state]}`}
                 style={{ fontSize: '12px' }}
               >
                 {valueLabel(activeTask.state)}
@@ -354,7 +366,7 @@ export const TaskDrawer: React.FC = () => {
               data-testid="task-cancel-btn"
             >
               <Ban size={12} />
-              <span>{cancelRequest && taskRunning && cancelRequest.status !== 'rejected' ? uiText('正在请求取消', 'Requesting cancellation') : uiText('取消', 'Cancel')}</span>
+              <span>{cancelRequest && taskRunning && cancelRequest.status !== 'rejected' ? uiText('正在请求停止', 'Requesting stop') : uiText('停止任务', 'Stop task')}</span>
             </button>
           )}
 
@@ -371,9 +383,9 @@ export const TaskDrawer: React.FC = () => {
         </div>
       </div>
 
-      {readError && <div role="status" data-testid="task-status-unavailable" style={{ padding: '8px 16px', fontSize: 12 }}>
-        <p>{uiText('暂时无法取得任务状态；保留最近一次观察。请读取原任务，确认是否仍在运行。', 'Task status is temporarily unavailable; the last observation is preserved. Read the original task to confirm whether it is still running.')}</p>
-        <button type="button" className="btn-secondary" onClick={() => void refreshActiveTask()}>{uiText('读取原任务状态', 'Read original task status')}</button>
+      {(readError || (activeTaskId && !activeTask)) && <div role="status" tabIndex={-1} data-testid="task-status-unavailable" style={{ padding: '8px 16px', fontSize: 12 }}>
+        <p>{activeTask ? uiText('暂时无法取得任务状态；保留最近一次观察。请检查任务状态。', 'Task status is temporarily unavailable; the last observation is preserved. Check the task status.') : uiText('此任务当前不可用，无法显示它的日志与操作。', 'This task is currently unavailable. Its logs and actions cannot be displayed.')} <code>{activeTaskId}</code></p>
+        <button type="button" className="btn-secondary" onClick={() => void refreshActiveTask()}>{uiText('检查任务状态', 'Check task status')}</button>
         <details><summary>{uiText('读取错误详情', 'Read error details')}</summary><pre tabIndex={0} style={{ whiteSpace: 'pre-wrap', userSelect: 'text' }}>{readError}</pre></details>
       </div>}
       {cancelRequest && taskRunning && <div role="status" data-testid="task-cancel-status" style={{ padding: '8px 16px', fontSize: 12 }}>
@@ -382,7 +394,7 @@ export const TaskDrawer: React.FC = () => {
           : uiText('正在请求取消；等待任务返回终态。', 'Requesting cancellation; waiting for the task to reach a final state.')}</p>
         {cancelRequest.diagnostics.map((diagnostic, index) => <p key={index}>{t(diagnostic.message)}</p>)}
         <DiagnosticDetails diagnostics={cancelRequest.diagnostics} />
-        {cancelRequest.status === 'unknown' && <button type="button" className="btn-secondary" onClick={() => void refreshActiveTask()}>{uiText('读取原任务状态', 'Read original task status')}</button>}
+        {cancelRequest.status === 'unknown' && <button type="button" className="btn-secondary" onClick={() => void refreshActiveTask()}>{uiText('检查任务状态', 'Check task status')}</button>}
       </div>}
 
       {activeTask?.verification && <section className="gametest-verification" aria-label={uiText("GameTest 验收报告", "GameTest verification report")}>
@@ -517,6 +529,7 @@ export const TaskDrawer: React.FC = () => {
       {diagnostics.length > 0 && (
         <section
           data-testid="task-diagnostics"
+          tabIndex={-1}
           aria-label={uiText('任务诊断', 'Task diagnostics')}
           style={{
             padding: '10px 16px',
@@ -625,114 +638,14 @@ export const TaskDrawer: React.FC = () => {
           )}
         </section>
       )}
-      {/* Log Stream Output */}
-      <div
-        ref={logContainerRef}
-        data-testid="task-log-stream"
-        role="log"
-        aria-live="polite"
-        aria-label={t({ key: 'aria.task_log_stream', fallback: 'Task log stream' })}
-        style={{
-          flex: 1,
-          padding: '12px 16px',
-          overflowY: 'auto',
-          background: 'var(--bg-input)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-          userSelect: 'text'
-        }}
-      >
-        {logs.length === 0 ? (
-          <div style={{ color: 'var(--text-sub)', fontStyle: 'italic' }}>
-            {uiText('暂无任务输出日志。', 'No task output yet.')}
-          </div>
-        ) : (
-          logs.map((entry) => (
-            <div
-              key={entry.sequence}
-              style={{
-                display: 'flex',
-                gap: '8px',
-                lineHeight: '1.4',
-                color:
-                  entry.level === 'error'
-                    ? 'var(--badge-red)'
-                    : entry.level === 'warning'
-                    ? 'var(--badge-amber)'
-                    : 'var(--text-main)'
-              }}
-            >
-              <span style={{ color: 'var(--text-sub)', flexShrink: 0 }}>
-                [{entry.timestamp.slice(11, 19)}]
-              </span>
-              <span
-                style={{
-                  fontWeight: 600,
-                  color:
-                    entry.level === 'error'
-                      ? 'var(--badge-red)'
-                      : entry.level === 'warning'
-                      ? 'var(--badge-amber)'
-                      : 'var(--badge-blue)',
-                  flexShrink: 0
-                }}
-              >
-                [{entry.level.toUpperCase()}]
-              </span>
-              <span style={{ wordBreak: 'break-word' }}>{entry.text}</span>
-            </div>
-          ))
-        )}
-      </div>
+      {activeTask && <TaskLogView key={scopeKey} logs={logs} reading={logViews.current.get(scopeKey)!} />}
+      {!activeTask && !activeTaskId && <p className="task-log-empty">{uiText('暂无任务。', 'No tasks yet.')}</p>}
 
-      {confirmPublish && datagenPreview && (
-        <div
-          role="presentation"
-          onMouseDown={() => setConfirmPublish(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(0, 0, 0, 0.58)',
-            display: 'grid', placeItems: 'center', padding: '24px'
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="datagen-publish-title"
-            data-testid="datagen-publish-dialog"
-            ref={publishDialogRef}
-            onMouseDown={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(440px, 100%)',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-active)',
-              borderRadius: 'var(--radius-md)',
-              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.55)',
-              padding: '18px'
-            }}
-          >
-            <h2 id="datagen-publish-title" style={{ margin: 0, fontSize: '16px' }}>{uiText("发布数据生成结果", "Publish generated data")}</h2>
-            <p style={{ margin: '10px 0 16px', color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.6 }}>
-              {uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入工作区，并创建恢复点。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to the workspace and create a recovery point.`)}
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setConfirmPublish(false)}>{uiText("取消", "Cancel")}</button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={publishDatagen}
-                data-testid="datagen-confirm-publish"
-              >
-                <Upload size={14} />
-                <span>{uiText("确认发布", "Confirm publish")}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {datagenPreview && <ConfirmDialog open={confirmPublish} title={uiText('发布数据生成结果', 'Publish generated data')}
+        confirmLabel={uiText('发布到工作区', 'Publish to workspace')} testId="datagen-publish-dialog" confirmTestId="datagen-confirm-publish"
+        onCancel={() => setConfirmPublish(false)} onConfirm={() => void publishDatagen()}>
+        <p>{uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入工作区，并创建恢复点。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to the workspace and create a recovery point.`)}</p>
+      </ConfirmDialog>}
     </div>
   );
 };

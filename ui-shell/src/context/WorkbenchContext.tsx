@@ -1,3 +1,4 @@
+import { newestTasks } from '../components/taskPresentation';
 import { safeRandomUUID, taskLogWatermark } from '../bridge/JcefCoreBridge';
 import { tr } from '../i18n/locale';
 import { useTheme, ThemePreference } from '../hooks/useTheme';
@@ -101,6 +102,11 @@ interface WorkbenchContextType {
   setIsTaskDrawerOpen: (open: boolean) => void;
   activeTaskId: UUID | null;
   setActiveTaskId: (id: UUID | null) => void;
+  openTask: (taskId: UUID, target?: 'logs' | 'diagnostics') => void;
+  taskFocusRequest: { taskId: UUID; target: 'logs' | 'diagnostics'; requestId: UUID } | null;
+  openDiagnostics: (severity?: 'error' | 'warning' | 'all') => void;
+  healthFocusRequest: { workspaceId: UUID | null; severity: 'error' | 'warning' | 'all'; requestId: UUID } | null;
+  consumeHealthFocus: (requestId: UUID) => void;
   isMaximized: boolean;
   toggleMaximize: () => void;
   systemFrameFallback: boolean;
@@ -130,7 +136,7 @@ interface WorkbenchContextType {
   applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
-  createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
+  createModElement: (type: ModElementType, name: string, options?: { select?: boolean }) => Promise<CommandResult>;
   updateModElement: (elementId: UUID, changes: FieldChange[], expectedRevision?: number) => Promise<CommandResult>;
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   generateWorkspace: () => Promise<CommandResult>;
@@ -286,6 +292,19 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const clearFieldFocusRequest = useCallback(() => setFieldFocusRequest(null), []);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
+  const [taskFocusRequest, setTaskFocusRequest] = useState<WorkbenchContextType['taskFocusRequest']>(null);
+  const [healthFocusRequest, setHealthFocusRequest] = useState<WorkbenchContextType['healthFocusRequest']>(null);
+  const consumeHealthFocus = useCallback((requestId: UUID) => {
+    setHealthFocusRequest(current => current?.requestId === requestId ? null : current);
+  }, []);
+  const openTask = useCallback((taskId: UUID, target: 'logs' | 'diagnostics' = 'logs') => {
+    setActiveTaskId(taskId); setIsTaskDrawerOpen(true);
+    setTaskFocusRequest({ taskId, target, requestId: safeRandomUUID() });
+  }, []);
+  const openDiagnostics = useCallback((severity: 'error' | 'warning' | 'all' = 'all') => {
+    setHealthFocusRequest({ workspaceId: state.workbench?.workspace.id ?? null, severity, requestId: safeRandomUUID() });
+    setActiveView('hub');
+  }, [state.workbench?.workspace.id]);
   const [isMaximized, setIsMaximized] = useState(false);
   useEffect(() => {
     const updateWindowState = (event: Event) => {
@@ -309,7 +328,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const completedTaskHealthKey = Object.values(state.tasks)
     .filter(task => task.state !== 'queued' && task.state !== 'running')
     .map(task => `${task.id}:${task.state}:${task.completedAt ?? ''}`).sort().join('|');
-  const visibleTaskId = activeTaskId ?? Object.keys(state.tasks)[0] ?? null;
+  const visibleTaskId = activeTaskId ?? newestTasks(Object.values(state.tasks))[0]?.id ?? null;
   const taskWorkspaceId = state.workbench?.workspace.id;
   useEffect(() => {
     if (!isTaskDrawerOpen || !visibleTaskId || !taskWorkspaceId) return;
@@ -710,7 +729,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }), [state.workbench]);
 
   const createModElement = useCallback(
-    async (type: ModElementType, name: string): Promise<CommandResult> => {
+    async (type: ModElementType, name: string, options?: { select?: boolean }): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
       const revision = state.workbench?.workspace.revision ?? 0;
       const res = await sendWorkspaceCommand({
@@ -727,7 +746,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           initialValues: {}
         }
       });
-      if (res.data?.element?.id) {
+      if (res.data?.element?.id && options?.select !== false && coreBridge.getState().workbench?.workspace.id === workspaceId) {
         setSelectedElementId(res.data.element.id);
         setActiveView('elements');
       }
@@ -797,8 +816,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench, sendWorkspaceCommand]);
@@ -819,8 +837,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench, sendWorkspaceCommand]);
@@ -841,8 +858,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench, sendWorkspaceCommand]);
@@ -851,7 +867,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const result = await sendWorkspaceCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
       operation: 'export_workspace', payload: { verifiedTaskId: taskId, allowHistorical } });
-    if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
+    if (result.task?.id) openTask(result.task.id);
     return result;
   }, [state.workbench, sendWorkspaceCommand]);
 
@@ -865,7 +881,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const result = await sendWorkspaceCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
       operation: 'export_workspace', payload: { clientMutationId: generateUUID(), scope: 'workspace', output } });
-    if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
+    if (result.task?.id) openTask(result.task.id);
     return result;
   }, [state.workbench, sendWorkspaceCommand]);
 
@@ -891,8 +907,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench, sendWorkspaceCommand]);
@@ -1420,8 +1435,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           break;
         case 'open_logs':
           if (action.target && state.tasks[action.target]) {
-            setActiveTaskId(action.target);
-            setIsTaskDrawerOpen(true);
+            openTask(action.target);
           } else {
             const failureId = action.target ?? String(diagnostic.message.args?.failureId ?? '');
             void diagnosticsBridge.openLogs(failureId)
@@ -1504,6 +1518,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsTaskDrawerOpen,
       activeTaskId,
       setActiveTaskId,
+      openTask, taskFocusRequest, openDiagnostics, healthFocusRequest, consumeHealthFocus,
       isMaximized,
       toggleMaximize,
       systemFrameFallback,
@@ -1600,6 +1615,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTaskDrawerOpen,
       activeTaskId,
       isMaximized,
+      openTask, taskFocusRequest, openDiagnostics, healthFocusRequest, consumeHealthFocus,
       toggleMaximize,
       systemFrameFallback,
       toggleSystemFrameFallback,

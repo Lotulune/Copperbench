@@ -29,6 +29,7 @@ import { FirstCreationProvider } from './onboarding/FirstCreationContext';
 import { FirstCreationGuide } from './components/FirstCreationGuide';
 import { DeliveryDialog } from './components/DeliveryDialog';
 import { OpenWorkspaceDialog } from './components/WorkspaceEntryActions';
+import { FeedbackHost } from './components/FeedbackHost';
 import './styles/global.css';
 import './styles/workbench.css';
 
@@ -89,6 +90,7 @@ const ShellContent: React.FC = () => {
       <FirstCreationGuide />
       <DeliveryDialog />
       <OpenWorkspaceDialog />
+      <FeedbackHost />
 
       {/* Multi-scenario testing switcher */}
       <ScenarioSwitcher />

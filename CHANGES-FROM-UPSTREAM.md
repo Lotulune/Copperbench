@@ -14,6 +14,9 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Keep dialog focus and asynchronous creation results bound to their active session, preserve task-log reading position, and localize native task authorization with cancellation as the default.
+- Redact structured and quoted failure credentials, disclose incomplete performance comparisons, and isolate test servers; add preregistered task-evaluation and contributor guidance without promoting fixture results into product acceptance.
+
 - Open indexed JSON models in Blockbench with the existing recovery lifecycle, prepare launches off Chromium's callback thread, and show setup and launch feedback directly at their entry points.
 - Dispatch Core bridge requests in order off Chromium's message-router thread, prune non-asset directories from resource listing, and reject dependency snapshots with newer workspace inputs before hashing contents or loading unusable vanilla catalogs.
 - Compare recovery points with the working tree without staging files or writing Git objects during history/health reads; stop comparing a recovery point at its first changed input.

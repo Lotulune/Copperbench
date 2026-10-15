@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
@@ -438,8 +439,12 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
 
           {(isDirty || newTag || message) && <button type="button" className="btn-secondary"
             disabled={isSaving || current.loading} data-testid="function-reload"
-            onClick={() => {
-              if (!(isDirty || newTag) || window.confirm(uiText('放弃此函数的未保存修改并重新加载？', 'Discard unsaved changes to this function and reload?'))) void load();
+            onClick={async () => {
+              if (!(isDirty || newTag) || await confirmAction({
+                title: { zh: '重新加载函数', en: 'Reload function' }, danger: true,
+                message: { zh: '放弃此函数的未保存修改并重新加载？', en: 'Discard unsaved changes to this function and reload?' },
+                confirmLabel: { zh: '放弃并重新加载', en: 'Discard and reload' }
+              })) void load();
             }}><RotateCcw size={14} />{uiText('重新加载', 'Reload')}</button>}
           <button
             type="button"

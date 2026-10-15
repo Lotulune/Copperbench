@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { elementLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -505,7 +506,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   };
 
   const handleDelete = async () => {
-    if (window.confirm(uiText(`确定要删除「${element.displayName}」吗？`, `Delete "${element.displayName}"?`))) {
+    if (await confirmAction({ title: uiMessage('删除元素', 'Delete element'), danger: true,
+      message: uiMessage(`删除「${element.displayName}」？删除前会检查引用并创建恢复点。`, `Delete "${element.displayName}"? References will be checked and a recovery point created first.`),
+      confirmLabel: uiMessage('删除元素', 'Delete element') })) {
       try {
         const result = await deleteModElement(element.id);
         if (result.status === 'committed') {

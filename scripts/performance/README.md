@@ -28,9 +28,18 @@ The 200 ms feedback and 500 ms end-to-end budgets are advisory observations. A s
 ```sh
 node scripts/performance/compare.mjs output/performance/baseline/report.json output/performance/candidate/report.json
 node scripts/performance/measure.mjs --baseline output/performance/baseline/report.json --output output/performance/candidate
+# An intentional subset comparison must opt in at either entry point.
+node scripts/performance/compare.mjs --partial output/performance/baseline/report.json output/performance/candidate/report.json
+node scripts/performance/measure.mjs --baseline output/performance/baseline/report.json --partial --cells small:navigation --output output/performance/partial-candidate
 ```
 
-Comparison requires matching machine/runtime, browser, viewport, locale/theme, fixture and cache conditions. More than 20% p95 deterioration produces `review_required`, requiring a repeat under those conditions; it is not an automatic regression verdict. Missing conditions, nonfinite p95 and low sample counts cannot become a comparable result. No product optimization is selected without a measured bottleneck.
+Comparison requires matching machine/runtime, browser, viewport, locale/theme, fixture and cache conditions. The default full mode also requires identical nonempty cell sets. `baselineOnlyCells`, `candidateOnlyCells` and `coverageComplete` always describe both reports; a lost or added cell makes full-mode `comparable` false. `comparisonMode` and `scope.sharedCells` identify the requested scope. `--partial` permits conclusions about shared cells while preserving false coverage and both differences; it does not relax condition equality, including the complete fixture map. Partial measurements therefore need a baseline whose recorded conditions match. Empty reports and duplicate, empty or unknown cell IDs are rejected.
+
+The comparison CLI writes JSON to stdout and diagnostics to stderr. A full-mode coverage gap returns exit code `1` while retaining that JSON. An explicit partial comparison may return `0` with incomplete coverage when there are shared cells; no shared cells return `1` in either mode. Invalid input also returns `1`. `measure.mjs --baseline` applies the same rules and saves `report.json` before returning: collection `status` stays separate from its `comparison`, so successful sample collection can still return `1` for an invalid baseline or coverage gap. `--partial` on the measurement entry requires `--baseline`; dry-run plans disclose the comparison mode.
+
+Each of `endToEnd`, `browserInputToReady` and `feedback` retains its own sample count, p95, ratio and conclusion. More than 20% p95 deterioration produces `review_required`, requiring a repeat under those conditions; it is not an automatic regression verdict or a failing command exit code. Missing conditions, nonfinite p95 and low sample counts cannot become a comparable metric result. Coverage completeness does not certify that all metrics are comparable. No product optimization is selected without a measured bottleneck.
+
+Failure messages structurally redact sensitive fields in parseable JSON, including arrays and encoded detail strings. Text logs support bare keys, matching single/double-quoted keys, escaped value quotes, quoted authorization values with spaces and nested object/array values. `token`, `password`, `secret`, `apiKey`/`api_key`/`api-key` and `authorization` are case-insensitive; standalone Bearer credentials are also redacted. Locator names, expected/received counts and other diagnostics remain available. Configured local path spellings are replaced and output remains capped at 4,000 characters. The focused regressions use synthetic credentials, including the `AUDIT-REDACTION-01` single-quoted example and the `AUDIT-COVERAGE-01` disappearing-cell example.
 
 The [native/package task cards](ACCEPTANCE-TASKS.md) prepare P05 behavior/startup/memory observations, a real isolated dependency-download build, a final-package NeoForge 1.21.1 rendering smoke, and the affected restart/data-retention check. `native-observation.mjs` is a passive recorder for the parent's single controller; `acceptance-measurement.py` uses the frozen package's public SDK. Neither supplies desktop input or converts receipts into visual verdicts. They are preparation tools, not completed native acceptance.
 
@@ -65,5 +74,7 @@ Execution defaults to a fresh `output/contributor-validation/<UTC>-<id>/report.j
 [原生／最终包任务卡](ACCEPTANCE-TASKS.md)明确 P05、启动／进程内存、隔离下载构建、NeoForge 渲染抽查及受影响重开保留范围。原生输入仅由父代理的单一控制器执行；记录器只记派发到观察时间，低样本不出 p95。SDK 回执、Gradle 阶段和人工视觉结论分开；新缓存不证明实际下载，缺少下载／解析标记时保留不完整测量。
 
 性能入口：`node scripts/performance/measure.mjs --dry-run` 先列出选定单元，随后运行 `node scripts/performance/measure.mjs --output output/performance/baseline`。默认每个单元预热两次、取得至少 20 次有效重复；失败、超时和原始数组全部保存。三档 fixture 的数量与摘要可核对。报告只证明声明的浏览器界面范围，Core、原生 JCEF、包启动、依赖下载和游戏行为保持未测；预算缺样本时为 `null`。
+
+基线比较默认要求两份报告的场景集合完整一致；缺失或新增场景都会输出双向差集、`coverageComplete: false`，并返回 `1`，JSON 仍会保留。两个入口都可显式加 `--partial`，仅比较 `scope.sharedCells`；差集与覆盖缺口仍然保留，完全无交集仍返回 `1`。partial 不放宽环境、完整 fixture 映射等条件一致性要求。测量入口的采样 `status` 与 `comparison` 分开保存；指标触发复查或低样本语义保持独立。
 
 贡献者入口：`python scripts/verify-changed.py --paths README.md` 默认只输出计划；`--base origin/main` 复用现有 CI 的比较与路由。明确加 `--run` 才执行，可能下载 Gradle 依赖的任务还需 `--allow-downloads`。环境缺项只阻塞相关命令，既有 MCP 外部工具安装保持手工/CI 项。新报告保存在 `output/contributor-validation/`，有失败返回 `1`，有环境或手工缺项返回 `2`；未执行不会变成产品通过。

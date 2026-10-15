@@ -1,3 +1,4 @@
+import { formatDateTime } from '../i18n/dateTime';
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Box, CheckCircle2, Flag, FolderOpen, Hammer, Play, X } from 'lucide-react';
 import { isNativeHostPresent } from '../bridge';
@@ -15,7 +16,7 @@ import './firstCreation.css';
 
 export function FirstCreationGuide() {
   const { state, createModElement, buildWorkspace, runClient, getModElementEditor,
-    setSelectedElementId, setActiveView, setActiveTaskId, setIsTaskDrawerOpen } = useWorkbench();
+    setSelectedElementId, setActiveView, openTask } = useWorkbench();
   const { guideOpen, closeGuide, beginCreation, binding, referenceError, referencesReady, refreshReferences,
     bindElement, recordTask, openDelivery, inputObservation, inputObservationPending,
     observations: confirmation, setObservations: setConfirmation } = useFirstCreation();
@@ -64,7 +65,7 @@ export function FirstCreationGuide() {
     && firstCreationInputsConfirmed(binding, state.tasks, workspace.revision, inputObservation) && !clientRunning;
   const inputDetails = [...new Set([binding?.build?.id, binding?.clients.at(-1)?.id, binding?.export?.id]
     .map(id => id ? inputObservation?.tasks[id]?.detail : undefined).filter((detail): detail is string => !!detail))];
-  const showTask = (taskId: string) => { closeGuide(); setActiveTaskId(taskId); setIsTaskDrawerOpen(true); };
+  const showTask = (taskId: string) => { closeGuide(); openTask(taskId); };
   const openElement = (id: string) => { closeGuide(); setSelectedElementId(id); setActiveView('elements'); };
   const action = async (kind: 'create' | 'build' | 'client', operation: () => Promise<CommandResult>) => {
     if (submitting.current || uncertain || !native || !workspace || !binding || !targetIsOpen) return;
@@ -116,17 +117,22 @@ export function FirstCreationGuide() {
           <button type="button" onClick={refreshReferences}>{uiText('重读原状态', 'Refresh original state')}</button>
           {uncertain && <button type="button" onClick={() => { setUncertain(false); setMessages([]); }}>{uiText('已检查原对象和任务，继续操作', 'Original object and tasks inspected; continue')}</button>}</div>}
         {!binding ? <div className="first-creation-start">
-          <strong>{'Fabric 1.21.1 · first_creation · trail_block'}</strong>
+          <strong>{uiText('制作 Trail Block 方块 · Fabric 1.21.1', 'Create a Trail Block · Fabric 1.21.1')}</strong>
+          <details><summary>{uiText('项目详情', 'Project details')}</summary><code>{'first_creation · trail_block'}</code></details>
           <p>{uiText('先选择新的空目录并确认创建工作区。使用默认石头纹理，不需要准备图片或代码。', 'Choose a new empty directory and confirm workspace creation. The default stone texture needs no image or code preparation.')}</p>
           <button type="button" className="btn-primary" data-testid="first-creation-begin" disabled={!native} onClick={beginCreation}>{uiText('创建首作工作区', 'Create first-creation workspace')}<ArrowRight size={14} aria-hidden="true" /></button>
         </div> : <>
           <p className="first-creation-binding"><FolderOpen size={15} aria-hidden="true" /><code>{binding.workspaceFile}</code></p>
           {targetIsOpen && <div className="first-creation-notice" role="status" data-testid="first-creation-input-observation">
-            <p>{inputObservationPending ? uiText('正在核对已保存输入…', 'Checking saved inputs…')
-              : uiText('外部修改后请重读输入；无输入记录的旧任务需要重新构建或运行。', 'Refresh inputs after external edits. Build or run again when an older task has no input record.')}</p>
-            {inputObservation && <time dateTime={inputObservation.observedAt}>{inputObservation.observedAt}</time>}
-            {inputDetails.map(detail => <p key={detail}>{uiText('输入核对未完成，原任务日志保留原因：', 'Input checking is incomplete; the original task log retains the reason: ')}<code>{detail}</code></p>)}
-            <button type="button" className="btn-secondary" data-testid="first-creation-refresh-inputs" disabled={inputObservationPending} onClick={refreshReferences}>{uiText('重读输入与原任务', 'Refresh inputs and original tasks')}</button>
+            <p>{inputObservationPending ? uiText('正在检查已保存内容…', 'Checking saved content…')
+              : inputDetails.length ? uiText('内容核对未完成，请检查任务状态。', 'Content checks are incomplete. Check the task status.')
+                : inputObservation ? uiText('已读取内容状态', 'Content status loaded') : uiText('内容状态待确认', 'Content status needs confirmation')}</p>
+            {inputDetails.map(detail => <p key={detail}><code>{detail}</code></p>)}
+            <details><summary>{uiText('内容与任务详情', 'Content and task details')}</summary>
+              <p>{uiText('外部修改后请重新检查；没有输入记录的旧任务需要重新构建或运行。', 'Check again after external edits. Build or run again when an older task has no input record.')}</p>
+              {inputObservation && <time dateTime={inputObservation.observedAt} title={inputObservation.observedAt}>{formatDateTime(inputObservation.observedAt)}</time>}
+            </details>
+            <button type="button" className="btn-secondary" data-testid="first-creation-refresh-inputs" disabled={inputObservationPending} onClick={refreshReferences}>{uiText('检查任务状态', 'Check task status')}</button>
           </div>}
           {!referencesReady ? <p role="status">{referenceError ? uiText('首作引用待确认。请重读状态后继续。', 'First-creation references need confirmation. Refresh the state to continue.') : uiText('正在读取原首作引用…', 'Reading original first-creation references…')}</p>
             : !targetIsOpen ? <div className="first-creation-notice" role="status"><p>{uiText('此指引绑定另一个工作区。请打开原工作区继续。', 'This guide is bound to another workspace. Open the original workspace to continue.')}</p>
@@ -140,8 +146,8 @@ export function FirstCreationGuide() {
               {uiText('此首作路径需要 Fabric 1.21.1。当前生成器已变化；可退出指引继续编辑，或在版本与迁移中核对。', 'This first-creation path requires Fabric 1.21.1. The generator changed; leave the guide to keep editing, or review Versions & migration.')}
               <button type="button" className="btn-secondary" onClick={() => { closeGuide(); setActiveView('tracks'); }}>{uiText('核对生成器', 'Review generator')}</button></div>
               : <ol className="first-creation-steps">
-                {step('workspace', uiText('1. 工作区', '1. Workspace'), uiText('已读取原工作区', 'Original workspace loaded'), <p>{workspace.name} · {workspace.generator.displayName}</p>)}
-                {step('element', uiText('2. 创建并编辑方块', '2. Create and edit the block'), element ? uiText('真实元素已创建', 'Real element created') : uiText('等待定位元素', 'Locate the element'), <>
+                {step('workspace', uiText('1. 工作区', '1. Workspace'), uiText('工作区已就绪', 'Workspace ready'), <p>{workspace.name} · {workspace.generator.displayName}</p>)}
+                {step('element', uiText('2. 创建并编辑方块', '2. Create and edit the block'), element ? uiText('方块已创建', 'Block created') : uiText('等待定位元素', 'Locate the element'), <>
                   {resolution?.status === 'missing' || resolution?.status === 'changed' ? <p role="status">{uiText('原元素已删除或身份已变化。指引不会重建；可退出后继续正常编辑。', 'The original element was deleted or its identity changed. Leave the guide to continue editing; it will not be recreated.')}</p>
                     : resolution?.status === 'unbound' && resolution.conflict ? <div><p>{uiText('已存在同名元素。请检查它，然后决定是否使用此方块继续。', 'An element with this name already exists. Inspect it, then decide whether to continue with this block.')}</p>
                       <button type="button" className="btn-secondary" onClick={() => openElement(resolution.conflict!.id)}>{uiText('检查已有元素', 'Inspect existing element')}</button>

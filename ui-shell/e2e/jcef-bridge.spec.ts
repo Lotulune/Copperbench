@@ -798,7 +798,8 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await expect(page.getByTestId('app-shell')).toBeVisible();
     await expect(page.getByText('Copper Trails').first()).toBeVisible();
     await page.evaluate(() => (window as unknown as { __TASK_DETAIL_START__: () => void }).__TASK_DETAIL_START__());
-    await expect(page.locator('[data-task-id="44444444-4444-4444-8444-444444444444"]')).toHaveCount(1);
+    const activeSummary = page.getByTestId('workbench-main').locator('[data-task-id="44444444-4444-4444-8444-444444444444"]');
+    await expect(activeSummary).toHaveCount(1);
     await page.getByTestId('running-task-pill').click();
     const drawer = page.getByTestId('task-drawer');
     await expect(drawer).toBeVisible();
@@ -813,7 +814,8 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await expect(drawer).toContainText('已完成');
     await expect(page.getByTestId('datagen-preview-btn')).toBeVisible();
     await expect(page.getByTestId('task-cancel-btn')).toHaveCount(0);
-    await expect(page.locator('[data-task-id="44444444-4444-4444-8444-444444444444"]')).toHaveCount(0);
+    await expect(activeSummary).toHaveCount(0);
+    await expect(drawer).toHaveAttribute('data-task-id', '44444444-4444-4444-8444-444444444444');
   });
 
   test('deduplicates task logs and gives pushed completion precedence over a stale poll', async ({ page }) => {

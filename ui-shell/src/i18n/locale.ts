@@ -1,3 +1,4 @@
+import { showNotice } from '../feedback/feedback';
 import { useSyncExternalStore } from 'react';
 import { enUi } from './enUi';
 
@@ -81,7 +82,7 @@ export async function setUiLocale(locale: UiLocale): Promise<boolean> {
       catch { /* Browser-only fallback: keep the preference for this session. */ }
     }
   } catch {
-    window.alert(uiText('无法保存语言设置，当前语言与草稿已保留。', 'Could not save the language preference. Your current language and drafts are unchanged.'));
+    showNotice({ tone: 'error', message: { zh: '无法保存语言设置，当前语言与草稿已保留。', en: 'Could not save the language preference. Your current language and drafts are unchanged.' } });
     return false;
   }
   applyLocale(locale);

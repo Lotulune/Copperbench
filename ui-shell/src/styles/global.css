@@ -36,18 +36,18 @@ button,
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
+  background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-active);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Shell Layout */
@@ -505,6 +505,7 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-card {
+  max-height: calc(100dvh - 40px);
   background: var(--modal-bg);
   border: 1px solid var(--border-subtle);
   border-top: 3px solid var(--accent-copper);
@@ -518,6 +519,7 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-header {
+  flex-shrink: 0;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
@@ -533,6 +535,9 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
   padding: 20px;
   overflow-y: auto;
   max-height: 70vh;
@@ -542,6 +547,7 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-footer {
+  flex-shrink: 0;
   padding: 14px 20px;
   background: var(--bg-panel);
   border-top: 1px solid var(--border-subtle);

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "task-evaluation-plan-v1",
+  "studyId": "agent-failure-recovery-delivery",
+  "cohort": "autonomous_agent",
+  "state": "planned",
+  "dataKind": "participant",
+  "registeredAt": null,
+  "product": {
+    "version": null,
+    "source": {
+      "commit": null,
+      "sourceSha256": null,
+      "dirtyDeltaSha256": null,
+      "pathFilterVersion": "source-paths-v2",
+      "manifest": { "path": null, "sha256": null }
+    },
+    "artifact": { "path": null, "size": null, "sha256": null }
+  },
+  "environment": null,
+  "model": { "id": null, "version": null, "settings": null },
+  "prompt": "Use the operator-prepared isolated Fabric 1.21.1 workspace, frozen package/SDK and byte-identified starting-state, failure-fixture and acceptance-test materials. First discover the environment, supported public operations and current field contracts; use the supplied sdk/agent-workflows.md and docs/ai/trail-block.md rather than inventing APIs. Create Study Block with the built-in stone texture through the public SDK. Apply only the preregistered compiler-error payload to its permitted handwritten fixture file, start a real build and retain its failed terminal task, complete diagnostic and source/input identity. Diagnose the failure, repair that fixture and obtain a new successful build without overwriting the failed task. A rejected field value does not satisfy this deliberate build-failure step. Start the real client through the documented lifecycle/SDK, keep the session alive, verify the exact process/game directory/test world with the registered single desktop controller, observe acquiring and placing the block, exit normally and retain the terminal client task and game logs. Follow docs/ai/client-acceptance.md and the repository runtime rules; a run receipt alone is insufficient. Run the supplied positive user acceptance cases in packaged_jar mode against the repaired current input, inspect the original successful acceptance task and deliver that exact accepted JAR using the existing current-input verified export route described in sdk/agent-workflows.md W3. Compare exported JAR/XML/verification.json bytes and artifact/report/source/input hashes with the selected acceptance task; keep historical export disabled. Record every action, failure, retry, token count and intervention. Do not create grants, accept EULA, contact humans or change the package/model/prompt/permissions. Stop at the registered total wall-clock or token budget. Missing preparation or desktop capability is a recorded blocker, never a simulated result.",
+  "permissions": {
+    "allowed": ["Read the frozen package's supplied SDK documentation and registered materials", "Use pre-authorized public SDK build, client, GameTest and verified-export routes against the isolated workspace", "Edit only the preregistered handwritten failure fixture within the isolated study directory", "Use the preregistered single desktop controller for actual client observations", "Download build dependencies only from the repository allowlist fixed in the registered environment"],
+    "prohibited": ["Contact humans or unregistered external services", "Create grants, accept EULA, modify personal workspaces or global settings", "Replace the package, model, prompt, permissions or acceptance cases after registration"]
+  },
+  "rules": {
+    "timeBudgetSeconds": 3600,
+    "tokenBudget": 100000,
+    "maxAttempts": 2,
+    "retryPolicy": "One retry after a recorded failed, timeout or abandoned attempt; preserve the original workspace, call trace and evidence. Wall-clock and provider-reported input/output/reasoning tokens accumulate across retries for one slot/task.",
+    "allowIntervention": false,
+    "interventionPolicy": "No human hints or takeover. Record every external intervention with time, reason and evidence; a resulting assisted success is ineligible under this plan."
+  },
+  "tasks": [
+    {
+      "id": "failure-recovery-delivery",
+      "description": "Discover the environment, create the block, cause a controlled real build failure, diagnose/repair it, observe the real client and deliver the exact accepted JAR for current input.",
+      "successCriteria": ["Discovery and successful block creation are bound to the fixed environment/field contracts", "A real failed build task contains the registered compiler-error fixture, diagnostic and original source/input hashes; validation rejection alone is insufficient", "The recorded diagnosis repairs the allowed fixture and a distinct new build succeeds while the failed task remains available", "Actual client screenshots/action record show block acquisition and placement in the unique test world, with matching process/game directory, normal exit logs and terminal lifecycle task", "The original packaged_jar acceptance task passes positive user cases against the repaired current input; the report identifies the tested JAR and input", "Current-input verified export delivers the exact selected accepted JAR, report and verification.json with matching artifact/report/source/input hashes and historical export disabled"],
+      "requiredEvidence": ["actions", "outcome"],
+      "materials": [
+        { "kind": "starting-state", "path": null, "sha256": null },
+        { "kind": "build-failure-fixture", "path": null, "sha256": null },
+        { "kind": "acceptance-tests", "path": null, "sha256": null }
+      ]
+    }
+  ],
+  "subjectSlots": ["agent-01", "agent-02"]
+}
