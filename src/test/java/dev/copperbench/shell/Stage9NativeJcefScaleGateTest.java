@@ -91,6 +91,16 @@ class Stage9NativeJcefScaleGateTest {
 			    && document.querySelector('[data-testid=workbench-loading]') === null
 			""".formatted(JSON.toJson(WORKSPACE_ID.toString()), JSON.toJson(WORKSPACE_NAME));
 
+	// Use the existing native locale event without persisting a user preference. This fixture
+	// asserts Chinese refresh/save/back copy; runner navigator.language may be en-US.
+	private static final String FIXTURE_LOCALE_SETUP = """
+			window.dispatchEvent(new CustomEvent('copperbench:locale-changed', { detail: 'zh' }))
+			""";
+	private static final String REFERENCE_REFRESH_BUTTON = """
+			Array.from(document.querySelectorAll('[data-testid=creator-data-view] button'))
+			    .find(candidate => candidate.textContent?.includes('刷新'))
+			""";
+
 	@BeforeAll static void initializeJcefPrerequisites() throws Exception {
 		LoggingSystem.init();
 		TerribleModuleHacks.openAllFor(ClassLoader.getSystemClassLoader().getUnnamedModule());
@@ -135,6 +145,10 @@ class Stage9NativeJcefScaleGateTest {
 			await(() -> "true".equals(js(webView,
 					NATIVE_WORKSPACE_READY)), 30,
 					"Production shell did not bind the native JCEF UI-Core host");
+
+			js(webView, FIXTURE_LOCALE_SETUP);
+			awaitWithDiagnostics(webView, () -> "zh-CN".equals(js(webView, "document.documentElement.lang")),
+					10, "Scale fixture did not apply its Chinese UI locale");
 
 			clickTestId(webView, "nav-elements");
 			await(() -> "true".equals(js(webView,
@@ -236,13 +250,12 @@ class Stage9NativeJcefScaleGateTest {
 	}
 
 	private static double measureReferenceRefresh(WebView webView) throws Exception {
+		awaitButton(webView, REFERENCE_REFRESH_BUTTON, "Reference refresh");
 		assertEquals("true", js(webView, """
 				(function() {
 				    var root = document.querySelector('[data-testid=creator-data-view]');
 				    if (!root) return false;
-				    var button = Array.from(root.querySelectorAll('button')).find(function(candidate) {
-				        return candidate.textContent && candidate.textContent.includes('刷新');
-				    });
+				    var button = %s;
 				    if (!button || button.disabled) return false;
 				    window.__cbScaleReferenceRefresh = null;
 				    var sawDisabled = false;
@@ -262,7 +275,7 @@ class Stage9NativeJcefScaleGateTest {
 				    button.click();
 				    return true;
 				})()
-				"""));
+				""".formatted(REFERENCE_REFRESH_BUTTON)), () -> "Reference refresh setup failed: " + diagnostics(webView));
 		return awaitMetric(webView, "__cbScaleReferenceRefresh", 15);
 	}
 
@@ -346,6 +359,7 @@ class Stage9NativeJcefScaleGateTest {
 	}
 
 	private static double measureProcedureSave(WebView webView) throws Exception {
+		awaitButton(webView, "document.querySelector('button.procedure-save')", "Procedure save");
 		assertEquals("true", js(webView, """
 				(function() {
 				    var save = document.querySelector('button.procedure-save');
@@ -367,7 +381,7 @@ class Stage9NativeJcefScaleGateTest {
 				    save.click();
 				    return true;
 				})()
-				"""));
+				"""), () -> "Procedure save setup failed: " + diagnostics(webView));
 		return awaitMetric(webView, "__cbScaleProcedureSave", 20);
 	}
 
@@ -382,7 +396,9 @@ class Stage9NativeJcefScaleGateTest {
 				""".formatted(testId)));
 	}
 
-	private static void clickAriaLabel(WebView webView, String label) {
+	private static void clickAriaLabel(WebView webView, String label) throws Exception {
+		awaitButton(webView, "Array.from(document.querySelectorAll('button')).find(button => button.getAttribute('aria-label') === "
+				+ JSON.toJson(label) + ")", "Procedure back");
 		assertEquals("true", js(webView, """
 				(function(label) {
 				    var button = Array.from(document.querySelectorAll('button')).find(function(candidate) {
@@ -396,9 +412,48 @@ class Stage9NativeJcefScaleGateTest {
 	}
 
 	private static double awaitMetric(WebView webView, String property, int timeoutSeconds) throws Exception {
-		await(() -> !js(webView, "String(window." + property + " ?? '')").isBlank(), timeoutSeconds,
+		awaitWithDiagnostics(webView, () -> !js(webView, "String(window." + property + " ?? '')").isBlank(), timeoutSeconds,
 				"Timed out waiting for native JCEF performance metric " + property);
 		return Double.parseDouble(js(webView, "String(window." + property + ")"));
+	}
+
+	private static void awaitButton(WebView webView, String expression, String action) throws Exception {
+		// Readiness is outside the timed action; disabled/loading time is not a sample.
+		awaitWithDiagnostics(webView, () -> "true".equals(js(webView, """
+				(function() {
+				    var button = %s;
+				    return !!button && !button.disabled && button.getClientRects().length > 0;
+				})()
+				""".formatted(expression))), 10, action + " button did not become available");
+	}
+
+	private static void awaitWithDiagnostics(WebView webView, BooleanSupplier condition, int timeoutSeconds,
+			String failureMessage) throws Exception {
+		try {
+			await(condition, timeoutSeconds, failureMessage);
+		} catch (AssertionError failure) {
+			throw new AssertionError(failureMessage + ": " + diagnostics(webView), failure);
+		}
+	}
+
+	private static String diagnostics(WebView webView) {
+		try {
+			return js(webView, """
+					JSON.stringify({
+					    systemLanguage: navigator.language, uiLanguage: document.documentElement.lang,
+					    dataView: !!document.querySelector('[data-testid=creator-data-view]'),
+					    procedureView: !!document.querySelector('[data-testid=procedure-workbench]'),
+					    referenceBadge: document.querySelector('[data-testid=tab-references] .badge')?.textContent,
+					    messages: Array.from(document.querySelectorAll('.procedure-message')).map(node => node.textContent),
+					    buttons: Array.from(document.querySelectorAll(
+					        '[data-testid=creator-data-view] button, [data-testid=procedure-workbench] button'))
+					        .map(button => ({ text: button.textContent, label: button.getAttribute('aria-label'),
+					            disabled: button.disabled, visible: button.getClientRects().length > 0 }))
+					})
+					""");
+		} catch (RuntimeException failure) {
+			return "DOM diagnostics unavailable: " + failure;
+		}
 	}
 
 	private static double p95(List<Double> samples) {
