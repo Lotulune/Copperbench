@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-linux-immutable-candidate",
+  "status": "development-not-certified",
+  "formalSupportClaim": false,
+  "exactBinaryPromotionEligible": false,
+  "candidateId": "sha256:ea64a9f7126e7cab62343780704837b62ffbd93010ae2603d0d2992444c508d1",
+  "productId": "dev.copperbench.studio",
+  "productVersion": "0.1.6",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "primaryDesktopSession": "GNOME Wayland",
+    "compatibilityDesktopSession": "GNOME on Xorg"
+  },
+  "source": {
+    "commit": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+    "ref": "refs/heads/main",
+    "workflowRunId": "38748273030",
+    "workflowRunAttempt": "1"
+  },
+  "assets": {
+    "portable": {
+      "role": "portable",
+      "name": "Copperbench 0.1.6 Linux x86_64.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1110296788,
+      "sha256": "bc90f7a83a8187eca7093e962fef526701867cfae650af471cb8bbd359ba7871"
+    },
+    "deb": {
+      "role": "deb",
+      "name": "copperbench_0.1.6_amd64.deb",
+      "mediaType": "application/vnd.debian.binary-package",
+      "size": 1027441440,
+      "sha256": "b7b9a0a0d8e298f2f570a21b5a391e23a57bf9ec97b3fb8074c709e69d8353fd"
+    },
+    "sbom": {
+      "role": "sbom",
+      "name": "copperbench-linux.spdx.json",
+      "mediaType": "application/spdx+json",
+      "size": 5670307,
+      "sha256": "a6b9ba2113437b0e00dd2d2a307272fce7ff564495156245f268221708ae3265"
+    },
+    "manifest": {
+      "role": "manifest",
+      "name": "linux-candidate-manifest.json",
+      "mediaType": "application/json",
+      "size": 6694,
+      "sha256": "9a742b63bd3077a473da680eb2e7db1bd81214dcb43984010f73c1a54cc5a52d"
+    },
+    "setup": {
+      "role": "setup",
+      "name": "Copperbench 0.1.6 Linux x86_64 Setup.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1112286754,
+      "sha256": "428db541820dd3d5c638f4d496b31b1630961a21da96b8e2462952ee1a880f67"
+    }
+  }
+}

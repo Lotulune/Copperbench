@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.build.json",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations-retry-2\\Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.build.json.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations-retry-2\\Copperbench 0.1.6 Linux x86_64 Setup.tar.gz.build.json.stderr.log"
+  },
+  {
+    "name": "Copperbench 0.1.6 Linux x86_64.tar.gz",
+    "exitCode": 0,
+    "result": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations-retry-2\\Copperbench 0.1.6 Linux x86_64.tar.gz.json",
+    "log": "D:\\AICoding\\Minecraft_ModCreator\\output\\optimization-2026-10-15\\publication-0.1.6\\linux-candidate-main-38748273030\\attestations-retry-2\\Copperbench 0.1.6 Linux x86_64.tar.gz.stderr.log"
+  }
+]

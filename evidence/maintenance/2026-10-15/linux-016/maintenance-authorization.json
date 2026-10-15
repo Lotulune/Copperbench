@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.6-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:ea64a9f7126e7cab62343780704837b62ffbd93010ae2603d0d2992444c508d1",
+  "candidateSourceCommit": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+  "candidateWorkflowRunId": "38748273030",
+  "debSha256": "b7b9a0a0d8e298f2f570a21b5a391e23a57bf9ec97b3fb8074c709e69d8353fd",
+  "portableSha256": "bc90f7a83a8187eca7093e962fef526701867cfae650af471cb8bbd359ba7871",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.6.md",
+  "validationReportSha256": "4e4f7f76bbd95265f702f56c208cdc10cf6bf85ef05c18a2bf972b3f5e0e0658",
+  "acceptancePolicy": "maintenance-ci-0.1.6",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.6-linux-stable",
+    "date": "2026-10-16",
+    "scope": "The user requested '推送并发布'. Authorize only this exact successful main-push 0.1.6 candidate after downloaded-byte, source/run/workflow provenance and selected archive-entry verification. Retain signatures, production review, permitted source delta and exact draft comparison; full installed acceptance was not repeated and formal Linux certification is not claimed."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-10-15/linux-016/candidate-run.json",
+      "sha256": "4025ce2e28a292e82f0575103492f2e83d5e231b7446d3609586b9cc1b587feb"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-10-15/linux-016/candidate-jobs.json",
+      "sha256": "fe3b7bae488f4b136ffe5a4ce2eda8e3febe11ffa1ca21981221b6510fa09895"
+    }
+  }
+}

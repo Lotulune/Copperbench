@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "source": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+  "entryCount": 23,
+  "expectationsSha256": "ca36bae5d74c86d9daefe1a709bb3f3e23fdac74f0e7baba4400a6a5ce964989",
+  "scope": "Exact Git A blob bytes for expected archive entries; archive content not yet verified"
+}
