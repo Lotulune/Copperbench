@@ -155,7 +155,7 @@ tasks.withType(Copy).matching { it.name in ['exportWin64', 'exportLinux64', 'exp
     into('sdk') {
         from('sdk') {
             include 'README.md', 'protocol.md', 'agent-workflows.md', 'compatibility.md',
-                    'typescript/copperbench.ts', 'evals/manifest.json',
+                    'evals/manifest.json',
                     'experimental-extension/README.md', 'experimental-extension/capability-manifest.schema.json',
                     'experimental-extension/fixtures/minimal-generator-capabilities.json'
         }
