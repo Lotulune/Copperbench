@@ -2,13 +2,16 @@ import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } fro
 import { ChevronRight, FileCode2, Folder, RefreshCw, Save, Search, X } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { sourceBridge } from '../bridge/sourceBridge';
+import { OperationFailure, operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
 import { windowBridge, type AppPreferencesSnapshot } from '../bridge/windowBridge';
 import { setUnsavedDraftCount } from '../hooks/unsavedDraftGuard';
-import { diagnosticMessages, renderUiMessage, type UiMessage, uiText } from '../i18n';
-import type { WorkspaceSourceContent, WorkspaceSourceFile, WorkspaceSourceFiles, WorkspaceSourceIndex } from '../types/contract';
+import { t, uiMessage, uiText } from '../i18n';
+import type { Diagnostic, WorkspaceSourceContent, WorkspaceSourceFile, WorkspaceSourceFiles, WorkspaceSourceIndex } from '../types/contract';
+import { DiagnosticDetails } from './DiagnosticDetails';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 import './sourceWorkbench.css';
 
-export interface SourceFocusRequest { path: string; line?: number; requestId?: string | number }
+export interface SourceFocusRequest { workspaceId?: string; path: string; line?: number; requestId?: string | number }
 interface SourceTab {
   path: string;
   file?: WorkspaceSourceContent;
@@ -17,7 +20,9 @@ interface SourceTab {
   loading: boolean;
   readToken?: number;
   saving: boolean;
-  error?: UiMessage;
+  error?: unknown;
+  saveDiagnostics?: Diagnostic[];
+  saveUnknown?: boolean;
   conflict?: boolean;
   latest?: { data: WorkspaceSourceContent; revision: number };
 }
@@ -47,8 +52,7 @@ function sourceText(content: string, original: string) {
   return editorText(content).replace(/\n/g, newline);
 }
 function dirty(tab: SourceTab) { return Boolean(tab.file && tab.content !== editorText(tab.file.content)); }
-function syncDraftGuard() { setUnsavedDraftCount('sources', [...sessions.values()].reduce((count, state) => count + state.tabs.filter(dirty).length, 0)); }
-function message(error: unknown) { return error instanceof Error ? error.message : String(error); }
+function syncDraftGuard() { setUnsavedDraftCount('sources', [...sessions.values()].reduce((count, state) => count + state.tabs.filter(tab => dirty(tab) || tab.saveUnknown).length, 0)); }
 
 type Tree = { folders: Map<string, Tree>; files: WorkspaceSourceFile[] };
 function fileTree(files: WorkspaceSourceFile[]): Tree {
@@ -80,7 +84,8 @@ export const SourceWorkbench: React.FC<{ active?: boolean; focusRequest?: Source
   const { state } = useWorkbench();
   useEffect(syncDraftGuard, []);
   const workspaceId = state.workbench?.workspace.id;
-  return workspaceId ? <SourceWorkspace key={workspaceId} workspaceId={workspaceId} active={active} focusRequest={focusRequest} />
+  const scopedFocus = !focusRequest?.workspaceId || focusRequest.workspaceId === workspaceId ? focusRequest : null;
+  return workspaceId ? <SourceWorkspace key={workspaceId} workspaceId={workspaceId} active={active} focusRequest={scopedFocus} />
     : <section hidden={!active} className="source-workbench"><p>{uiText('请先打开工作区。', 'Open a workspace first.')}</p></section>;
 };
 
@@ -93,15 +98,16 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
   const [indexLimit, setIndexLimit] = useState(30);
   const [search, setSearch] = useState('');
   const [listBusy, setListBusy] = useState(false);
-  const [listError, setListError] = useState('');
-  const [indexError, setIndexError] = useState('');
+  const [listError, setListError] = useState<unknown>(null);
+  const [indexError, setIndexError] = useState<unknown>(null);
   const [refresh, setRefresh] = useState(0);
   const [find, setFind] = useState('');
   const [findIndex, setFindIndex] = useState(-1);
   const [line, setLine] = useState('1');
   const [closeCandidate, setCloseCandidate] = useState<string | null>(null);
+  const closeDialogRef = useDialogA11y(active && closeCandidate !== null, () => setCloseCandidate(null));
   const [editorPreferences, setEditorPreferences] = useState({ fontSize: 13, lineNumbers: true, ligatures: false });
-  const [preferencesError, setPreferencesError] = useState('');
+  const [preferencesError, setPreferencesError] = useState<unknown>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const gutter = useRef<HTMLPreElement>(null);
   const findInput = useRef<HTMLInputElement>(null);
@@ -131,7 +137,7 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
     const changed = (event: Event) => { savedSinceRead = true; accept((event as CustomEvent<AppPreferencesSnapshot>).detail); };
     window.addEventListener('copperbench:preferences-saved', changed);
     void windowBridge.getPreferences().then(snapshot => { if (!savedSinceRead) accept(snapshot); })
-      .catch(error => { if (valid && !savedSinceRead) setPreferencesError(message(error)); });
+      .catch(error => { if (valid && !savedSinceRead) setPreferencesError(error); });
     return () => { valid = false; window.removeEventListener('copperbench:preferences-saved', changed); };
   }, []);
 
@@ -143,7 +149,7 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
       void sourceBridge.list(workspaceId, search).then(result => {
         if (!alive.current || sequence !== listSequence.current) return;
         listSearch.current = search; setListing(result.data);
-      }).catch(error => { if (alive.current && sequence === listSequence.current) setListError(message(error)); })
+      }).catch(error => { if (alive.current && sequence === listSequence.current) setListError(error); })
         .finally(() => { if (alive.current && sequence === listSequence.current) setListBusy(false); });
     }, search ? 200 : 0);
     return () => { clearTimeout(timer); listSequence.current++; };
@@ -153,7 +159,7 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
     if (!active) return;
     let valid = true;
     void sourceBridge.index(workspaceId).then(result => { if (valid) { setIndex(result.data); setIndexError(''); } })
-      .catch(error => { if (valid) setIndexError(message(error)); });
+      .catch(error => { if (valid) setIndexError(error); });
     return () => { valid = false; };
   }, [workspaceId, refresh, active]);
 
@@ -165,7 +171,7 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
       const result = await sourceBridge.list(workspaceId, listSearch.current, listing.nextOffset);
       if (!alive.current || sequence !== listSequence.current) return;
       setListing(previous => previous ? { ...result.data, files: [...previous.files, ...result.data.files.filter(file => !previous.files.some(old => old.relativePath === file.relativePath))] } : result.data);
-    } catch (error) { if (alive.current && sequence === listSequence.current) setListError(message(error)); }
+    } catch (error) { if (alive.current && sequence === listSequence.current) setListError(error); }
     finally { if (alive.current && sequence === listSequence.current) setListBusy(false); }
   };
 
@@ -174,14 +180,15 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
     changeTab(workspaceId, path, old => ({ ...old, loading: true, readToken }));
     try {
       const result = await sourceBridge.read(workspaceId, path);
-      if (result.data.relativePath !== path) throw new Error(uiText('返回的文件路径不匹配。', 'The returned file path does not match.'));
+      if (result.data.relativePath !== path) throw new OperationFailure([], uiMessage('返回的文件路径不匹配。', 'The returned file path does not match.'));
       changeTab(workspaceId, path, old => {
         if (old.readToken !== readToken) return old;
-        if (dirty(old) && old.file?.sha256 !== result.data.sha256) return { ...old, loading: false, conflict: true, latest: result, error: undefined };
-        return { ...old, file: result.data, content: dirty(old) ? old.content : editorText(result.data.content),
-          revision: result.revision, loading: false, conflict: false, latest: undefined, error: undefined };
+        const preserveDraft = dirty(old) || old.saveUnknown || old.conflict;
+        if (preserveDraft && old.file?.sha256 !== result.data.sha256) return { ...old, loading: false, conflict: true, latest: result };
+        return { ...old, file: result.data, content: preserveDraft ? old.content : editorText(result.data.content),
+          revision: result.revision, loading: false, conflict: false, latest: undefined, error: undefined, saveUnknown: false };
       });
-    } catch (error) { changeTab(workspaceId, path, old => old.readToken !== readToken ? old : ({ ...old, loading: false, error: message(error) })); }
+    } catch (error) { changeTab(workspaceId, path, old => old.readToken !== readToken ? old : ({ ...old, loading: false, error })); }
   };
 
   const open = (path: string, atLine?: number) => {
@@ -218,7 +225,8 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
   useEffect(() => {
     if (!active || !tab?.file || tab.loading || pendingLine.current?.path !== tab.path) return;
     const target = pendingLine.current.line; pendingLine.current = null; goToLine(target);
-  }, [active, tab]);
+    // A fresh explicit request can target this already loaded tab while active/tab remain unchanged.
+  }, [active, tab, current.focusKey]);
   useEffect(() => { setFindIndex(-1); if (gutter.current) gutter.current.scrollTop = 0; }, [current.activePath, find]);
   useEffect(() => {
     if (active && mobilePanel === 'editor' && tab?.file && !tab.loading && window.matchMedia('(max-width: 760px)').matches) textarea.current?.focus();
@@ -232,25 +240,25 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
 
   const save = async () => {
     const selected = session(workspaceId).tabs.find(item => item.path === session(workspaceId).activePath);
-    if (!selected?.file?.editable || !dirty(selected) || selected.saving || selected.loading || selected.conflict) return;
+    if (!selected?.file?.editable || !dirty(selected) || selected.saving || selected.loading || selected.conflict || selected.saveUnknown) return;
     const path = selected.path;
     const submittedContent = sourceText(selected.content, selected.file.content);
     changeTab(workspaceId, path, old => ({ ...old, saving: true, error: undefined }));
     try {
       const result = await sourceBridge.save(workspaceId, path, submittedContent, selected.revision, selected.file.sha256);
-      if (result.workspaceId !== workspaceId) throw new Error(uiText('工作区已切换，未接受此保存回执。', 'The workspace changed; this save receipt was not accepted.'));
+      if (result.workspaceId !== workspaceId) throw new OperationFailure([], uiMessage('工作区已切换，未接受此保存回执。', 'The workspace changed; this save receipt was not accepted.'));
       if ((result.status === 'committed' || result.status === 'completed') && result.data?.sha256 && result.data.relativePath === path) {
         changeTab(workspaceId, path, old => ({ ...old, file: { ...selected.file!, content: submittedContent,
           sha256: result.data!.sha256!, size: result.data!.size ?? selected.file!.size }, revision: result.newRevision,
-          saving: false, error: undefined, conflict: false, latest: undefined }));
+          saving: false, error: undefined, conflict: false, latest: undefined, saveUnknown: false, saveDiagnostics: result.diagnostics }));
         if (alive.current) setRefresh(value => value + 1);
       } else {
         const conflict = Boolean(result.conflict) || result.diagnostics.some(item => item.code === 'WORKSPACE_SOURCE_CONFLICT' || item.code === 'WORKSPACE_REVISION_CONFLICT');
-        changeTab(workspaceId, path, old => ({ ...old, saving: false, conflict,
-          error: diagnosticMessages(result.diagnostics, uiText('保存失败，请重试。', 'Save failed. Please retry.'), '\n') }));
+        changeTab(workspaceId, path, old => ({ ...old, saving: false, conflict, saveDiagnostics: result.diagnostics,
+          error: new OperationFailure(result.diagnostics, uiMessage('保存被拒绝。草稿已保留，请修正后保存。', 'The save was rejected. Your draft is preserved; correct it before saving.')) }));
         if (conflict) await read(path);
       }
-    } catch (error) { changeTab(workspaceId, path, old => ({ ...old, saving: false, error: message(error) })); }
+    } catch (error) { changeTab(workspaceId, path, old => ({ ...old, saving: false, saveUnknown: true, error })); }
   };
 
   const close = (path: string) => {
@@ -260,12 +268,14 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
       return { ...state, tabs: remaining, activePath: state.activePath === path ? remaining.at(-1)?.path ?? null : state.activePath };
     });
     setCloseCandidate(null);
+    window.requestAnimationFrame(() => (textarea.current ?? fileSearchInput.current)?.focus());
   };
   const adoptLatest = (keepDraft: boolean) => {
     if (!tab?.latest) return;
     changeTab(workspaceId, tab.path, old => ({ ...old, file: old.latest!.data,
       content: keepDraft ? old.content : editorText(old.latest!.data.content), revision: old.latest!.revision,
-      latest: undefined, conflict: false, error: undefined }));
+      latest: undefined, conflict: false, error: undefined, saveUnknown: false }));
+    textarea.current?.focus();
   };
   const matches = useMemo(() => {
     if (!find || !tab?.content) return [];
@@ -302,13 +312,13 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
       <label className="source-file-search"><Search size={14} aria-hidden="true" /><input ref={fileSearchInput} value={search} onChange={event => setSearch(event.target.value)}
         aria-label={uiText('搜索文件路径', 'Search file paths')} placeholder={uiText('搜索文件', 'Find files')} /></label>
       <div className="source-tree-scroll" aria-busy={listBusy}>
-        {listError && <p role="alert">{listError}</p>}
+        {Boolean(listError) && <div role="alert"><p>{operationFailureText(listError)}</p><DiagnosticDetails diagnostics={operationDiagnostics(listError)} /></div>}
         <SourceTree tree={tree} selected={current.activePath} open={open} />
         {!listBusy && listing?.files.length === 0 && <p>{uiText('没有匹配的文件。', 'No matching files.')}</p>}
         {listing?.nextOffset !== null && listing?.nextOffset !== undefined && <button type="button" onClick={() => void loadMore()} disabled={listBusy}>{uiText('加载更多文件', 'Load more files')}</button>}
         {listing?.truncated && listing.nextOffset === null && <p>{uiText('文件列表已达到扫描上限。', 'The file scan limit was reached.')}</p>}
         <details className="source-entrypoints"><summary>{uiText('代码入口与引用', 'Code entrypoints and references')}</summary>
-          {indexError && <p role="alert">{indexError}</p>}
+          {Boolean(indexError) && <div role="alert"><p>{operationFailureText(indexError)}</p><DiagnosticDetails diagnostics={operationDiagnostics(indexError)} /></div>}
           {index?.entries.slice(0, indexLimit).map(entry => <button type="button" key={entry.id} title={entry.evidence} onClick={() => open(entry.relativePath, entry.line)}>
             <strong>{entry.symbol}</strong><span>{entry.relativePath}:{entry.line}</span><small>{entry.evidence}</small>
           </button>)}
@@ -325,23 +335,29 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
           <button type="button" role="tab" aria-selected={item.path === current.activePath} title={item.path} onClick={() => open(item.path)}>
             <FileCode2 size={14} aria-hidden="true" />{item.file?.name ?? item.path.split('/').at(-1)}{dirty(item) && <span aria-label={uiText('未保存', 'Unsaved')}>●</span>}
           </button><button type="button" disabled={item.loading || item.saving} aria-label={`${uiText('关闭', 'Close')} ${item.path}`}
-            onClick={() => dirty(item) ? setCloseCandidate(item.path) : close(item.path)}><X size={13} aria-hidden="true" /></button>
+            onClick={() => dirty(item) || item.saveUnknown || item.conflict ? setCloseCandidate(item.path) : close(item.path)}><X size={13} aria-hidden="true" /></button>
         </div>)}
       </div>
-      {closeCandidate && <div className="source-notice" role="alert"><span>{uiText('关闭此文件将放弃未保存的草稿。', 'Closing this file discards its unsaved draft.')}</span>
+      {closeCandidate && <div className="source-close-backdrop"><div ref={closeDialogRef} className="source-notice" role="dialog" aria-modal="true" aria-labelledby="source-close-title">
+        <span id="source-close-title">{uiText('关闭此文件将放弃未保存的草稿。', 'Closing this file discards its unsaved draft.')}</span>
         <button type="button" onClick={() => close(closeCandidate)}>{uiText('关闭并放弃草稿', 'Close and discard draft')}</button>
-        <button type="button" onClick={() => setCloseCandidate(null)}>{uiText('继续编辑', 'Keep editing')}</button></div>}
+        <button type="button" onClick={() => setCloseCandidate(null)}>{uiText('继续编辑', 'Keep editing')}</button></div></div>}
       {tab ? <>
         <header className="source-editor-toolbar"><span title={tab.path}>{tab.path}</span>
           <button type="button" onClick={() => { changeTab(workspaceId, tab.path, old => ({ ...old, loading: true })); void read(tab.path); }} disabled={tab.loading || tab.saving} data-testid="source-reload">
             <RefreshCw size={14} aria-hidden="true" />{uiText('读取最新版本', 'Read latest version')}</button>
-          <button type="button" onClick={() => void save()} disabled={!tab.file?.editable || !dirty(tab) || tab.loading || tab.saving || tab.conflict} data-testid="source-save">
+          <button type="button" onClick={() => void save()} disabled={!tab.file?.editable || !dirty(tab) || tab.loading || tab.saving || tab.conflict || tab.saveUnknown} data-testid="source-save">
             <Save size={14} aria-hidden="true" />{tab.saving ? uiText('保存中…', 'Saving…') : uiText('保存', 'Save')}</button></header>
-        {tab.error && <p className="source-notice" role="alert">{renderUiMessage(tab.error)}</p>}
-        {preferencesError && <p className="source-notice" role="alert">{uiText('无法读取编辑器设置：', 'Could not read editor preferences: ')}{preferencesError}</p>}
+        {tab.saveUnknown && <p className="source-notice" role="alert" data-testid="source-save-unknown">{uiText('保存结果待确认。草稿已保留；请读取最新版本并核对后再保存。', 'The save result is unknown. Your draft is preserved; read the latest version and compare before saving again.')}</p>}
+        {Boolean(tab.error) && <div className="source-notice" role="alert"><p>{operationFailureText(tab.error)}</p><DiagnosticDetails diagnostics={operationDiagnostics(tab.error)} /></div>}
+        {Boolean(preferencesError) && <p className="source-notice" role="alert">{uiText('无法读取编辑器设置：', 'Could not read editor preferences: ')}{operationFailureText(preferencesError)}</p>}
         {tab.latest && <div className="source-conflict" role="alert" data-testid="source-conflict">
           <p>{uiText('文件已更新；草稿已保留。', 'The file changed; your draft is preserved.')}</p>
-          <details><summary>{uiText('查看磁盘上的最新内容', 'View latest content on disk')}</summary><pre>{tab.latest.data.content}</pre></details>
+          {tab.saveDiagnostics?.map((diagnostic, index) => <p key={index}>{t(diagnostic.message)}</p>)}
+          <p>{uiText('请核对当前草稿和磁盘内容，再选择是否以最新版本为基础保存。', 'Compare your draft with the disk content, then choose whether to save against the latest version.')}</p>
+          <details><summary>{uiText('查看当前草稿', 'View current draft')}</summary><pre tabIndex={0}>{tab.content}</pre></details>
+          <details><summary>{uiText('查看磁盘上的最新内容', 'View latest content on disk')}</summary><pre tabIndex={0} data-testid="source-disk-content">{tab.latest.data.content}</pre></details>
+          <DiagnosticDetails diagnostics={tab.saveDiagnostics ?? []} />
           <button type="button" onClick={() => adoptLatest(false)}>{uiText('放弃草稿并加载最新', 'Discard draft and load latest')}</button>
           <button type="button" onClick={() => adoptLatest(true)}>{uiText('基于最新版本保留草稿', 'Keep draft against latest version')}</button>
         </div>}
@@ -358,12 +374,12 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
           '--source-line-height': `${Math.round(editorPreferences.fontSize * 1.6)}px`,
           fontVariantLigatures: editorPreferences.ligatures ? 'normal' : 'none' } as React.CSSProperties}>
           <pre ref={gutter} hidden={!editorPreferences.lineNumbers} aria-hidden="true" className="source-line-numbers">{lineNumbers}</pre>
-          <textarea ref={textarea} value={tab.content} readOnly={!tab.file?.editable || tab.loading || tab.saving} spellCheck={false} wrap="off" autoCapitalize="off" autoCorrect="off"
+          <textarea ref={textarea} value={tab.content} readOnly={!tab.file?.editable || tab.loading} spellCheck={false} wrap="off" autoCapitalize="off" autoCorrect="off"
             aria-label={uiText('源码编辑器', 'Source editor')} data-testid="source-editor" onScroll={event => { if (gutter.current) gutter.current.scrollTop = event.currentTarget.scrollTop; }}
             onChange={event => { const content = event.target.value; changeTab(workspaceId, tab.path, old => ({ ...old, content })); }} />
         </div>
         <footer className="source-editor-status" role="status"><span>{tab.loading ? uiText('正在读取…', 'Loading…') : tab.file?.language}</span>
-          <span title={`${uiText('修订', 'Revision')} ${tab.revision}`}>{dirty(tab) ? uiText('未保存', 'Unsaved') : uiText('已保存', 'Saved')}</span></footer>
+          <span title={`${uiText('修订', 'Revision')} ${tab.revision}`}>{tab.saving ? uiText('保存中…', 'Saving…') : tab.saveUnknown ? uiText('保存结果待确认', 'Save result unknown') : !tab.file ? uiText('尚未读取', 'Not loaded') : dirty(tab) ? uiText('未保存', 'Unsaved') : uiText('已保存', 'Saved')}</span></footer>
       </> : <div className="source-empty"><FileCode2 size={28} aria-hidden="true" /><h2>{uiText('打开项目文件', 'Open a project file')}</h2></div>}
     </div>
   </section>;

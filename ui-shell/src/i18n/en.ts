@@ -35,6 +35,8 @@ export const en: Record<string, string> = {
 
   'diagnostic.generation_source_conflict_at': 'Source conflict at {displaySourcePath}. Review the file and its ownership before generating again.',
   'action.open_conflict_source': 'View source',
+  'action.open_source': 'View source',
+  'diagnostic.task_source_not_found': 'The requested task source preview is unavailable.',
   'diagnostic.input_preflight': '{field}: expected {expectedType}. {repairHint}',
   'diagnostic.workspace_source_failed': 'Source operation failed: {detail}',
   'diagnostic.workspace_source_not_found': 'Source file not found.',

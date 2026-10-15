@@ -44,9 +44,7 @@ public final class MCreatorWorkspaceStateMapper {
 	}
 
 	private Element projectElement(Workspace workspace, UUID workspaceId, ModElement element) throws IOException {
-		UUID id = storedElementId(element.getMetadata(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA));
-		if (id == null)
-			id = elementId(workspaceId, element);
+		UUID id = projectedElementId(workspaceId, element);
 		Path definitionFile = workspace.getFolderManager().getModElementsDir().toPath()
 				.resolve(element.getName() + ".mod.json");
 		JsonObject values = storedValues(element);
@@ -232,6 +230,12 @@ public final class MCreatorWorkspaceStateMapper {
 			return null;
 		var tree = WorkspaceFileManager.gson.toJsonTree(value);
 		return tree.isJsonObject() ? tree.getAsJsonObject() : null;
+	}
+
+	/** Uses the same durable identity as the Core projection, with the established legacy fallback. */
+	static UUID projectedElementId(UUID workspaceId, ModElement element) {
+		UUID stored = storedElementId(element.getMetadata(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA));
+		return stored != null ? stored : elementId(workspaceId, element);
 	}
 
 	public static UUID elementId(UUID workspaceId, ModElement element) {

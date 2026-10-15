@@ -17,6 +17,7 @@ import dev.copperbench.core.workspace.WorkspaceState;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /** Loader-specific generation boundary used by the shared Gradle task gateway. */
@@ -61,14 +62,22 @@ public interface GradleWorkspaceBackend {
 		return Files.isDirectory(targetRoot.resolve("build/libs"));
 	}
 
-	/** Copies the generator artifact to the requested output path. */
-	default Path export(Path targetRoot, JsonObject payload) throws Exception {
-		return GradleWorkspaceTaskGateway.exportJar(targetRoot, payload);
+	/** Declared Gradle archive tasks, in loader priority order. Pack backends use their fixed ZIP contract. */
+	default List<String> archiveTaskNames() { return List.of("remapJar", "jar"); }
+
+	/** The exact non-JAR output declared by a pack backend's build. */
+	default Path buildArtifact(Path targetRoot) {
+		throw new IllegalStateException("A Gradle archive-task receipt is required for mod export");
 	}
 
-	record GenerationResult(String generatorId, String modId, List<String> generatedPaths) {
+	record GenerationResult(String generatorId, String modId, List<String> generatedPaths,
+			Map<String, UUID> sourceElementOwners) {
+		public GenerationResult(String generatorId, String modId, List<String> generatedPaths) {
+			this(generatorId, modId, generatedPaths, Map.of());
+		}
 		public GenerationResult {
 			generatedPaths = List.copyOf(generatedPaths);
+			sourceElementOwners = Map.copyOf(sourceElementOwners);
 		}
 	}
 

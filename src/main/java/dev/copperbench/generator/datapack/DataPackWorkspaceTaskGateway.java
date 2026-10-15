@@ -81,24 +81,10 @@ public final class DataPackWorkspaceTaskGateway implements WorkspaceTaskGateway,
 				return List.of("build");
 			}
 
-			@Override public Path export(Path targetRoot, JsonObject payload) throws Exception {
-				if (!payload.has("output") || !payload.get("output").isJsonPrimitive()
-						|| payload.get("output").getAsString().isBlank())
-					throw new IllegalArgumentException("Export output is required");
-				Path root = targetRoot.toAbsolutePath().normalize();
-				Path output = root.resolve(payload.get("output").getAsString()).normalize();
-				if (!output.startsWith(root) || output.getFileName() == null
-						|| !output.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip"))
-					throw new IllegalArgumentException("Data pack export output must be a workspace-relative .zip");
-				Path artifact = root.resolve("build/export/export.zip");
-				if (!Files.isRegularFile(artifact))
-					throw new IllegalStateException("Data pack build did not produce build/export/export.zip");
-				if (!output.equals(artifact)) {
-					if (output.getParent() != null)
-						Files.createDirectories(output.getParent());
-					Files.copy(artifact, output, StandardCopyOption.REPLACE_EXISTING);
-				}
-				return output;
+			@Override public List<String> archiveTaskNames() { return List.of(); }
+
+			@Override public Path buildArtifact(Path targetRoot) {
+				return targetRoot.resolve("build/export/export.zip");
 			}
 		};
 		this.delegate = new GradleWorkspaceTaskGateway(store, workspaceRoots, backend, clock, ids, processes);

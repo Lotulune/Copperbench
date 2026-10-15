@@ -45,6 +45,8 @@ export interface BridgeState {
   tasks: Record<UUID, TaskSummary>;
   taskLogs: Record<UUID, TaskLogEntry[]>;
   taskDiagnostics: Record<UUID, Diagnostic[]>;
+  /** Local transport observations; never replace the Core task state. */
+  taskReadErrors?: Record<UUID, string>;
   diagnostics: Diagnostic[];
   recoveryPoints: RecoveryPoint[];
   currentRecoveryPointId: string | null;
@@ -117,5 +119,5 @@ export const UI_SUPPORTED_SCHEMA_VERSIONS = ['1.0'];
 
 export const UI_CLIENT_IDENTITY: HandshakeClient = {
   id: 'product_shell',
-  version: '0.1.5'
+  version: '0.1.6'
 };

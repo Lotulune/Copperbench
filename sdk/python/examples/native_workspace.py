@@ -12,8 +12,10 @@ args = parser.parse_args()
 
 with Workspace.open(args.workspace, launcher=args.launcher,
                     task_authorization_id=args.task_authorization) as workspace:
-    print(json.dumps(workspace.get_workspace(), ensure_ascii=False))
-    print(json.dumps(list(workspace.list_mod_elements()), ensure_ascii=False))
+    workspace.require_schema()
+    print(json.dumps(workspace.get_workspace_environment(), ensure_ascii=False))
+    for element in workspace.list_mod_elements(limit=100, fields=["id", "name", "type"]):
+        print(json.dumps(element, ensure_ascii=False))
     if args.build:
         accepted = workspace.build()
         result = workspace.wait_task(accepted["task"]["id"])

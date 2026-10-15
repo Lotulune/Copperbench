@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "previous-published-release-state",
+  "archivedFor": "v0.1.6",
+  "date": "2026-10-15",
+  "sourceCommit": "bc2a512ca07b8c38fe1ff3140b3954563925bc6a",
+  "product": {
+    "id": "dev.copperbench.studio",
+    "name": "Copperbench",
+    "version": "0.1.5",
+    "stage": 17,
+    "channel": "stable",
+    "targetPlatforms": [
+      "windows-11-x64",
+      "ubuntu-24.04-x86_64"
+    ],
+    "license": "GPL-3.0-only",
+    "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
+    "betaEligible": true
+  },
+  "stableRelease": {
+    "tag": "v0.1.5",
+    "linuxTag": "v0.1.5-linux-stable",
+    "status": "public-stable",
+    "linuxStatus": "public-stable",
+    "decision": "approved",
+    "decisionDate": "2026-10-14",
+    "scope": "Windows and Linux 0.1.5 are public, integrating the bug fixes, first-success improvements and bilingual offline installer. Linux retains its exact-candidate maintenance acceptance scope.",
+    "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+    "developmentEvidence": "docs/testing/maintenance-release-0.1.5.md",
+    "integrationReport": "docs/testing/maintenance-release-0.1.5.md",
+    "previousReleaseState": "evidence/maintenance/2026-10-14/publication-0.1.5/previous-release-state.json",
+    "releaseCommit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+    "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5",
+    "publishedAt": "2026-10-14T13:35:33Z",
+    "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38568259409",
+    "releaseWorkflowConclusion": "success",
+    "assetProof": "evidence/maintenance/2026-10-14/publication-0.1.5/windows/windows-public-verification.json",
+    "sourceVerification": {
+      "sourceCommit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+      "requiredCi": {
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/38568120811"
+      },
+      "documentation": {
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/38568120811",
+        "scope": "Javadoc and repository Markdown checks in final main CI; standalone Javadoc publication was not retriggered for the test-only follow-up."
+      },
+      "installedPackageAcceptance": "not-repeated",
+      "fullGameplayAcceptance": "not-repeated"
+    }
+  },
+  "linuxMaintenanceRelease": {
+    "tag": "v0.1.5-linux-stable",
+    "status": "public-stable",
+    "candidateSourceCommit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
+    "candidateWorkflowRunId": "38568121386",
+    "acceptancePolicy": "maintenance-ci-0.1.5",
+    "formalSupportClaim": false,
+    "fullInstalledAcceptance": "not-repeated",
+    "integrationReport": "docs/testing/maintenance-release-0.1.5.md",
+    "releaseCommit": "98a91e88defdb723ac9e3210d1de60e103d2cc21",
+    "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable",
+    "publishedAt": "2026-10-14T13:48:26Z",
+    "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38573709058",
+    "releaseWorkflowConclusion": "success",
+    "assetProof": "evidence/maintenance/2026-10-14/publication-0.1.5/linux/linux-public-verification.json"
+  },
+  "releaseContract": {
+    "tag": "v0.1.5",
+    "purpose": "first-success-maintenance-release",
+    "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
+    "signedTagRequired": true,
+    "productionApprovalRequired": true,
+    "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.5"
+  }
+}

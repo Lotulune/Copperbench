@@ -1,14 +1,16 @@
 <div align="center">
   <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
   <h1>Copperbench</h1>
-  <p><strong>Create, build, and test Minecraft Java mods on your desktop.</strong></p>
+  <p><strong>Visual editing, manual Java and local Agent collaboration in one Minecraft mod project.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
   <p><a href="docs/releases/current.md">Download 0.1.5</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
-Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric and NeoForge support. Create content with Mod Element editors and Blockly, edit manual source files, manage models and textures, and connect external AI tools through local MCP.
+Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
 **Current stable release: 0.1.5 for Windows and Linux.** This release adds bilingual offline installers, clearer input diagnostics and a first-creation tutorial, with editor, creator and Fabric template fixes.
+
+Source preparation for **0.1.6** adds first-creation shortcuts, draft recovery, diagnostic navigation and SDK delivery improvements. These changes are awaiting release verification; [current status](docs/status.md) distinguishes them from the published packages.
 
 <a id="getting-started"></a>
 
@@ -16,12 +18,12 @@ Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.5](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
-3. Follow [your first creation](docs/user/first-creation.md) to build a block, obtain and place it in Minecraft, then save and reopen the world.
+3. Follow [your first creation](docs/user/first-creation.en.md), then [build recovery and export](docs/user/build-and-export.en.md). Confirm persistence by quitting Minecraft normally and starting a new client process to reopen the same world.
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
 
@@ -50,31 +52,28 @@ Windows packages are not Authenticode-signed and may trigger SmartScreen. The fi
 
 ## What you can do
 
-| Feature | In practice |
+| One engineering workflow | In practice |
 | --- | --- |
-| Mod Elements and logic | Edit blocks, items, entities and more; build Procedures with Blockly. |
-| Source | Browse, search and edit manual files, retain drafts and detect external changes. Generated files stay read-only. |
-| Assets and models | Filter by type, inspect references, preview images and supported models, and open assets in Blockbench. |
-| Relationship graph | Search, collapse, pan, zoom and move nodes; open their element or asset without changing business references. |
-| Workspace tools | Edit variables, tags and translations; review diagnostics, local history, migrations and settings. |
-| Builds and automation | Build projects, launch clients or servers, and drive workspace operations through MCP, SDKs or headless interfaces. |
+| Create visually | Save a Trail Block with its item and texture; inspect element and asset relationships. |
+| Extend and collaborate | Open manual Java from Source, or connect an Agent to the same live workspace. Review field diagnostics and external-change conflicts before saving. Generated files remain read-only. |
+| Repair and deliver | Follow a failed build's diagnostic to its source, rerun the affected task, confirm the behavior in Minecraft and export the artifact. Exact verified export uses the selected acceptance record's JAR/report hashes. |
 
 See the [user guide](docs/user/README.md) for feature and generator coverage. Bedrock Add-ons are outside the current first-party Java editing scope.
 
 ## Documentation
 
-Most detailed guides are currently in Chinese.
+The key installation, first-creation, build/export and Agent routes have paired English and Simplified Chinese pages with same-topic language links.
 
-- [Documentation index](docs/README.md) · [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
-- [MCP setup](docs/ai/getting-started.md) · [Agent examples](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
-- [Development setup](docs/build/development-setup.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
+- [Documentation index](docs/README.md) · [First creation](docs/user/first-creation.en.md) · [Build recovery and export](docs/user/build-and-export.en.md)
+- [Agent onboarding](docs/ai/getting-started.en.md) · [The same Trail Block through public APIs](docs/ai/trail-block.en.md) · [SDK](sdk/README.md)
+- [Development setup](docs/build/development-setup.en.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
 - [Current status: downloads, source, preview and unverified](docs/status.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
 
 <a id="development"></a>
 
 ## Run from source
 
-Requires JDK 25 (JetBrains Runtime with JCEF is recommended for the desktop app), Node.js 22, npm, and Git. The Windows commands below use PowerShell 7. Configure your JDK using the [development setup guide](docs/build/development-setup.md) first.
+Requires JDK 25 (JetBrains Runtime with JCEF for the native desktop app), Node.js 22, npm, and Git. Windows commands use PowerShell 7. Configure the relevant tools using the [development setup guide](docs/build/development-setup.en.md).
 
 ```powershell
 git clone https://github.com/Lotulune/Copperbench.git

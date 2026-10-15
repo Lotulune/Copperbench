@@ -120,11 +120,22 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		actions.add("North", newWorkspace);
 		actions.add("Center", subactions);
 
+		addWorkspaceButton(dev.copperbench.shell.UiLocalePreferences.text("第一件作品 · 步道方块", "First creation · Trail Block"), UIRES.get("wrk_add"), _ -> {
+			NewWorkspaceDialog dialog = new NewWorkspaceDialog(this, true);
+			if (dialog.getWorkspaceFile() != null) workspaceOpenListener.workspaceOpened(dialog.getWorkspaceFile());
+		});
+
 		addWorkspaceButton(L10N.t("dialog.workspace_selector.open_workspace"), UIRES.get("opnwrk"), _ -> {
 			File workspaceFile = FileDialogs.getOpenDialog(this, new String[] { ".mcreator" });
 			if (workspaceFile != null && workspaceFile.getParentFile().isDirectory())
 				workspaceOpenListener.workspaceOpened(workspaceFile);
 		});
+		addWorkspaceButton(dev.copperbench.shell.UiLocalePreferences.text("连接外部 Agent", "Connect external Agent"), UIRES.get("info"), _ ->
+				dev.copperbench.shell.ProductDialogs.show(this, dev.copperbench.shell.UiLocalePreferences.text(
+						"先新建或打开工作区，再进入「工具 → AI 与 MCP」。在那里查看连接地址、配对外部 Agent，并选择已有权限。",
+						"Create or open a workspace first, then open Tools → AI & MCP. View the connection address, pair your external Agent and choose permissions there."),
+						dev.copperbench.shell.UiLocalePreferences.text("连接外部 Agent", "Connect external Agent"), JOptionPane.INFORMATION_MESSAGE,
+						new Object[] { UIManager.getString("OptionPane.okButtonText") }, UIManager.getString("OptionPane.okButtonText")));
 
 		addWorkspaceButton(L10N.t("dialog.workspace_selector.import"), UIRES.get("impfile"), _ -> {
 			File file = FileDialogs.getOpenDialog(this, new String[] { ".zip" });

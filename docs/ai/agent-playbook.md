@@ -1,5 +1,9 @@
 # 外部 Agent 操作手册
 
+关键路线的完整英文说明见 [Agent onboarding](getting-started.en.md) 和 [Trail Block API route](trail-block.en.md)。本页保留中文专项示例；入门先按[接入分流](getting-started.md)选择 Native／MCP，再从[同一个步道方块](trail-block.md)或 [W1/W2/W3](../../sdk/agent-workflows.md)继续。
+
+下文 JSON 中的 revision 数字用于说明请求形状；实际发送前必须替换为目标工作区刚读取的整数，不能沿用示例值。可直接执行的入门代码见上面的 Trail Block／SDK 路线，它们在写前读取真实 revision。
+
 本文给通过本机 MCP 操作 Copperbench 工作区的 AI Agent 使用。目标是让 Agent 在不绕过 revision、权限、恢复点和任务日志的前提下完成“读取 → 修改 → 构建 → 修复冲突”的闭环。
 
 使用包含 Stage 15 后改动的新构建时，先阅读[任务授权与自动验收](./task-authorization-and-acceptance.md)。它说明如何携带用户签发的任务授权、准备版本对应的 GameTest、在真实工程快照中测试最终 JAR，以及按用例数和内容哈希读取验收结果。

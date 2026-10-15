@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "repository": "https://github.com/Lotulune/Copperbench",
+  "commit": "b1a69d244ab7337608cc302826ed55d4a707f37f",
+  "sourcePath": "sdk/python/copperbench.py",
+  "fixtureFile": "python-b1a69d244ab7.py",
+  "gitBlobSha1": "af93d57f2f303e2ccdb38e9c7e19bd272cbfa25c",
+  "sha256": "c6b59563c24dcc54d7fa3e3bf17ba353a5de5b7ac917fd32f221fe55ac170c38",
+  "bytes": 17851,
+  "protocolVersion": "2025-11-25",
+  "scope": "Fixed old Python MCP client executed against controlled current-protocol responses. Public request shapes, returned Core envelopes, diagnostics and no write replay; no live Core, authorization issuance, artifact bytes or gameplay acceptance."
+}

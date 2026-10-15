@@ -283,23 +283,57 @@ class NativeReadinessTest(unittest.TestCase):
 
     def test_wait_task_keeps_terminal_logs_and_does_not_cancel(self):
         result = {"status": "succeeded", "revision": 7, "data": {
-            "task": {"state": "succeeded"}, "logs": [{"sequence": 1, "message": "done"}]}}
+            "task": {"id": "test-task", "state": "succeeded"}, "logs": [{"sequence": 1, "message": "done"}],
+            "diagnostics": [{"code": "TASK_DETAIL", "message": {"fallback": "done"}}]}}
+        original = copy.deepcopy(result)
         client, requests = self.client(result)
-        self.assertIs(client.wait_task("test-task", timeout=1), result)
+        updates = []
+        returned = client.wait_task("test-task", timeout=1, on_update=updates.append)
+        self.assertEqual(returned, original)
+        self.assertEqual(result, original, "Accumulating wait output must not change the original response")
+        self.assertEqual(len(updates), 1)
+        self.assertIs(updates[0], result, "The checkpoint callback keeps the original response object")
+        self.assertIs(returned["data"]["task"], result["data"]["task"])
+        self.assertIs(returned["data"]["diagnostics"], result["data"]["diagnostics"])
         self.assertEqual(result["data"]["logs"][0]["sequence"], 1)
         self.assertEqual(requests[0]["operation"], "get_task")
         self.assertEqual(len(requests), 1)
+        client.close.assert_not_called()
 
     def test_wait_timeout_leaves_task_running_without_cancel_or_replay(self):
-        result = {"status": "succeeded", "revision": 7, "data": {"task": {"state": "running"}, "logs": []}}
+        result = {"status": "succeeded", "revision": 7, "data": {
+            "task": {"id": "test-task", "state": "running"}, "logs": [], "diagnostics": []}}
+        original = copy.deepcopy(result)
         client, requests = self.client(result)
         with patch("copperbench_native.time.monotonic", side_effect=[0, 2]):
             with self.assertRaises(NativeApiError) as raised:
                 client.wait_task("test-task", timeout=1)
         self.assertEqual(raised.exception.code, "NATIVE_TASK_TIMEOUT")
+        self.assertEqual(raised.exception.details, original)
+        self.assertEqual(result, original)
         self.assertEqual(len(requests), 1)
         self.assertEqual(requests[0]["operation"], "get_task")
         client.close.assert_not_called()
+
+    def test_wait_task_rejects_malformed_receipts_without_cancel_or_replay(self):
+        valid = {"status": "succeeded", "revision": 7, "data": {
+            "task": {"id": "test-task", "state": "succeeded"}, "logs": [], "diagnostics": []}}
+        malformed = []
+        missing_id = copy.deepcopy(valid); del missing_id["data"]["task"]["id"]; malformed.append(missing_id)
+        for key, value in (("id", "another-task"), ("state", "unknown")):
+            changed = copy.deepcopy(valid); changed["data"]["task"][key] = value; malformed.append(changed)
+        bad_diagnostics = copy.deepcopy(valid); bad_diagnostics["data"]["diagnostics"] = None; malformed.append(bad_diagnostics)
+        repeated_logs = copy.deepcopy(valid); repeated_logs["data"]["logs"] = [{"sequence": 1}, {"sequence": 1}]; malformed.append(repeated_logs)
+        for result in malformed:
+            with self.subTest(result=result):
+                client, requests = self.client(result)
+                with self.assertRaises(NativeApiError) as raised:
+                    client.wait_task("test-task", timeout=1)
+                self.assertEqual(raised.exception.code, "NATIVE_INVALID_RESPONSE")
+                self.assertIs(raised.exception.details, result)
+                self.assertEqual(len(requests), 1)
+                self.assertEqual(requests[0]["operation"], "get_task")
+                client.close.assert_not_called()
 
 
 if __name__ == "__main__":

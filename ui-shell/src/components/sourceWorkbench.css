@@ -72,3 +72,6 @@
   .source-editor-toolbar { flex-wrap: wrap; }
   .source-editor-toolbar > span { flex-basis: 100%; }
 }
+.source-close-backdrop { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, .58); }
+.source-close-backdrop .source-notice { width: min(480px, 100%); padding: 18px; display: flex; flex-wrap: wrap; gap: 12px; background: var(--bg-surface); border: 1px solid var(--border-active); border-radius: var(--radius-md); }
+.source-close-backdrop .source-notice > span { width: 100%; }

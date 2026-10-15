@@ -6,7 +6,7 @@ Bug reports are useful contributions. Include the Copperbench version, operating
 
 ## Run from source
 
-Use JDK 25 (JetBrains Runtime with JCEF for the desktop shell), Node.js 22, npm and Git. Python SDK tests require Python 3.11 or later. PowerShell scripts require PowerShell 7. See the [development setup guide](docs/build/development-setup.md) for JDK configuration and Windows launcher troubleshooting.
+Use JDK 25 (JetBrains Runtime with JCEF for the desktop shell), Node.js 22, npm and Git. Python SDK tests require Python 3.11 or later. PowerShell scripts require PowerShell 7. See the [development setup guide](docs/build/development-setup.en.md) ([简体中文](docs/build/development-setup.md)) for layer-specific prerequisites, JDK configuration and Windows launcher troubleshooting.
 
 From the repository root:
 
@@ -21,6 +21,8 @@ On Windows, use `.\gradlew.bat` instead of `./gradlew`. Use the repository's Gra
 ## Choose verification for the change
 
 Run the checks for the affected layer. A documentation correction needs link and content checks; it does not require an unrelated gameplay replay. Report exactly what ran, what passed or failed, and what the environment prevented you from checking.
+
+The source-only [contributor verification entry](scripts/performance/README.md#contributor-verification) reuses the CI selector: `python scripts/verify-changed.py --paths README.md` prints a plan only. Review it before using `--run`, with explicit `--allow-downloads` for Gradle dependencies. It records commands, exit codes, available counts and blocked environment gaps without installing tools or changing global settings. The development guide gives the invocation/report contract; the table below retains manual references.
 
 | Changed layer | Useful local checks |
 | --- | --- |

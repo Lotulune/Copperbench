@@ -13,6 +13,7 @@ export interface CopperbenchClientOptions {
   fetch?: typeof fetch;
   maxTransportRetries?: number;
   retryBackoffMs?: number;
+  metrics?: ClientMetrics;
 }
 
 export interface WorkspaceConnection {
@@ -40,6 +41,32 @@ export interface TaskSummary {
   [key: string]: unknown;
 }
 
+export interface WaitTaskOptions {
+  timeoutMs?: number;
+  pollIntervalMs?: number;
+  afterLogSequence?: number;
+  onUpdate?: (response: JsonObject) => void | Promise<void>;
+}
+
+/** Opt-in counters; no credentials, payloads, IDs or log text are retained. */
+export class ClientMetrics {
+  private readonly operations = new Map<string, { logicalCalls: number; attempts: number; responseBytes: number; elapsedSeconds: number }>();
+
+  public add(operation: string, field: 'logicalCalls' | 'attempts' | 'responseBytes' | 'elapsedSeconds', value = 1): void {
+    const row = this.operations.get(operation) ?? { logicalCalls: 0, attempts: 0, responseBytes: 0, elapsedSeconds: 0 };
+    row[field] += value;
+    this.operations.set(operation, row);
+  }
+
+  public snapshot(): JsonObject {
+    return { operations: Object.fromEntries([...this.operations.entries()].sort(([left], [right]) => left.localeCompare(right))
+      .map(([name, row]) => [name, { ...row }])),
+    byteScope: 'complete response bodies; transport headers and interrupted bodies excluded' };
+  }
+}
+
+const MCP_PROTOCOL_VERSION = '2025-11-25';
+
 export class CopperbenchClient {
   private readonly request: typeof fetch;
   private nextRequestId = 1;
@@ -60,12 +87,67 @@ export class CopperbenchClient {
 
   public async initialize(clientName = 'copperbench-typescript-sdk', version = '0.1.0'): Promise<JsonObject> {
     const response = await this.rpc('initialize', {
-      protocolVersion: '2025-11-25',
+      protocolVersion: MCP_PROTOCOL_VERSION,
       capabilities: {},
       clientInfo: { name: clientName, version }
     }, false);
+    if (typeof response.protocolVersion !== 'string') {
+      throw new CopperbenchError('MCP initialization has no protocol version', 'MCP_RESPONSE_INVALID', response);
+    }
+    if (response.protocolVersion !== MCP_PROTOCOL_VERSION) {
+      throw new CopperbenchError('The host selected an unsupported MCP protocol', 'MCP_PROTOCOL_INCOMPATIBLE', response);
+    }
     await this.rpc('notifications/initialized', {}, true);
     return response;
+  }
+
+  public async close(): Promise<void> {
+    if (!this.sessionId) return;
+    const started = performance.now();
+    this.options.metrics?.add('session/close', 'logicalCalls');
+    this.options.metrics?.add('session/close', 'attempts');
+    try {
+      const response = await this.request(this.options.endpoint, { method: 'DELETE', headers: {
+        Authorization: `Bearer ${this.options.token}`, 'X-Copperbench-Workspace': this.options.workspaceId,
+        'mcp-session-id': this.sessionId
+      } });
+      let raw = 'HTTP error response body was unavailable';
+      try {
+        const received = await response.arrayBuffer();
+        this.options.metrics?.add('session/close', 'responseBytes', received.byteLength);
+        raw = new TextDecoder().decode(received);
+      } catch (error) {
+        if (response.ok) throw error;
+      }
+      if (!response.ok && response.status !== 404) {
+        throw new CopperbenchError(`MCP HTTP ${response.status}`, `HTTP_${response.status}`, raw);
+      }
+      this.sessionId = undefined;
+    } catch (error) {
+      if (error instanceof CopperbenchError) throw error;
+      throw new CopperbenchError('MCP session close failed; request was not retried', 'MCP_TRANSPORT_FAILED', error);
+    } finally {
+      this.options.metrics?.add('session/close', 'elapsedSeconds', (performance.now() - started) / 1000);
+    }
+  }
+
+  public async *listTools(): AsyncGenerator<JsonObject, void, void> {
+    let cursor: string | undefined;
+    const seen = new Set<string>();
+    do {
+      const result = await this.rpc('tools/list', cursor ? { cursor } : {});
+      if (!Array.isArray(result.tools) || result.tools.some((tool) => !isJsonObject(tool)
+        || typeof tool.name !== 'string' || !tool.name || !isJsonObject(tool.inputSchema))) {
+        throw new CopperbenchError('MCP tool catalog is malformed', 'MCP_RESPONSE_INVALID', result);
+      }
+      const next = result.nextCursor;
+      if (next !== undefined && next !== null && (typeof next !== 'string' || !next || seen.has(next))) {
+        throw new CopperbenchError('MCP tool catalog has an invalid or repeated cursor', 'MCP_RESPONSE_INVALID', result);
+      }
+      cursor = typeof next === 'string' ? next : undefined;
+      if (cursor) seen.add(cursor);
+      for (const tool of result.tools) yield tool as JsonObject;
+    } while (cursor !== undefined);
   }
 
   public getWorkspace(): Promise<JsonObject> {
@@ -102,19 +184,53 @@ export class CopperbenchClient {
     return this.callTool('get_field_reference_options', { ...options, elementType, mappingSource });
   }
 
+  public getWorkspaceEnvironment(): Promise<JsonObject> {
+    return this.callTool('get_workspace_environment', {});
+  }
+
+  public async fieldContract(elementType = 'block', environment?: JsonObject): Promise<JsonObject> {
+    const result = environment ?? await this.getWorkspaceEnvironment();
+    if (!isJsonObject(result.data)) {
+      throw new CopperbenchError('Environment response must contain object data', 'MCP_TOOL_RESULT_INVALID', result);
+    }
+    const contracts = result.data.fieldContracts;
+    if (contracts === undefined) {
+      throw new CopperbenchError('This host does not expose field contracts', 'FIELD_CONTRACT_NOT_EXPOSED', result);
+    }
+    if (!isJsonObject(contracts)) {
+      throw new CopperbenchError('Environment fieldContracts must be an object', 'MCP_TOOL_RESULT_INVALID', result);
+    }
+    if (!(elementType in contracts)) {
+      throw new CopperbenchError(`No field contract is exposed for ${elementType}`, 'FIELD_CONTRACT_NOT_EXPOSED', result);
+    }
+    if (!isJsonObject(contracts[elementType])) {
+      throw new CopperbenchError('The requested field contract is malformed', 'MCP_TOOL_RESULT_INVALID', result);
+    }
+    return contracts[elementType];
+  }
+
   public async *listModElements(args: JsonObject = {}): AsyncGenerator<JsonObject, void, void> {
-    let cursor: string | undefined;
+    let cursor = typeof args.cursor === 'string' ? args.cursor : undefined;
+    const seen = new Set<string>(cursor ? [cursor] : []);
     do {
       const page = await this.callTool('list_mod_elements', {
         ...args,
         limit: args.limit ?? 200,
         ...(cursor ? { cursor } : {})
       });
-      const data = page.data && typeof page.data === 'object' ? page.data as JsonObject : {};
-      const items = Array.isArray(data.items) ? data.items : [];
-      for (const item of items) yield item as JsonObject;
-      cursor = typeof data.nextCursor === 'string' ? data.nextCursor : undefined;
-    } while (cursor);
+      const data = page.data;
+      if (!isJsonObject(data) || !Array.isArray(data.items) || data.items.some((item) => !isJsonObject(item))
+        || !('nextCursor' in data)) {
+        throw new CopperbenchError('List response must contain object items and nextCursor', 'MCP_TOOL_RESULT_INVALID', page);
+      }
+      const next = data.nextCursor;
+      if (next !== null && (typeof next !== 'string' || !next || seen.has(next))) {
+        throw new CopperbenchError('List response has an invalid or repeated cursor', 'MCP_TOOL_RESULT_INVALID', page);
+      }
+      cursor = typeof next === 'string' ? next : undefined;
+      if (cursor) seen.add(cursor);
+      for (const item of data.items) yield item as JsonObject;
+    } while (cursor !== undefined);
   }
 
   public createModElement(args: JsonObject): Promise<JsonObject> {
@@ -191,6 +307,49 @@ export class CopperbenchClient {
 
   public getTask(taskId: string, afterLogSequence = 0): Promise<JsonObject> {
     return this.callTool('get_task', { taskId, afterLogSequence });
+  }
+
+  public async waitTask(taskId: string, options: WaitTaskOptions = {}): Promise<JsonObject> {
+    const timeout = options.timeoutMs ?? 2_700_000;
+    const interval = options.pollIntervalMs ?? 200;
+    let sequence = options.afterLogSequence ?? 0;
+    if (!Number.isFinite(timeout) || !Number.isFinite(interval) || timeout <= 0 || interval <= 0
+      || !Number.isSafeInteger(sequence) || sequence < 0) {
+      throw new RangeError('Timeouts must be positive and finite; afterLogSequence must be a nonnegative safe integer');
+    }
+    const deadline = performance.now() + timeout;
+    const logs: JsonObject[] = [];
+    for (;;) {
+      const result = await this.getTask(taskId, sequence);
+      const data = result.data;
+      const task = isJsonObject(data) ? data.task : undefined;
+      if (!isJsonObject(data) || !isJsonObject(task) || task.id !== taskId
+        || typeof task.state !== 'string' || !TASK_STATES.has(task.state)
+        || !Array.isArray(data.logs) || !Array.isArray(data.diagnostics)) {
+        throw new CopperbenchError('Task response has an invalid identity, state, logs or diagnostics', 'MCP_TOOL_RESULT_INVALID', result);
+      }
+      let nextSequence = sequence;
+      for (const entry of data.logs) {
+        if (!isJsonObject(entry) || typeof entry.sequence !== 'number' || !Number.isSafeInteger(entry.sequence)
+          || entry.sequence <= nextSequence) {
+          throw new CopperbenchError('Task logs must have strictly increasing new sequences', 'MCP_TOOL_RESULT_INVALID', result);
+        }
+        nextSequence = entry.sequence;
+      }
+      sequence = nextSequence;
+      for (const entry of data.logs) logs.push(entry as JsonObject);
+      await options.onUpdate?.(result);
+      if (['succeeded', 'failed', 'cancelled'].includes(task.state)) return { ...result, data: { ...data, logs } };
+      const remaining = deadline - performance.now();
+      if (remaining <= 0) {
+        throw new CopperbenchError(`Task ${taskId} is still running; resume after log sequence ${sequence}`, 'MCP_TASK_TIMEOUT', { ...result, data: { ...data, logs } });
+      }
+      await new Promise((resolve) => setTimeout(resolve, Math.min(interval, remaining)));
+    }
+  }
+
+  public exportVerifiedArtifact(taskId: string, expectedRevision: number, allowHistorical = false): Promise<JsonObject> {
+    return this.callTool('export_verified_artifact', { verifiedTaskId: taskId, expectedRevision, allowHistorical });
   }
 
   public prepareGameTests(expectedRevision: number): Promise<JsonObject> {
@@ -327,6 +486,18 @@ export class CopperbenchClient {
   }
 
   private async rpc(method: string, params: JsonObject, notification = false): Promise<JsonObject> {
+    if (!this.options.metrics) return this.rpcOnce(method, params, notification);
+    const operation = method === 'tools/call' ? String(params.name) : method;
+    const started = performance.now();
+    this.options.metrics?.add(operation, 'logicalCalls');
+    try {
+      return await this.rpcOnce(method, params, notification);
+    } finally {
+      this.options.metrics?.add(operation, 'elapsedSeconds', (performance.now() - started) / 1000);
+    }
+  }
+
+  private async rpcOnce(method: string, params: JsonObject, notification = false): Promise<JsonObject> {
     const headers: Record<string, string> = {
       Accept: 'application/json, text/event-stream',
       'Content-Type': 'application/json',
@@ -341,14 +512,24 @@ export class CopperbenchClient {
     const retrySafe = method === 'tools/call' && typeof params.name === 'string' && RETRY_SAFE_TOOLS.has(params.name);
     const maxRetries = retrySafe ? Math.max(0, Math.min(2, this.options.maxTransportRetries ?? 2)) : 0;
     const backoffMs = Math.max(0, this.options.retryBackoffMs ?? 100);
+    const operation = method === 'tools/call' ? String(params.name) : method;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      this.options.metrics?.add(operation, 'attempts');
       try {
         response = await this.request(this.options.endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
         if (response.ok) {
-          raw = await response.text();
+          const received = await response.arrayBuffer();
+          this.options.metrics?.add(operation, 'responseBytes', received.byteLength);
+          try {
+            raw = new TextDecoder('utf-8', { fatal: true }).decode(received);
+          } catch {
+            throw new CopperbenchError('MCP response is not valid UTF-8', 'MCP_RESPONSE_INVALID');
+          }
         } else {
           try {
-            raw = await response.text();
+            const received = await response.arrayBuffer();
+            this.options.metrics?.add(operation, 'responseBytes', received.byteLength);
+            raw = new TextDecoder().decode(received);
           } catch {
             // A broken error body must not turn a 4xx denial into a retryable
             // transport failure, or hide the status of an uncertain write.
@@ -356,6 +537,7 @@ export class CopperbenchClient {
           }
         }
       } catch (error) {
+        if (error instanceof CopperbenchError) throw error;
         if (attempt >= maxRetries) throw new CopperbenchError('MCP transport failed', 'MCP_TRANSPORT_FAILED', error);
         await new Promise((resolve) => setTimeout(resolve, backoffMs * 2 ** attempt));
         continue;
@@ -407,6 +589,7 @@ const RETRY_SAFE_TOOLS = new Set([
 ]);
 
 const SUCCESS_STATUSES = new Set(['succeeded', 'committed', 'accepted', 'completed', 'cancelled']);
+const TASK_STATES = new Set(['queued', 'running', 'succeeded', 'failed', 'cancelled']);
 
 function isJsonObject(value: unknown): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
