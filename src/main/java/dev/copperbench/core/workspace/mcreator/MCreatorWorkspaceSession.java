@@ -62,7 +62,7 @@ public final class MCreatorWorkspaceSession implements AutoCloseable {
 		MCreatorWorkspaceStateMapper mapper = new MCreatorWorkspaceStateMapper();
 		store.register(mapper.map(workspace, metadata));
 		WorkspaceTaskGateway tasks = taskFactory.apply(store);
-		tasks.setGenerationPreparation(new MCreatorGenerationPreparation(workspace, store)::prepare);
+		tasks.setGenerationPreparation(new MCreatorGenerationPreparation(workspace, store));
 		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 		JGitLocalHistoryService history;
 		try {
@@ -92,7 +92,7 @@ public final class MCreatorWorkspaceSession implements AutoCloseable {
 			List<AutoCloseable> ownedResources) throws IOException {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(new MCreatorWorkspaceStateMapper().map(workspace, metadata));
-		tasks.setGenerationPreparation(new MCreatorGenerationPreparation(workspace, store)::prepare);
+		tasks.setGenerationPreparation(new MCreatorGenerationPreparation(workspace, store));
 		WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
 				new MCreatorWorkspaceMutationGateway(workspace, metadata.workspaceId(), observers), clock, ids);
 		return new MCreatorWorkspaceSession(metadata.workspaceId(), service, ownedResources);

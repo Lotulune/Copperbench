@@ -2,6 +2,8 @@
 
 适用于已发布的 Copperbench 0.1.5 双语离线安装包，下载入口见[当前下载](../releases/current.md)。
 
+These instructions apply to the published **0.1.5** bilingual offline installers. The **0.1.6** source preparation and its pending package verification are recorded in [current status](../status.md).
+
 ## 简体中文
 
 支持范围为 Windows 11 x64 和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。安装主程序无需联网，运行环境随包提供；创建工作区、构建模组时需要的依赖下载另算。

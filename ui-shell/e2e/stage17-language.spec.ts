@@ -166,7 +166,10 @@ test('diagnostic detail actions preserve element and asset targets after a langu
   await fieldAction.focus();
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('element-inspector')).toBeVisible();
-  await expect(page.locator('[data-field-path="/fields/hardness"]')).toBeFocused();
+  const hardness = page.getByTestId('element-inspector')
+    .locator('[data-field-path="/fields/hardness"]').getByTestId('field-hardness');
+  await expect(hardness).toBeFocused();
+  await expect(hardness).toBeEditable();
   await page.getByTestId('diagnostics-badge').click();
   await summary.click();
   await page.getByTestId('workspace-health-panel').getByRole('button', { name: 'Open asset', exact: true }).click();

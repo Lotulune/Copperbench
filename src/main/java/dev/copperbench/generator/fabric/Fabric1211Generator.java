@@ -140,10 +140,11 @@ public final class Fabric1211Generator {
 		}
 
 		writeBuildFiles(root, descriptor, workspace.revision(), generated);
-		writeJavaSources(root, descriptor, workspace.elements(), generated);
+		Map<String, UUID> sourceOwners = new LinkedHashMap<>();
+		writeJavaSources(root, descriptor, workspace.elements(), generated, sourceOwners);
 		writeResources(root, descriptor, workspace.elements(), generated);
 		generated.sort(Comparator.naturalOrder());
-		return new GenerationResult(profile.generatorId(), descriptor.modId(), List.copyOf(generated));
+		return new GenerationResult(profile.generatorId(), descriptor.modId(), List.copyOf(generated), sourceOwners);
 	}
 
 	/** Validates the maintained Fabric slice without writing to the target workspace. */
@@ -441,7 +442,8 @@ public final class Fabric1211Generator {
 				""";
 	}
 
-	private void writeJavaSources(Path root, Descriptor descriptor, List<Element> elements, List<String> generated)
+	private void writeJavaSources(Path root, Descriptor descriptor, List<Element> elements, List<String> generated,
+			Map<String, UUID> sourceOwners)
 			throws IOException {
 		String packagePath = descriptor.basePackage().replace('.', '/');
 		String modClass = descriptor.javaName() + "Mod";
@@ -484,10 +486,17 @@ public final class Fabric1211Generator {
 
 		writeBlocks(root, descriptor, blocks, packagePath, generated);
 		writeItems(root, descriptor, items, packagePath, generated);
-		for (Element procedure : procedures) writeProcedure(root, descriptor, procedure, packagePath, generated);
+		for (Element procedure : procedures) {
+			writeProcedure(root, descriptor, procedure, packagePath, generated);
+			if (!procedure.ownership().equals("manual")) sourceOwners.put("src/main/java/" + packagePath + "/procedure/"
+					+ javaName(procedure.name()) + "Procedure.java", procedure.id());
+		}
 		for (Element element : elements) {
-			if (!List.of("block", "item", "procedure").contains(element.type()))
+			if (!List.of("block", "item", "procedure").contains(element.type())) {
 				writeGenericElement(root, descriptor, element, packagePath, generated);
+				if (!element.ownership().equals("manual")) sourceOwners.put("src/main/java/" + packagePath + "/elements/"
+						+ javaName(element.name()) + "Element.java", element.id());
+			}
 		}
 	}
 
@@ -1007,9 +1016,13 @@ public final class Fabric1211Generator {
 		return target;
 	}
 
-	public record GenerationResult(String generatorId, String modId, List<String> generatedPaths) {
+	public record GenerationResult(String generatorId, String modId, List<String> generatedPaths, Map<String, UUID> sourceElementOwners) {
+		public GenerationResult(String generatorId, String modId, List<String> generatedPaths) {
+			this(generatorId, modId, generatedPaths, Map.of());
+		}
 		public GenerationResult {
 			generatedPaths = List.copyOf(generatedPaths);
+			sourceElementOwners = Map.copyOf(sourceElementOwners);
 		}
 	}
 

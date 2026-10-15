@@ -907,6 +907,7 @@ class Fabric1211TaskGatewayTest {
 			Path jar = root.resolve("build/libs/copper_trails-1.0.0.jar");
 			Files.createDirectories(jar.getParent());
 			Files.write(jar, new byte[] { 0x50, 0x4b, 0x03, 0x04 });
+			dev.copperbench.generator.GradleArchiveOutputFixture.record(arguments, jar);
 			return new Fabric1211ProcessRunner.ProcessResult(0, false);
 		};
 		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
+import { isNativeHostPresent } from '../bridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import {
   NewWorkspaceGeneratorCatalog,
@@ -20,7 +21,9 @@ import {
   CommandResult,
   Diagnostic
 } from '../types/contract';
-import { t } from '../i18n';
+import { renderUiMessage, t, uiMessage, uiText, type UiMessage } from '../i18n';
+import { useFirstCreation } from '../onboarding/FirstCreationContext';
+import { FIRST_CREATION_GENERATOR } from '../onboarding/firstCreationModel';
 import './newWorkspace.css';
 
 type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath';
@@ -68,7 +71,9 @@ const operationLabel = (operation: string): string => ({
 }[operation] ?? operation);
 
 export const NewWorkspaceView: React.FC = () => {
-  const { listNewWorkspaceGenerators, createWorkspace, previewTargets, state } = useWorkbench();
+  const { listNewWorkspaceGenerators, createWorkspace, previewTargets } = useWorkbench();
+  const { creationIntent, leaveCreation, bindCreatedWorkspace, openGuide, openWorkspaceOpen } = useFirstCreation();
+  const nativeUnavailable = creationIntent && !isNativeHostPresent();
 
   const [catalog, setCatalog] = useState<NewWorkspaceGeneratorCatalog | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -92,14 +97,24 @@ export const NewWorkspaceView: React.FC = () => {
   const [result, setResult] = useState<CommandResult | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
   const [diagnosticActionError, setDiagnosticActionError] = useState<string | null>(null);
+  const [unknownSubmission, setUnknownSubmission] = useState<UiMessage | null>(null);
   const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const submittingRef = useRef(false);
+  const catalogQueryRef = useRef(listNewWorkspaceGenerators);
+  catalogQueryRef.current = listNewWorkspaceGenerators;
+
+  useEffect(() => {
+    if (!creationIntent || modName || modId || workspaceFolder) return;
+    setModName('First Creation'); setModId('first_creation');
+    setPackageName('com.example.firstcreation'); setPackageTouched(true);
+  }, [creationIntent]);
 
   // 读取生成器目录（挂载时）
   useEffect(() => {
     let cancelled = false;
     setCatalog(null);
     setCatalogError(null);
-    void listNewWorkspaceGenerators()
+    void catalogQueryRef.current()
       .then((data) => {
         if (cancelled) return;
         if (!data) {
@@ -108,8 +123,9 @@ export const NewWorkspaceView: React.FC = () => {
         }
         setCatalog(data);
         if (data && data.generators.length > 0) {
-          const preferred = data.generators.find((g) => g.available) ?? data.generators[0];
-          setGeneratorId(preferred.generatorId);
+          const preferred = creationIntent ? data.generators.find(g => g.generatorId === FIRST_CREATION_GENERATOR && g.available)
+            : data.generators.find((g) => g.available) ?? data.generators[0];
+          setGeneratorId(preferred?.generatorId ?? '');
         }
       })
       .catch(() => {
@@ -118,7 +134,7 @@ export const NewWorkspaceView: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [catalogReloadToken, listNewWorkspaceGenerators]);
+  }, [catalogReloadToken, creationIntent]);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,7 +222,9 @@ export const NewWorkspaceView: React.FC = () => {
 
   const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    if (!generatorId || !userApproved || !previewCanCreate || previewPending) return;
+    if (!generatorId || !userApproved || !previewCanCreate || previewPending || selectedGenerator?.available !== true
+      || submittingRef.current || result?.status === 'committed' || unknownSubmission || nativeUnavailable) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setResult(null);
     try {
@@ -226,10 +244,11 @@ export const NewWorkspaceView: React.FC = () => {
       }
       const res = extension?.core ?? await createWorkspace(form);
       setResult(res);
+      if (creationIntent) bindCreatedWorkspace(res);
       // 创建成功后请求宿主在新窗口打开该工作区（仅桌面宿主可用；浏览器预览环境跳过）。
       if (res.status === 'committed' && res.data?.workspaceFile) {
         try {
-          await workspaceOpenBridge.open(res.data.workspaceFile);
+          if (workspaceOpenBridge.available) await workspaceOpenBridge.open(res.data.workspaceFile);
           setOpenError(null);
         } catch (error: unknown) {
           setOpenError(
@@ -238,35 +257,9 @@ export const NewWorkspaceView: React.FC = () => {
         }
       }
     } catch {
-      setResult({
-        messageType: 'command_result',
-        schemaVersion: '1.0',
-        requestId: '',
-        workspaceId: state.workbench?.workspace.id ?? '',
-        operation: 'create_workspace',
-        status: 'failed',
-        newRevision: state.workbench?.workspace.revision ?? 0,
-        recoveryPointId: null,
-        task: null,
-        data: null,
-        diagnostics: [
-          {
-            code: 'BRIDGE_TRANSPORT_FAILED',
-            severity: 'error',
-            message: {
-              key: 'diagnostic.bridge_transport_failed',
-              fallback: tr("与 Java Core 的通信失败，工作区未创建。")
-            },
-            path: null,
-            elementId: null,
-            recoverable: true,
-            actions: []
-          }
-        ],
-        conflict: null,
-        denial: null
-      });
+      setUnknownSubmission(uiMessage('创建结果待确认。请先检查所选目录与原工作区，再开始新的请求。', 'The creation result needs confirmation. Inspect the selected directory and original workspace before starting a new request.'));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -302,7 +295,9 @@ export const NewWorkspaceView: React.FC = () => {
   }, [rejected, result]);
 
   const canSubmit = generatorId !== '' && modName.trim() !== '' && modId.trim() !== '' &&
-    effectiveFolder !== '' && userApproved && !submitting && !previewPending && previewCanCreate;
+    effectiveFolder !== '' && userApproved && !submitting && !previewPending && previewCanCreate
+    && !created && !unknownSubmission && !nativeUnavailable
+    && selectedGenerator?.available === true;
 
   return (
     <form
@@ -321,6 +316,18 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
       </div>
 
+      {creationIntent && <div className="first-creation-notice first-creation-form-notice" data-testid="first-creation-workspace-setup">
+        <p>{uiText('第一件作品使用 Fabric 1.21.1。请核对名称并选择新的空目录，确认后才创建文件。', 'First creation uses Fabric 1.21.1. Check the names and choose a new empty directory; files are created only after confirmation.')}</p>
+        <button type="button" className="btn-secondary" onClick={leaveCreation}>{uiText('退出指引，使用普通新建', 'Leave guide and use ordinary creation')}</button>
+        {nativeUnavailable && <p role="status">{uiText('请在桌面应用中创建本机工作区。', 'Use the desktop app to create a local workspace.')}</p>}
+        {catalog && !catalog.generators.some(generator => generator.generatorId === FIRST_CREATION_GENERATOR && generator.available) && <p role="alert" data-testid="first-creation-generator-unavailable">{uiText('Fabric 1.21.1 生成器不可用。请检查安装与插件后重试，此路径不会自动改选其他版本。', 'The Fabric 1.21.1 generator is unavailable. Check the installation and plugins, then retry; this path will not select another version automatically.')}</p>}
+      </div>}
+
+      {unknownSubmission && <div className="first-creation-notice" role="alert" data-testid="workspace-create-unconfirmed">
+        <p>{renderUiMessage(unknownSubmission)}</p>
+        <button type="button" className="btn-secondary" onClick={() => { setUnknownSubmission(null); setUserApproved(false); }}>{uiText('已检查原目录，返回表单', 'Original directory inspected; return to form')}</button>
+      </div>}
+
       {/* 创建成功横幅 */}
       {created && result?.data && (
         <div
@@ -334,10 +341,11 @@ export const NewWorkspaceView: React.FC = () => {
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
               {tr("工作区文件：")}<code>{result.data.workspaceFile}</code>{tr("（生成器 ")}<code>{result.data.generatorId}</code>）。
               {workspaceOpenBridge.available
-                ? tr("正在新窗口中打开工作区。")
+                ? uiText('已请求在新窗口打开工作区。', 'Opening the workspace in a new window was requested.')
                 : tr("请在桌面版中打开此工作区。")}
             </div>
           </div>
+          {creationIntent && <button type="button" className="btn-secondary" data-testid="first-creation-open-created-guide" onClick={() => openGuide(result.data!.workspaceFile)}>{uiText('查看首作指引', 'View first-creation guide')}</button>}
         </div>
       )}
 
@@ -346,6 +354,10 @@ export const NewWorkspaceView: React.FC = () => {
         <div role="alert" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: 'var(--text-main)' }}>
           <AlertTriangle size={16} color="var(--badge-amber)" />
           <span>{tr("新工作区已创建，但在新窗口打开失败：")}{openError}</span>
+          <button type="button" className="btn-secondary" disabled={!workspaceOpenBridge.available} onClick={() => {
+            const file = result?.data?.workspaceFile;
+            if (file) void workspaceOpenBridge.open(file).then(() => setOpenError(null)).catch(error => setOpenError(error instanceof Error ? error.message : uiText('打开失败。', 'Could not open.')));
+          }}>{uiText('重新打开已创建工作区', 'Reopen the created workspace')}</button>
         </div>
       )}
 
@@ -413,6 +425,7 @@ export const NewWorkspaceView: React.FC = () => {
               {diagnosticActionError}
             </span>
           )}
+          {result.diagnostics.some(diagnostic => diagnostic.code === 'WORKSPACE_FOLDER_NOT_EMPTY') && <button type="button" className="btn-secondary" disabled={!workspaceOpenBridge.available} onClick={openWorkspaceOpen}>{uiText('选择其他空目录，或打开已有工作区', 'Choose another empty directory, or open an existing workspace')}</button>}
         </div>
       )}
 
@@ -463,7 +476,7 @@ export const NewWorkspaceView: React.FC = () => {
                       key={g.generatorId}
                       type="button"
                       data-testid={`generator-option-${g.generatorId}`}
-                      disabled={!g.available || previewPending || submitting}
+                      disabled={!g.available || previewPending || submitting || (creationIntent && g.generatorId !== FIRST_CREATION_GENERATOR)}
                       onClick={() => setGeneratorId(g.generatorId)}
                       aria-pressed={isSel}
                       title={g.available ? g.workspaceGeneratorName : tr("生成器插件未安装或未加载")}

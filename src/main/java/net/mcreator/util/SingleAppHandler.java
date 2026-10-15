@@ -46,6 +46,8 @@ public class SingleAppHandler implements Closeable {
 
 	private final List<String> currentArgs;
 
+	private boolean closed;
+
 	/**
 	 * @param args                        Command line args of this instance
 	 * @param secondaryAppLaunchedHandler Called in the first instance when a secondary instance sends its args
@@ -87,13 +89,21 @@ public class SingleAppHandler implements Closeable {
 				});
 	}
 
+	SingleAppHandler(Unique4jLock lock) {
+		this.currentArgs = List.of();
+		this.lock = lock;
+	}
+
 	/**
 	 * Tries to acquire the single-instance lock. If another instance is running,
 	 * sends args to the first instance.
 	 *
 	 * @return true if this is the first instance (or if locking completely fails), false if another instance is already running
 	 */
-	public boolean tryAcquireLock() {
+	public synchronized boolean tryAcquireLock() {
+		if (closed)
+			throw new IllegalStateException("Single-app handler has already been closed");
+
 		try {
 			return lock.tryLock();
 		} catch (IOException e) {
@@ -103,7 +113,15 @@ public class SingleAppHandler implements Closeable {
 		}
 	}
 
-	@Override public void close() {
+	@Override public synchronized void close() {
+		if (closed)
+			return;
+		closed = true;
+
+		// The startup IOException fallback can continue without owning a lock.
+		if (!lock.isHeldByCurrentAppInstance())
+			return;
+
 		try {
 			lock.unlock();
 		} catch (IOException e) {

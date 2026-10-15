@@ -30,6 +30,8 @@ async function installEditorFixture(page: Page, deferSave = false, deferRefresh 
     let releaseRefresh: (() => void) | undefined;
     let refreshAfterSave = false;
     window.draftFixture = { requests: [], refreshPending: false, refreshCompleted: false };
+    const saveRequests: Array<{ workspaceId: string; elementId: string; expectedRevision: number; changes: Array<{ path: string; value: unknown }> }> = [];
+    const saveResults: Array<{ status: string; newRevision: number }> = [];
     window.addEventListener('draft-fixture-release-save', () => releaseSave?.());
     window.addEventListener('draft-fixture-release-refresh', () => releaseRefresh?.());
     window.addEventListener('draft-fixture-external-update', async () => {
@@ -54,12 +56,21 @@ async function installEditorFixture(page: Page, deferSave = false, deferRefresh 
         const core = await ready;
         const request = JSON.parse(raw);
         window.draftFixture.requests.push(request);
+        if (request.operation === 'update_mod_element') {
+          saveRequests.push({ workspaceId: request.workspaceId, elementId: request.payload.elementId,
+            expectedRevision: request.expectedRevision, changes: request.payload.changes });
+          sessionStorage.setItem('draft-fixture-save-requests', JSON.stringify(saveRequests));
+        }
         if (deferSave && request.operation === 'update_mod_element') {
           await new Promise<void>(resolve => { releaseSave = resolve; });
         }
         const result = request.messageType === 'handshake' ? await core.negotiateHandshake(request)
           : request.messageType === 'command' ? await core.sendCommand(request) : await core.sendQuery(request);
         if (request.operation === 'update_mod_element' && result.status === 'committed') refreshAfterSave = true;
+        if (request.operation === 'update_mod_element') {
+          saveResults.push({ status: result.status, newRevision: result.newRevision });
+          sessionStorage.setItem('draft-fixture-save-results', JSON.stringify(saveResults));
+        }
         if (request.operation === 'get_mod_element_editor' && result.data) {
           const fields = result.data.sections[0].fields;
           if (!fields.some(field => field.path === '/draftJson')) fields.push(
@@ -287,9 +298,104 @@ test('a late save result does not clear a newer draft created after navigating b
   await page.evaluate(() => window.dispatchEvent(new Event('draft-fixture-release-save')));
   await page.getByTestId('nav-elements').click();
   await expect(page.getByTestId('field-displayName')).toHaveValue('Newer unsaved draft');
-  await expect(page.getByTestId('inspector-external-change')).toBeVisible();
+  const save = page.getByTestId('inspector-save-btn');
+  await expect(save).toBeEnabled();
+  await expect(page.getByTestId('field-displayName')).toBeEditable();
+  await expect(page.getByTestId('inspector-external-change')).not.toBeVisible();
+  await expect(page.getByTestId('element-inspector').getByRole('status').filter({ hasText: '未保存' })).toBeVisible();
   await leaveAndReturn(page);
   await expect(page.getByTestId('field-displayName')).toHaveValue('Newer unsaved draft');
+  await expect(save).toBeEnabled();
+  await expect(page.getByTestId('inspector-external-change')).not.toBeVisible();
+  const first = await page.evaluate(() => ({
+    requests: JSON.parse(sessionStorage.getItem('draft-fixture-save-requests') ?? '[]'),
+    results: JSON.parse(sessionStorage.getItem('draft-fixture-save-results') ?? '[]')
+  }));
+  expect(first.requests).toHaveLength(1);
+  expect(first.results).toHaveLength(1);
+  expect(first.results[0].status).toBe('committed');
+  expect(first.requests[0].changes).toHaveLength(1);
+  expect(first.requests[0].changes[0].value).toBe('Submitted draft');
+
+  // An own-save receipt is the new baseline. B must still require a separate
+  // user submission with that exact revision, rather than a conflict discard.
+  await save.click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem('draft-fixture-save-requests') ?? '[]').length)).toBe(2);
+  await page.evaluate(() => window.dispatchEvent(new Event('draft-fixture-release-save')));
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem('draft-fixture-save-results') ?? '[]').length)).toBe(2);
+  const second = await page.evaluate(() => ({
+    requests: JSON.parse(sessionStorage.getItem('draft-fixture-save-requests') ?? '[]'),
+    results: JSON.parse(sessionStorage.getItem('draft-fixture-save-results') ?? '[]')
+  }));
+  expect(second.requests[1].expectedRevision).toBe(first.results[0].newRevision);
+  expect(second.requests[1].workspaceId).toBe(first.requests[0].workspaceId);
+  expect(second.requests[1].elementId).toBe(first.requests[0].elementId);
+  expect(second.requests[1].changes).toEqual([{ path: first.requests[0].changes[0].path, value: 'Newer unsaved draft' }]);
+  expect(second.results[1].status).toBe('committed');
+  await expect(save).toBeDisabled();
+  await expect(page.getByTestId('field-displayName')).toHaveValue('Newer unsaved draft');
+  await expect(page.getByTestId('element-inspector').getByRole('status').filter({ hasText: '未保存' })).not.toBeVisible();
+});
+
+test('numeric intermediate input survives navigation and language changes without an implicit zero', async ({ page }) => {
+  await installEditorFixture(page);
+  await page.goto('/');
+  await openLamp(page);
+  const number = page.getByTestId('field-hardness');
+  await number.fill('-');
+  await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
+  await leaveAndReturn(page);
+  await expect(number).toHaveValue('-');
+  await page.evaluate(async () => { const modulePath = '/src/i18n/locale.ts'; (await import(modulePath)).setUiLocale('en'); });
+  await expect(number).toHaveValue('-');
+  await expect(page.getByTestId('validation-alert')).toContainText('Enter a valid number');
+  await number.fill('');
+  await leaveAndReturn(page);
+  await expect(number).toHaveValue('');
+  await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
+});
+
+test('submitting an equivalent numeric spelling clears only the input draft and sends no Core command', async ({ page }) => {
+  await installEditorFixture(page);
+  await page.goto('/');
+  await openLamp(page);
+  const number = page.getByTestId('field-hardness');
+  const baseline = Number(await number.inputValue());
+  await page.evaluate(async () => {
+    const modulePath = '/src/bridge/index.ts';
+    const { coreBridge } = await import(modulePath);
+    const original = coreBridge.sendCommand.bind(coreBridge);
+    const observed = window as typeof window & { recoveryCommands: unknown[] };
+    observed.recoveryCommands = [];
+    coreBridge.sendCommand = async command => { observed.recoveryCommands.push(command); return original(command); };
+  });
+  const raw = `${baseline}e0`;
+  await number.fill(raw);
+  await leaveAndReturn(page);
+  await expect(number).toHaveValue(raw);
+  await expect(page.getByTestId('inspector-save-btn')).toBeEnabled();
+  await page.getByTestId('inspector-save-btn').click();
+  await expect(number).toHaveValue(String(baseline));
+  await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
+  expect(await page.evaluate(() => (window as typeof window & { recoveryCommands: unknown[] }).recoveryCommands.length)).toBe(0);
+});
+
+test('a delayed editor refresh after save cannot overwrite input typed in the same inspector', async ({ page }) => {
+  await installEditorFixture(page, false, true);
+  await page.goto('/');
+  await openLamp(page);
+  const name = page.getByTestId('field-displayName');
+  await name.fill('Saved version A');
+  await page.getByTestId('inspector-save-btn').click();
+  await expect.poll(() => page.evaluate(() => window.draftFixture.refreshPending)).toBe(true);
+  await expect(name).toBeEditable();
+  await name.fill('New draft B');
+  await page.evaluate(() => window.dispatchEvent(new Event('draft-fixture-release-refresh')));
+  await expect.poll(() => page.evaluate(() => window.draftFixture.refreshCompleted)).toBe(true);
+  await expect(name).toHaveValue('New draft B');
+  await leaveAndReturn(page);
+  await expect(name).toHaveValue('New draft B');
+  await expect(page.getByTestId('inspector-save-btn')).toBeEnabled();
 });
 
 test('unadded reference input remains after a save completes while its inspector is unmounted', async ({ page }) => {

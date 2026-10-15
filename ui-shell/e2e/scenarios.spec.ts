@@ -88,7 +88,10 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
     await expect(page.locator('[data-testid="diag-action-open_invalid_field"]')).toBeVisible();
     await page.click('[data-testid="diag-action-open_invalid_field"]');
-    await expect(page.locator('[data-field-path="/fields/hardness"]')).toBeFocused();
+    const hardness = page.getByTestId('element-inspector')
+      .locator('[data-field-path="/fields/hardness"]').getByTestId('field-hardness');
+    await expect(hardness).toBeFocused();
+    await expect(hardness).toBeEditable();
     await expect(page.locator('[data-testid="validation-alert"]')).toBeVisible();
     await expect(page.locator('[data-testid="validation-alert"]')).toContainText(
       '硬度必须在 0 到 100 之间。'

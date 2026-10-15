@@ -4896,6 +4896,22 @@ public final class WorkspaceApplicationService {
 		return List.copyOf(diagnostics);
 	}
 
+	/** Read-only fixed-workspace host extension; no new UI-Core operation or authority is introduced. */
+	public JsonObject observeTaskInputs(UUID workspaceId, List<UUID> taskIds) throws java.io.IOException {
+		if (taskIds.size() > 8) throw new IllegalArgumentException("Select at most eight task references");
+		store.read(workspaceId).orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+		Path root = workspaceRoot(workspaceId);
+		if (root == null) throw new IllegalStateException("The workspace input location is unavailable");
+		List<JsonObject> observations = new ArrayList<>();
+		for (UUID id : new LinkedHashSet<>(taskIds)) {
+			JsonObject task = tasks.find(workspaceId, id).orElseGet(() -> {
+				JsonObject missing = new JsonObject(); missing.addProperty("id", id.toString()); missing.addProperty("state", "unavailable"); return missing;
+			});
+			observations.add(task);
+		}
+		return dev.copperbench.generator.WorkspaceTaskInputIdentity.observe(root, workspaceId, observations, clock);
+	}
+
 	private QueryResult task(Query query, WorkspaceState state) {
 		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
 		long afterLogSequence = query.payload().has("afterLogSequence")

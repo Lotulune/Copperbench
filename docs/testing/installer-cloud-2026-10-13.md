@@ -42,8 +42,10 @@ Playwright 1.62.1 所需 revision 1234 的 Chromium 与 headless shell 均在启
 
 ## 证据入口
 
-- 最终原始 JSON 回执：本地 `output/ux-implementation/cloud-final-reverification-20261013.json`，22094 字节，SHA-256 为 `730bf79cb7e84170ae8ae5206f7e000c6a8792c2e7c4f30e0e544db6d8b1506b`，包含 50 个文件摘要和两项最终补跑的原始日志。
-- 本机独立清单核对：`output/ux-implementation/cloud-manifest-independent-check-20261013.json`；交接状态回执：`output/ux-implementation/cloud-acceptance-receipt.json`。
+下列三个历史本地 JSON 文件未包含在本次检出中；路径相对当时的仓库根目录。
+
+- 最终原始 JSON 回执，历史路径 `output/ux-implementation/cloud-final-reverification-20261013.json`：22094 字节，SHA-256 为 `730bf79cb7e84170ae8ae5206f7e000c6a8792c2e7c4f30e0e544db6d8b1506b`，包含 50 个文件摘要和两项最终补跑的原始日志。
+- 本机独立清单核对，历史路径 `output/ux-implementation/cloud-manifest-independent-check-20261013.json`；交接状态回执，历史路径 `output/ux-implementation/cloud-acceptance-receipt.json`。
 - [云端交接 Page](https://chatgpt.com/space/page_9e25000785848191b950f2e8c7c9dd18)，云端任务为“验收 Copperbench 安装器与双语体验”。
 
 `output/` 中的材料为本地证据；最终原始 JSON 同时附于交接 Page。

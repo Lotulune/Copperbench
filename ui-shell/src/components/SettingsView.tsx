@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, ExternalLink, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { windowBridge, type AppPreferenceEntry, type AppPreferencesSnapshot, type AppPreferenceValue } from '../bridge/windowBridge';
 import { uiText, useUiLocale } from '../i18n/locale';
+import { renderUiMessage, type UiMessage } from '../i18n';
+import { numericDraftValue } from '../hooks/editorFieldChanges';
+import { getSpecializedSession, nextSpecializedReadToken, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
 import './settings.css';
 
 type Section = AppPreferenceEntry['section'];
@@ -37,19 +40,26 @@ function values(snapshot: AppPreferencesSnapshot): Draft {
 function valid(entry: AppPreferenceEntry, value: AppPreferenceValue | undefined): boolean {
   if (entry.type === 'boolean') return typeof value === 'boolean';
   if (entry.type === 'choice') return typeof value === 'string' && !!entry.options?.includes(value);
-  return value !== '' && Number.isInteger(Number(value)) && Number(value) >= (entry.min ?? -Infinity)
-    && Number(value) <= (entry.max ?? Infinity);
+  const number = numericDraftValue(value);
+  return number !== undefined && Number.isInteger(number) && number >= (entry.min ?? -Infinity)
+    && number <= (entry.max ?? Infinity);
 }
+
+interface SettingsDraft { snapshot: AppPreferencesSnapshot | null; draft: Draft }
+const settingsKey = JSON.stringify(['application', 'preferences']);
+const initialSettingsDraft = (): SettingsDraft => ({ snapshot: null, draft: {} });
 
 export function SettingsView() {
   useUiLocale();
-  const [snapshot, setSnapshot] = useState<AppPreferencesSnapshot | null>(null);
-  const [draft, setDraft] = useState<Draft>({});
+  const current = useSpecializedEditorSession(settingsKey, initialSettingsDraft);
+  const { snapshot, draft } = current.data;
+  const { loading, saving, error } = current;
+  const changeSession = (patch: Partial<typeof current>) => updateSpecializedSession(settingsKey, initialSettingsDraft, old => ({ ...old, ...patch }));
+  const setLoading = (loading: boolean) => changeSession({ loading });
+  const setSaving = (saving: boolean) => changeSession({ saving });
+  const setError = (error: UiMessage | null) => changeSession({ error });
   const [section, setSection] = useState<Section>('ui');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(windowBridge.canManagePreferences);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const copy = labels();
   const groups: [Section, string][] = [['ui', uiText('工作区', 'Workspace')], ['ide', uiText('代码编辑器', 'Code editor')], ['gradle', uiText('构建与运行', 'Build & run')]];
@@ -59,13 +69,18 @@ export function SettingsView() {
   const dirty = Object.keys(changes).length > 0;
   const invalid = (snapshot?.entries ?? []).some(entry => !valid(entry, draft[entry.key]));
 
-  function accept(next: AppPreferencesSnapshot) {
+  function accept(next: AppPreferencesSnapshot, submitted?: Draft, preserveDraft = false) {
     if (next.schemaVersion !== '1.0' || !Array.isArray(next.entries) || typeof next.revision !== 'string')
       throw new Error(uiText('设置响应格式不受支持，请更新应用。', 'This settings format is not supported. Update the application.'));
-    setSnapshot(next); setDraft(values(next));
+    updateSpecializedSession(settingsKey, initialSettingsDraft, old => {
+      const draft = preserveDraft || submitted && old.data.draft !== submitted ? old.data.draft : values(next);
+      return { ...old, data: { snapshot: next, draft }, saveUnknown: false,
+        dirty: next.entries.some(entry => String(draft[entry.key]) !== String(entry.value)) };
+    });
   }
 
   async function reload() {
+    if (getSpecializedSession(settingsKey, initialSettingsDraft).loading || saving) return;
     setLoading(true); setError(null); setSaved(false);
     try { accept(await windowBridge.getPreferences()); }
     catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)); }
@@ -74,18 +89,22 @@ export function SettingsView() {
 
   useEffect(() => {
     if (!windowBridge.canManagePreferences) return;
-    let cancelled = false;
-    void windowBridge.getPreferences().then(next => { if (!cancelled) accept(next); })
-      .catch(failure => { if (!cancelled) setError(failure instanceof Error ? failure.message : String(failure)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    const existing = getSpecializedSession(settingsKey, initialSettingsDraft);
+    if (existing.dirty || existing.loading || existing.saving || existing.saveUnknown) return;
+    const readToken = nextSpecializedReadToken();
+    changeSession({ loading: true, readToken });
+    void windowBridge.getPreferences().then(next => {
+      if (getSpecializedSession(settingsKey, initialSettingsDraft).readToken === readToken) accept(next, undefined, getSpecializedSession(settingsKey, initialSettingsDraft).dirty);
+    }).catch(failure => { if (getSpecializedSession(settingsKey, initialSettingsDraft).readToken === readToken) setError(failure instanceof Error ? failure.message : String(failure)); })
+      .finally(() => { if (getSpecializedSession(settingsKey, initialSettingsDraft).readToken === readToken) setLoading(false); });
   }, []);
 
   async function save() {
-    if (!snapshot || !dirty || invalid || saving) return;
+    const submitted = getSpecializedSession(settingsKey, initialSettingsDraft);
+    if (!snapshot || !dirty || invalid || submitted.saving || submitted.saveUnknown) return;
     setSaving(true); setError(null); setSaved(false);
-    try { accept(await windowBridge.savePreferences({ revision: snapshot.revision, changes })); setSaved(true); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)); }
+    try { accept(await windowBridge.savePreferences({ revision: snapshot.revision, changes }), submitted.data.draft); setSaved(true); }
+    catch (failure) { changeSession({ saveUnknown: true }); setError(failure instanceof Error ? failure.message : String(failure)); }
     finally { setSaving(false); }
   }
 
@@ -96,7 +115,18 @@ export function SettingsView() {
   }
 
   function edit(key: string, value: AppPreferenceValue) {
-    setDraft(current => ({ ...current, [key]: value })); setSaved(false);
+    updateSpecializedSession(settingsKey, initialSettingsDraft, old => {
+      const draft = { ...old.data.draft, [key]: value };
+      return { ...old, data: { ...old.data, draft }, dirty: old.data.snapshot?.entries.some(entry => String(draft[entry.key]) !== String(entry.value)) ?? true };
+    });
+    setSaved(false);
+  }
+  async function readLatestKeepingDraft() {
+    if (loading || saving) return;
+    setLoading(true);
+    try { accept(await windowBridge.getPreferences(), undefined, true); setError(null); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)); }
+    finally { setLoading(false); }
   }
 
   const query = search.trim().toLocaleLowerCase();
@@ -116,7 +146,7 @@ export function SettingsView() {
         aria-describedby={`${id}-hint`} onChange={event => edit(entry.key, event.target.checked)} />
         : entry.type === 'choice' ? <select id={id} value={String(draft[entry.key] ?? '')} aria-describedby={`${id}-hint`}
           onChange={event => edit(entry.key, event.target.value)}>{entry.options?.map(option => <option key={option} value={option}>{option}</option>)}</select>
-          : <input id={id} type="number" step="1" min={entry.min} max={entry.max} value={String(draft[entry.key] ?? '')}
+          : <input id={id} type="text" inputMode="numeric" value={String(draft[entry.key] ?? '')}
             aria-invalid={!fieldValid} aria-describedby={`${id}-hint${fieldValid ? '' : ` ${id}-error`}`}
             onChange={event => edit(entry.key, event.target.value)} />}
     </div>;
@@ -130,8 +160,8 @@ export function SettingsView() {
           onClick={() => { void openAdvanced(); }}>
           <ExternalLink size={14} />{uiText('高级设置', 'Advanced settings')}</button>}
       </header>
-      {error && <div className="settings-error" role="alert"><strong>{uiText('无法完成操作', 'Could not complete the operation')}</strong><p>{error}</p>
-        {windowBridge.canManagePreferences && <span>{uiText('当前更改尚未保存。重新加载将丢弃页面中的更改。', 'Your changes have not been saved. Reloading discards changes on this page.')}</span>}</div>}
+      {error && <div className="settings-error" role="alert"><strong>{uiText('无法完成操作', 'Could not complete the operation')}</strong><p>{renderUiMessage(error)}</p>
+        {windowBridge.canManagePreferences && !current.saveUnknown && dirty && <span>{uiText('当前更改尚未保存。重新加载将丢弃页面中的更改。', 'Your changes have not been saved. Reloading discards changes on this page.')}</span>}</div>}
       {!windowBridge.canManagePreferences ? <div className="settings-unavailable">
         <Settings2 size={24} /><h2>{uiText('应用设置不可用', 'Application settings are unavailable')}</h2>
         <p>{uiText('请在桌面应用中打开。', 'Open this page in the desktop app.')}</p>
@@ -145,6 +175,10 @@ export function SettingsView() {
             placeholder={uiText('搜索设置', 'Search settings')} aria-label={uiText('搜索设置', 'Search settings')}
             onChange={event => setSearch(event.target.value)} /></label>
         </div>
+        {current.saveUnknown && <div className="settings-error" role="alert" data-testid="settings-save-unknown">
+          <p>{uiText('保存结果待确认。当前输入已保留，请读取最新设置并核对。', 'The save result is unknown. Your input is preserved; read the latest settings and compare.')}</p>
+          <button type="button" className="settings-secondary" data-testid="settings-read-latest" onClick={() => void readLatestKeepingDraft()} disabled={saving || loading}>{uiText('读取最新设置并保留输入', 'Read latest settings and keep input')}</button>
+        </div>}
         {loading ? <p className="settings-empty" role="status">{uiText('正在读取设置…', 'Loading settings…')}</p>
           : <form onSubmit={event => { event.preventDefault(); void save(); }}>
             <fieldset className="settings-fields" disabled={saving}>
@@ -157,11 +191,11 @@ export function SettingsView() {
               {visible.length === 0 && <p className="settings-empty">{query ? uiText('没有匹配的设置。', 'No matching settings.') : uiText('此分类暂无可用设置。', 'No settings are available in this category.')}</p>}
             </fieldset>
             <footer className="settings-savebar">
-              <span role="status">{saving ? uiText('正在保存…', 'Saving…') : dirty ? uiText('有未保存的更改', 'Unsaved changes')
+              <span role="status">{saving ? uiText('正在保存…', 'Saving…') : current.saveUnknown ? uiText('保存结果待确认', 'Save result unknown') : dirty ? uiText('有未保存的更改', 'Unsaved changes')
                 : saved ? <><Check size={14} />{uiText('设置已保存', 'Settings saved')}</> : null}</span>
               <div><button type="button" className="settings-secondary" disabled={loading || saving} onClick={() => { void reload(); }}>
                 <RotateCcw size={14} />{dirty ? uiText('放弃并重新加载', 'Discard & reload') : uiText('重新加载', 'Reload')}</button>
-                <button type="submit" className="settings-primary" disabled={!dirty || invalid || loading || saving}>{uiText('保存更改', 'Save changes')}</button></div>
+                <button type="submit" className="settings-primary" disabled={!dirty || invalid || loading || saving || current.saveUnknown}>{uiText('保存更改', 'Save changes')}</button></div>
             </footer>
           </form>}
       </>}

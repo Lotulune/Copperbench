@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,33 +35,23 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.5",
-      "linuxTag": "v0.1.5-linux-stable",
-      "status": "public-stable",
-      "linuxStatus": "public-stable",
+      "tag": "v0.1.6",
+      "linuxTag": "v0.1.6-linux-stable",
+      "status": "ready",
+      "linuxStatus": "pending-candidate",
       "decision": "approved",
-      "decisionDate": "2026-10-14",
-      "scope": "Windows and Linux 0.1.5 are public, integrating the bug fixes, first-success improvements and bilingual offline installer. Linux retains its exact-candidate maintenance acceptance scope.",
+      "decisionDate": "2026-10-15",
+      "scope": "Prepare the requested Windows and Linux 0.1.6 optimization release. Final main CI, frozen candidate identity, packaging and publication are pending; prior installed/gameplay evidence retains its original source and artifact scope.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.5.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.5.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-14/publication-0.1.5/previous-release-state.json",
-      "releaseCommit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
-      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.5",
-      "publishedAt": "2026-10-14T13:35:33Z",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38568259409",
-      "releaseWorkflowConclusion": "success",
-      "assetProof": "evidence/maintenance/2026-10-14/publication-0.1.5/windows/windows-public-verification.json",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.6.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.6.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-15/publication-0.1.6/previous-release-state.json",
       "sourceVerification": {
-        "sourceCommit": "7c9bc2160efe3c1bf89522c0214558a42f51969d",
         "requiredCi": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38568120811"
+          "status": "pending"
         },
         "documentation": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38568120811",
-          "scope": "Javadoc and repository Markdown checks in final main CI; standalone Javadoc publication was not retriggered for the test-only follow-up."
+          "status": "pending"
         },
         "installedPackageAcceptance": "not-repeated",
         "fullGameplayAcceptance": "not-repeated"
@@ -136,12 +126,12 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352304576"
     },
     "releaseContract": {
-      "tag": "v0.1.5",
-      "purpose": "first-success-maintenance-release",
+      "tag": "v0.1.6",
+      "purpose": "optimization-maintenance-release",
       "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.5"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.6"
     },
     "betaRelease": {
       "historical": true,

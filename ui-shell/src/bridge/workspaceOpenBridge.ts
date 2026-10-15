@@ -2,6 +2,8 @@ import { tr } from '../i18n/locale';
 export interface NativeWorkspaceOpenHost {
   readonly available: boolean;
   readonly buildFolderAvailable?: boolean;
+  readonly verifiedExportFolderAvailable?: boolean;
+  openVerifiedExportFolder?(taskId: string): Promise<void>;
   openBuildFolder?(): Promise<void>;
   open(workspaceFile: string): Promise<void>;
 }
@@ -15,6 +17,8 @@ declare global {
 export interface WorkspaceOpenBridge {
   readonly available: boolean;
   readonly buildFolderAvailable: boolean;
+  readonly verifiedExportFolderAvailable: boolean;
+  openVerifiedExportFolder(taskId: string): Promise<void>;
   openBuildFolder(): Promise<void>;
   open(workspaceFile: string): Promise<void>;
 }
@@ -22,14 +26,20 @@ export interface WorkspaceOpenBridge {
 class JcefWorkspaceOpenBridge implements WorkspaceOpenBridge {
   public readonly available: boolean;
   public readonly buildFolderAvailable: boolean;
+  public readonly verifiedExportFolderAvailable: boolean;
 
   public constructor(private readonly host: NativeWorkspaceOpenHost) {
     this.available = host.available;
     this.buildFolderAvailable = host.buildFolderAvailable === true && typeof host.openBuildFolder === 'function';
+    this.verifiedExportFolderAvailable = host.verifiedExportFolderAvailable === true && typeof host.openVerifiedExportFolder === 'function';
   }
 
   public openBuildFolder(): Promise<void> {
     return this.buildFolderAvailable ? this.host.openBuildFolder!() : Promise.reject(new Error('Build folder unavailable'));
+  }
+
+  public openVerifiedExportFolder(taskId: string): Promise<void> {
+    return this.verifiedExportFolderAvailable ? this.host.openVerifiedExportFolder!(taskId) : Promise.reject(new Error('Verified export folder unavailable'));
   }
 
   public open(workspaceFile: string): Promise<void> {
@@ -40,6 +50,11 @@ class JcefWorkspaceOpenBridge implements WorkspaceOpenBridge {
 class UnavailableWorkspaceOpenBridge implements WorkspaceOpenBridge {
   public readonly available = false;
   public readonly buildFolderAvailable = false;
+  public readonly verifiedExportFolderAvailable = false;
+
+  public openVerifiedExportFolder(_taskId: string): Promise<void> {
+    return Promise.reject(new Error('Verified export folder unavailable'));
+  }
 
   public openBuildFolder(): Promise<void> {
     return Promise.reject(new Error('Build folder unavailable'));

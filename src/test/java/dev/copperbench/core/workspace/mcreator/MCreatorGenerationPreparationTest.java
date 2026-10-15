@@ -41,6 +41,38 @@ class MCreatorGenerationPreparationTest {
         JsonObject values = new JsonObject(); values.addProperty("hardness", 4); payload.add("initialValues", values); return payload;
     }
 
+    @Test void compilerOwnershipUsesActualAssociatedPathsAndNeverSameNameManualFiles() throws Exception {
+        try (Workspace workspace = cold(); var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
+                new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+            assertEquals("committed", session.uiEntry().execute(Command.of(UUID.randomUUID(), session.workspaceId(), 0,
+                    Operation.CREATE_MOD_ELEMENT, createPayload())).result().status());
+            var element = workspace.getModElementByName("cold_block");
+            Path generated = root.resolve("src/main/java/actual/Shared.java");
+            Path manual = root.resolve("src/main/java/manual/Shared.java");
+            for (Path file : List.of(generated, manual)) { Files.createDirectories(file.getParent()); Files.writeString(file, "class Shared {}\n"); }
+            element.setAssociatedFiles(List.of(generated.toFile()));
+            var state = new MCreatorWorkspaceStateMapper().map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(session.workspaceId()));
+            var store = new RevisionedWorkspaceStore(); store.register(state);
+            var preparation = new MCreatorGenerationPreparation(workspace, store);
+            var owners = preparation.sourceElementOwners(state, root);
+            UUID storedId = UUID.fromString(element.getMetadata(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA).toString());
+            assertNotEquals(MCreatorWorkspaceStateMapper.elementId(state.id(), element), storedId,
+                    "Core-created elements use their persisted ID, not the deterministic imported-element fallback");
+            assertNotNull(state.element(storedId));
+            assertEquals(storedId, owners.get("src/main/java/actual/Shared.java"));
+            assertFalse(owners.containsKey("src/main/java/manual/Shared.java"));
+
+            element.putMetadata(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA, null);
+            var legacyState = new MCreatorWorkspaceStateMapper().map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(session.workspaceId()));
+            UUID legacyId = MCreatorWorkspaceStateMapper.elementId(legacyState.id(), element);
+            assertNotNull(legacyState.element(legacyId));
+            assertEquals(legacyId, preparation.sourceElementOwners(legacyState, root).get("src/main/java/actual/Shared.java"));
+            assertFalse(preparation.sourceElementOwners(legacyState, root).containsKey("src/main/java/manual/Shared.java"));
+            element.setCodeLock(true);
+            assertTrue(preparation.sourceElementOwners(legacyState, root).isEmpty());
+        }
+    }
+
     @Test void coldDefinitionPersistsWithoutRunningGradleOrWritingUnresolvedJavaAndSurvivesReopen() throws Exception {
         try (Workspace workspace = cold(); var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
                 new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {

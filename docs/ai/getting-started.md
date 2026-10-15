@@ -1,8 +1,18 @@
-# MCP 接入快速开始
+# Agent 接入快速开始
+
+[English](getting-started.en.md) · [同一个步道方块](trail-block.md) · [SDK 兼容边界](../../sdk/compatibility.md)
+
+先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。启动窗口的「连接外部 Agent」只给接入帮助，不签发 token；它是尚未发布的源码入口。没有该入口仍可直接打开工作区使用原页面。
+
+三个[最小可执行示例](../../sdk/agent-workflows.md)说明前提和退出方式。本批新便捷方法进入 0.1.6 发布准备，不承诺当前 0.1.5 安装包已包含，见[状态页](../status.md)。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0` 与实际目录；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。下文继续适用原有权限和计划边界。
+
+只读发现先核对 ready operations／MCP `tools/list`，再取 `get_workspace_environment` 的生成器、工具链、应用身份与 `data.fieldContracts`。当前主线提供 `get_mod_element_field_contract` 和 `get_field_reference_options`；Native `discover_field_contract(...)` 区分 available／not_exposed／unsupported，不创建探针元素。Native 旧环境提取的缺类型诊断为 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，MCP／TypeScript 的旧环境便捷方法使用 `FIELD_CONTRACT_NOT_EXPOSED`；两者均保留 Core 诊断与格式错误。修改前重读适用 revision／hash，分页遍历到 `nextCursor=null`。从 [W1/W2/W3](../../sdk/agent-workflows.md)进入失败修复、原任务恢复与精确导出。
+
+已有主线还提供 `get_workspace_doctor`／`workspace.doctor()`、`preview_generation`、显式 26.3 预览和[版本复制协商](version-copy-upgrade.md)。doctor 与生成预检不下载依赖、不启动构建，也不授予写权限。`get_mod_element_editor`／MCP `read_mod_element` 的现代 SDK 默认选 [editor schema 1.1](editor-schema.md)，需要旧响应时显式选 `1.0`；普通操作继续使用 `1.0`。
 
 本文面向本机 AI 客户端和自动化集成开发者。Copperbench MCP 当前为开发预览协议，版本、Schema 和工具字段仍可能在预览版间变化。
 
-当前源码新增了[任务授权与自动验收](./task-authorization-and-acceptance.md)：本机用户可以一次批准目录、操作和期限，agent 后续用授权 ID 连续开发；产品直接提供真实文件快照、GameTest 宿主和用例报告。使用这些接口需要包含改动的新构建。
+对实际暴露[任务授权与自动验收](./task-authorization-and-acceptance.md)合同的宿主，本机用户可批准目录、操作和期限，Agent 携带该授权使用文件快照、GameTest 宿主和报告。先核对实际工具／环境能力，不将“源码可用”或当前下载版本号当作全部接口已暴露的证明。
 
 ## 安全边界
 
@@ -101,4 +111,4 @@ pwsh -NoProfile -File .\scripts\verify-mcp-conformance.ps1 `
 
 脚本要求 JDK 25、Node.js 和 npm。结果写入指定目录，CI 同样保存该报告。工具 Schema 的基线测试位于 `ui-core/tests/schema.test.mjs`。
 
-FR-AI-02 已由 PR #14、合并后 main CI 和 `main@515c212c` 的 Nightly `32998281437` 正式关闭；`list_new_workspace_generators`、`list_installed_plugins` 等产品有界目录不进入这一分页门禁，`get_workspace_references` 属于图查询并由独立的 2,000/10,000 引用性能门禁约束。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect 与 FR-AI-05 SDK/evals 已由固定提交 Windows Nightly `33098518016` 在明确 source `main@e8caf018` 上正式关闭：完整 Java/Javadoc/scale、Playwright、MCP conformance 与 8/8 generator golden 均通过，Windows-only `Stage10NativeJcefTaskReconnectTest` 在真实 JCEF/Chromium 中 1/1 执行通过；Workspace Plan 的支持边界复核继续把构建、运行、迁移、导入和外部发布留在原子内容计划之外。`sdk/typescript`、`sdk/python` 和 10 项 `sdk/evals` 已交付，专用真实 HTTP MCP live eval **10/10** 通过；Nightly 证明合并后的实现处于全绿产品基线，但不冒充再次执行 live-eval harness。MCP 继续以版本化 `get_task(afterLogSequence)` 作为恢复路径，不额外引入未冻结的自定义 push notification 方言。完整能力见 [下一阶段 PRD](../../PRD-NEXT.md)，客户端仍应把当前协议视为 `0.x` 预览。
+FR-AI-02 已由 PR #14、合并后 main CI 和 `main@515c212c` 的 Nightly `32998281437` 正式关闭；`list_new_workspace_generators`、`list_installed_plugins` 等产品有界目录不进入这一分页门禁，`get_workspace_references` 属于图查询并由独立的 2,000/10,000 引用性能门禁约束。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect 与 FR-AI-05 SDK/evals 已由固定提交 Windows Nightly `33098518016` 在明确 source `main@e8caf018` 上正式关闭：完整 Java/Javadoc/scale、Playwright、MCP conformance 与 8/8 generator golden 均通过，Windows-only `Stage10NativeJcefTaskReconnectTest` 在真实 JCEF/Chromium 中 1/1 执行通过；Workspace Plan 的支持边界复核继续把构建、运行、迁移、导入和外部发布留在原子内容计划之外。`sdk/typescript`、`sdk/python` 和 10 项 `sdk/evals` 已交付，专用真实 HTTP MCP live eval **10/10** 通过；Nightly 证明合并后的实现处于全绿产品基线，但不冒充再次执行 live-eval harness。MCP 继续以版本化 `get_task(afterLogSequence)` 作为恢复路径，不额外引入未冻结的自定义 push notification 方言。源码检出中的历史需求见 [下一阶段 PRD](../../PRD-NEXT.md)，当前实际能力仍按目录与环境元数据发现；客户端仍应把当前协议视为 `0.x` 预览。

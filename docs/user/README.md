@@ -2,7 +2,11 @@
 
 本指南对应 Copperbench 0.1.5。Windows 与 Linux 安装包、发布说明和验证范围见[当前下载](../releases/current.md)。
 
+首作快捷入口、交付控件与恢复改进正在整合到 0.1.6 源码，尚未发布；已有安装包保留原功能与验证范围，实际入口以安装版本为准。
+
 第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。下载版、源码新增、26.3 预览和未验证范围统一见[当前状态](../status.md)。
+
+关键路线：[安装](getting-started.md) → [首作](first-creation.md) → [构建失败与导出](build-and-export.md)；完整英文路线从 [Quick start](getting-started.en.md) 开始。新首作快捷入口／交付控件属于尚未发布的源码改动，请按安装中实际出现的入口选择步骤。
 
 ## 工作区
 

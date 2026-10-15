@@ -11,7 +11,7 @@ import urllib.error
 import urllib.parse
 import time
 import urllib.request
-from typing import Any, Iterator, TYPE_CHECKING
+from typing import Any, Callable, Iterator, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from copperbench_native import Workspace, NativeApiError
@@ -90,12 +90,108 @@ RETRY_SAFE_TOOLS = frozenset({
 })
 
 SUCCESS_STATUSES = frozenset({"succeeded", "committed", "accepted", "completed", "cancelled"})
+MCP_PROTOCOL_VERSION = "2025-11-25"
+TASK_STATES = frozenset({"queued", "running", "succeeded", "failed", "cancelled"})
+
+
+class ClientMetrics:
+    """Opt-in request counters. Never stores credentials, payloads, IDs or log text.
+
+    responseBytes counts complete HTTP bodies or native UTF-8 response lines,
+    including error bodies. Interrupted bodies and transport headers are excluded.
+    """
+
+    def __init__(self):
+        self._operations: dict[str, dict[str, Any]] = {}
+
+    def _add(self, operation: str, field: str, value: int | float = 1) -> None:
+        row = self._operations.setdefault(operation, {
+            "logicalCalls": 0, "attempts": 0, "responseBytes": 0,
+            "elapsedSeconds": 0.0,
+        })
+        row[field] += value
+
+    def snapshot(self) -> dict[str, Any]:
+        return {"operations": {name: dict(row) for name, row in sorted(self._operations.items())},
+                "byteScope": "complete response bodies or native lines; transport headers and interrupted bodies excluded"}
+
+
+def _cursor_page(result: dict[str, Any], seen: set[str], error_type: type[RuntimeError],
+                 invalid_code: str) -> tuple[list[dict[str, Any]], str | None]:
+    data = result.get("data")
+    if (not isinstance(data, dict) or not isinstance(data.get("items"), list)
+            or any(not isinstance(item, dict) for item in data["items"])
+            or "nextCursor" not in data):
+        raise error_type("List response must contain object items and nextCursor", invalid_code, result)
+    cursor = data["nextCursor"]
+    if cursor is not None and (not isinstance(cursor, str) or not cursor or cursor in seen):
+        raise error_type("List response has an invalid or repeated cursor", invalid_code, result)
+    if cursor is not None:
+        seen.add(cursor)
+    return data["items"], cursor
+
+
+def _field_contract(environment: dict[str, Any], element_type: str,
+                    error_type: type[RuntimeError], invalid_code: str) -> dict[str, Any]:
+    data = environment.get("data")
+    if not isinstance(data, dict):
+        raise error_type("Environment response must contain object data", invalid_code, environment)
+    if "fieldContracts" not in data:
+        raise error_type("This host does not expose field contracts", "FIELD_CONTRACT_NOT_EXPOSED", environment)
+    contracts = data["fieldContracts"]
+    if not isinstance(contracts, dict):
+        raise error_type("Environment fieldContracts must be an object", invalid_code, environment)
+    if element_type not in contracts:
+        raise error_type(f"No field contract is exposed for {element_type}", "FIELD_CONTRACT_NOT_EXPOSED", environment)
+    if not isinstance(contracts[element_type], dict):
+        raise error_type("The requested field contract is malformed", invalid_code, environment)
+    return contracts[element_type]
+
+
+def _poll_task(get_task: Callable[[str, int], dict[str, Any]], task_id: str, *,
+               timeout: float, poll_interval: float, after_log_sequence: int,
+               on_update: Callable[[dict[str, Any]], None] | None,
+               error_type: type[RuntimeError], invalid_code: str, timeout_code: str) -> dict[str, Any]:
+    if not math.isfinite(timeout) or not math.isfinite(poll_interval) or timeout <= 0 or poll_interval <= 0:
+        raise ValueError("timeout and poll_interval must be positive and finite")
+    if type(after_log_sequence) is not int or after_log_sequence < 0:
+        raise ValueError("after_log_sequence must be a nonnegative integer")
+    deadline = time.monotonic() + timeout
+    sequence = after_log_sequence
+    logs: list[dict[str, Any]] = []
+    while True:
+        result = get_task(task_id, sequence)
+        data = result.get("data")
+        task = data.get("task") if isinstance(data, dict) else None
+        if (not isinstance(task, dict) or task.get("id") != task_id
+                or not isinstance(task.get("state"), str) or task["state"] not in TASK_STATES
+                or not isinstance(data.get("logs"), list) or not isinstance(data.get("diagnostics"), list)):
+            raise error_type("Task response has an invalid identity, state, logs or diagnostics", invalid_code, result)
+        next_sequence = sequence
+        for entry in data["logs"]:
+            if (not isinstance(entry, dict) or type(entry.get("sequence")) is not int
+                    or entry["sequence"] <= next_sequence):
+                raise error_type("Task logs must have strictly increasing new sequences", invalid_code, result)
+            next_sequence = entry["sequence"]
+        sequence = next_sequence
+        logs.extend(data["logs"])
+        # The callback receives each original incremental response. Persist it
+        # before the next read so a transport loss can resume from its sequence.
+        if on_update is not None:
+            on_update(result)
+        if task["state"] in {"succeeded", "failed", "cancelled"}:
+            return {**result, "data": {**data, "logs": logs}}
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise error_type(f"Task {task_id} is still running; resume after log sequence {sequence}",
+                             timeout_code, {**result, "data": {**data, "logs": logs}})
+        time.sleep(min(poll_interval, remaining))
 
 
 class CopperbenchClient:
     def __init__(self, endpoint: str, token: str, workspace_id: str, timeout: float = 30.0,
                  max_transport_retries: int = 2, retry_backoff_seconds: float = 0.1,
-                 task_authorization_id: str | None = None):
+                 task_authorization_id: str | None = None, metrics: ClientMetrics | None = None):
         self.endpoint = endpoint
         self.token = token
         self.workspace_id = workspace_id
@@ -105,6 +201,7 @@ class CopperbenchClient:
         self.retry_backoff_seconds = max(0.0, retry_backoff_seconds)
         self._request_id = 0
         self._session_id: str | None = None
+        self.metrics = metrics
 
     @classmethod
     def from_workspace(cls, workspace: str | Path, token: str, **kwargs: Any) -> "CopperbenchClient":
@@ -113,12 +210,72 @@ class CopperbenchClient:
 
     def initialize(self, client_name: str = "copperbench-python-sdk", version: str = "0.1.0") -> dict[str, Any]:
         result = self._rpc("initialize", {
-            "protocolVersion": "2025-11-25",
+            "protocolVersion": MCP_PROTOCOL_VERSION,
             "capabilities": {},
             "clientInfo": {"name": client_name, "version": version},
         })
+        if not isinstance(result.get("protocolVersion"), str):
+            raise CopperbenchError("MCP initialization has no protocol version", "MCP_RESPONSE_INVALID", result)
+        if result["protocolVersion"] != MCP_PROTOCOL_VERSION:
+            raise CopperbenchError("The host selected an unsupported MCP protocol", "MCP_PROTOCOL_INCOMPATIBLE", result)
         self._rpc("notifications/initialized", {}, notification=True)
         return result
+
+    def close(self) -> None:
+        """Delete only this MCP session, once. Workspace tasks remain with the host."""
+        if self._session_id is None:
+            return
+        started = time.monotonic()
+        if self.metrics is not None:
+            self.metrics._add("session/close", "logicalCalls")
+            self.metrics._add("session/close", "attempts")
+        request = urllib.request.Request(self.endpoint, headers={
+            "Authorization": f"Bearer {self.token}", "X-Copperbench-Workspace": self.workspace_id,
+            "mcp-session-id": self._session_id,
+        }, method="DELETE")
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                received = response.read()
+                if self.metrics is not None:
+                    self.metrics._add("session/close", "responseBytes", len(received))
+            self._session_id = None
+        except urllib.error.HTTPError as error:
+            try:
+                received = error.read()
+                if self.metrics is not None:
+                    self.metrics._add("session/close", "responseBytes", len(received))
+                detail = received.decode(errors="replace")
+            except (OSError, IncompleteRead):
+                detail = "HTTP error response body was unavailable"
+            if error.code == 404:
+                self._session_id = None  # The session has already expired.
+                return
+            raise CopperbenchError(f"MCP HTTP {error.code}", f"HTTP_{error.code}", detail) from error
+        except (urllib.error.URLError, TimeoutError, ConnectionError, IncompleteRead) as error:
+            raise CopperbenchError("MCP session close failed; request was not retried", "MCP_TRANSPORT_FAILED", str(error)) from error
+        finally:
+            if self.metrics is not None:
+                self.metrics._add("session/close", "elapsedSeconds", time.monotonic() - started)
+
+    def list_tools(self) -> Iterator[dict[str, Any]]:
+        """Discover actual MCP names and input schemas, following MCP pagination."""
+        cursor = None
+        seen: set[str] = set()
+        while True:
+            result = self._rpc("tools/list", {"cursor": cursor} if cursor else {})
+            tools = result.get("tools")
+            if (not isinstance(tools, list) or any(not isinstance(tool, dict)
+                    or not isinstance(tool.get("name"), str) or not tool["name"]
+                    or not isinstance(tool.get("inputSchema"), dict) for tool in tools)):
+                raise CopperbenchError("MCP tool catalog is malformed", "MCP_RESPONSE_INVALID", result)
+            cursor = result.get("nextCursor")  # MCP allows omission on the final page.
+            if cursor is not None and (not isinstance(cursor, str) or not cursor or cursor in seen):
+                raise CopperbenchError("MCP tool catalog has an invalid or repeated cursor", "MCP_RESPONSE_INVALID", result)
+            if cursor is not None:
+                seen.add(cursor)
+            yield from tools
+            if cursor is None:
+                return
 
     def get_workspace(self) -> dict[str, Any]:
         return self.call_tool("get_workspace", {})
@@ -151,20 +308,26 @@ class CopperbenchClient:
         return self.call_tool("get_field_reference_options",
                               {"elementType": element_type, "mappingSource": mapping_source, **options})
 
+    def get_workspace_environment(self) -> dict[str, Any]:
+        return self.call_tool("get_workspace_environment", {})
+
+    def field_contract(self, element_type: str = "block", *,
+                       environment: dict[str, Any] | None = None) -> dict[str, Any]:
+        return _field_contract(self.get_workspace_environment() if environment is None else environment,
+                               element_type, CopperbenchError, "MCP_TOOL_RESULT_INVALID")
+
     def list_mod_elements(self, **arguments: Any) -> Iterator[dict[str, Any]]:
-        cursor: str | None = None
+        cursor = arguments.get("cursor")
+        seen = {cursor} if isinstance(cursor, str) else set()
         while True:
             page = self.call_tool("list_mod_elements", {
                 **arguments,
                 "limit": arguments.get("limit", 200),
                 **({"cursor": cursor} if cursor else {}),
             })
-            data = page.get("data") if isinstance(page.get("data"), dict) else {}
-            for item in data.get("items", []):
-                if isinstance(item, dict):
-                    yield item
-            cursor = data.get("nextCursor") if isinstance(data.get("nextCursor"), str) else None
-            if not cursor:
+            items, cursor = _cursor_page(page, seen, CopperbenchError, "MCP_TOOL_RESULT_INVALID")
+            yield from items
+            if cursor is None:
                 return
 
     def create_mod_element(self, **arguments: Any) -> dict[str, Any]:
@@ -227,6 +390,25 @@ class CopperbenchClient:
 
     def get_task(self, task_id: str, after_log_sequence: int = 0) -> dict[str, Any]:
         return self.call_tool("get_task", {"taskId": task_id, "afterLogSequence": after_log_sequence})
+
+    def wait_task(self, task_id: str, *, timeout: float = 2700, poll_interval: float = 0.2,
+                  after_log_sequence: int = 0,
+                  on_update: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
+        """Query an existing task; timeout never cancels it or submits a new task.
+
+        Returns the final Core envelope with logs received during this wait.
+        Persist on_update responses to resume after a transport error; the
+        original transport error and its details propagate unchanged.
+        """
+        return _poll_task(self.get_task, task_id, timeout=timeout, poll_interval=poll_interval,
+                          after_log_sequence=after_log_sequence, on_update=on_update,
+                          error_type=CopperbenchError, invalid_code="MCP_TOOL_RESULT_INVALID",
+                          timeout_code="MCP_TASK_TIMEOUT")
+
+    def export_verified_artifact(self, task_id: str, expected_revision: int, *,
+                                 allow_historical: bool = False) -> dict[str, Any]:
+        return self.call_tool("export_verified_artifact", {"verifiedTaskId": task_id,
+                              "expectedRevision": expected_revision, "allowHistorical": allow_historical})
 
     def prepare_game_tests(self, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("prepare_game_tests", {"expectedRevision": expected_revision})
@@ -363,6 +545,19 @@ class CopperbenchClient:
         return value
 
     def _rpc(self, method: str, params: dict[str, Any], notification: bool = False) -> dict[str, Any]:
+        if self.metrics is None:
+            return self._rpc_once(method, params, notification)
+        operation = params["name"] if method == "tools/call" else method
+        started = time.monotonic()
+        if self.metrics is not None:
+            self.metrics._add(operation, "logicalCalls")
+        try:
+            return self._rpc_once(method, params, notification)
+        finally:
+            if self.metrics is not None:
+                self.metrics._add(operation, "elapsedSeconds", time.monotonic() - started)
+
+    def _rpc_once(self, method: str, params: dict[str, Any], notification: bool = False) -> dict[str, Any]:
         self._request_id += 1
         body: dict[str, Any] = {"jsonrpc": "2.0", "method": method, "params": params}
         if not notification:
@@ -379,15 +574,24 @@ class CopperbenchClient:
         max_retries = self.max_transport_retries if (
             method == "tools/call" and params.get("name") in RETRY_SAFE_TOOLS
         ) else 0
+        operation = params["name"] if method == "tools/call" else method
         for attempt in range(max_retries + 1):
+            if self.metrics is not None:
+                self.metrics._add(operation, "attempts")
             try:
                 with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                    raw = response.read().decode()
+                    received = response.read()
+                    if self.metrics is not None:
+                        self.metrics._add(operation, "responseBytes", len(received))
+                    raw = received.decode()
                     self._session_id = self._session_id or response.headers.get("mcp-session-id")
                 break
             except urllib.error.HTTPError as error:
                 try:
-                    detail = error.read().decode(errors="replace")
+                    received = error.read()
+                    if self.metrics is not None:
+                        self.metrics._add(operation, "responseBytes", len(received))
+                    detail = received.decode(errors="replace")
                 except (OSError, IncompleteRead):
                     detail = "HTTP error response body was unavailable"
                 if error.code not in {502, 503, 504} or attempt >= max_retries:

@@ -98,12 +98,17 @@ class DiscoveryEfficiencyTest(unittest.TestCase):
 
     def test_transport_failure_is_not_retried(self):
         client, requests = self.client()
-        client._receive = Mock(side_effect=NativeApiError("timed out", "NATIVE_TIMEOUT"))
+        failure = NativeApiError("timed out", "NATIVE_TIMEOUT", {"observation": "transport timeout"})
+        client._receive = Mock(side_effect=failure)
+        client._close = Mock()  # This transport fixture isolates abort; lifecycle tests exercise real cleanup.
         with self.assertRaises(NativeApiError) as raised:
             client.discover_field_contract("item")
         self.assertEqual("NATIVE_TIMEOUT", raised.exception.code)
+        self.assertIs(failure, raised.exception)
+        self.assertIs(failure.details, raised.exception.details)
         self.assertEqual([OPERATION], [r["operation"] for r in requests])
-        client.close.assert_called_once()
+        client._close.assert_called_once_with(graceful=False)
+        client.close.assert_not_called()
 
     def test_malformed_direct_contract_still_uses_existing_validation(self):
         bad = [[], {}, {**contract(), "elementType": "recipe"}, {**contract(), "complete": False},

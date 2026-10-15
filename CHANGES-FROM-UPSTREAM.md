@@ -111,3 +111,13 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 - Rewrote the in-app help user-guide sections in plain user-facing Chinese, removing internal jargon (UI-Core, headless, JVM flags, reason codes) and the source-document callout.
 - Localized bundled `plugin.json` display names/descriptions into Chinese. The third-party Goldorion Fabric generator keeps its English name for attribution; only its description is localized. Plugin IDs are unchanged, so plugin and workspace compatibility is unaffected. The product-shell plugin compatibility center shows Chinese labels with the original English names as subtitles.
 - Technical identifiers remain English per the shell i18n policy: enum states (VALID/DRAFT), task kinds, raw logs, and MCP permission profile names are not translated.
+
+## First-creation and public-route documentation changes (2026-10-15 source)
+
+These are unreleased source changes; this entry records implementation, not a new package or runtime acceptance result.
+
+- `src/main/java/net/mcreator/ui/workspace/selector/WorkspaceSelector.java`: add the native **First creation · Trail Block** and **Connect external Agent** help entries while retaining existing new/open workspace actions. Agent help points to the existing workspace/AI-MCP setup and does not issue a token.
+- `src/main/java/net/mcreator/ui/dialogs/workspace/NewWorkspaceDialog.java`: add the first-creation entry using the Fabric 1.21.1 preset (`First Creation`, `first_creation`, `com.example.firstcreation`) with the existing directory validation and explicit creation confirmation.
+- `src/main/java/net/mcreator/ui/dialogs/workspace/AbstractWorkspacePanel.java`: pass the first-creation preset through the existing native workspace-panel path rather than introducing an independent workspace format or creation service.
+- Add paired Chinese/English public routes from installation to saved element, build recovery, client behavior/persistence and delivery. Move the Agent block example out of the GUI tutorial; persistence now requires normal exit followed by a new client process reopening the same world. Preserve published 0.1.5 behavior and historical 0.1.4 screenshot/evidence identities.
+- Extend only the explicit public-guide/SDK allowlists in `platform/export.gradle`, retaining legacy `user/` copies and repository-relative `docs/` / `sdk/` paths. Do not copy private sessions, authorization stores, user workspaces or release caches. This does not change versions, signing or publishing.

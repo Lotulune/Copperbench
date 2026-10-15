@@ -1,0 +1,54 @@
+// Acceptance-only: copy into a NEW isolated GRADLE_USER_HOME/init.d/.
+// No project mutation, network requests, permissions or controller actions.
+import groovy.json.JsonOutput
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ResolvableDependencies
+import java.util.concurrent.atomic.AtomicInteger
+
+def buildStarted = System.nanoTime()
+def ids = new AtomicInteger()
+def resolving = Collections.synchronizedMap(new IdentityHashMap())
+def taskStarts = Collections.synchronizedMap(new IdentityHashMap())
+def emit = { value -> println('CB_ACCEPTANCE_STAGE ' + JsonOutput.toJson(value)) }
+
+gradle.settingsEvaluated { settings ->
+    emit([phase: 'settings', event: 'observed', gradleUserHome: gradle.gradleUserHomeDir.canonicalPath,
+          settingsRoot: settings.settingsDir.canonicalPath,
+          clock: 'System.nanoTime within this Gradle process'])
+}
+
+gradle.addListener([
+    beforeResolve: { ResolvableDependencies incoming ->
+        def item = [id: ids.incrementAndGet(), started: System.nanoTime()]
+        resolving.put(incoming, item)
+        emit([phase: 'resolution', event: 'start', id: item.id, configuration: incoming.path])
+    },
+    afterResolve: { ResolvableDependencies incoming ->
+        def item = resolving.remove(incoming)
+        if (item != null) {
+            def files = incoming.files.files.collect { file ->
+                [path: file.canonicalPath, bytes: file.length()]
+            }
+            emit([phase: 'resolution', event: 'end', id: item.id, configuration: incoming.path,
+                  elapsedMs: (System.nanoTime() - item.started) / 1_000_000d,
+                  fileCount: files.size(), files: files,
+                  scope: 'Resolution including network/cache work and acceptance listener file-realization overhead; overlapping scopes are not summed.'])
+        }
+    }
+] as DependencyResolutionListener)
+
+gradle.taskGraph.beforeTask { task ->
+    taskStarts.put(task, System.nanoTime())
+    emit([phase: 'task', event: 'start', id: task.path])
+}
+gradle.taskGraph.afterTask { task, state ->
+    def started = taskStarts.remove(task)
+    emit([phase: 'task', event: 'end', id: task.path,
+          elapsedMs: started == null ? null : (System.nanoTime() - started) / 1_000_000d,
+          failed: state.failure != null, skipped: state.skipped, upToDate: state.upToDate])
+}
+gradle.buildFinished { result ->
+    emit([phase: 'build', event: 'end', elapsedMs: (System.nanoTime() - buildStarted) / 1_000_000d,
+          failed: result.failure != null, openResolutionCount: resolving.size(), openTaskCount: taskStarts.size(),
+          scope: 'From init script loading; excludes wrapper download and Core/IPC setup.'])
+}

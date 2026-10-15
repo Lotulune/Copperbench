@@ -19,6 +19,7 @@ import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
 import dev.copperbench.bridge.JcefMcpBridgeTransport;
 import dev.copperbench.bridge.JcefWindowBridgeTransport;
 import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
+import dev.copperbench.bridge.JcefFirstCreationBridgeTransport;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.diagnostics.DiagnosticBundleService;
@@ -88,7 +89,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
 							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime, createdPythonConsole,
-							unsavedSourceCount::set), closeAction);
+							unsavedSourceCount::set, workspace.getFileManager().getWorkspaceFile().toPath()), closeAction);
 		} catch (RuntimeException exception) {
 			if (createdPythonConsole != null) createdPythonConsole.close();
 			if (createdPythonRuntime != null) createdPythonRuntime.close();
@@ -199,7 +200,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
 			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime,
-			dev.copperbench.headless.PythonConsoleService pythonConsole, Consumer<Integer> unsavedSourceConsumer) {
+			dev.copperbench.headless.PythonConsoleService pythonConsole, Consumer<Integer> unsavedSourceConsumer, Path workspaceFile) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
@@ -207,6 +208,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefBlockbenchBridgeTransport blockbenchTransport = null;
 		JcefAssetImportBridgeTransport assetImportTransport = null;
 		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
+		JcefFirstCreationBridgeTransport firstCreationTransport = null;
 		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
 		JcefMcpBridgeTransport mcpTransport = null;
 		dev.copperbench.bridge.JcefPythonBridgeTransport pythonTransport = null;
@@ -217,7 +219,11 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 							windowChromeController::isUsingCustomFrame, windowChromeController::pointerGesture, unsavedSourceConsumer)
 					: JcefWindowBridgeTransport.attach(webView, owner, closeAction, null, () -> false, null, unsavedSourceConsumer);
 			legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
-			workspaceOpenTransport = JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction, workspaceRoot);
+			workspaceOpenTransport = JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction, workspaceRoot, session.workspaceId());
+			firstCreationTransport = JcefFirstCreationBridgeTransport.attach(webView, workspaceFile, session.workspaceId(), taskIds -> {
+				try { return session.service().observeTaskInputs(session.workspaceId(), taskIds); }
+				catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
+			});
 			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView,
 					new DiagnosticBundleService(UserFolderManager.getFileFromUserFolder("diagnostics").toPath(),
 							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
@@ -233,6 +239,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefBlockbenchBridgeTransport attachedBlockbench = blockbenchTransport;
 			JcefAssetImportBridgeTransport attachedAssetImport = assetImportTransport;
 			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
+			JcefFirstCreationBridgeTransport attachedFirstCreation = firstCreationTransport;
 			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
 			JcefMcpBridgeTransport attachedMcp = mcpTransport;
 			var attachedPython = pythonTransport;
@@ -270,6 +277,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 
 				@Override public void close() {
+					attachedFirstCreation.close();
 					if (attachedPython != null) attachedPython.close();
 					attachedAssetImport.close();
 					attachedBlockbench.close();
@@ -284,6 +292,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 			};
 		} catch (RuntimeException exception) {
+			if (firstCreationTransport != null) firstCreationTransport.close();
 			if (pythonTransport != null) pythonTransport.close();
 			if (assetImportTransport != null)
 				assetImportTransport.close();

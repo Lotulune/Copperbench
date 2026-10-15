@@ -2,6 +2,8 @@
 
 Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作区，也可独立打开工作区；`CopperbenchClient` 提供可选的 MCP 调用方式。
 
+按[公开调用路线](../agent-workflows.md)选择入口；W1 字段失败修复、W2 revision／源码 hash 冲突、W3 原任务恢复与真实验收精确导出都有可执行示例。最低合同与不兼容行为见[兼容表](../compatibility.md)。
+
 字段能力、内部名称与游戏注册 ID、冷工程准备、模型回导和可信产物导出见[结构化编辑与验收产物](../../docs/stage-17-agent-workflow.md)。发行包同时提供该文档，以及 [Fabric / NeoForge 1.21.1 Code 生命周期示例](../../examples/agent-native/lifecycle-1.21.1/README.md)。
 
 通用 `workspace.command` / `workspace.query` 的操作参数可查随包 [Core 命令 schema](../../ui-core/schemas/v1.0/command.schema.json) 与 [Core 查询 schema](../../ui-core/schemas/v1.0/query.schema.json)：各 operation 对应的 `payload` 就是关键字参数结构，SDK负责协议封装；跨文件引用的定义也在同一目录。MCP工具的参数以服务端 `tools/list` 为准，不能直接照搬 Core 请求封装。
@@ -89,6 +91,8 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 
 创建 `tool`、`livingentity` 或 `specialentity` 前可查询 `get_mod_element_field_contract` 获取默认值和必填字段。工具可使用默认镐配置；生物需要工作区内已导入的 `mobModelTexture`（文件名含 `.png`），船等特殊实体需要 `entityTexture`（资源名；贴图选择器传入的 `.png` 文件名会自动规范化）。缺少贴图返回 `FIELD_REQUIRED`，找不到资源返回 `FIELD_REFERENCE_INVALID`。方块发光使用 `luminance`（例如 `15` 或 `{"fixedValue":15}`），遮光使用 `lightOpacity`；固定值均为 `0..15` 的整数，`lightValue` 不是当前字段名。
 
+正常空闲时，`close()` 或退出 `with` 会发送 EOF，最多等待 30 秒让独立宿主完成保存和本地历史关闭；超时仍会终止该进程。启动或传输故障、请求仍在进行时的关闭继续使用较短的中断预算，不延长请求超时，也不重放操作。`Workspace.connect(...)` 的关闭仍只断开脚本连接。
+
 独立打开采用独占写锁。如果桌面编辑器或另一个脚本已打开该工作区，会返回 `WORKSPACE_WRITE_LOCKED`。需要操作桌面当前工作区时，使用上面的 `Workspace.connect(...)`，也可选择 MCP 客户端。
 
 ## 修改与任务
@@ -111,6 +115,12 @@ if accepted["status"] == "accepted":
 以上调用须放在 `Workspace.open(...)` 或 `Workspace.connect(...)` 的会话内部。`build()` / `generate()` / `validate()` / `run_client()` / `run_server()` / `run_game_tests()` 返回任务受理结果；受理不等于成功。`get_task()`、`wait_task()` 和 `cancel_task()` 用于跟进任务；取消成功返回 `cancelled`。`wait_task()` 返回终态及等待期间收集的日志，其超时只结束等待，任务仍可查询或取消。独立会话关闭时会释放工作区并关闭其任务执行器，需运行客户端时应保持独立会话存活；连接桌面的脚本断开不关闭桌面任务。
 
 所有 Core 操作还可以通过统一入口访问：
+
+断线恢复时传入原 taskId 和最后保存的日志序列，不重新调用 `build()`。例如 `workspace.wait_task(task_id, after_log_sequence=last_sequence, on_update=save_increment)`；`on_update` 在下一次查询前接收本次原始增量回执。超时 `NativeApiError.details` 保留本次全部已收到日志与任务身份／状态，任务不会自动取消。传输错误保留原始 details，使用上次成功保存的回执重连。`wait_task()` 返回的 `failed`／`cancelled` 终态仍须由调用者判定业务结果。
+
+`workspace.require_schema()` 在写前确认 Core 握手和普通操作的 `1.0` 合同；`workspace.get_workspace_environment()` 返回生成器、工具链及 `data.fieldContracts`。可把该回执传给 `workspace.field_contract("block", environment=environment)`，避免再次完整读取。Native 缺类型合同使用 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，畸形元数据使用 `NATIVE_INVALID_RESPONSE`；MCP Python／TypeScript 的旧环境提取便捷方法仍使用 `FIELD_CONTRACT_NOT_EXPOSED`。现代字段发现 API 与这些旧环境提取方法分别保留合同。SDK 不自动缓存 revision、hash 或合同。
+
+Native `get_mod_element_editor` 与 MCP `read_mod_element` 的 SDK 编辑器读取默认明确选择 `1.1`；显式传 `schema_version="1.0"` 可保留旧投影。编辑器版本独立于普通操作的 `1.0`，详见[editor schema](../../docs/ai/editor-schema.md)。主线已有的 doctor、生成预检、26.3 预览和版本复制仍按各自协商与授权边界使用。
 
 ```python
 registries = workspace.query("list_workspace_registries")
@@ -186,6 +196,8 @@ SDK 显示诊断中的原始原因，并保留 `error.code` 与未经改写的 `
 显示文本保留服务器的具体原因，`details` 保留完整工具响应；不会自动重放调用。
 
 ## 开发验证
+
+在源码检出中运行以下开发回归：
 
 `python -m unittest discover -s sdk/python` 运行 Python 传输与兼容性测试。
 `gradlew runNativePythonSmoke` 创建隔离测试工作区，让真实外部 Python 进程通过产品启动器执行元素创建、校验任务、冲突和锁检查；随后连接仍持有写锁的产品会话，验证对象字段修改、跨连接冲突、桌面事件通知、重连和持久化，全程不开 MCP。桌面事件验证使用同一条 Core 订阅边界，未替代实际窗口的视觉验收。

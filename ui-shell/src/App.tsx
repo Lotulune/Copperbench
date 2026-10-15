@@ -25,13 +25,19 @@ import { RelationshipGraphView } from './components/RelationshipGraphView';
 import { SourceWorkbench } from './components/SourceWorkbench';
 import { SettingsView } from './components/SettingsView';
 import { WorkbenchNavigationBar } from './components/WorkbenchNavigationBar';
+import { FirstCreationProvider } from './onboarding/FirstCreationContext';
+import { FirstCreationGuide } from './components/FirstCreationGuide';
+import { DeliveryDialog } from './components/DeliveryDialog';
+import { OpenWorkspaceDialog } from './components/WorkspaceEntryActions';
 import './styles/global.css';
 import './styles/workbench.css';
 
 const ShellContent: React.FC = () => {
   const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();
   const [settingsOpened, setSettingsOpened] = useState(activeView === 'settings');
+  const [newWorkspaceOpened, setNewWorkspaceOpened] = useState(activeView === 'new-workspace');
   useEffect(() => { if (activeView === 'settings') setSettingsOpened(true); }, [activeView]);
+  useEffect(() => { if (activeView === 'new-workspace') setNewWorkspaceOpened(true); }, [activeView]);
 
   return (
     <div className="app-shell" data-testid="app-shell">
@@ -55,7 +61,7 @@ const ShellContent: React.FC = () => {
           {activeView === 'relations' && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}
           {activeView === 'data' && <CreatorDataView />}
           {activeView === 'tracks' && <TracksAndMigrationView />}
-          {activeView === 'new-workspace' && <NewWorkspaceView />}
+          {(newWorkspaceOpened || activeView === 'new-workspace') && <div className="workbench-persistent-view" hidden={activeView !== 'new-workspace'}><NewWorkspaceView /></div>}
           {activeView === 'assets' && <AssetsView />}
           {activeView === 'history' && <HistoryView />}
           {activeView === 'ai' && <AIControlView />}
@@ -80,6 +86,9 @@ const ShellContent: React.FC = () => {
       <BridgeRecoveryView />
       <StartupFailureView />
       <SchemaIncompatibleView />
+      <FirstCreationGuide />
+      <DeliveryDialog />
+      <OpenWorkspaceDialog />
 
       {/* Multi-scenario testing switcher */}
       <ScenarioSwitcher />
@@ -91,7 +100,7 @@ const ShellContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <WorkbenchProvider>
-      <ShellContent />
+      <FirstCreationProvider><ShellContent /></FirstCreationProvider>
     </WorkbenchProvider>
   );
 };

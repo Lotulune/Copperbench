@@ -159,6 +159,20 @@ class WorkspaceCreationServiceTest {
 		}
 	}
 
+	@Test void nonemptyOrFileWorkspaceTargetsAreRejectedWithoutChangingTheirBytes() throws Exception {
+		Path existing = Files.createDirectories(temporaryFolder.resolve("existing-workspace"));
+		Path sentinel = Files.writeString(existing.resolve("existing.mcreator"), "existing user workspace", java.nio.charset.StandardCharsets.UTF_8);
+		Path fileTarget = Files.writeString(temporaryFolder.resolve("existing-file"), "existing user file", java.nio.charset.StandardCharsets.UTF_8);
+		for (Path target : List.of(existing, fileTarget)) {
+			WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "First Creation", "first_creation",
+					"com.example.firstcreation", target.toString(), "1.0.0");
+			assertFalse(result.complete()); assertTrue(result.diagnostics().contains("WORKSPACE_FOLDER_NOT_EMPTY"));
+		}
+		assertEquals("existing user workspace", Files.readString(sentinel));
+		assertEquals("existing user file", Files.readString(fileTarget));
+		try (var children = Files.list(existing)) { assertEquals(List.of(sentinel), children.toList()); }
+	}
+
 	@Test void createRejectsInvalidModIdWithoutTouchingTheFileSystem() {
 		WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Test Mod", "Invalid ID!",
 				"net.mcreator.test", temporaryFolder.resolve("ws").toString(), "1.0.0");
