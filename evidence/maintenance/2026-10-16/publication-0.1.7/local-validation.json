@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "91307e46121e200338b5b95a7bb1673e4df4b4c3",
+  "testedSourceSha256": "d8843ce885b2452719aabbae65122d0e2a3ffaed562b37732f9df510ed525b8f",
+  "sourcePathFilterVersion": "source-paths-v2",
+  "implementation": [
+    {
+      "path": "src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java",
+      "bytes": 74836,
+      "sha256": "be624b3437a699d8086cb6f3236fe263ab62116c08fe923579aa606bc111653a"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/generator/OrdinaryExportDeliveryTest.java",
+      "bytes": 14658,
+      "sha256": "472cb349ffab2d85e98d3c922b0dccddfa57728672b666d5f898720fefa662cc"
+    },
+    {
+      "path": "ui-shell/src/onboarding/firstCreationModel.ts",
+      "bytes": 11318,
+      "sha256": "258dab41cb2ad6f38b19ef3db2b1047f853efb02b26fa2703acd1a1ac7e9ff55"
+    },
+    {
+      "path": "ui-shell/src/components/DeliveryDialog.tsx",
+      "bytes": 15960,
+      "sha256": "e64c89094a7de95c5188fd07236c3e8e393ea387dbb789bb94fb1eb939d2c268"
+    },
+    {
+      "path": "ui-shell/e2e/first-creation-delivery.spec.ts",
+      "bytes": 27701,
+      "sha256": "5e857f86980c9f1a48d820a6553f951add030ddbc0284b2cd6bf95cc02abaee6"
+    }
+  ],
+  "checks": [
+    {
+      "name": "java",
+      "executable": ".\\gradlew.bat",
+      "arguments": [
+        "--no-daemon",
+        "test",
+        "jar",
+        "--tests",
+        "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+        "--tests",
+        "dev.copperbench.generator.WorkspaceTaskInputIdentityTest",
+        "--tests",
+        "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+        "--tests",
+        "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:51:26.2636122+00:00",
+      "completedAt": "2026-10-16T03:51:33.0397596+00:00",
+      "exitCode": 1,
+      "log": "java.log",
+      "logSha256": "d8abfc32eb139c3241e1eee328162aa9bba5e16685121ea186104ae571efe889"
+    },
+    {
+      "name": "java-external",
+      "executable": "pwsh",
+      "arguments": [
+        "-NoProfile",
+        "-File",
+        "scripts/run-gradle-external.ps1",
+        "--no-daemon",
+        "test",
+        "jar",
+        "--tests",
+        "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+        "--tests",
+        "dev.copperbench.generator.WorkspaceTaskInputIdentityTest",
+        "--tests",
+        "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+        "--tests",
+        "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:52:53.2994408+00:00",
+      "completedAt": "2026-10-16T03:53:19.4642014+00:00",
+      "exitCode": 1,
+      "log": "java-external.log",
+      "logSha256": "83043077fb6eeaa8c01116159cef3f67d36d21822df1772664ff92e17f89e285"
+    },
+    {
+      "name": "java-external-2",
+      "executable": "pwsh",
+      "arguments": [
+        "-NoProfile",
+        "-File",
+        "scripts/run-gradle-external.ps1",
+        "--no-daemon",
+        "test",
+        "--tests",
+        "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+        "--tests",
+        "dev.copperbench.generator.WorkspaceTaskInputIdentityTest",
+        "--tests",
+        "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+        "--tests",
+        "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest",
+        "jar"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:53:41.2899986+00:00",
+      "completedAt": "2026-10-16T03:55:41.1675167+00:00",
+      "exitCode": 0,
+      "log": "java-external-2.log",
+      "logSha256": "f4215f713712fb22174af709b97693a21682894148831d863cb0b27db7ea980b"
+    },
+    {
+      "name": "ui-unit",
+      "executable": "npm.cmd",
+      "arguments": [
+        "test",
+        "--prefix",
+        "ui-shell"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:51:26.2015909+00:00",
+      "completedAt": "2026-10-16T03:51:31.0385764+00:00",
+      "exitCode": 0,
+      "log": "ui-unit.log",
+      "logSha256": "614acb1e2a3e4171ce19d7e539816569938b067efbc1727063498f0dbe89e2f4"
+    },
+    {
+      "name": "ui-core",
+      "executable": "npm.cmd",
+      "arguments": [
+        "test",
+        "--prefix",
+        "ui-core"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:51:26.2203037+00:00",
+      "completedAt": "2026-10-16T03:51:37.5833731+00:00",
+      "exitCode": 0,
+      "log": "ui-core.log",
+      "logSha256": "29c6f46d5435036f56c0300babee6f68e18e9b6d56e706911707674e48f5ba4b"
+    },
+    {
+      "name": "browser",
+      "executable": "node",
+      "arguments": [
+        "ui-shell/node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "output/review-release-017/playwright.config.cjs",
+        "--project",
+        "chromium"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:52:53.2701234+00:00",
+      "completedAt": "2026-10-16T03:53:47.5662921+00:00",
+      "exitCode": 0,
+      "log": "browser.log",
+      "logSha256": "e71bf7086dcd8882f802fb64f8e25d6d8a267d9c2f14f4a9e712d801253586c0"
+    },
+    {
+      "name": "markdown",
+      "executable": "node",
+      "arguments": [
+        "scripts/verify-markdown-links.mjs"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:51:26.2060103+00:00",
+      "completedAt": "2026-10-16T03:51:36.9534047+00:00",
+      "exitCode": 0,
+      "log": "markdown.log",
+      "logSha256": "4316b98b75b29f31c705481fe5cc6dcb9a15a4c6f9e59ff6f999429d0c2a7021"
+    },
+    {
+      "name": "product-status",
+      "executable": "node",
+      "arguments": [
+        "scripts/verify-product-status.mjs"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T03:51:26.2371259+00:00",
+      "completedAt": "2026-10-16T03:51:27.7224079+00:00",
+      "exitCode": 0,
+      "log": "product-status.log",
+      "logSha256": "69ef575ffdce7ea407b285eee8a564f4fb3a937706c2d91fa01d7841cfa68ce9"
+    }
+  ],
+  "javaSuites": [
+    {
+      "name": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "1"
+    },
+    {
+      "name": "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceTaskInputIdentityTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "uiUnit": {
+    "passed": 68
+  },
+  "uiCore": {
+    "passed": 50
+  },
+  "chromium": {
+    "passed": 18
+  },
+  "applicationJar": {
+    "path": "build/libs/copperbench.jar",
+    "bytes": 8051007,
+    "sha256": "4c10b361a73c8b1f5d9680cfc8e572f8b42e8f378a2798772de2e6c597eae59b"
+  },
+  "limitations": [
+    "Browser checks use a native transport fixture.",
+    "One existing opt-in real data-pack build test was skipped.",
+    "No new installed-product or player-controlled gameplay acceptance.",
+    "Documentation was finalized after this source freeze; implementation hashes above bind tested code."
+  ]
+}

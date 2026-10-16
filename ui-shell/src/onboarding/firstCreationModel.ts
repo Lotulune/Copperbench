@@ -168,7 +168,10 @@ export function isRelativeDeliveryPath(value: string): boolean {
     && /\.(jar|zip)$/i.test(path);
 }
 
-export function defaultDeliveryPath(workspaceName: string, kind: WorkspaceSummary['kind'], requestId: string): string {
+export function defaultDeliveryPath(workspaceName: string, kind: WorkspaceSummary['kind'], requestId: string, generatorId: string): string {
   const name = workspaceName.toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'creation';
-  return `build/libs/copperbench-delivery-${requestId}/${name}.${kind === 'resource_pack' ? 'zip' : 'jar'}`;
+  // Data packs retain kind=mod in the frozen wire contract; their generator
+  // identifies the ZIP output required by the pack backend.
+  const extension = kind === 'resource_pack' || generatorId.startsWith('datapack-') ? 'zip' : 'jar';
+  return `build/libs/copperbench-delivery-${requestId}/${name}.${extension}`;
 }

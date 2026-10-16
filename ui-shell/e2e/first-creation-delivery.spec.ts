@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /** Controlled native transport fixture; these tests do not write a real workspace or launch Minecraft. */
 async function installFirstCreationFixture(page: Page, options: { missingElement?: boolean; delayedRead?: boolean; rejectRead?: boolean;
-  withoutBinding?: boolean; existingElement?: boolean; buildState?: 'running' | 'succeeded' | 'failed'; withoutInputIdentity?: boolean; delayCancellation?: boolean } = {}) {
+  withoutBinding?: boolean; existingElement?: boolean; buildState?: 'running' | 'succeeded' | 'failed'; withoutInputIdentity?: boolean; delayCancellation?: boolean; generatorId?: string } = {}) {
   await page.addInitScript((options) => {
     const fixtureWindow = window as unknown as Record<string, any>;
     const workspaceId = '11111111-1111-4111-8111-111111111112';
@@ -27,6 +27,7 @@ async function installFirstCreationFixture(page: Page, options: { missingElement
     let fixturePromise: Promise<any> | undefined;
     const fixture = () => fixturePromise ??= import('/src/mock/mockBridge.ts').then(async ({ MockCoreBridge }) => {
       const bridge = new MockCoreBridge(); bridge.loadScenario('empty-workspace');
+      if (options.generatorId) bridge.getState().workbench!.workspace.generator.id = options.generatorId;
       bridge.onEvent((event: unknown) => listeners.forEach(listener => listener(JSON.stringify(event))));
       if (options.existingElement) {
         const result = await bridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: crypto.randomUUID(), workspaceId,
@@ -247,6 +248,29 @@ test('ordinary export submits the requested relative path and leaves gameplay co
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('compact-run-menu')).toBeFocused();
 });
+
+for (const generatorId of ['datapack-1.20.1', 'datapack-1.21.1', 'datapack-26.1.x']) {
+  test(`${generatorId} ordinary delivery uses ZIP for both initial and renewed paths`, async ({ page }, testInfo) => {
+    await installFirstCreationFixture(page, { withoutBinding: true, generatorId });
+    await page.goto('/');
+    await page.getByTestId('compact-run-menu').click();
+    await page.getByTestId('compact-export-btn').click();
+    const output = page.getByTestId('delivery-output');
+    await expect(output).toHaveValue(/^build\/libs\/copperbench-delivery-[^/]+\/new_fabric_mod\.zip$/);
+    const initial = await output.inputValue();
+    await page.getByRole('button', { name: '使用新的交付路径', exact: true }).click();
+    await expect(output).not.toHaveValue(initial);
+    await expect(output).toHaveValue(/\.zip$/);
+    const selected = await output.inputValue();
+    await page.getByTestId('delivery-export').click();
+    await expect(page.getByTestId('delivery-export-fact')).toContainText('普通导出任务成功');
+    const commands = await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__);
+    expect(commands).toHaveLength(1);
+    expect(commands[0].operation).toBe('export_workspace');
+    expect(commands[0].payload.output).toBe(selected);
+    if (generatorId === 'datapack-1.21.1') await page.screenshot({ path: testInfo.outputPath('datapack-delivery.png') });
+  });
+}
 
 test('a same-name block is inspected and explicitly adopted without another creation or silent binding', async ({ page }) => {
   await installFirstCreationFixture(page, { existingElement: true });

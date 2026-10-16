@@ -45,6 +45,23 @@ class OrdinaryExportDeliveryTest {
         }
     }
 
+    @Test void exportsTheDeclaredArchiveFromACustomBuildDirectoryWithoutBuildLibs() throws Exception {
+        source();
+        Path artifact = root.resolve("build/distributions/custom-mod.jar");
+        try (var gateway = gateway((directory, arguments, timeout, log) -> {
+            write(artifact, "declared custom archive");
+            GradleArchiveOutputFixture.record(arguments, artifact);
+            return new GradleProcessRunner.ProcessResult(0, false);
+        })) {
+            JsonObject task = completed(gateway, gateway.start(WORKSPACE.id(), Operation.EXPORT_WORKSPACE,
+                    payload("exports/custom-mod.jar")));
+            assertEquals("succeeded", task.get("state").getAsString(), task.toString());
+            assertFalse(Files.exists(root.resolve("build/libs")));
+            assertEquals(Files.readString(artifact), Files.readString(root.resolve("exports/custom-mod.jar")));
+            assertEquals("current", fact(task).get("status").getAsString());
+        }
+    }
+
     @Test void newNestedCustomDeliveryAndRepeatedOwnedDeliveryKeepEarlierBuildAndClientInputsCurrent() throws Exception {
         source(); AtomicInteger version = new AtomicInteger(); List<JsonObject> tasks = new ArrayList<>();
         try (var gateway = gateway((directory, arguments, timeout, log) -> {

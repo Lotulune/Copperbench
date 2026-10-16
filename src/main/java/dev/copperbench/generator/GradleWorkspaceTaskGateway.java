@@ -219,7 +219,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 						});
 				if (process.exitCode() != 0)
 					throw new IllegalStateException(backend.displayName() + " build exited " + process.exitCode());
-				if (!backend.buildOutputAvailable(executionRoot))
+				// Mod exports validate the selected archive-task receipt below. Its declared
+				// destination may be elsewhere under build, without a build/libs directory.
+				if (archiveOutput == null && !backend.buildOutputAvailable(executionRoot))
 					throw new IllegalStateException(backend.displayName() + " build did not produce its export artifact");
 				if (operation == Operation.EXPORT_WORKSPACE) {
 					GradleArchiveOutput.Artifact declared = archiveOutput == null ? null : archiveOutput.artifact();
