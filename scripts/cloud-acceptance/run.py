@@ -271,15 +271,17 @@ class Acceptance:
         self.preserved(label + "-data-preservation")
 
     def native(self, target, label, mode):
-        self.run([sys.executable, self.repo / "scripts/cloud-acceptance/native.py", "--product", target,
-                  "--root", self.root / "workspaces" / label, "--evidence", self.evidence / label,
-                  "--mode", mode], label, timeout=7200)
+        try:
+            self.run([sys.executable, self.repo / "scripts/cloud-acceptance/native.py", "--product", target,
+                      "--root", self.root / "workspaces" / label, "--evidence", self.evidence / label,
+                      "--mode", mode], label, timeout=7200)
+        finally:
+            for path in (self.root / "workspaces" / label).rglob("*"):
+                if path.is_file() and (path.suffix == ".mcreator" or path.parent.name in {"elements", "exports"}):
+                    self.sentinels[str(path)] = sha256(path)
         result = json.loads((self.evidence / label / "result.json").read_text(encoding="utf-8"))
         require(result["status"] == "passed", "Native installed-product acceptance failed")
         self.checkpoint(label, nativeResult=str(self.evidence / label / "result.json"))
-        for path in (self.root / "workspaces" / label).rglob("*"):
-            if path.is_file() and (path.suffix == ".mcreator" or path.parent.name in {"elements", "exports"}):
-                self.sentinels[str(path)] = sha256(path)
 
     def setup_lifecycle(self):
         current, previous = self.args.release_tag, self.args.previous_release_tag
@@ -313,8 +315,10 @@ class Acceptance:
         self.preserved("upgrade-data-preservation")
         remove_owned_tree(self.bundles[current]["root"], self.root)
         archive.unlink()
-        self.native(target, "upgraded-native", self.args.native_mode)
-        self.uninstall(current, target, "upgraded-uninstall")
+        try:
+            self.native(target, "upgraded-native", self.args.native_mode)
+        finally:
+            self.uninstall(current, target, "upgraded-uninstall")
 
     def deb_lifecycle(self):
         target = Path("/opt/copperbench")

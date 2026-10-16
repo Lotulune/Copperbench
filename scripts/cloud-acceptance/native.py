@@ -154,6 +154,13 @@ def main():
 
     def datapack(generator, mod_id):
         path = create(generator, mod_id)
+        if generator == "datapack-1.20.1":
+            # Recreate the released 0.1.7 wrapper, including when testing a newer installer.
+            legacy = repo / "scripts/cloud-acceptance/fixtures/legacy-datapack-wrapper.properties"
+            wrapper = path.parent / "gradle/wrapper/gradle-wrapper.properties"
+            shutil.copyfile(legacy, wrapper)
+            save(evidence / (mod_id + "-legacy-wrapper-preparation.json"),
+                 {"fixtureSha256": sha256(legacy), "wrapper": str(wrapper), "scope": "Preparation only; product must upgrade the legacy wrapper"})
         with session(path) as workspace:
             created = workspace.create_mod_element(elementType="function", name="cloud_ping", initialValues={})
             element_id = created["data"]["element"]["id"]
@@ -181,9 +188,17 @@ def main():
         if args.mode == "smoke":
             datapack("datapack-1.21.1", "cloud_smoke")
         elif args.mode == "packs":
+            failures = []
             for generator, mod_id in [("datapack-1.20.1", "cloud_dp1201"), ("datapack-1.21.1", "cloud_dp1211"),
                                       ("datapack-26.1.x", "cloud_dp261")]:
-                datapack(generator, mod_id)
+                try:
+                    datapack(generator, mod_id)
+                except Exception as error:
+                    failures.append(generator)
+                    save(evidence / (mod_id + "-failure.json"), {"status": "failed", "error": str(error),
+                         "traceback": traceback.format_exc(), "details": getattr(error, "details", None)})
+                    record["checks"].append({"name": generator + "-zip", "status": "failed", "error": str(error)})
+            require(not failures, "Data-pack acceptance failed: " + ", ".join(failures))
         else:
             path = create("fabric-1.21.1", "m1_delivery")
             fixture_dir = repo / "examples/agent-readiness/m1-delivery"
