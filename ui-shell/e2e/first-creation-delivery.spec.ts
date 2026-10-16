@@ -56,13 +56,13 @@ async function installFirstCreationFixture(page: Page, options: { missingElement
     const seed = { workspaceFile, modId: 'first_creation', showOnOpen: true, clients: [],
       ...(options.buildState ? { build: { id: buildId, inputRevision: 0 } } : {}),
       ...(options.missingElement ? { elementId: '99999999-9999-4999-8999-999999999999' } : {}) };
-    let saved: typeof seed | null = options.withoutBinding ? null : seed;
+    let saved: typeof seed | null = options.withoutBinding ? null : JSON.parse(sessionStorage.getItem('fixture-first-creation') ?? JSON.stringify(seed));
     fixtureWindow.__COPPERBENCH_FIRST_CREATION_HOST__ = { workspaceFile, workspaceId,
       read: async () => { fixtureWindow.__FIRST_CREATION_READS__++; await readGate;
         if (options.rejectRead) throw new Error('Damaged stored reference fixture');
         if (saved?.build) saved.build.inputRevision = (await fixture()).getState().workbench.workspace.revision;
         return saved; },
-      save: async (binding: typeof seed) => { saved = JSON.parse(JSON.stringify(binding)); fixtureWindow.__FIRST_CREATION_SAVES__.push(saved); },
+      save: async (binding: typeof seed) => { saved = JSON.parse(JSON.stringify(binding)); fixtureWindow.__FIRST_CREATION_SAVES__.push(saved); sessionStorage.setItem('fixture-first-creation', JSON.stringify(saved)); },
       observeInputs: async (ids: string[]) => {
         fixtureWindow.__INPUT_OBSERVATIONS__++;
         const bridge = await fixture();
@@ -107,35 +107,23 @@ async function installFirstCreationFixture(page: Page, options: { missingElement
   }, options);
 }
 
-test('browser entry shows the guide while unavailable host actions stay disabled', async ({ page }) => {
+test('workspace overview has no startup cards or permanent first-creation option', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByTestId('hub-open-workspace')).toBeDisabled();
-  await expect(page.getByTestId('hub-connect-agent')).toBeDisabled();
-  await page.getByTestId('hub-first-creation').click();
-  await expect(page.getByTestId('first-creation-begin')).toBeDisabled();
-  await page.keyboard.press('Escape');
-  await expect(page.getByTestId('hub-first-creation')).toBeFocused();
+  for (const id of ['hub-open-workspace', 'hub-connect-agent', 'hub-first-creation', 'nav-first-creation', 'first-creation-overlay']) {
+    await expect(page.getByTestId(id)).toHaveCount(0);
+  }
   await page.getByTestId('compact-run-menu').click();
   await expect(page.getByTestId('compact-export-btn')).toBeDisabled();
 });
 
-test('native first-creation defaults preserve directory choice and require existing approval', async ({ page }) => {
+test('ordinary native workspaces do not offer a separate first-creation project', async ({ page }) => {
   await installFirstCreationFixture(page, { withoutBinding: true });
   await page.goto('/');
-  await page.getByTestId('hub-first-creation').click();
-  await page.getByTestId('first-creation-begin').click();
-  await expect(page.getByTestId('new-workspace-mod-name-input')).toHaveValue('First Creation');
-  await expect(page.getByTestId('new-workspace-mod-id-input')).toHaveValue('first_creation');
-  await expect(page.getByTestId('new-workspace-package-input')).toHaveValue('com.example.firstcreation');
-  await expect(page.getByTestId('selected-generator-info')).toContainText('fabric-1.21.1');
-  await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
-  await page.getByTestId('new-workspace-folder-input').fill('D:/Creations/chosen_empty_directory');
-  await page.getByTestId('nav-hub').click();
-  await page.getByTestId('nav-new-workspace').click();
-  await expect(page.getByTestId('new-workspace-folder-input')).toHaveValue('D:/Creations/chosen_empty_directory');
-  await expect(page.getByTestId('create-workspace-submit-btn')).toBeDisabled();
-  await page.getByTestId('confirm-create-workspace-checkbox').check();
-  await expect(page.getByTestId('create-workspace-submit-btn')).toBeEnabled();
+  await expect(page.getByTestId('nav-hub')).toBeVisible();
+  await expect(page.getByTestId('first-creation-overlay')).toHaveCount(0);
+  await expect(page.getByTestId('first-creation-begin')).toHaveCount(0);
+  await expect(page.getByTestId('workspace-entry-actions')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
 });
 
 test('delayed native reference reads never save empty defaults over the existing file', async ({ page }) => {
@@ -150,30 +138,21 @@ test('delayed native reference reads never save empty defaults over the existing
   await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1)?.elementId)).toBe('99999999-9999-4999-8999-999999999999');
 });
 
-test('closing the guide before native references arrive preserves the dismissal and all original references', async ({ page }) => {
-  await installFirstCreationFixture(page, { delayedRead: true, missingElement: true, buildState: 'succeeded' });
+test('skipping the one-time guide persists across reload without discarding references', async ({ page }) => {
+  await installFirstCreationFixture(page, { missingElement: true, buildState: 'succeeded' });
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_READS__)).toBeGreaterThan(0);
-  await page.getByTestId('nav-first-creation').click();
   await expect(page.getByTestId('first-creation-overlay')).toBeVisible();
   await page.getByTestId('first-creation-close').click();
   await expect(page.getByTestId('first-creation-overlay')).toHaveCount(0);
-  await page.getByTestId('nav-elements').click();
-  await page.getByTestId('nav-elements').focus();
-  expect(await page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.length)).toBe(0);
-  await page.evaluate(() => (window as any).__RELEASE_FIRST_CREATION_READ__());
+  await expect(page.getByTestId('continue-first-creation')).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1)?.showOnOpen)).toBe(false);
-  await expect(page.getByTestId('first-creation-overlay')).toHaveCount(0);
-  await expect(page.getByTestId('nav-elements')).toBeFocused();
   const saved = await page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1));
   expect(saved.elementId).toBe('99999999-9999-4999-8999-999999999999');
   expect(saved.build.id).toBe('66666666-6666-4666-8666-666666666666');
-  expect(saved.workspaceFile).toBe('D:/MockWorkspace/first_creation.mcreator');
-  expect(saved.clients).toEqual([]);
-  expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
-  await page.getByTestId('nav-first-creation').click();
-  await expect(page.getByTestId('first-creation-overlay')).toBeVisible();
-  await expect(page.getByTestId('first-creation-step-element')).toContainText('原元素已删除');
+  await page.reload();
+  await expect(page.getByTestId('nav-hub')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_READS__)).toBeGreaterThan(0);
+  await expect(page.getByTestId('first-creation-overlay')).toHaveCount(0);
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
 });
 
@@ -181,8 +160,7 @@ test('failed native reads preserve data and never issue a preference save or pro
   await installFirstCreationFixture(page, { rejectRead: true });
   await page.goto('/');
   await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_READS__)).toBeGreaterThan(0);
-  await page.getByTestId('nav-first-creation').click();
-  await expect(page.getByRole('dialog')).toContainText('已保留原文件');
+  await expect(page.getByTestId('first-creation-overlay')).toHaveCount(0);
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.length)).toBe(0);
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
 });
@@ -196,11 +174,11 @@ test('created element references survive guide close, navigation and language ch
   const originalId = await page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1)?.elementId);
   await page.getByTestId('ui-language-select').selectOption('en');
   await page.getByTestId('nav-hub').click();
-  await page.getByTestId('nav-first-creation').click();
-  await expect(page.getByTestId('first-creation-step-element')).toContainText('Real element created');
+  await page.getByTestId('continue-first-creation').click();
+  await expect(page.getByTestId('first-creation-step-element')).toContainText('Block created');
   await expect(page.getByTestId('first-creation-create-element')).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await expect(page.getByTestId('nav-first-creation')).toBeFocused();
+  await expect(page.getByTestId('continue-first-creation')).toHaveCount(0);
   const references = await page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1));
   expect(references.elementId).toBe(originalId);
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.filter((request: any) => request.operation === 'create_mod_element').length)).toBe(1);
@@ -280,7 +258,7 @@ test('a same-name block is inspected and explicitly adopted without another crea
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1)?.elementId)).toBeUndefined();
   await page.getByRole('button', { name: '检查已有元素' }).click();
   await expect(page.getByTestId('element-inspector')).toBeVisible();
-  await page.getByTestId('nav-first-creation').click();
+  await page.getByTestId('continue-first-creation').click();
   await page.getByTestId('first-creation-use-existing').click();
   await expect(page.getByTestId('first-creation-open-element')).toBeVisible();
   await expect.poll(() => page.evaluate(() => (window as any).__FIRST_CREATION_SAVES__.at(-1)?.elementId)).toBe(await page.evaluate(() => (window as any).__EXISTING_ELEMENT_ID__));
@@ -293,6 +271,7 @@ test('successful old input retains its actual task status and original logs', as
   await expect(page.getByTestId('first-creation-step-build')).toContainText('任务成功 · 输入已核对');
   const revision = await page.evaluate(() => (window as any).__FIXTURE_REVISION__());
   await page.evaluate(() => { (window as any).__CURRENT_INPUT_SHA__ = 'b'.repeat(64); });
+  await page.getByTestId('first-creation-details').locator('summary').first().click();
   await page.getByTestId('first-creation-refresh-inputs').click();
   await expect(page.getByTestId('first-creation-step-build')).toContainText('任务成功 · 输入随后发生变化');
   expect(await page.evaluate(() => (window as any).__FIXTURE_REVISION__())).toBe(revision);
@@ -300,7 +279,7 @@ test('successful old input retains its actual task status and original logs', as
   await expect(page.getByTestId('task-current-state')).toHaveText(/Completed|完成|成功/);
   await expect(page.getByTestId('task-log-stream')).toContainText('Original fixture build log');
   await page.getByTestId('task-drawer-close').click();
-  await page.getByTestId('nav-first-creation').click();
+  await page.getByTestId('continue-first-creation').click();
   await expect(page.getByTestId('first-creation-step-build')).toContainText('任务成功 · 输入随后发生变化');
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
 });
@@ -313,7 +292,7 @@ test('a failed build is a separate lifecycle and retains its failed state and or
   await expect(page.getByTestId('task-current-state')).toHaveText(/Failed|失败/);
   await expect(page.getByTestId('task-log-stream')).toContainText('Original fixture failed build log');
   await page.getByTestId('task-drawer-close').click();
-  await page.getByTestId('nav-first-creation').click();
+  await page.getByTestId('continue-first-creation').click();
   await expect(page.getByTestId('first-creation-step-build')).toContainText('任务失败 · 查看日志');
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
 });
@@ -340,6 +319,7 @@ test('a successful legacy task without an input identity remains unknown', async
   await installFirstCreationFixture(page, { buildState: 'succeeded', withoutInputIdentity: true });
   await page.goto('/');
   await expect(page.getByTestId('first-creation-step-build')).toContainText('任务成功 · 输入状态待确认');
+  await page.getByTestId('first-creation-nav-behavior').click();
   await expect(page.getByTestId('first-creation-confirm-placed')).toBeDisabled();
   await expect(page.getByTestId('first-creation-confirm-persisted')).toBeDisabled();
 });
@@ -368,4 +348,48 @@ test('missing historical compatibility remains unknown instead of using the curr
   await expect(page.getByTestId('export-receipt-compatibility')).not.toContainText('1.21.1');
   await page.getByTestId('ui-language-select').selectOption('en');
   await expect(page.getByTestId('export-receipt-compatibility')).toContainText('Not recorded in receipt');
+});
+
+for (const theme of ['light', 'dark']) {
+  test(`compact first-creation dialog has one surface and visible controls in ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width: 960, height: 600 });
+    await installFirstCreationFixture(page);
+    await page.goto('/');
+    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+    const dialog = page.getByRole('dialog', { name: '第一件作品', exact: true });
+    await expect(dialog).toBeVisible();
+    const geometry = await dialog.evaluate(element => {
+      const box = element.getBoundingClientRect(), style = getComputedStyle(element);
+      const overlay = element.parentElement!;
+      return { left: box.left, top: box.top, right: box.right, bottom: box.bottom,
+        width: window.innerWidth, height: window.innerHeight, shadow: style.boxShadow,
+        dialogs: overlay.querySelectorAll('[role="dialog"]').length };
+    });
+    expect(geometry.dialogs).toBe(1);
+    expect(geometry.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.top).toBeGreaterThanOrEqual(0);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.width);
+    expect(geometry.bottom).toBeLessThanOrEqual(geometry.height);
+    expect(geometry.shadow).not.toContain('5px 5px 0px');
+    await expect(page.getByTestId('first-creation-close')).toBeInViewport();
+    await expect(page.getByTestId('first-creation-skip')).toBeInViewport();
+    await expect(page.getByTestId('first-creation-create-element')).toBeInViewport();
+    await page.screenshot({ path: `../output/startup-update-fix/first-creation-${theme}.png` });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect(await dialog.evaluate(element => getComputedStyle(element).animationName)).toBe('none');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+  });
+}
+
+test('settings opens the native updater without changing workspace state', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as any).__UPDATE_ACTIONS__ = [];
+    (window as any).__COPPERBENCH_WINDOW_HOST__ = { systemFrame: false, updatesAvailable: true,
+      invoke: async (action: string) => { (window as any).__UPDATE_ACTIONS__.push(action); } };
+  });
+  await page.goto('/');
+  await page.getByTestId('nav-settings').click();
+  await page.getByTestId('settings-check-updates').click();
+  expect(await page.evaluate(() => (window as any).__UPDATE_ACTIONS__)).toEqual(['check_updates']);
 });

@@ -34,6 +34,7 @@ if (metadata.platform?.os !== 'linux' || metadata.platform?.arch !== 'x86_64') f
 
 const requiredRoles = ['portable', 'deb', 'sbom', 'manifest'];
 if (metadata.assets?.setup) requiredRoles.push('setup');
+requiredRoles.push(...Object.keys(metadata.assets ?? {}).filter(role => /^update\d+$/.test(role)));
 if (Object.keys(metadata.assets ?? {}).sort().join(',') !== requiredRoles.slice().sort().join(','))
   fail(`asset roles must be exactly ${requiredRoles.join(', ')}`);
 
@@ -43,6 +44,7 @@ for (const role of requiredRoles) {
   if (!/^[0-9a-f]{64}$/.test(entry.sha256 ?? '')) fail(`${role} SHA-256 is invalid`);
   if (!Number.isSafeInteger(entry.size) || entry.size < 0) fail(`${role} size is invalid`);
   if (!entry.name || basename(entry.name) !== entry.name) fail(`${role} name is not a leaf filename`);
+  if (role.startsWith('update') && !/^copperbench-update-linux-x64(?:-[a-z0-9.-]+\.zip|\.properties)$/.test(entry.name)) fail(`${role} has an invalid update asset name`);
   const path = resolve(exportDir, entry.name);
   const stats = statSync(path);
   if (!stats.isFile()) fail(`${role} asset is missing`);

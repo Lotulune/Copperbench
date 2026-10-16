@@ -32,6 +32,8 @@ launch4j {
 }
 
 tasks.register('exportWin64', Copy.class) {
+    dependsOn installerJar
+    dependsOn 'buildUpdateHostWin64'
     dependsOn downloadJDKWin64
     dependsOn downloadJDK21Win64
     dependsOn createAllExecutables
@@ -45,10 +47,13 @@ tasks.register('exportWin64', Copy.class) {
         from file('build/launch4j/copperbench.exe')
         from file('gradlew')
         from file('gradlew.bat')
+        from file('build/installer/copperbench-setup.jar')
+        from file('build/installer/copperbench-update-host.exe')
     }
     into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('lib') {
-        from 'build/libs'
+        from tasks.named('jar')
+        from tasks.named('localIpcAgentJar')
         from configurations.export
         from configurations.win64
     }
@@ -78,7 +83,23 @@ tasks.register('exportWin64', Copy.class) {
 
     doLast {
         signFile(file('build/export/win64/copperbench.exe'))
+        signFile(file('build/export/win64/copperbench-update-host.exe'))
     }
+}
+
+tasks.register('buildUpdateHostWin64', Exec.class) {
+    dependsOn downloadNSIS
+    commandLine 'node', 'platform/installer/build-update-host.mjs', project.productVersion
+    inputs.files('platform/installer/bootstrap.nsi', 'platform/installer/build-update-host.mjs')
+    inputs.property('version', project.productVersion)
+    outputs.file('build/installer/copperbench-update-host.exe')
+}
+
+tasks.register('buildWindowsUpdates', JavaExec.class) {
+    dependsOn exportWin64
+    classpath = sourceSets.installer.runtimeClasspath
+    mainClass = 'dev.copperbench.installer.UpdatePackageBuilder'
+    args file('build/export/win64'), project.productVersion, 'windows-x64', file('build/export')
 }
 
 tasks.register('exportWindowsZip', Zip.class) {
@@ -165,6 +186,7 @@ tasks.register('exportWindows') {
     group = 'export'
 
     dependsOn exportWindowsZip
+    dependsOn buildWindowsUpdates
 
     // Add installer only if this is not a snapshot build (and not MacOS that does not support makensis)
     if (!project.snapshot && !Os.isFamily(Os.FAMILY_MAC)) {

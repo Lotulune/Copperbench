@@ -16,7 +16,7 @@ Copperbench 当前稳定版为 **0.1.7**，各平台已核验的公开链接见[
 
 1. Windows：运行 EXE 安装包，或解压 Portable ZIP 后启动 `copperbench.exe`。Ubuntu：使用 [图形安装向导](./graphical-installation.md)，或按 [Linux 安装说明](./linux-installation.md)安装 `.deb`、使用便携版 `.tar.gz`。
 2. 选择是否使用中国大陆镜像。Windows 偏好设置默认位于 `%USERPROFILE%\.copperbench`；Linux 默认位于 `~/.config/copperbench`，并遵循 `XDG_CONFIG_HOME`。显式用户目录覆盖和旧设置迁移见 [Linux 安装说明](./linux-installation.md)。
-3. 首作可选择启动窗口中的「第一件作品 · 步道方块」，使用 Fabric 1.21.1 预设；该快捷入口从 0.1.6 起提供。没有该入口时，在「新建工作区」中手动选择 Fabric 1.21.1。其他工程仍可选择所需 Fabric/NeoForge 轨道或资源包。
+3. 新用户首启引导中的「开始创作」使用 Fabric 1.21.1 预设；这是尚未发布的源码改动。跳过引导后，在「新建工作区」中手动选择 Fabric 1.21.1。其他工程仍可选择所需 Fabric/NeoForge 轨道或资源包。
 4. 填写名称、ID、Java 包名和工作区目录，确认后创建。
 5. 按[第一件作品：步道方块](./first-creation.md)保存、构建，在游戏中取得／放置，再正常退出客户端并启动新进程重开同一个世界。最后按[构建失败与导出](build-and-export.md)交付 JAR。
 

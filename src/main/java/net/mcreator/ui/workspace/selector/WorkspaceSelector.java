@@ -120,11 +120,6 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		actions.add("North", newWorkspace);
 		actions.add("Center", subactions);
 
-		addWorkspaceButton(dev.copperbench.shell.UiLocalePreferences.text("第一件作品 · 步道方块", "First creation · Trail Block"), UIRES.get("wrk_add"), _ -> {
-			NewWorkspaceDialog dialog = new NewWorkspaceDialog(this, true);
-			if (dialog.getWorkspaceFile() != null) workspaceOpenListener.workspaceOpened(dialog.getWorkspaceFile());
-		});
-
 		addWorkspaceButton(L10N.t("dialog.workspace_selector.open_workspace"), UIRES.get("opnwrk"), _ -> {
 			File workspaceFile = FileDialogs.getOpenDialog(this, new String[] { ".mcreator" });
 			if (workspaceFile != null && workspaceFile.getParentFile().isDirectory())
@@ -145,30 +140,34 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		});
 
 		JPanel logoPanel = new JPanel(new BorderLayout(5, 5));
-		JLabel logo = new JLabel(UIRES.SVG.getBuiltIn("logo", 250, (int) (250 * (63 / 350.0))));
+		JLabel logo = new JLabel("COPPERBENCH", SwingConstants.CENTER);
+		logo.setFont(logo.getFont().deriveFont(Font.BOLD, 26f));
+		logo.setForeground(Theme.current().getForegroundColor());
 		logoPanel.add("North", logo);
 
-		logoPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+		logoPanel.setBorder(BorderFactory.createEmptyBorder(12, 0, 28, 0));
 
 		JPanel southcenter = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-		JLabel prefs = new JLabel(L10N.t("dialog.workspace_selector.preferences"));
+		JButton prefs = new JButton(L10N.t("dialog.workspace_selector.preferences"));
 		prefs.setIcon(UIRES.get("settings"));
 		prefs.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		ComponentUtils.deriveFont(prefs, 13);
 		prefs.setForeground(Theme.current().getForegroundColor());
-		prefs.setBorder(BorderFactory.createEmptyBorder());
+		prefs.setMargin(new Insets(8, 10, 8, 10));
 		prefs.setHorizontalTextPosition(JLabel.LEFT);
-		prefs.addMouseListener(new MouseAdapter() {
-			@Override public void mouseClicked(MouseEvent mouseEvent) {
-				new PreferencesDialog(WorkspaceSelector.this);
-			}
-		});
+		prefs.addActionListener(_ -> new PreferencesDialog(WorkspaceSelector.this));
+		JButton updates = new JButton(dev.copperbench.shell.UiLocalePreferences.text("检查更新", "Check for updates"));
+		updates.setName("check-product-updates");
+		updates.setMargin(new Insets(8, 10, 8, 10));
+		updates.addActionListener(_ -> dev.copperbench.shell.ProductUpdateDialog.show(this));
+		southcenter.add(updates);
 		southcenter.add(prefs);
 
 		JPanel southcenterleft = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-		JLabel version = new JLabel(ProductIdentity.displayVersion());
+		JLabel version = new JLabel(ProductIdentity.VERSION);
+		version.setToolTipText(ProductIdentity.displayVersion());
 		version.addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent mouseEvent) {
 				AboutAction.showDialog(WorkspaceSelector.this);
@@ -186,26 +185,31 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		// Copperbench 2026-09-13: optional modeling setup must also exist before a workspace is opened.
 		JPanel optionalTools = new JPanel(new BorderLayout(0, 8));
 		optionalTools.setOpaque(false);
-		JPanel alignedModelingSetup = new JPanel(new BorderLayout()) {
-			@Override public Insets getInsets() {
-				Insets insets = super.getInsets();
-				// Match the left edge of the centered workspace actions above.
-				insets.left += Math.max(0, (getWidth() - actions.getPreferredSize().width) / 2);
-				return insets;
-			}
-		};
+		JPanel alignedModelingSetup = new JPanel(new BorderLayout());
 		alignedModelingSetup.setOpaque(false);
 		alignedModelingSetup.add(new dev.copperbench.shell.BlockbenchStartupPanel(
 				dev.copperbench.assets.BlockbenchConfiguration.productDefault(),
 				() -> dev.copperbench.shell.BlockbenchStartupPanel.showGuide(this)), BorderLayout.CENTER);
-		optionalTools.add(alignedModelingSetup, BorderLayout.CENTER);
 		optionalTools.add(southSubComponent, BorderLayout.SOUTH);
 		southSubComponent = optionalTools;
 
 		southSubComponent.setBorder(BorderFactory.createEmptyBorder(0, 25, 20, 25));
 
-		JComponent centerComponent = PanelUtils.centerAndSouthElement(
-				PanelUtils.northAndCenterElement(logoPanel, PanelUtils.totalCenterInPanel(actions)), southSubComponent);
+		JPanel start = new JPanel(new BorderLayout(0, 24));
+		start.add(logoPanel, BorderLayout.NORTH);
+		start.add(actions, BorderLayout.CENTER);
+		start.add(alignedModelingSetup, BorderLayout.SOUTH);
+		start.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+		JPanel centered = new JPanel(new GridBagLayout());
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.weightx = 1;
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		centered.add(start, constraints);
+		JScrollPane contentScroll = new JScrollPane(centered);
+		contentScroll.setBorder(BorderFactory.createEmptyBorder());
+		contentScroll.getVerticalScrollBar().setUnitIncrement(16);
+		contentScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		JComponent centerComponent = PanelUtils.centerAndSouthElement(contentScroll, southSubComponent);
 
 		notificationsRenderer = new NotificationsRenderer(centerComponent);
 
@@ -294,8 +298,6 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		recentPanel.add("norecentsloaded", PanelUtils.totalCenterInPanel(norecentsloaded));
 		recentPanel.add("norecents", PanelUtils.totalCenterInPanel(norecents));
 
-		initWebsitePanel();
-
 		add("West", recentPanel);
 
 		new DropTarget(this, DnDConstants.ACTION_MOVE, this, true, null);
@@ -306,24 +308,33 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 			@Override public void windowActivated(WindowEvent e) {
 				super.windowActivated(e);
 				reloadRecents();
-				newWorkspace.requestFocusInWindow();
+				if (getGlassPane() instanceof dev.copperbench.shell.StartupTour tour && tour.isVisible()) tour.focusNext();
+				else newWorkspace.requestFocusInWindow();
 			}
 		});
 
-		setSize(795, 460);
-		setResizable(false);
+		Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		setMinimumSize(new Dimension(Math.min(760, screen.width), Math.min(520, screen.height)));
+		setSize(Math.min(960, screen.width), Math.min(660, screen.height));
+		setResizable(true);
 		setLocationRelativeTo(null);
 
-		if (OS.getOS() == OS.WINDOWS) {
-			getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
-			centerComponent.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-		} else if (OS.getOS() == OS.MAC && SystemInfo.isMacFullWindowContentSupported) {
+		if (OS.getOS() == OS.MAC && SystemInfo.isMacFullWindowContentSupported) {
 			getRootPane().putClientProperty("apple.awt.fullWindowContent", true);
 			getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
 			getRootPane().putClientProperty("apple.awt.windowTitleVisible", false);
 			recentPanel.setBorder(BorderFactory.createEmptyBorder(22, 0, 0, 0));
 			centerComponent.setBorder(BorderFactory.createEmptyBorder(22, 0, 0, 0));
 		}
+		addWindowListener(new WindowAdapter() {
+			@Override public void windowOpened(WindowEvent event) {
+				if (dev.copperbench.shell.FirstRunOnboarding.claim())
+					dev.copperbench.shell.StartupTour.show(WorkspaceSelector.this, newWorkspace, () -> {
+						NewWorkspaceDialog dialog = new NewWorkspaceDialog(WorkspaceSelector.this, true);
+						if (dialog.getWorkspaceFile() != null) workspaceOpenListener.workspaceOpened(dialog.getWorkspaceFile());
+					});
+			}
+		});
 	}
 
 	private void importWorkspaceFromZip(File file) {
@@ -513,7 +524,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		JButton newWorkspace = new JButton(text);
 		ComponentUtils.deriveFont(newWorkspace, 13);
 		newWorkspace.setBackground(Theme.current().getBackgroundColor());
-		newWorkspace.setPreferredSize(new Dimension(240, 48));
+		newWorkspace.setMargin(new Insets(14, 16, 14, 16));
 		newWorkspace.setIcon(icon);
 		newWorkspace.addActionListener(event);
 		newWorkspace.setVerticalTextPosition(SwingConstants.CENTER);
@@ -534,7 +545,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		JButton workspaceButton = new JButton(text);
 		ComponentUtils.deriveFont(workspaceButton, 11);
 		workspaceButton.setBackground(Theme.current().getBackgroundColor());
-		workspaceButton.setPreferredSize(new Dimension(240, 22));
+		workspaceButton.setMargin(new Insets(10, 16, 10, 16));
 		workspaceButton.setIcon(
 				ImageUtils.drawOver(new EmptyIcon.ImageIcon(45, 16), icon, 45 / 2 - 16 / 2 + 2, 0, 16, 16));
 		workspaceButton.addActionListener(event);
@@ -542,7 +553,6 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		workspaceButton.setHorizontalTextPosition(SwingConstants.RIGHT);
 		workspaceButton.setHorizontalAlignment(SwingConstants.LEFT);
 		workspaceButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		workspaceButton.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 		subactions.add(workspaceButton);
 	}
 

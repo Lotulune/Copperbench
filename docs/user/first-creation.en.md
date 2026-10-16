@@ -8,7 +8,7 @@ Version 0.1.6 provides the native First creation entry, closable workspace guide
 
 ## Create an isolated workspace
 
-Choose **First creation · Trail Block** if available, check the preset, choose a new empty directory and confirm creation. Otherwise use **New workspace**:
+New users see an animated spotlight tour on their first launch. Choose **Start creating**, check the preset, choose a new empty directory and confirm creation. After skipping, you can use **New workspace** manually:
 
 | Input | Value |
 | --- | --- |
@@ -18,7 +18,7 @@ Choose **First creation · Trail Block** if available, check the preset, choose 
 | Java package | `com.example.firstcreation` |
 | Directory | A new empty directory, such as `D:\CopperbenchWorkspaces\first_creation` or `/home/yourname/CopperbenchWorkspaces/first_creation` |
 
-The new workspace should open with Fabric 1.21.1 active. If that generator is absent, check the installed package/plugins instead of substituting a resource-pack generator. In an existing workspace, its home card or **First creation** navigation opens the guide. You can close/skip and reopen it. It does not recreate the workspace or automatically recreate a previously recorded element that was deleted.
+The new workspace should open with Fabric 1.21.1 active. If that generator is absent, check the installed package/plugins instead of substituting a resource-pack generator. The first-creation workspace continues that tour. A temporary **Continue tour** control returns from editing or task details. Closing or skipping ends the tour; later launches do not reopen it. Ordinary workspace overviews have no first-creation or open-workspace cards. Deleted elements are never recreated automatically.
 
 ## Create and save the block
 

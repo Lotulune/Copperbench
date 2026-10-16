@@ -11,6 +11,8 @@ interface FirstCreationContextValue {
   guideOpen: boolean;
   openGuide: (workspaceFile?: string) => void;
   closeGuide: () => void;
+  pauseGuide: () => void;
+  tourActive: boolean;
   creationIntent: boolean;
   beginCreation: () => void;
   leaveCreation: () => void;
@@ -53,6 +55,7 @@ export function FirstCreationProvider({ children }: { children: React.ReactNode 
   const [localStorageReady] = useState(initial.error === null);
   const [referenceError, setReferenceError] = useState<UiMessage | null>(initial.error);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
   const [guideWorkspaceFile, setGuideWorkspaceFile] = useState<string | null>(null);
   const [creationIntent, setCreationIntent] = useState(false);
   const [workspaceRoot, setWorkspaceRoot] = useState('');
@@ -165,7 +168,9 @@ export function FirstCreationProvider({ children }: { children: React.ReactNode 
     autoOpenedWorkspace.current = workspaceId;
     if (currentBinding.showOnOpen && !dismissedGuideWorkspaces.current.has(workspaceId)) {
       setGuideWorkspaceFile(currentBinding.workspaceFile);
+      setTourActive(true);
       setGuideOpen(true);
+      updateBinding(currentBinding.workspaceFile, value => ({ ...value, showOnOpen: false }));
     }
   }, [currentBinding, workspaceId, native, updateBinding]);
 
@@ -221,12 +226,16 @@ export function FirstCreationProvider({ children }: { children: React.ReactNode 
   }, [guideOpen, deliveryOpen, native]);
 
   const openGuide = useCallback((file?: string) => {
+    if (!currentBinding || !workspaceId || !bindingMatchesWorkspace(currentBinding, workspaceId, workspaceRoot)) return;
     setGuideWorkspaceFile(file ?? currentBinding?.workspaceFile ?? null);
+    setTourActive(true);
     setGuideOpen(true);
-  }, [currentBinding]);
+  }, [currentBinding, workspaceId, workspaceRoot]);
+  const pauseGuide = useCallback(() => setGuideOpen(false), []);
   const closeGuide = useCallback(() => {
     if (workspaceId) dismissedGuideWorkspaces.current.add(workspaceId);
     setGuideOpen(false);
+    setTourActive(false);
     if (binding) updateBinding(binding.workspaceFile, value => ({ ...value, showOnOpen: false }));
   }, [binding, updateBinding, workspaceId]);
   const beginCreation = useCallback(() => {
@@ -273,11 +282,11 @@ export function FirstCreationProvider({ children }: { children: React.ReactNode 
   const openWorkspaceOpen = useCallback(() => setWorkspaceOpen(true), []);
   const closeWorkspaceOpen = useCallback(() => setWorkspaceOpen(false), []);
 
-  const value = useMemo<FirstCreationContextValue>(() => ({ guideOpen, openGuide, closeGuide, creationIntent, beginCreation,
+  const value = useMemo<FirstCreationContextValue>(() => ({ guideOpen, openGuide, closeGuide, pauseGuide, tourActive, creationIntent, beginCreation,
     leaveCreation, binding, currentBinding, workspaceRoot, referenceError, referencesReady, refreshReferences, bindCreatedWorkspace, bindElement,
     recordTask, deliveryOpen, openDelivery, closeDelivery, inputObservation, inputObservationPending,
     deliveryReference: workspaceId ? deliveries[workspaceId] ?? currentBinding?.export : undefined,
-    workspaceOpen, openWorkspaceOpen, closeWorkspaceOpen, observations, setObservations }), [guideOpen, openGuide, closeGuide, creationIntent, beginCreation,
+    workspaceOpen, openWorkspaceOpen, closeWorkspaceOpen, observations, setObservations }), [guideOpen, openGuide, closeGuide, pauseGuide, tourActive, creationIntent, beginCreation,
     leaveCreation, binding, currentBinding, workspaceRoot, referenceError, referencesReady, refreshReferences, bindCreatedWorkspace, bindElement,
     recordTask, deliveryOpen, openDelivery, closeDelivery, workspaceId, deliveries, workspaceOpen, openWorkspaceOpen, closeWorkspaceOpen, observations, inputObservation, inputObservationPending]);
   return <FirstCreationContext.Provider value={value}>{children}</FirstCreationContext.Provider>;

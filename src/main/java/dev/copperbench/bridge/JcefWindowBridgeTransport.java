@@ -42,7 +42,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	public static final String GESTURE_QUERY_PREFIX = "copperbench:window-gesture:";
 	public static final String PREFERENCES_QUERY_PREFIX = "copperbench:preferences:";
 	public static final String UNSAVED_SOURCE_QUERY_PREFIX = "copperbench:unsaved-source:";
-	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "set_locale_en", "set_locale_zh");
+	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "check_updates", "set_locale_en", "set_locale_zh");
 	private static final Gson JSON = new Gson();
 
 	private final WebView webView;
@@ -258,6 +258,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			}
 			case "close" -> closeAction.run();
 			case "open_preferences" -> new PreferencesDialog(window);
+			case "check_updates" -> dev.copperbench.shell.ProductUpdateDialog.show(window);
 			default -> throw new IllegalArgumentException("Unsupported window action: " + action);
 		}
 	}
@@ -338,6 +339,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				    window.__COPPERBENCH_WINDOW_HOST__ = {
 				        systemFrame: %s,
 				        preferencesAvailable: true,
+				        updatesAvailable: true,
 				        preferencesSchemaVersion: '1.0',
 				        getPreferences: function() { return preferences('get'); },
 				        savePreferences: function(patch) { return preferences('save', patch); },

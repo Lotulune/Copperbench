@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Flag, Plus } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { uiText } from '../i18n';
 import { workbenchNavigation } from './workbenchNavigation';
 import { WorkspaceIconChooser } from './WorkspaceIconChooser';
-import { useFirstCreation } from '../onboarding/FirstCreationContext';
 
 export const NavRail: React.FC = () => {
   const { activeView, setActiveView, state } = useWorkbench();
-  const { openGuide } = useFirstCreation();
   const [toolsOpen, setToolsOpen] = useState(false);
   const aiNavigationRef = useRef<HTMLButtonElement | null>(null);
   const navigation = workbenchNavigation();
@@ -51,7 +49,6 @@ export const NavRail: React.FC = () => {
         <div id="workbench-tools" hidden={!toolsOpen}>{navigation.filter(item => item.group === 'tools').map(renderItem)}</div>
       </div>
     </nav>
-    <div className="nav-utilities"><button type="button" className="nav-item" data-testid="nav-first-creation" onClick={() => openGuide()} aria-label={uiText('第一件作品', 'First creation')}>
-      <Flag size={16} aria-hidden="true" /><span className="nav-item-label">{uiText('第一件作品', 'First creation')}</span></button>{navigation.filter(item => item.id === 'help' || item.id === 'settings').map(renderItem)}</div>
+    <div className="nav-utilities">{navigation.filter(item => item.id === 'help' || item.id === 'settings').map(renderItem)}</div>
   </aside>;
 };
