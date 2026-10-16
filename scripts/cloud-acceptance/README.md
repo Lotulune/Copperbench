@@ -5,6 +5,11 @@ and `previous_release_tag` (for example `v0.1.7` and `v0.1.6`). Empty inputs kee
 the original source-level M1 gates. The reusable workflow tests public assets on
 Windows Server 2025 and Ubuntu 24.04; it does not rebuild Copperbench.
 
+`packs_only=true` is a supplemental Setup lifecycle and three-data-pack run,
+used to collect independent evidence after a mod export fails. It omits the DEB
+lane and mod acceptance, and records `nativeMode=packs`; it cannot replace or
+turn a failed full run into a pass.
+
 `run.py` refuses to change OS registration outside this repository's disposable
 GitHub-hosted runners. It verifies GitHub asset digests and signed provenance
 against the release's source tag and producing workflow/run before execution.

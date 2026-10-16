@@ -9,6 +9,10 @@ on:
       previous_release_tag:
         required: true
         type: string
+      packs_only:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -20,13 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-2025
-            variant: windows-setup
-          - os: ubuntu-24.04
-            variant: linux-setup
-          - os: ubuntu-24.04
-            variant: deb
+        include: ${{ fromJSON(inputs.packs_only && '[{"os":"windows-2025","variant":"windows-setup"},{"os":"ubuntu-24.04","variant":"linux-setup"}]' || '[{"os":"windows-2025","variant":"windows-setup"},{"os":"ubuntu-24.04","variant":"linux-setup"},{"os":"ubuntu-24.04","variant":"deb"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 150
     steps:
@@ -54,10 +52,11 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           PREVIOUS_RELEASE_TAG: ${{ inputs.previous_release_tag }}
           VARIANT: ${{ matrix.variant }}
+          NATIVE_MODE: ${{ inputs.packs_only && 'packs' || 'full' }}
           PYTHONUTF8: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          python scripts/cloud-acceptance/run.py --release-tag $env:RELEASE_TAG --previous-release-tag $env:PREVIOUS_RELEASE_TAG --variant $env:VARIANT
+          python scripts/cloud-acceptance/run.py --release-tag $env:RELEASE_TAG --previous-release-tag $env:PREVIOUS_RELEASE_TAG --variant $env:VARIANT --native-mode $env:NATIVE_MODE
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Accept public Linux package and installed Native Core
         if: runner.os == 'Linux'
@@ -67,11 +66,12 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           PREVIOUS_RELEASE_TAG: ${{ inputs.previous_release_tag }}
           VARIANT: ${{ matrix.variant }}
+          NATIVE_MODE: ${{ inputs.packs_only && 'packs' || 'full' }}
           PYTHONUTF8: '1'
         run: |
           set -euo pipefail
           xvfb-run -a -s '-screen 0 1440x1000x24' python scripts/cloud-acceptance/run.py \
-            --release-tag "$RELEASE_TAG" --previous-release-tag "$PREVIOUS_RELEASE_TAG" --variant "$VARIANT"
+            --release-tag "$RELEASE_TAG" --previous-release-tag "$PREVIOUS_RELEASE_TAG" --variant "$VARIANT" --native-mode "$NATIVE_MODE"
       - name: Preserve acceptance evidence and failures
         if: always()
         uses: actions/upload-artifact@v7

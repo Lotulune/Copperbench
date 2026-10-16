@@ -94,6 +94,7 @@ class Acceptance:
         self.bundles = {}
         self.shortcuts = {}
         self.record = {"kind": "public-release-cloud-acceptance", "status": "running", "variant": args.variant,
+                       "nativeMode": args.native_mode,
                        "releaseTag": args.release_tag, "previousReleaseTag": args.previous_release_tag,
                        "os": platform.platform(), "runnerOS": os.environ.get("RUNNER_OS"),
                        "harnessCommit": os.environ["GITHUB_SHA"], "workflowRun": os.environ["GITHUB_RUN_ID"],
@@ -312,7 +313,7 @@ class Acceptance:
         self.preserved("upgrade-data-preservation")
         remove_owned_tree(self.bundles[current]["root"], self.root)
         archive.unlink()
-        self.native(target, "upgraded-native", "full")
+        self.native(target, "upgraded-native", args.native_mode)
         self.uninstall(current, target, "upgraded-uninstall")
 
     def deb_lifecycle(self):
@@ -391,6 +392,7 @@ def main():
     parser.add_argument("--release-tag", required=True)
     parser.add_argument("--previous-release-tag", required=True)
     parser.add_argument("--variant", choices=["windows-setup", "linux-setup", "deb"], required=True)
+    parser.add_argument("--native-mode", choices=["full", "packs"], default="full")
     args = parser.parse_args()
     release_version(args.release_tag)
     release_version(args.previous_release_tag)

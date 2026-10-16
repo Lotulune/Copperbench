@@ -26,7 +26,7 @@ def main():
     parser.add_argument("--product", type=Path, required=True)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--evidence", type=Path, required=True)
-    parser.add_argument("--mode", choices=["smoke", "full"], required=True)
+    parser.add_argument("--mode", choices=["smoke", "full", "packs"], required=True)
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[2]
     product, root, evidence = args.product.resolve(), args.root.resolve(), args.evidence.resolve()
@@ -180,6 +180,10 @@ def main():
                 evidence / "fixture-compile.log", cwd=product)
         if args.mode == "smoke":
             datapack("datapack-1.21.1", "cloud_smoke")
+        elif args.mode == "packs":
+            for generator, mod_id in [("datapack-1.20.1", "cloud_dp1201"), ("datapack-1.21.1", "cloud_dp1211"),
+                                      ("datapack-26.1.x", "cloud_dp261")]:
+                datapack(generator, mod_id)
         else:
             path = create("fabric-1.21.1", "m1_delivery")
             fixture_dir = repo / "examples/agent-readiness/m1-delivery"

@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: ''
+      packs_only:
+        description: 'Supplemental data-pack/lifecycle checks only; does not replace the full Core gate'
+        type: boolean
+        required: false
+        default: false
   pull_request:
     branches: [main]
     paths:
@@ -167,3 +172,4 @@ jobs:
     with:
       release_tag: ${{ inputs.release_tag }}
       previous_release_tag: ${{ inputs.previous_release_tag }}
+      packs_only: ${{ inputs.packs_only || false }}
