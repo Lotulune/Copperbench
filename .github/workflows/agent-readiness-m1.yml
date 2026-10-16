@@ -18,6 +18,11 @@ on:
         type: boolean
         required: false
         default: false
+      windows_source_sha:
+        description: 'Optional exact source SHA for full Windows release tests before creating a release tag'
+        type: string
+        required: false
+        default: ''
   pull_request:
     branches: [main]
     paths:
@@ -53,7 +58,7 @@ permissions:
 
 jobs:
   protocol:
-    if: ${{ !inputs.release_tag }}
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha }}
     name: M1 protocol and adapter contracts
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -115,7 +120,7 @@ jobs:
           if-no-files-found: warn
 
   delivery:
-    if: ${{ !inputs.release_tag }}
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha }}
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -173,3 +178,9 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       previous_release_tag: ${{ inputs.previous_release_tag }}
       packs_only: ${{ inputs.packs_only || false }}
+
+  windows-source:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.windows_source_sha != '' }}
+    uses: ./.github/workflows/windows-source-verification.yml
+    with:
+      source_sha: ${{ inputs.windows_source_sha }}

@@ -1,0 +1,63 @@
+name: Windows source release tests
+
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_sha }}
+      - name: Record and verify exact source identity
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $actual = (git rev-parse HEAD).Trim()
+          if ($env:EXPECTED_SOURCE_SHA -notmatch '^[0-9a-f]{40}$' -or $actual -ne $env:EXPECTED_SOURCE_SHA) { throw 'Source SHA mismatch' }
+          New-Item -ItemType Directory -Path output/windows-source -Force | Out-Null
+          [ordered]@{sourceCommit=$actual;sourceTree=(git rev-parse 'HEAD^{tree}').Trim();workflowCommit=$env:GITHUB_SHA;workflowRun=$env:GITHUB_RUN_ID;scope='Full Windows source tests before tagging; no package publication or desktop acceptance'} | ConvertTo-Json | Set-Content output/windows-source/source.json -Encoding utf8NoBOM
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '25.0.2'
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Run the Windows release test commands
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          npm ci --prefix ui-core
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm ci --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./gradlew.bat --no-daemon --no-build-cache clean test javadoc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm test --prefix ui-core
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows-source-release-tests-${{ inputs.source_sha }}
+          path: |
+            output/windows-source/
+            build/test-results/
+            build/reports/tests/
+          if-no-files-found: error
+          retention-days: 30

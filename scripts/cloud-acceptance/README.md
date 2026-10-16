@@ -10,6 +10,10 @@ used to collect independent evidence after a mod export fails. It omits the DEB
 lane and mod acceptance, and records `nativeMode=packs`; it cannot replace or
 turn a failed full run into a pass.
 
+`windows_source_sha=<full SHA>` runs the same full Windows test commands used by
+the release workflow before a tag is created. Its receipt records both the tested
+commit/tree and the workflow commit. It does not publish packages or certify a desktop.
+
 `run.py` refuses to change OS registration outside this repository's disposable
 GitHub-hosted runners. It verifies GitHub asset digests and signed provenance
 against the release's source tag and producing workflow/run before execution.
