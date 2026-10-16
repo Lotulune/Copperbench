@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.generator.GradleArchiveOutputIntegrationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-16T08:58:21.366Z" hostname="RIMURU" time="22.148">
+  <properties/>
+  <testcase name="repeatedExportsCaptureFreshArchivesWhenTheProjectEnablesConfigurationCache()" classname="dev.copperbench.generator.GradleArchiveOutputIntegrationTest" time="22.117"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

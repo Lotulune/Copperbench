@@ -28,6 +28,46 @@ import static org.junit.jupiter.api.Assertions.*;
 class DataPackWorkspaceTaskGatewayTest {
     @TempDir Path root;
 
+    @ParameterizedTest @ValueSource(strings = {"https://services.gradle.org/distributions/", "https://mirrors.huaweicloud.com/gradle/"})
+    void upgradesTheShippedLegacyWrapperWithoutChangingOtherSettings(String baseUrl) throws Exception {
+        Path wrapper = root.resolve("gradle/wrapper/gradle-wrapper.properties");
+        Files.createDirectories(wrapper.getParent());
+        String original = legacyWrapper().replace("https\\://services.gradle.org/distributions/", baseUrl.replace(":", "\\:"))
+                + "# Keep this comment\ncustomProperty=gradle-8.3-bin.zip\n";
+        Files.writeString(wrapper, original);
+        DataPackWorkspaceTaskGateway.upgradeLegacyWrapper(root, "datapack-1.20.1");
+        String upgraded = Files.readString(wrapper);
+        assertTrue(upgraded.contains(baseUrl.replace(":", "\\:") + "gradle-9.7.0-bin.zip"));
+        assertTrue(upgraded.contains(dev.copperbench.generator.GradleDistributionIntegrity.require("gradle-9.7.0-bin.zip")));
+        assertTrue(upgraded.endsWith("# Keep this comment\ncustomProperty=gradle-8.3-bin.zip\n"));
+        DataPackWorkspaceTaskGateway.upgradeLegacyWrapper(root, "datapack-1.20.1");
+        assertEquals(upgraded, Files.readString(wrapper));
+    }
+
+    @Test void leavesCustomWrapperUrlsChecksumsAndOtherGeneratorsUntouched() throws Exception {
+        Path wrapper = root.resolve("gradle/wrapper/gradle-wrapper.properties");
+        Files.createDirectories(wrapper.getParent());
+        String original = legacyWrapper();
+        for (String custom : List.of(original.replace("services.gradle.org", "internal.example"),
+                original.replace("591855b517fc635b9e04de1d05d5e76ada3f89f5fc76f87978d1b245b4f69225", "0".repeat(64)),
+                original + "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.3-bin.zip\n",
+                original + "distribution\\u0055rl=https\\://services.gradle.org/distributions/gradle-8.3-bin.zip\n")) {
+            Files.writeString(wrapper, custom);
+            DataPackWorkspaceTaskGateway.upgradeLegacyWrapper(root, "datapack-1.20.1");
+            assertEquals(custom, Files.readString(wrapper));
+        }
+        Files.writeString(wrapper, original);
+        DataPackWorkspaceTaskGateway.upgradeLegacyWrapper(root, "datapack-1.21.1");
+        assertEquals(original, Files.readString(wrapper));
+    }
+
+    private static String legacyWrapper() throws Exception {
+        try (var input = DataPackWorkspaceTaskGatewayTest.class.getResourceAsStream("legacy-gradle-wrapper.properties")) {
+            assertNotNull(input);
+            return new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"datapack-1.20.1", "datapack-1.21.1", "datapack-26.1.x"})
     void routerPreparesDataPackAndExposesTaskEventsLogsAndHistory(String generatorId) throws Exception {
@@ -97,7 +137,8 @@ class DataPackWorkspaceTaskGatewayTest {
         Files.writeString(root.resolve("settings.gradle"), "rootProject.name = 'datapack_regression'\n");
         Files.createDirectories(root.resolve("gradle/wrapper"));
         for (String file : List.of("gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar", "gradle/wrapper/gradle-wrapper.properties"))
-            Files.copy(Path.of(file), root.resolve(file));
+            Files.copy(Path.of("plugins/generator-1.20.1/datapack-1.20.1/workspacebase").resolve(file), root.resolve(file));
+        Files.writeString(root.resolve("gradle/wrapper/gradle-wrapper.properties"), legacyWrapper());
         root.resolve("gradlew").toFile().setExecutable(true);
         try (var tasks = new LoaderRoutingWorkspaceTaskGateway(store, ignored -> root, Path.of("."), Clock.systemUTC(), UUID::randomUUID)) {
             var service = new dev.copperbench.core.application.WorkspaceApplicationService(store, tasks, Clock.systemUTC(), UUID::randomUUID);
@@ -110,6 +151,7 @@ class DataPackWorkspaceTaskGatewayTest {
             while (Instant.now().isBefore(deadline) && tasks.find(id, task).orElseThrow().get("state").getAsString().equals("running"))
                 Thread.sleep(100);
             assertEquals("succeeded", tasks.find(id, task).orElseThrow().get("state").getAsString(), tasks.logs(id, task).toString());
+            assertTrue(Files.readString(root.resolve("gradle/wrapper/gradle-wrapper.properties")).contains("gradle-9.7.0-bin.zip"));
             try (var zip = new java.util.zip.ZipFile(root.resolve("build/export/export.zip").toFile())) {
                 assertNotNull(zip.getEntry("pack.mcmeta"));
                 var entry = zip.getEntry("data/probe/functions/hello.mcfunction");

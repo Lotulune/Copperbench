@@ -22,6 +22,9 @@ final class GradleArchiveOutput {
     record Request(Path root, UUID taskId, List<String> archiveTasks, Path script, Path receipt) {
         List<String> arguments(List<String> buildArguments) {
             List<String> result = new ArrayList<>(buildArguments);
+            // Each export inspects live task state and writes a task-specific receipt. The init
+            // action captures Project/task graph objects, so it must not enter configuration cache.
+            result.add("--no-configuration-cache");
             result.add("--init-script"); result.add(script.toString());
             return List.copyOf(result);
         }
@@ -39,9 +42,14 @@ final class GradleArchiveOutput {
                     throw new IOException("The artifact receipt does not identify this build's archive task");
                 Path artifact = Path.of(value.get("artifactPath").getAsString()).toAbsolutePath().normalize();
                 WorkspaceExecutionSnapshot.rejectLinks(artifact);
-                if (!artifact.startsWith(root.resolve("build")) || !Files.isRegularFile(artifact)
-                        || !artifact.getFileName().toString().endsWith(".jar"))
+                // Gradle emits canonical paths. Windows may supply the workspace through an 8.3
+                // alias, so compare physical locations and return the caller's workspace spelling.
+                Path realRoot = root.toRealPath(), realArtifact = artifact.toRealPath();
+                if (!realArtifact.startsWith(realRoot.resolve("build")) || !Files.isRegularFile(realArtifact)
+                        || !realArtifact.getFileName().toString().endsWith(".jar"))
                     throw new IOException("The declared build archive is not a workspace build JAR");
+                artifact = root.resolve(realRoot.relativize(realArtifact));
+                WorkspaceExecutionSnapshot.rejectLinks(artifact);
                 String digest = value.get("sha256").getAsString();
                 if (!digest.matches("[a-f0-9]{64}") || !digest.equals(WorkspaceExecutionSnapshot.sha256(artifact)))
                     throw new IOException("The declared build archive changed after Gradle recorded it");

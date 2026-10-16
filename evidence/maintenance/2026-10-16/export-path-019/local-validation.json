@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "testedAt": "2026-10-16T11:15:04.030711+00:00",
+  "javaPassed": 15,
+  "suites": [
+    {
+      "name": "dev.copperbench.generator.GradleArchiveOutputIntegrationTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-16T11:05:45.768Z",
+      "hostname": "RIMURU",
+      "time": "24.958"
+    },
+    {
+      "name": "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+      "tests": "13",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-16T11:06:10.728Z",
+      "hostname": "RIMURU",
+      "time": "7.776"
+    }
+  ],
+  "uiCorePassed": 50,
+  "releaseHistoryPassed": 3,
+  "productStatus": "passed",
+  "markdownLinks": "passed",
+  "applicationJarSha256": "af3f569a166ea02e7b0a961c2bf39eb9fca6990393151192ff2b0aa6bf14eeee",
+  "sourceFileHashes": {
+    "src/main/java/dev/copperbench/generator/GradleArchiveOutput.java": "387f1914d47aa968ad14568f9a273d63d4edd65f72ef897b8c862ba956fb9497",
+    "src/test/java/dev/copperbench/generator/GradleArchiveOutputIntegrationTest.java": "e341aece1f5ac38c66308abddfa2b8ae913e706b1d7cb2547ba07146230be5d7",
+    "src/test/java/dev/copperbench/generator/OrdinaryExportDeliveryTest.java": "2b747515e237fe6030986ea69c496cef5c831afb2893ecf8eba5640ca0c59593",
+    "src/main/resources/mcreator.conf": "4776e6db277acf4b8f2c28e8e071f572b76dd74f14c2e0475556128de06c0fd3"
+  },
+  "logs": {
+    "java-regression.log": "436ed67fb6d98110fd70c733ee7a22fcfa30059b7da57deada8ffcffe56b15e6",
+    "release-history.log": "bfc6649d4e34a534d677f5abeb96a9ec4b43b4876ef3806fb792e0231abcd7c5",
+    "ui-core.log": "3ec9d857227b3527338156567cb6f1afa24110aa44fcabe650224cd90f7b5443"
+  },
+  "scope": "Local production JAR/UI build; real Gradle exports with long and forced Windows short roots; source containment, symlink and hash boundaries. Final package/cloud acceptance is separate."
+}
