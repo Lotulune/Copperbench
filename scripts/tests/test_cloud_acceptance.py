@@ -12,6 +12,7 @@ sys.path.insert(0, str(DIRECTORY))
 spec = importlib.util.spec_from_file_location("cloud_acceptance", DIRECTORY / "run.py")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
+from common import workspace_document
 
 
 class ProvenanceTest(unittest.TestCase):
@@ -55,6 +56,17 @@ class ProvenanceTest(unittest.TestCase):
 
 
 class SafetyTest(unittest.TestCase):
+    def test_document_discovery_excludes_mcreator_cache_directory(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / ".mcreator").mkdir()
+            expected = root / "project.mcreator"
+            expected.write_text("{}", encoding="utf-8")
+            self.assertEqual(workspace_document(root), expected)
+            (root / "ambiguous.mcreator").write_text("{}", encoding="utf-8")
+            with self.assertRaises(AssertionError):
+                workspace_document(root)
+
     def test_machine_json_is_independent_of_stderr_and_whitespace(self):
         with tempfile.TemporaryDirectory() as folder:
             log = Path(folder) / "command.log"

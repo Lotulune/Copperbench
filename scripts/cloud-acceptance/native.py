@@ -18,7 +18,7 @@ import time
 import traceback
 import zipfile
 
-from common import command, require, save, sha256
+from common import command, require, save, sha256, workspace_document
 
 
 def main():
@@ -67,12 +67,11 @@ def main():
         result = next((json.loads(line) for line in text.splitlines()
                        if line.startswith('{') and '"status"' in line), {})
         require(result.get("status") == "committed", "Fixture did not create a workspace")
-        files = list(workspace_root.glob("*.mcreator"))
-        require(len(files) == 1, "Expected one fixture workspace file")
+        document = workspace_document(workspace_root)
         workspaces.append(workspace_root)
-        save(evidence / f"prepare-{mod_id}.json", {"generator": generator, "workspaceFile": str(files[0]),
+        save(evidence / f"prepare-{mod_id}.json", {"generator": generator, "workspaceFile": str(document),
                                                   "fixtureSha256": record["fixtureSha256"], "result": result})
-        return files[0]
+        return document
 
     @contextmanager
     def session(path):

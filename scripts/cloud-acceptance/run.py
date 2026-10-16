@@ -366,7 +366,8 @@ class Acceptance:
             (self.evidence / "failure.txt").write_bytes(traceback.format_exc().encode("utf-8"))
             print(traceback.format_exc(), flush=True)
         finally:
-            logs = self.root / "state/copperbench/logs"
+            # COPPERBENCH_HOME overrides all platform-specific user directories, including state/logs.
+            logs = self.root / "preferences/logs"
             if logs.is_dir():
                 shutil.copytree(logs, self.evidence / "application-logs", dirs_exist_ok=True)
             self.record["completedAt"] = datetime.now(timezone.utc).isoformat()

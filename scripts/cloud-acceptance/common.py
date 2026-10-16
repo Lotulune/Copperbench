@@ -24,6 +24,12 @@ def save(path, value):
     path.write_bytes((json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
 
 
+def workspace_document(root):
+    files = [path for path in Path(root).glob("*.mcreator") if path.is_file()]
+    require(len(files) == 1, f"Expected one workspace document, found: {[p.name for p in files]}")
+    return files[0]
+
+
 def command(argv, log, *, cwd=None, env=None, timeout=900):
     """Retain stdout/stderr and exit status, including failed and timed-out commands."""
     log = Path(log)
