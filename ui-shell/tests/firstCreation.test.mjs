@@ -74,9 +74,9 @@ test('persistence drops completion claims and rejects damaged identity or task r
 });
 
 test('ordinary export uses a new nested delivery path, never a top-level JAR candidate or an escaping path', () => {
-  const path = defaultDeliveryPath('First Creation', 'mod', 'request-one');
+  const path = defaultDeliveryPath('First Creation', 'mod', 'request-one', 'fabric-1.21.1');
   assert.equal(path, 'build/libs/copperbench-delivery-request-one/first_creation.jar');
-  assert.notEqual(path, defaultDeliveryPath('First Creation', 'mod', 'request-two'));
+  assert.notEqual(path, defaultDeliveryPath('First Creation', 'mod', 'request-two', 'fabric-1.21.1'));
   assert.equal(isRelativeDeliveryPath(path), true);
   assert.equal(isRelativeDeliveryPath('exports/custom.zip'), true);
   for (const invalid of ['../outside.jar', 'build/../old.jar', 'C:/outside.jar', '/tmp/out.jar', '\\\\server\\out.jar', 'build//out.jar', 'build/.hidden/../out.jar', 'out.txt']) assert.equal(isRelativeDeliveryPath(invalid), false, invalid);

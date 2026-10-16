@@ -29,7 +29,7 @@ export function DeliveryDialog() {
   const dialogRef = useDialogA11y(deliveryOpen, closeDelivery);
   useEffect(() => {
     if (!workspace) return;
-    setOutput(defaultDeliveryPath(workspace.name, workspace.kind, safeRandomUUID()));
+    setOutput(defaultDeliveryPath(workspace.name, workspace.kind, safeRandomUUID(), workspace.generator.id));
     setMessages([]); setUncertain(false);
   }, [workspace?.id]);
   if (!deliveryOpen) return null;
@@ -89,7 +89,7 @@ export function DeliveryDialog() {
         <input id="delivery-output" data-testid="delivery-output" value={output} onChange={event => setOutput(event.target.value)} aria-describedby="delivery-output-help" aria-invalid={output !== '' && !isRelativeDeliveryPath(output)} />
         <p id="delivery-output-help">{uiText('使用工作区内的 .jar 或 .zip 相对路径，避开 src、elements、gradle、lib、libs、plugins 目录。仅可替换 Copperbench 之前导出且内容未变的文件；其他已有文件请改用新路径。', 'Use a workspace-relative .jar or .zip path outside src, elements, gradle, lib, libs and plugins. An existing file can be replaced only if it is an unchanged previous Copperbench export; otherwise, use a new path.')}</p>
         <div className="first-creation-buttons"><button type="button" className="btn-primary" data-testid="delivery-export" disabled={!native || !referencesReady || !workspace || busy || active || uncertain || !isRelativeDeliveryPath(output)} aria-busy={busy} onClick={() => void submit()}>{busy ? uiText('正在提交…', 'Submitting…') : uiText('重新构建并导出', 'Rebuild and export')}</button>
-          <button type="button" className="btn-secondary" disabled={!workspace || busy || active} onClick={() => { if (workspace) setOutput(defaultDeliveryPath(workspace.name, workspace.kind, safeRandomUUID())); }}>{uiText('使用新的交付路径', 'Use a new delivery path')}</button></div>
+          <button type="button" className="btn-secondary" disabled={!workspace || busy || active} onClick={() => { if (workspace) setOutput(defaultDeliveryPath(workspace.name, workspace.kind, safeRandomUUID(), workspace.generator.id)); }}>{uiText('使用新的交付路径', 'Use a new delivery path')}</button></div>
         {uncertain && <button type="button" className="btn-secondary" onClick={() => { setUncertain(false); setMessages([]); }}>{uiText('已检查原任务，返回导出表单', 'Original task inspected; return to export form')}</button>}
         {deliveryReference && <div className="delivery-last-export" data-testid="delivery-export-fact" role="status">
           <strong>{exported.status === 'succeeded' ? uiText('普通导出任务成功', 'Ordinary export task succeeded')
