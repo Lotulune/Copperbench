@@ -27,3 +27,7 @@ Initial cache-fix verification passed: 36 related Java tests (including the real
 Final source CI, signed package publication and installed 0.1.8 acceptance are pending. Public 0.1.7 assets will not be overwritten. Full
 Windows 11/GNOME desktop and player-controlled world persistence are separate
 from the cloud automation; no Minecraft control bridge is used.
+
+## Publication stopped
+
+The signed `v0.1.8` tag remains at source `9ece8e330e5ce7f3746a3e124691c68b5141a687`, but the [Windows publication run](https://github.com/Lotulune/Copperbench/actions/runs/38886381793) failed the new real-Gradle archive test before packaging/publication. The Linux candidate was independently verified but not promoted. [0.1.9](maintenance-release-0.1.9.md) adds the Windows short-path correction; no public 0.1.8 package or existing public asset was overwritten.

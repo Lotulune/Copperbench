@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.generator.OrdinaryExportDeliveryTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-16T11:06:10.728Z" hostname="RIMURU" time="7.776">
+  <properties/>
+  <testcase name="declaredArchivesOutsideTheWorkspaceBuildTreeRemainRejected()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.178"/>
+  <testcase name="aLinkedArchiveCannotBecomeTrustedByCanonicalizingItsPath()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.083"/>
+  <testcase name="exportsTheDeclaredArchiveFromACustomBuildDirectoryWithoutBuildLibs()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="1.611"/>
+  <testcase name="exportingToTheActualArchiveItselfIsAllowedWithoutClaimingOtherExistingBuildFiles()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.145"/>
+  <testcase name="cannotTurnAuthoredSourceRootsIntoIgnoredDeliveryFiles()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.177"/>
+  <testcase name="newNestedCustomDeliveryAndRepeatedOwnedDeliveryKeepEarlierBuildAndClientInputsCurrent()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="3.254"/>
+  <testcase name="redirectedCustomParentsNeverWriteToTheirExternalTarget()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.013"/>
+  <testcase name="exportsTheDeclaredCurrentArchiveDespiteOlderVersionSourcesDevAndPreviousDeliveryJars()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.762"/>
+  <testcase name="anOwnershipReceiptCannotExcludeAnAuthoredSourceRoot()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.033"/>
+  <testcase name="publishKeepsTheArchiveReceiptHashBindingUntilTheBytesAreCopied()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.058"/>
+  <testcase name="missingOrChangedArchiveTaskReceiptCannotFallBackToAnExistingJar()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.546"/>
+  <testcase name="preservesAnUnownedOrExternallyModifiedCustomDestinationAndKeepsItInTheInputHash()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.457"/>
+  <testcase name="publishingItsOwnOutputDoesNotHideADifferentAuthoredFileEdit()" classname="dev.copperbench.generator.OrdinaryExportDeliveryTest" time="0.441"/>
+  <system-out><![CDATA[?[37m2026-10-16-20:06:17?[m ?[1;31m[/ERROR]?[m ?[34m[dev.copperbench.generator.GradleWorkspaceTaskGateway]?[m Workspace task failure 1246f15a-a469-4e18-8f91-1e6239ce6ab2 (backend=Declared archive fixture, operation=EXPORT_WORKSPACE, workspaceId=11111111-1111-4111-8111-111111111111)
+java.nio.file.NoSuchFileException: C:\Users\Administrator\AppData\Local\Copperbench\Temp\junit-6307426921993622927\.copperbench\task-runs\export\4272abcb-0fc4-4be8-b9a2-ed9711ad8f3f\archive-output.json
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:87)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:106)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:112)
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:231)
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:357)
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:399)
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:371)
+	at java.base/java.nio.file.Files.newInputStream(Files.java:154)
+	at dev.copperbench.generator.GradleArchiveOutput$Request.artifact(GradleArchiveOutput.java:35)
+	at dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:227)
+	at dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:112)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
