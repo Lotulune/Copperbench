@@ -2,6 +2,17 @@ name: Agent readiness M1 gates
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Public version to validate (empty runs the source M1 gates)'
+        type: string
+        required: false
+        default: ''
+      previous_release_tag:
+        description: 'Public version to upgrade from, required with release_tag'
+        type: string
+        required: false
+        default: ''
   pull_request:
     branches: [main]
     paths:
@@ -33,9 +44,11 @@ on:
 
 permissions:
   contents: read
+  attestations: read
 
 jobs:
   protocol:
+    if: ${{ !inputs.release_tag }}
     name: M1 protocol and adapter contracts
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -97,6 +110,7 @@ jobs:
           if-no-files-found: warn
 
   delivery:
+    if: ${{ !inputs.release_tag }}
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -146,3 +160,10 @@ jobs:
             logs/
             ${{ runner.temp }}/m1-delivery-state/copperbench/logs/
           if-no-files-found: warn
+
+  published-release:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag != '' }}
+    uses: ./.github/workflows/published-release-acceptance.yml
+    with:
+      release_tag: ${{ inputs.release_tag }}
+      previous_release_tag: ${{ inputs.previous_release_tag }}
