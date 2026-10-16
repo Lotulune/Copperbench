@@ -186,7 +186,8 @@ def main():
         command([product / f"jdk/bin/javac{suffix}", "-cp", classpath, "-d", classes, fixture],
                 evidence / "fixture-compile.log", cwd=product)
         if args.mode == "smoke":
-            datapack("datapack-1.21.1", "cloud_smoke")
+            # Run the legacy-wrapper migration first, before this new runner has a Gradle cache.
+            datapack("datapack-1.20.1", "cloud_smoke")
         elif args.mode == "packs":
             failures = []
             for generator, mod_id in [("datapack-1.20.1", "cloud_dp1201"), ("datapack-1.21.1", "cloud_dp1211"),

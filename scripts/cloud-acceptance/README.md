@@ -33,6 +33,8 @@ its bundled Python SDK. Setup cases exercise Fabric build/fail/repair, five
 packaged-JAR GameTests, exact export, host exit/reopen and task persistence,
 Fabric/NeoForge exports with no `build/libs`, and three data-pack ZIP exports.
 Fresh installs and DEBs get a smaller data-pack create/edit/export smoke.
+That smoke starts with the released 1.20.1 Gradle 8.3 wrapper so its migration
+and first distribution download are exercised before the new runner cache is warm.
 
 Evidence, previews, command exits, task receipts and hash manifests are uploaded
 from `output/minecraft-validation/cloud-release/`, including failed attempts.
