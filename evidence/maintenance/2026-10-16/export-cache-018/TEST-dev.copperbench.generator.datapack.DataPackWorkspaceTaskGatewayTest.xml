@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-16T09:35:06.621Z" hostname="RIMURU" time="10.946">
+  <properties/>
+  <testcase name="uiBuildCommandProducesARealDataPackZip()" classname="dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest" time="10.922"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

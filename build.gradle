@@ -241,6 +241,7 @@ test {
     useJUnitPlatform()
     // The process/session recovery fixture starts a separate JVM with this exact test runtime.
     systemProperty 'copperbench.test.runtimeClasspath', sourceSets.test.runtimeClasspath.asPath
+    systemProperty 'copperbench.test.gradleHome', gradle.gradleHomeDir.absolutePath
     systemProperty 'copperbench.p263.fabricNativeBuild', System.getProperty('copperbench.p263.fabricNativeBuild', 'false')
     systemProperty 'copperbench.p263.neoforgeNativeBuild', System.getProperty('copperbench.p263.neoforgeNativeBuild', 'false')
     systemProperty 'copperbench.p263.fabricNativeAcceptance', System.getProperty('copperbench.p263.fabricNativeAcceptance', 'false')

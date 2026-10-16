@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,37 +35,27 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.7",
-      "linuxTag": "v0.1.7-linux-stable",
-      "status": "public-stable",
-      "linuxStatus": "public-stable",
+      "tag": "v0.1.8",
+      "linuxTag": "v0.1.8-linux-stable",
+      "status": "ready",
+      "linuxStatus": "pending-candidate",
       "decision": "approved",
       "decisionDate": "2026-10-16",
-      "scope": "Windows and Linux 0.1.7 are public stable, fixing data-pack delivery defaults and custom Gradle archive exports. Historical installed/gameplay evidence retains its original source and binary scope.",
+      "scope": "Requested fix and new package after public 0.1.7 cloud acceptance found NeoForge configuration-cache and legacy data-pack Gradle/Java export failures. Final source checks, signed packages and 0.1.8 installed acceptance are pending.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.7.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.7.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-16/publication-0.1.7/previous-release-state.json",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.8.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.8.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-16/export-cache-018/previous-release-state.json",
       "sourceVerification": {
-        "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
         "requiredCi": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38850069890"
+          "status": "pending"
         },
         "documentation": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38850069819",
-          "scope": "Source A documentation build; later publication-record edits are separate."
+          "status": "pending"
         },
-        "installedPackageAcceptance": "not-repeated",
+        "installedPackageAcceptance": "pending",
         "fullGameplayAcceptance": "not-repeated"
-      },
-      "releaseCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
-      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.7",
-      "publishedAt": "2026-10-16T05:08:48Z",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38851412919",
-      "releaseWorkflowConclusion": "success",
-      "assetProof": "evidence/maintenance/2026-10-16/publication-0.1.7/windows/windows-public-verification.json"
+      }
     },
     "linuxMaintenanceRelease": {
       "tag": "v0.1.7-linux-stable",
@@ -136,12 +126,12 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352304576"
     },
     "releaseContract": {
-      "tag": "v0.1.7",
-      "purpose": "export-regression-maintenance-release",
+      "tag": "v0.1.8",
+      "purpose": "cloud-export-regression-maintenance-release",
       "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.7"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.8"
     },
     "betaRelease": {
       "historical": true,

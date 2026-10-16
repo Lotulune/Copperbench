@@ -1,0 +1,196 @@
+{
+  "status": "passed",
+  "testedAt": "2026-10-16T09:37:48.315143+00:00",
+  "passed": 31,
+  "checks": [
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "leavesCustomWrapperUrlsChecksumsAndOtherGeneratorsUntouched()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "[1] \"datapack-1.20.1\"",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "[2] \"datapack-1.21.1\"",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "[3] \"datapack-26.1.x\"",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "routerCancelsTheDataPackWorker()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "[1] \"https://services.gradle.org/distributions/\"",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "[2] \"https://mirrors.huaweicloud.com/gradle/\"",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "buildAndExportUseZipArtifactAndForwardPreparation()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabricRuntimeMetadataMatchesEachTrackJavaVersion()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "workspaceGeneratorsAllowReliableDistributionDownloads()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "advancementTemplatesIgnoreTheLegacyNoFunctionSentinel()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabricDoesNotSilentlyMapUnsupportedNeoForgeAttributesToArmor()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "itemModelBooleanPredicatesCompareAgainstTheRequestedValue()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabric1211ServerPlayerMixinTargetsTheBooleanDropSignature()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "minecraft262MapsEveryLegacyDyedBundleToTheConsolidatedBundleCollection()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "resourcePackClientEmitsTheReadinessMarker()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "maintenance1201OverridesModernDatapackPathsAndFormat()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "neoforgeAlwaysProvidesNetworkingUsedByProcedureTriggers()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "maintenance1201PluginsUseJava17AndGradle88()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabric1211CommandsMixinTargetsTheVoidPerformCommandSignature()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabric1211RepairItemRecipeMixinMatchesTheProviderAwareAssembleSignature()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "incompleteGeneratorsDoNotOverrideTheUpstreamStableDefault()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "neoforge262PluginPinsNeoForge262()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "workspaceGeneratorsShareGradle97ExceptMaintenance1201()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabric1211PluginUses1211ImportsAndResourceLocation()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "modernNeoforgeOnlyRegistersMainClassWhenGeneratedEventHandlersExist()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabric262PluginPinsMinecraft26_2()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "maintenance1201FabricLoaderMetadataMatchesBuildDependency()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "allEightJavaTracksExposeStableNativeHookUserCodeBlocks()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "name": "fabricAlwaysGeneratesMixinAndEventInfrastructure()",
+      "status": "passed"
+    },
+    {
+      "className": "dev.copperbench.generator.datapack.DataPackWorkspaceTaskGatewayTest",
+      "name": "uiBuildCommandProducesARealDataPackZip()",
+      "status": "passed"
+    }
+  ],
+  "applicationJarSha256": "9ac456c13fb92723d91f9058735e3f8f5281c36d9f3d0131273c8b9008ad3ea3",
+  "sourceFileHashes": {
+    "src/main/java/dev/copperbench/generator/datapack/DataPackWorkspaceTaskGateway.java": "679b63e7346ca120b2be84807b456544b61fbe815f3271277605dcd0a9f3430b",
+    "src/test/java/dev/copperbench/generator/datapack/DataPackWorkspaceTaskGatewayTest.java": "9fa62d571d6d4cbf085f099188a5a03ff0341aaa91970347318e7cad51d73d71",
+    "plugins/generator-1.20.1/datapack-1.20.1/generator.yaml": "525fff7a7b1bb6503a479e68e364ee1f4232bcb54e18334645d0c17cc6397200",
+    "plugins/generator-1.20.1/datapack-1.20.1/workspacebase/gradle/wrapper/gradle-wrapper.properties": "fe7efbcfecf51c6f046eeb53d5543e103215db4c160babfc98d6bafef0662e02",
+    "src/test/resources/dev/copperbench/generator/datapack/legacy-gradle-wrapper.properties": "4bb2fa6b5bfcd8eb921458848fdb818be43831fb637311549db609ea5352d229"
+  },
+  "realBuild": {
+    "status": "passed",
+    "gradle": "9.7.0",
+    "java": "25",
+    "initialWrapper": "released stock 8.3 URL and checksum",
+    "cacheMode": "isolated warm cache copied from an existing completed Gradle 9.7 installation",
+    "assertions": [
+      "Core migrated wrapper before build",
+      "real ZIP contains pack.mcmeta and the expected function text"
+    ]
+  },
+  "priorAttempts": [
+    {
+      "file": "datapack-regression.log",
+      "cause": "PowerShell -File split the system-property argument; no test ran"
+    },
+    {
+      "file": "datapack-regression-2.log",
+      "cause": "The cold Gradle download made no progress before the five-minute test deadline; 30 other checks passed"
+    }
+  ],
+  "logs": {
+    "datapack-regression-2.log": "ad690ec4a8dba4125927eae556b5aa569bfe15d1018a9791f5aab3793c07dc10",
+    "datapack-regression-warm.log": "1b15cca0f3031c5bd91f2d016f82c5fdfc7721fd71f942a0b332d94b0a8c99f4",
+    "datapack-regression.log": "b65409231832fc9770feb7555fcb36a7786db367532c240b7fb9e3ee7bf6261f"
+  }
+}

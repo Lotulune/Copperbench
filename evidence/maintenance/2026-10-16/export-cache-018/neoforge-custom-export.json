@@ -1,0 +1,363 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "9f6edfd5-b940-4d84-ab44-4a6df8976f19",
+  "workspaceId": "ed04d585-f488-46ba-8bf8-5218b3da31e3",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 1,
+  "data": {
+    "task": {
+      "id": "ae04b883-d1b2-46ac-85e0-978dab5ac0fd",
+      "kind": "export",
+      "state": "failed",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.failed",
+        "fallback": "NeoForge 1.21.1 task failed",
+        "args": {
+          "backend": "NeoForge 1.21.1"
+        }
+      },
+      "startedAt": "2026-10-16T08:42:36.079386597Z",
+      "completedAt": "2026-10-16T08:42:42.912040486Z",
+      "diagnostics": {
+        "error": 1,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "NeoForge 1.21.1",
+      "sourceSnapshot": {
+        "sha256": "bd7da0157858be10d2e32e7c68c3bfb2e3cb03cdecb67322533e6aecff0801fb",
+        "fileCount": 21,
+        "bytes": 1316970,
+        "manifestPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_neoforge/.copperbench/task-inputs/ae04b883-d1b2-46ac-85e0-978dab5ac0fd.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T08:42:36.080212766Z",
+        "level": "info",
+        "text": "Starting NeoForge 1.21.1 export from revision 1"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T08:42:36.087978140Z",
+        "level": "info",
+        "text": "NeoForge 1.21.1 generation completed: 7 files; modId=cloud_neoforge"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T08:42:36.675739909Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T08:42:37.375153475Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T08:42:38.375846178Z",
+        "level": "info",
+        "text": "Calculating task graph as no cached configuration is available for tasks: build copperbenchCaptureResourceContextf2fcfa98fe954c2d8d87ab14810dbc1e"
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T08:42:41.473727750Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T08:42:41.474626159Z",
+        "level": "info",
+        "text": "> Configure project :"
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T08:42:41.478365817Z",
+        "level": "info",
+        "text": "Creating Minecraft artifacts without recompilation."
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T08:42:42.474357323Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T08:42:42.475192306Z",
+        "level": "info",
+        "text": "> Task :createMinecraftArtifacts UP-TO-DATE"
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T08:42:42.475598300Z",
+        "level": "info",
+        "text": "> Task :compileJava UP-TO-DATE"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T08:42:42.478668535Z",
+        "level": "info",
+        "text": "> Task :processResources UP-TO-DATE"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T08:42:42.479202272Z",
+        "level": "info",
+        "text": "> Task :classes UP-TO-DATE"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T08:42:42.573793476Z",
+        "level": "info",
+        "text": "> Task :jarJar NO-SOURCE"
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T08:42:42.577690441Z",
+        "level": "info",
+        "text": "> Task :jar"
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T08:42:42.578292522Z",
+        "level": "info",
+        "text": "> Task :assemble"
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T08:42:42.578624054Z",
+        "level": "info",
+        "text": "> Task :compileTestJava NO-SOURCE"
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T08:42:42.578929045Z",
+        "level": "info",
+        "text": "> Task :processTestResources NO-SOURCE"
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T08:42:42.579163019Z",
+        "level": "info",
+        "text": "> Task :testClasses UP-TO-DATE"
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T08:42:42.579434540Z",
+        "level": "info",
+        "text": "> Task :test NO-SOURCE"
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T08:42:42.579665910Z",
+        "level": "info",
+        "text": "> Task :check UP-TO-DATE"
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T08:42:42.673697170Z",
+        "level": "info",
+        "text": "> Task :build"
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T08:42:42.677459872Z",
+        "level": "info",
+        "text": "> Task :copperbenchCaptureResourceContextf2fcfa98fe954c2d8d87ab14810dbc1e"
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T08:42:42.773789285Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T08:42:42.774630197Z",
+        "level": "info",
+        "text": "[Incubating] Problems report is available at: file:///home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_neoforge/build/reports/problems/problems-report.html"
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T08:42:42.777263802Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T08:42:42.777786292Z",
+        "level": "info",
+        "text": "FAILURE: Build failed with an exception."
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-10-16T08:42:42.778211986Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-10-16T08:42:42.778542516Z",
+        "level": "info",
+        "text": "* What went wrong:"
+      },
+      {
+        "sequence": 30,
+        "timestamp": "2026-10-16T08:42:42.781085029Z",
+        "level": "info",
+        "text": "Configuration cache problems found in this build."
+      },
+      {
+        "sequence": 31,
+        "timestamp": "2026-10-16T08:42:42.781422700Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 32,
+        "timestamp": "2026-10-16T08:42:42.781769514Z",
+        "level": "info",
+        "text": "1 problem was found storing the configuration cache."
+      },
+      {
+        "sequence": 33,
+        "timestamp": "2026-10-16T08:42:42.782144441Z",
+        "level": "info",
+        "text": "- Task `:build` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
+      },
+      {
+        "sequence": 34,
+        "timestamp": "2026-10-16T08:42:42.782501692Z",
+        "level": "info",
+        "text": "  See https://docs.gradle.org/9.7.0/userguide/configuration_cache_requirements.html#config_cache:requirements:disallowed_types"
+      },
+      {
+        "sequence": 35,
+        "timestamp": "2026-10-16T08:42:42.782856368Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 36,
+        "timestamp": "2026-10-16T08:42:42.783159477Z",
+        "level": "info",
+        "text": "See the complete report at file:///home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_neoforge/build/reports/configuration-cache/dek6z62uwtcgtm7w8ljadmf2o/6o7p01e5ibx5i4suqcoyqhnva/configuration-cache-report.html"
+      },
+      {
+        "sequence": 37,
+        "timestamp": "2026-10-16T08:42:42.783480903Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 38,
+        "timestamp": "2026-10-16T08:42:42.783830112Z",
+        "level": "info",
+        "text": "* Try:"
+      },
+      {
+        "sequence": 39,
+        "timestamp": "2026-10-16T08:42:42.784146550Z",
+        "level": "info",
+        "text": "> Run with --stacktrace option to get the stack trace."
+      },
+      {
+        "sequence": 40,
+        "timestamp": "2026-10-16T08:42:42.784556971Z",
+        "level": "info",
+        "text": "> Run with --info or --debug option to get more log output."
+      },
+      {
+        "sequence": 41,
+        "timestamp": "2026-10-16T08:42:42.784899650Z",
+        "level": "info",
+        "text": "> Run with --scan to get full insights from a Build Scan (powered by Develocity)."
+      },
+      {
+        "sequence": 42,
+        "timestamp": "2026-10-16T08:42:42.785204110Z",
+        "level": "info",
+        "text": "> Get more help at https://help.gradle.org."
+      },
+      {
+        "sequence": 43,
+        "timestamp": "2026-10-16T08:42:42.785469141Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 44,
+        "timestamp": "2026-10-16T08:42:42.785760001Z",
+        "level": "info",
+        "text": "BUILD FAILED in 6s"
+      },
+      {
+        "sequence": 45,
+        "timestamp": "2026-10-16T08:42:42.786166136Z",
+        "level": "info",
+        "text": "6 actionable tasks: 3 executed, 3 up-to-date"
+      },
+      {
+        "sequence": 46,
+        "timestamp": "2026-10-16T08:42:42.786491298Z",
+        "level": "info",
+        "text": "Configuration cache entry discarded with 1 problem."
+      },
+      {
+        "sequence": 47,
+        "timestamp": "2026-10-16T08:42:42.909387723Z",
+        "level": "info",
+        "text": "RESOURCE_INDEX_UNAVAILABLE"
+      },
+      {
+        "sequence": 48,
+        "timestamp": "2026-10-16T08:42:42.911512878Z",
+        "level": "error",
+        "text": "Task failed. Error ID: 2380d42b-d926-4f82-a720-89fad4f817a2"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "NEOFORGE_EXPORT_FAILED",
+        "severity": "error",
+        "message": {
+          "key": "diagnostic.workspace_task_failed",
+          "fallback": "The {backend} {task} task failed.",
+          "args": {
+            "backend": "NeoForge 1.21.1",
+            "task": "export",
+            "failureId": "2380d42b-d926-4f82-a720-89fad4f817a2"
+          }
+        },
+        "path": null,
+        "elementId": null,
+        "recoverable": true,
+        "actions": [
+          {
+            "id": "open_logs",
+            "label": {
+              "key": "action.open_logs",
+              "fallback": "View logs",
+              "args": {}
+            },
+            "kind": "open_logs",
+            "target": "2380d42b-d926-4f82-a720-89fad4f817a2",
+            "payload": {
+              "taskId": "ae04b883-d1b2-46ac-85e0-978dab5ac0fd"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": []
+}
