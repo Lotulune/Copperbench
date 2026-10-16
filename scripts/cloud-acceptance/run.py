@@ -313,7 +313,7 @@ class Acceptance:
         self.preserved("upgrade-data-preservation")
         remove_owned_tree(self.bundles[current]["root"], self.root)
         archive.unlink()
-        self.native(target, "upgraded-native", args.native_mode)
+        self.native(target, "upgraded-native", self.args.native_mode)
         self.uninstall(current, target, "upgraded-uninstall")
 
     def deb_lifecycle(self):
