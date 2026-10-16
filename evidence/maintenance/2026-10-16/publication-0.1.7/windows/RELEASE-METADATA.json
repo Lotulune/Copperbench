@@ -1,0 +1,14 @@
+{
+  "product": "Copperbench",
+  "tag": "v0.1.7",
+  "commit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+  "binarySource": {
+    "mode": "built-from-release-commit",
+    "commit": "db8d08336c274cc37239b48e837f0bf3727c5fdc"
+  },
+  "builtAtUtc": "2026-10-16T05:07:08.3249331Z",
+  "platform": "windows-x64",
+  "signing": "unsigned",
+  "workflow": "Build Windows release",
+  "workflowRun": "38851412919"
+}

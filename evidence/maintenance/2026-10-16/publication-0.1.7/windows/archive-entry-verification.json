@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "archive": "Copperbench.0.1.7.Windows.64bit.zip",
+  "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+  "entries": {
+    "docs/releases/v0.1.7-linux.md": {
+      "entry": "Copperbench017/docs/releases/v0.1.7-linux.md",
+      "size": 745,
+      "sha256": "a33c12b36afa259b768b5945bc83f03a542da82ab428737109a730c74cd482f0"
+    },
+    "docs/releases/v0.1.7.md": {
+      "entry": "Copperbench017/docs/releases/v0.1.7.md",
+      "size": 898,
+      "sha256": "0b38f4b80a9790f82a1726fe7e8726deaf96940ea44a01944c101b6d496362ed"
+    },
+    "docs/testing/maintenance-release-0.1.7.md": {
+      "entry": "Copperbench017/docs/testing/maintenance-release-0.1.7.md",
+      "size": 3343,
+      "sha256": "142b9c85c75a98bb0659be59a385a58601595a358ee2df2f6e251f75a8bf037d"
+    },
+    "lib/copperbench.jar": {
+      "entry": "Copperbench017/lib/copperbench.jar",
+      "size": 8051011,
+      "sha256": "6d56bbff1584288afcd591af38895a2e654bbc71baa111213ef7c991f7dad4ce",
+      "productVersion": "0.1.7",
+      "taskGatewayClassSha256": "0f4875a6f8b3c62284912df014382585d22ea4cc4a2dddc0c305e27b263aa504"
+    }
+  },
+  "scope": "Selected release-document bytes and packaged application version/class identity; no installed or gameplay acceptance."
+}

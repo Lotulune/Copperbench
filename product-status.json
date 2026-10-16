@@ -37,41 +37,51 @@
     "stableRelease": {
       "tag": "v0.1.7",
       "linuxTag": "v0.1.7-linux-stable",
-      "status": "ready",
-      "linuxStatus": "pending-candidate",
+      "status": "public-stable",
+      "linuxStatus": "public-stable",
       "decision": "approved",
       "decisionDate": "2026-10-16",
-      "scope": "Requested Windows and Linux 0.1.7 export regression fixes. Final source CI, package verification and publication are pending; historical installed/gameplay evidence keeps its original identities.",
+      "scope": "Windows and Linux 0.1.7 are public stable, fixing data-pack delivery defaults and custom Gradle archive exports. Historical installed/gameplay evidence retains its original source and binary scope.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
       "developmentEvidence": "docs/testing/maintenance-release-0.1.7.md",
       "integrationReport": "docs/testing/maintenance-release-0.1.7.md",
       "previousReleaseState": "evidence/maintenance/2026-10-16/publication-0.1.7/previous-release-state.json",
       "sourceVerification": {
+        "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
         "requiredCi": {
-          "status": "pending"
+          "status": "passed",
+          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38850069890"
         },
         "documentation": {
-          "status": "pending"
+          "status": "passed",
+          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38850069819",
+          "scope": "Source A documentation build; later publication-record edits are separate."
         },
         "installedPackageAcceptance": "not-repeated",
         "fullGameplayAcceptance": "not-repeated"
-      }
+      },
+      "releaseCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.7",
+      "publishedAt": "2026-10-16T05:08:48Z",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38851412919",
+      "releaseWorkflowConclusion": "success",
+      "assetProof": "evidence/maintenance/2026-10-16/publication-0.1.7/windows/windows-public-verification.json"
     },
     "linuxMaintenanceRelease": {
-      "tag": "v0.1.6-linux-stable",
+      "tag": "v0.1.7-linux-stable",
       "status": "public-stable",
-      "candidateSourceCommit": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
-      "candidateWorkflowRunId": "38748273030",
-      "acceptancePolicy": "maintenance-ci-0.1.6",
+      "candidateSourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+      "candidateWorkflowRunId": "38850069834",
+      "acceptancePolicy": "maintenance-ci-0.1.7",
       "formalSupportClaim": false,
       "fullInstalledAcceptance": "not-repeated",
-      "integrationReport": "docs/testing/maintenance-release-0.1.6.md",
-      "releaseCommit": "b9383631ec6e800aa327f9f583fc48213a969648",
-      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable",
-      "publishedAt": "2026-10-15T16:17:00Z",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38766657314",
+      "integrationReport": "docs/testing/maintenance-release-0.1.7.md",
+      "releaseCommit": "bd2b733e5709bfe952eef33f30028a8d70a928bf",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.7-linux-stable",
+      "publishedAt": "2026-10-16T05:29:42Z",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38855720737",
       "releaseWorkflowConclusion": "success",
-      "assetProof": "evidence/maintenance/2026-10-15/publication-0.1.6/linux/linux-public-verification.json"
+      "assetProof": "evidence/maintenance/2026-10-16/publication-0.1.7/linux/linux-public-verification.json"
     },
     "linuxRelease": {
       "tag": "v0.1.2-linux-stable",

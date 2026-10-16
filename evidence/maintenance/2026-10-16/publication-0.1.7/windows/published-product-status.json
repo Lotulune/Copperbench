@@ -1,0 +1,296 @@
+{
+  "$schema": "./schemas/product-status.schema.json",
+  "schemaVersion": "1.0",
+  "snapshot": {
+    "date": "2026-09-28",
+    "lastVerifiedCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+    "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
+  },
+  "product": {
+    "id": "dev.copperbench.studio",
+    "name": "Copperbench",
+    "version": "0.1.7",
+    "stage": 17,
+    "channel": "stable",
+    "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
+    "license": "GPL-3.0-only",
+    "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
+    "betaEligible": true
+  },
+  "delivery": {
+    "p263CandidateQualification": {
+      "date": "2026-10-14",
+      "status": "reviewed-scoped-candidates",
+      "formalSupportClaim": false,
+      "published": false,
+      "scopes": [
+        "fabric:G2:windows",
+        "neoforge:G2:windows",
+        "fabric:G2:ubuntu",
+        "neoforge:G2:ubuntu"
+      ],
+      "report": "docs/testing/p263-closeout-2026-10-14.md",
+      "releaseNotes": "docs/releases/copperbench-26-3-candidate-2026-10-14.md",
+      "manifest": "evidence/p263/2026-10-14/qualification.json",
+      "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
+    },
+    "stableRelease": {
+      "tag": "v0.1.7",
+      "linuxTag": "v0.1.7-linux-stable",
+      "status": "ready",
+      "linuxStatus": "pending-candidate",
+      "decision": "approved",
+      "decisionDate": "2026-10-16",
+      "scope": "Requested Windows and Linux 0.1.7 export regression fixes. Final source CI, package verification and publication are pending; historical installed/gameplay evidence keeps its original identities.",
+      "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.7.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.7.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-16/publication-0.1.7/previous-release-state.json",
+      "sourceVerification": {
+        "requiredCi": {
+          "status": "pending"
+        },
+        "documentation": {
+          "status": "pending"
+        },
+        "installedPackageAcceptance": "not-repeated",
+        "fullGameplayAcceptance": "not-repeated"
+      }
+    },
+    "linuxMaintenanceRelease": {
+      "tag": "v0.1.6-linux-stable",
+      "status": "public-stable",
+      "candidateSourceCommit": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
+      "candidateWorkflowRunId": "38748273030",
+      "acceptancePolicy": "maintenance-ci-0.1.6",
+      "formalSupportClaim": false,
+      "fullInstalledAcceptance": "not-repeated",
+      "integrationReport": "docs/testing/maintenance-release-0.1.6.md",
+      "releaseCommit": "b9383631ec6e800aa327f9f583fc48213a969648",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable",
+      "publishedAt": "2026-10-15T16:17:00Z",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38766657314",
+      "releaseWorkflowConclusion": "success",
+      "assetProof": "evidence/maintenance/2026-10-15/publication-0.1.6/linux/linux-public-verification.json"
+    },
+    "linuxRelease": {
+      "tag": "v0.1.2-linux-stable",
+      "status": "public-stable",
+      "channel": "stable",
+      "stage": 17,
+      "stageStatus": "complete",
+      "formalSupportClaim": true,
+      "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+      "binarySourceCommit": "9bc6d104688c24512468880abdc2a96828fcaab8",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352554854",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2-linux-stable",
+      "supportRecord": "release-control/linux-platform-support.json",
+      "scope": {
+        "distribution": "Ubuntu",
+        "version": "24.04 LTS",
+        "architecture": "x86_64",
+        "desktop": "GNOME",
+        "sessions": [
+          "wayland",
+          "x11"
+        ],
+        "installedRuntimeTracks": [
+          "fabric-1.21.1",
+          "neoforge-1.21.1"
+        ],
+        "otherDistributionsCertified": false,
+        "otherArchitecturesCertified": false
+      },
+      "assets": {
+        "deb": {
+          "role": "deb",
+          "name": "copperbench_0.1.2_amd64.deb",
+          "mediaType": "application/vnd.debian.binary-package",
+          "size": 888622228,
+          "sha256": "fd43bd23926a2f37042f14d6a65a7d606b59b08035a92d490ff5ded156931aef"
+        },
+        "portable": {
+          "role": "portable",
+          "name": "Copperbench.0.1.2.Linux.x86_64.tar.gz",
+          "mediaType": "application/gzip",
+          "size": 968869856,
+          "sha256": "14576bfafd24cf773b689fecb448aa7dd2f78cf05fd80e79c25eefe874e408fa",
+          "candidateName": "Copperbench 0.1.2 Linux x86_64.tar.gz"
+        }
+      }
+    },
+    "publishedBaseline": {
+      "tag": "v0.1.2",
+      "sourceCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+      "status": "public-stable",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352304576"
+    },
+    "releaseContract": {
+      "tag": "v0.1.7",
+      "purpose": "export-regression-maintenance-release",
+      "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
+      "signedTagRequired": true,
+      "productionApprovalRequired": true,
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.7"
+    },
+    "betaRelease": {
+      "historical": true,
+      "tag": "v0.1.0-beta.4",
+      "status": "public-prerelease",
+      "candidateRelease": {
+        "tag": "v0.1.0-preview.8",
+        "sourceCommit": "69469b8f28464469e6d917335b49b775ddb343dd",
+        "assets": {
+          "exe": {"name": "Copperbench.0.1.0.Windows.64bit.exe", "sha256": "660a01351e91f70286b632de896a5581545a3eef3b45d3b564227cfc962f7206"},
+          "zip": {"name": "Copperbench.0.1.0.Windows.64bit.zip", "sha256": "c0c8081a6f0b019914c9a28e0d5ab2c5ba74a347921a1cf591dd87fc6e228fcc"},
+          "msix": {"name": "Copperbench.0.1.0.Windows.64bit.msix", "sha256": "3aedbcbdd23a1c9cb171f10cb25ec42a61c64e314f0f0d46c30b76bb3b3ccf36"},
+          "sbom": {"name": "copperbench.spdx.json", "sha256": "2149c06e5f7ed112ee8a40098ffad5b8a67b843354946594fbd9a6867f43442b"}
+        }
+      }
+    },
+    "fastCi": {
+      "status": "passed",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/36351384541",
+      "latestAttempt": {
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/36351384541",
+        "reason": "Release main 410e11b9 passed Java/Javadoc, UI contract/build/smoke, status/docs and MCP conformance. Both protected publication workflows succeeded. Full nightly product regression and all eight generator golden jobs passed on implementation main 9bc6d104."
+      },
+      "runs": [
+        "https://github.com/Lotulune/Copperbench/actions/runs/33515069964",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33527164779",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33676088550",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33696803966",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33704752654",
+        "https://github.com/Lotulune/Copperbench/actions/runs/36269845361",
+        "https://github.com/Lotulune/Copperbench/actions/runs/36321809512",
+        "https://github.com/Lotulune/Copperbench/actions/runs/36351384541"
+      ],
+      "consecutiveGreenMainRuns": 3,
+      "consecutiveGreenTarget": 3,
+      "requiredChecks": [
+        "Java tests and Javadoc",
+        "UI contract, build, and smoke tests",
+        "MCP conformance"
+      ]
+    },
+    "nightly": {
+      "status": "passed",
+      "workflow": ".github/workflows/nightly.yml",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/36345702831",
+      "sourceCommit": "9bc6d104688c24512468880abdc2a96828fcaab8",
+      "productRegression": "passed: full Java/Javadoc/scale, full Chromium, UI contract/build, status/docs and MCP",
+      "generatorGolden": "8/8 passed",
+      "evidence": "evidence/maintenance/2026-09-28/publication-0.1.2/current-nightly.json",
+      "previousRun": {
+        "status": "failed",
+        "workflow": ".github/workflows/nightly.yml",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/36265473220",
+        "sourceCommit": "b813e6cf19cbc0af43b645608e0d7dc5d7e0f243",
+        "productRegression": "failed: Blockbench import-panel continuity; 189 passed, 1 failed",
+        "generatorGolden": "8/8 passed",
+        "evidence": "docs/testing/stage17-stable-publication-2026-09-27.md"
+      }
+    },
+    "repositoryGovernance": {
+      "licenseDetection": "GPL-3.0",
+      "pages": {
+        "enabled": true,
+        "url": "https://lotulune.github.io/Copperbench/",
+        "source": "javadoc:/"
+      },
+      "mainProtection": {
+        "enabled": true,
+        "strict": true,
+        "requiredChecks": [
+          "Java tests and Javadoc",
+          "UI contract, build, and smoke tests",
+          "MCP conformance"
+        ]
+      },
+      "productionRequiredReviewer": true,
+      "staleV010DraftDeleted": true,
+      "evidence": "docs/testing/repository-governance-2026-08-26.md"
+    }
+  },
+  "generators": [
+    {"id": "fabric-26.2", "loader": "fabric", "minecraft": "26.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-26.2", "loader": "neoforge", "minecraft": "26.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "fabric-26.1.2", "loader": "fabric", "minecraft": "26.1.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-26.1.2", "loader": "neoforge", "minecraft": "26.1.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "fabric-1.21.1", "loader": "fabric", "minecraft": "1.21.1", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-1.21.1", "loader": "neoforge", "minecraft": "1.21.1", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "fabric-1.20.1", "loader": "fabric", "minecraft": "1.20.1", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-1.20.1", "loader": "neoforge", "minecraft": "1.20.1", "workspace": "supported", "stage9": "golden-passed"}
+  ],
+  "elements": {
+    "supported": ["block", "item", "recipe", "procedure", "function", "loottable", "achievement", "armor", "armortrim", "tool", "itemextension", "attribute", "bannerpattern", "command", "damagetype", "enchantment", "gamerule", "keybind", "painting", "particle", "potion", "potioneffect", "tab", "villagerprofession", "villagertrade", "biome", "dimension", "feature", "fluid", "plant", "structure", "livingentity", "specialentity", "projectile", "gui", "overlay", "code"],
+    "preview": [],
+    "readOnly": [],
+    "legacyOnly": [],
+    "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
+  },
+  "gates": [
+    {"id": "maintenance-012-release-integration", "status": "passed", "betaBlocking": false, "stableBlocking": true, "evidence": ["docs/testing/maintenance-release-0.1.2.md", "docs/testing/maintenance-012-linux-installed-2026-09-28.md", "release-control/linux-candidate-authorization.json", "evidence/maintenance/2026-09-27/verification.json", "evidence/maintenance/2026-09-28/publication-0.1.2/verification.json"]},
+    {
+      "id": "stage17-installed-function-save",
+      "status": "passed",
+      "betaBlocking": false,
+      "stableBlocking": true,
+      "evidence": ["docs/testing/stage17-function-save-release-blocker-2026-09-27.md", "docs/testing/stage17-stable-installed-acceptance-2026-09-27.md"]
+    },
+    {
+      "id": "stage17-release-integration",
+      "status": "passed",
+      "betaBlocking": false,
+      "stableBlocking": true,
+      "evidence": [
+        "docs/testing/stage17-release-integration-2026-09-26.md"
+      ]
+    },
+    {"id": "stage15-linux-support", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/stage15-closure-2026-09-11.md", "release-control/linux-platform-support.json", "evidence/stage15/2026-09-11/publication/public-release.json", "https://github.com/Lotulune/Copperbench/actions/runs/34558497473"]},
+    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561", "https://github.com/Lotulune/Copperbench/actions/runs/33740746411", "docs/testing/beta-candidate-preview8-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33751421385", "docs/testing/beta4-publication-2026-09-03.md"]},
+    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746", "https://github.com/Lotulune/Copperbench/actions/runs/33334020837", "https://github.com/Lotulune/Copperbench/actions/runs/33497929171", "https://github.com/Lotulune/Copperbench/actions/runs/33515069964", "https://github.com/Lotulune/Copperbench/actions/runs/33527164779", "https://github.com/Lotulune/Copperbench/actions/runs/33528964018", "https://github.com/Lotulune/Copperbench/actions/runs/33584248803"]},
+    {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
+    {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
+    {"id": "three-data-editors", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
+    {"id": "language-tools", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
+    {"id": "procedure-500", "status": "passed", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/procedure/ProcedureIrScaleGateTest.java", "src/test/java/dev/copperbench/shell/Stage9NativeJcefScaleGateTest.java", "docs/testing/stage-9-scale-p95-baseline-2026-08-27.md", "docs/testing/stage-9-native-jcef-scale-2026-08-29.md", "evidence/stage-9/2026-08-29/native-jcef-scale.json"]},
+    {"id": "workspace-2000-10000", "status": "passed", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/references/WorkspaceReferenceIndexScaleTest.java", "src/test/java/dev/copperbench/shell/Stage9NativeJcefScaleGateTest.java", "docs/testing/stage-9-scale-p95-baseline-2026-08-27.md", "docs/testing/stage-9-native-jcef-scale-2026-08-29.md", "evidence/stage-9/2026-08-29/native-jcef-scale.json"]},
+    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33131510421", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md", "https://github.com/Lotulune/Copperbench/actions/runs/33503172036"]},
+    {"id": "server-readiness-matrix", "status": "passed", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/generator/Stage9ServerReadinessContractTest.java", "src/test/java/dev/copperbench/generator/Stage9RealServerReadinessProbeTest.java", "docs/testing/stage-9-server-readiness-contract-2026-08-27.md", "docs/testing/stage-9-server-readiness-real-2026-08-29.md", "evidence/stage-9/2026-08-29/server-readiness-fabric-26_2.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-26_2.json", "evidence/stage-9/2026-08-29/server-readiness-fabric-26_1_2.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-26_1_2.json", "evidence/stage-9/2026-08-29/server-readiness-fabric-1_21_1.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-1_21_1.json", "evidence/stage-9/2026-08-29/server-readiness-fabric-1_20_1.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-1_20_1.json"]},
+    {"id": "real-jcef-accessibility", "status": "not-applicable", "betaBlocking": false, "evidence": ["docs/testing/stage-9-accessibility-baseline-2026-08-27.md", "docs/testing/stage-9-clean-windows-jcef-uia-2026-08-30.md", "src/test/java/dev/copperbench/shell/Stage9NativeJcefAccessibilityTest.java", "evidence/stage-9/2026-08-29/native-jcef-accessibility.json", "evidence/stage-9/2026-08-29/clean-windows11-uia-titlebar-probe.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-main-baseline.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-final-experiment.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-wmgetobject-none.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-wmgetobject-chromium-test.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-wmgetobject-uia-v2.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-none.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-cef137-enabled.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-cef137-enabled.log.txt", "evidence/stage-9/2026-08-30/native-jcef-renderer-ax-tree.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-msaa-direct.json", "evidence/stage-9/2026-08-30/clean-windows11-edge-accessibility-control.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-none.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-state-enabled.json", "evidence/stage-9/2026-08-30/clean-windows11-jcef150-state-enabled-marker.jsonl", "evidence/stage-9/2026-08-30/jcef150-runtime-accessibility-ab.json", "scripts/Probe-G9CleanWindowsTitlebar.cs", "scripts/Probe-G9CleanWindowsTitlebar.ps1", "scripts/Probe-G9WindowsChromiumAccessibilityControl.cs", "scripts/Probe-G9WindowsChromiumAccessibilityControl.ps1", "scripts/fixtures/g9-windows-chromium-accessibility-control.html"]},
+    {"id": "clean-windows-11-stage9", "status": "not-applicable", "betaBlocking": false, "evidence": ["docs/testing/stage-9-clean-windows-gui-2026-08-28.md", "docs/testing/stage-9-clean-windows-workspace-lifecycle-2026-08-29.md", "docs/testing/stage-9-g95-upgrade-offline-retention-2026-08-29.md", "scripts/Invoke-G9CleanWindowsGuestSmoke.ps1", "scripts/Invoke-G9CleanWindowsGuiGate.ps1", "scripts/Invoke-G9CleanWindowsWorkspaceLifecycleGate.ps1", "scripts/Invoke-G9CleanWindowsUpgradeRetentionGate.ps1", "evidence/stage-9/2026-08-28/clean-windows11-product-shell.json", "evidence/stage-9/2026-08-28/clean-windows11-gui-new-workspace.json", "evidence/stage-9/2026-08-29/clean-windows11-workspace-lifecycle.json", "evidence/stage-9/2026-08-29/clean-windows11-upgrade-offline-retention.json"]},
+    {"id": "diagnostic-bundle", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33253594479", "docs/testing/stage-10-beta-diagnostics-2026-08-29.md", "src/main/java/dev/copperbench/diagnostics/DiagnosticBundleService.java", "src/test/java/dev/copperbench/diagnostics/DiagnosticBundleServiceTest.java", "src/main/java/dev/copperbench/bridge/JcefDiagnosticsBridgeTransport.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefDiagnosticsBundleTest.java", "ui-shell/e2e/diagnostics.spec.ts"]},
+    {"id": "issue-routing", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33253594479", "docs/testing/stage-10-beta-diagnostics-2026-08-29.md", ".github/ISSUE_TEMPLATE/bug_report.yml"]},
+    {"id": "five-external-testers", "status": "not-applicable", "betaBlocking": false, "evidence": ["docs/testing/stage-9-external-tester-protocol.md", "schemas/external-tester-evidence.schema.json", "scripts/verify-external-tester-evidence.mjs", "evidence/stage-9/external-testers/README.md"]},
+    {"id": "ai-unbounded-list-contract", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-10-ai-cursor-2026-08-26.md"]},
+    {"id": "ai-workspace-plan", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
+    {"id": "ai-task-events", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33075057263", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "docs/testing/stage-10-ai-task-events-2026-08-27.md", "src/test/java/dev/copperbench/core/application/WorkspaceTaskEventTest.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefTaskReconnectTest.java"]},
+    {"id": "ai-sdk-evals", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]},
+    {"id": "installed-bundled-jdk-resolution", "status": "passed", "betaBlocking": true, "evidence": ["platform/windows/windows.gradle", "src/main/java/dev/copperbench/generator/BundledJdkLocator.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211WorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/neoforge/NeoForge1211WorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java", "src/main/java/dev/copperbench/release/WindowsDistributionLayout.java", "src/test/java/dev/copperbench/generator/BundledJdkLocatorTest.java", "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java", "src/test/java/dev/copperbench/release/WindowsDistributionLayoutTest.java", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33696803966", "https://github.com/Lotulune/Copperbench/actions/runs/33697324598"]},
+    {"id": "interactive-run-client-lifecycle", "status": "passed", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java", "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md"]},
+    {"id": "desktop-mcp-product-integration", "status": "passed", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/shell/CopperbenchProductShell.java", "src/main/java/dev/copperbench/mcp/CopperbenchMcpServer.java", "src/main/java/dev/copperbench/mcp/DesktopMcpRuntime.java", "src/main/java/dev/copperbench/bridge/JcefMcpBridgeTransport.java", "src/test/java/dev/copperbench/mcp/DesktopMcpRuntimeTest.java", "src/test/java/dev/copperbench/bridge/JcefMcpBridgeTransportTest.java", "ui-shell/e2e/mcp-runtime.spec.ts", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33696803966"]},
+    {"id": "external-agent-installed-product-loop", "status": "passed", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/shell/CopperbenchProductShell.java", "src/main/java/dev/copperbench/mcp/CopperbenchMcpServer.java", "src/test/java/dev/copperbench/mcp/DesktopMcpAgentLoopTest.java", "sdk/python/copperbench.py", "sdk/typescript/copperbench.ts", "docs/ai/agent-playbook.md", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33696803966", "https://github.com/Lotulune/Copperbench/actions/runs/33697324598"]}
+  ],
+  "mcp": {
+    "transport": "streamable-http",
+    "specVersion": "2025-11-25",
+    "schemaVersion": "1.0",
+    "conformance": "passed",
+    "installedProductIntegration": "passed-exact-candidate-d0d96877",
+    "desktopLifecycle": "passed-ui-token-renewal-auth-and-shutdown"
+  },
+  "knownLimitations": [
+    "Linux formal support covers Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg; installed runtime replay covers Fabric and NeoForge 1.21.1. Other Linux distributions/architectures are not certified. Linux 0.1.2 is publicly released as stable; frozen candidate/pre-publication metadata retains its historical false support flags; current classification is in release-control/linux-platform-support.json.",
+    "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Preview 8 was subsequently built and published from main@69469b8f; the tracked delta from d0d96877 is limited to product-status and its installed-product evidence document, with no product/runtime/build/SDK source changes. Beta 4 release workflow 33751421385 still generated transient Beta-tag packages/SBOM as part of the normal job, then replaced the release payload with the frozen Preview 8 EXE/ZIP/MSIX/SBOM after candidate hash verification and published those candidate bytes byte-for-byte. No additional G7 replay is claimed for the public Preview 8/Beta 4 bytes because the automation sandbox denied Hyper-V guest writes during the public-candidate replay attempt.",
+    "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
+    "Stage 11 full Java element support remains complete. The installed-product JDK/runClient/MCP/Agent defects discovered after Beta 3 were closed by 29005125 and revalidated after review hardening by d0d96877; the resulting product code is now publicly represented by v0.1.0-beta.4 through the signed Preview 8 exact-binary promotion.",
+    "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
+    "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; those exclusions are not claims that the omitted checks passed.",
+    "Windows packages are not Authenticode signed.",
+    "0.1.2 Linux installed acceptance used Ubuntu 24.04 GNOME x86_64 and warm caches; cold-cache, default-network and offline acceptance, external-user trials and Agent efficiency comparisons remain unverified. Windows native JCEF maintenance replay passed; no new clean-installed Windows 0.1.2 RC replay is claimed.",
+    "Asset preview failures cache the translated error text. Changing the UI language after a failed preview can leave that existing message in the previous language until Retry preview is used or the asset is reopened; preview data is unaffected."
+  ]
+}

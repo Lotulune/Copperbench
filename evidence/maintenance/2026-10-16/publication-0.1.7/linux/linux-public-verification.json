@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "platform": "linux",
+  "verifiedAt": "2026-10-16T05:30:24.670319+00:00",
+  "releaseTag": "v0.1.7-linux-stable",
+  "releaseId": 414571270,
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.7-linux-stable",
+  "publishedAt": "2026-10-16T05:29:42Z",
+  "assetCount": 9,
+  "assets": [
+    {
+      "name": "Copperbench 0.1.7 Linux x86_64 Setup.tar.gz",
+      "size": 1112289948,
+      "sha256": "685cd8c91c2508c1ce95a1d75380a3cca2f7ba0086ade05a33a6c6d51f11180b",
+      "publicName": "Copperbench.0.1.7.Linux.x86_64.Setup.tar.gz",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/Copperbench.0.1.7.Linux.x86_64.Setup.tar.gz"
+    },
+    {
+      "name": "Copperbench 0.1.7 Linux x86_64 Setup.tar.gz.build.json",
+      "size": 311,
+      "sha256": "a9f70a2a030b85fab2436e4fcdfcb3bbcaf3866f315e649eb6634899f4a7dfe3",
+      "publicName": "Copperbench.0.1.7.Linux.x86_64.Setup.tar.gz.build.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/Copperbench.0.1.7.Linux.x86_64.Setup.tar.gz.build.json"
+    },
+    {
+      "name": "Copperbench 0.1.7 Linux x86_64.tar.gz",
+      "size": 1110295372,
+      "sha256": "fdaa48f6a33f5387380fe8070c68a5a8639d1335aba3113ac26f18e2432a0598",
+      "publicName": "Copperbench.0.1.7.Linux.x86_64.tar.gz",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/Copperbench.0.1.7.Linux.x86_64.tar.gz"
+    },
+    {
+      "name": "copperbench-linux.spdx.json",
+      "size": 5670307,
+      "sha256": "60d58733dccf5ac8a69aaa22d2623119df2650991317fc89a865962f18d91d48",
+      "publicName": "copperbench-linux.spdx.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/copperbench-linux.spdx.json"
+    },
+    {
+      "name": "copperbench_0.1.7_amd64.deb",
+      "size": 1027397234,
+      "sha256": "7c632878bf8537638466435e79de8254230dbb941b81e0214c59e634f72d44a1",
+      "publicName": "copperbench_0.1.7_amd64.deb",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/copperbench_0.1.7_amd64.deb"
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "size": 6694,
+      "sha256": "f0ff3b8dba5b1d785c1f434d85360195441dcac241e3f3f199f58ed20b49c4b6",
+      "publicName": "linux-candidate-manifest.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/linux-candidate-manifest.json"
+    },
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "size": 1991,
+      "sha256": "3b7f146d8e91a6c521d9cfc9ff83c84d5f42a73ad9cb563b7808775027309aa6",
+      "publicName": "LINUX-CANDIDATE-METADATA.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/LINUX-CANDIDATE-METADATA.json"
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "size": 806,
+      "sha256": "352dd0cac6a39215f2e1ee20f050d1dc61750ea3cc745303b4a9f18423fd8979",
+      "publicName": "linux-candidate-sha256.txt",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/linux-candidate-sha256.txt"
+    },
+    {
+      "name": "LINUX-RELEASE-AUTHORIZATION.json",
+      "size": 1756,
+      "sha256": "b02f7e3824a367f546a3fc3994e393efe06d600a3af2a0299f2b2e9980d1d4f6",
+      "publicName": "LINUX-RELEASE-AUTHORIZATION.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/LINUX-RELEASE-AUTHORIZATION.json"
+    }
+  ],
+  "binarySourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+  "candidateId": "sha256:fae758f09d295e48290761e452e5d22d0dcb4abe878f18577ef4e081d7d2c847",
+  "candidateWorkflowRunId": "38850069834",
+  "scope": "Every local payload byte hash and size matches the public GitHub asset digest; publication workflow handles draft download/provenance checks.",
+  "promotionCommit": "bd2b733e5709bfe952eef33f30028a8d70a928bf",
+  "releaseWorkflowRunId": "38855720737",
+  "releaseWorkflowAttempt": 1
+}
