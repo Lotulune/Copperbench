@@ -155,7 +155,7 @@ def main():
     def datapack(generator, mod_id):
         path = create(generator, mod_id)
         with session(path) as workspace:
-            created = workspace.create_mod_element(elementType="function", name="cloud_ping")
+            created = workspace.create_mod_element(elementType="function", name="cloud_ping", initialValues={})
             element_id = created["data"]["element"]["id"]
             editor = workspace.query("get_mod_element_editor", elementId=element_id)["data"]
             fields = [field for section in editor["sections"] for field in section.get("fields", [])]
@@ -241,6 +241,8 @@ def main():
         record["status"] = "passed"
     except Exception as error:
         record.update(status="failed", error=str(error), errorType=type(error).__name__)
+        if isinstance(error, copperbench_native.NativeApiError):
+            record.update(errorCode=error.code, errorDetails=error.details)
         (evidence / "failure.txt").write_bytes(traceback.format_exc().encode("utf-8"))
         print(traceback.format_exc(), flush=True)
     finally:
