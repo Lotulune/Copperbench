@@ -34,3 +34,17 @@ Check the generated request log, installation receipt, all candidate file hashes
 - [Restarted application](../../evidence/maintenance/2026-10-17/in-app-update/03-restarted-0.1.10.png)
 
 The same source also passed 30 focused Java tests (2 POSIX checks skipped on Windows), 68 UI unit tests, 49 affected Playwright cases, 43 release metadata/authorization tests, Javadoc, production UI compilation, complete Windows component packaging and Markdown link validation.
+
+## 中文界面跟进验证
+
+更新窗口、独立升级进程和失败弹窗已统一使用应用选择的语言。错误主文案提供中文原因和下一步操作，原始异常通过「错误详情」查看。窗口打开期间切换中英文时，标题、状态和按钮一起刷新；开始安装前会再次读取当前语言，避免下载后切换中文却仍以英文升级。安装态验收脚本现在默认 `--language zh`，英文仍可显式选择 `--language en`。
+
+本次使用英文 JVM 默认语言启动隔离原生界面，验证中文错误、进度、关闭按钮，以及窗口不重开的中英文切换。没有重复执行安装和注册表写入；上面的安装态升级证据仍对应原验收包。
+
+- [中文更新错误提示](../../evidence/maintenance/2026-10-17/update-localization/update-error-zh.png)
+- [切换回中文后的同一窗口](../../evidence/maintenance/2026-10-17/update-localization/update-error-zh-after-switch.png)
+- [独立升级进程的中文进度](../../evidence/maintenance/2026-10-17/update-localization/update-worker-zh.png)
+- [独立升级进程的中文失败提示](../../evidence/maintenance/2026-10-17/update-localization/update-worker-error-zh.png)
+- [跟进验证记录与源码哈希](../../evidence/maintenance/2026-10-17/update-localization/verification.json)
+
+跟进通过 43 项定向 Java 检查（Windows 跳过 2 项 POSIX 检查）、前端生产构建和 Javadoc；用于确认独立进程中文默认按钮的 3 项测试也在隔离 JVM 中再次通过。

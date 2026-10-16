@@ -5,6 +5,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProductUpdatesTest {
+    @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory;
+    @Test void launchUsesTheLatestUiLanguageAndKeepsThePreparedTarget() throws Exception {
+        java.nio.file.Path request = directory.resolve("request.properties");
+        java.nio.file.Files.writeString(request, "language=en\nversion=0.1.10\ntarget=installed-app\nscope=user\n");
+        ProductUpdates.refreshLaunchLanguage(request, "zh");
+        var preferences = new java.util.Properties();
+        try (var reader = java.nio.file.Files.newBufferedReader(request)) { preferences.load(reader); }
+        assertEquals("zh", preferences.getProperty("language"));
+        assertEquals("installed-app", preferences.getProperty("target"));
+        assertEquals("0.1.10", preferences.getProperty("version"));
+        assertEquals("user", preferences.getProperty("scope"));
+    }
     private JsonObject release(String tag, boolean preview) {
         JsonObject release = new JsonObject(); release.addProperty("tag_name", tag); release.addProperty("draft", false); release.addProperty("prerelease", preview);
         JsonObject asset = new JsonObject(); asset.addProperty("name", "update.properties");

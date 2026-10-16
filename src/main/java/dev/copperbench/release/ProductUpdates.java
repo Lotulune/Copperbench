@@ -82,12 +82,20 @@ public final class ProductUpdates {
         } catch (IOException | RuntimeException error) { try { removeScratch(scratch); } catch (IOException cleanup) { error.addSuppressed(cleanup); } throw error; }
     }
     public static void launch(Path request) throws IOException {
+        refreshLaunchLanguage(request, dev.copperbench.shell.UiLocalePreferences.read());
         Path root = request.getParent();
         Path java = root.resolve("payload/jdk/bin/" + (platform().equals("windows-x64") ? "javaw.exe" : "java"));
         Process process = new ProcessBuilder(java.toString(), "-cp", root.resolve("payload/copperbench-setup.jar").toString(),
                 "dev.copperbench.installer.UpdateInstaller", request.toString()).directory(root.toFile())
                 .redirectErrorStream(true).redirectOutput(root.resolve("update.log").toFile()).start();
         Files.writeString(root.resolve("worker.pid"), Long.toString(process.pid()), StandardCharsets.UTF_8);
+    }
+    static void refreshLaunchLanguage(Path request, String language) throws IOException {
+        if (!Set.of("zh", "en").contains(language)) throw new IllegalArgumentException("Unsupported update language");
+        Properties preferences = new Properties();
+        try (Reader reader = Files.newBufferedReader(request, StandardCharsets.UTF_8)) { preferences.load(reader); }
+        preferences.setProperty("language", language);
+        try (Writer writer = Files.newBufferedWriter(request, StandardCharsets.UTF_8)) { preferences.store(writer, "Copperbench prepared update"); }
     }
     public static Path installationRoot() throws IOException {
         try {

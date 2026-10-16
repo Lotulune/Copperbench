@@ -23,6 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True)
     parser.add_argument('--version', default='0.1.10')
+    parser.add_argument('--language', choices=['zh', 'en'], default='zh')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = Path(args.output).resolve()
@@ -106,13 +107,13 @@ def main():
     manifest.write_text(inventory(base), encoding='utf-8')
     target = output / 'installed'
     run(java / 'java.exe', '-cp', str(classes) + os.pathsep + str(setup),
-        'dev.copperbench.installer.SeedUpdateAcceptance', base, manifest, setup, target, old_version, base / 'copperbench-update-host.exe')
+        'dev.copperbench.installer.SeedUpdateAcceptance', base, manifest, setup, target, old_version, base / 'copperbench-update-host.exe', args.language)
     (target / 'personal-note.txt').write_text('Keep user additions during upgrade.\n', encoding='utf-8')
     (output / 'workspace').mkdir()
     (output / 'workspace/workspace.mcreator').write_text('Keep unrelated workspace bytes.\n', encoding='utf-8')
     profile = output / 'profile'
     (profile / 'first-run-tour.txt').write_text('seen\n', encoding='utf-8')
-    (profile / 'ui-language.txt').write_text('en\n', encoding='utf-8')
+    (profile / 'ui-language.txt').write_text(args.language + '\n', encoding='utf-8')
     (profile / 'userpreferences').write_text(json.dumps({'core': {'hidden': {'chinaMirrorsPrompted': True, 'uiTheme': 'default_light'}}}), encoding='utf-8')
 
     candidate = output / 'candidate-payload'
@@ -139,7 +140,7 @@ def main():
     arguments = ['--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef', '-Dcopperbench.productShell=true',
                  '-cp', classpath, 'dev.copperbench.shell.InstalledUpdateAcceptance', str(assets), str(output), args.version]
     (output / 'launch.args').write_text('\n'.join('"' + value.replace('\\', '/') + '"' for value in arguments) + '\n', encoding='utf-8')
-    receipt = {'initialVersion': old_version, 'targetVersion': args.version, 'target': str(target), 'profile': str(profile),
+    receipt = {'language': args.language, 'initialVersion': old_version, 'targetVersion': args.version, 'target': str(target), 'profile': str(profile),
                'registryKey': 'HKCU\\' + registry, 'source': 'loopback HTTPS with a process-scoped trust store',
                'registration': 'Production registration logic compiled with isolated registry and shortcut destinations'}
     (output / 'preparation.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
