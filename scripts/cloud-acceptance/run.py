@@ -101,6 +101,8 @@ class Acceptance:
                        "releases": {}, "checks": [], "unverified": ["Windows 11 desktop", "MSIX installation", "UAC elevation",
                        "GNOME Wayland/Xorg desktop", "Player controls and world save/reopen"],
                        "uiScope": "Published Swing components and offscreen preview; no human interaction or desktop certification"}
+        if os.name == "nt":
+            self.record["unverified"].append("Non-ASCII Windows installation paths (external Java test-driver argument encoding)")
 
     def run(self, argv, label, *, cwd=None, timeout=900):
         return command(argv, self.evidence / (label + ".log"), cwd=cwd, env=self.environment, timeout=timeout)
@@ -290,7 +292,8 @@ class Acceptance:
                   "dev.copperbench.installer.InstallerInteractionTest"], "published-installer-components")
         self.run(["java", "-jar", bundle["jar"], "--preview", self.evidence / "installer-previews"], "published-installer-previews")
         self.checkpoint("published-installer-language-theme-components")
-        target = self.root / "fresh/Copperbench 安装 path"
+        install_name = "Copperbench with spaces" if os.name == "nt" else "Copperbench 安装 path"
+        target = self.root / "fresh" / install_name
         self.install(current, target)
         self.sentinel(target / "personal-note.txt", "User-added application file must survive uninstall.\n")
         self.native(target, "fresh-native", "smoke")
@@ -299,7 +302,7 @@ class Acceptance:
         old_archive = self.download(previous)
         self.extract(previous, old_archive)
         self.compile_probe(previous)
-        target = self.root / "upgrade/Copperbench 安装 path"
+        target = self.root / "upgrade" / install_name
         self.install(previous, target)
         self.sentinel(target / "personal-note.txt", "User-added file must survive upgrade and uninstall.\n")
         remove_owned_tree(self.bundles[previous]["root"], self.root)

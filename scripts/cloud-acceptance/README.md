@@ -21,7 +21,9 @@ files, preferences sentinels and external workspace/export bytes must survive.
 `native.py` prepares new workspaces with the existing test-only
 `Stage15GraphicalWorkspaceFixture`, compiled against the installed libraries.
 This preparation does not issue task grants or simulate a user approving a
-dialog. All subsequent Core sessions launch the installed executable and import
+dialog. Legacy data packs are prepared with the production persisted-workspace
+model, because the new-mod bootstrap does not offer these generators. All
+subsequent Core sessions launch the installed executable and import
 its bundled Python SDK. Setup cases exercise Fabric build/fail/repair, five
 packaged-JAR GameTests, exact export, host exit/reopen and task persistence,
 Fabric/NeoForge exports with no `build/libs`, and three data-pack ZIP exports.
@@ -31,4 +33,6 @@ Evidence, previews, command exits, task receipts and hash manifests are uploaded
 from `output/minecraft-validation/cloud-release/`, including failed attempts.
 Swing component tests and offscreen previews do not certify Windows 11, UAC,
 MSIX, GNOME Wayland/Xorg or player interaction. No Minecraft control bridge is
-started. World saving/reopening by a player remains a separate acceptance task.
+started. Windows uses an ASCII installation path with spaces: the hosted runner's
+external Java driver cannot transfer Chinese command-line arguments. Non-ASCII
+Windows paths and world saving/reopening by a player remain unverified.
