@@ -33,6 +33,11 @@ on:
         type: string
         required: false
         default: ''
+      windows_release_source:
+        description: 'Optional exact source SHA for an independent public Windows 0.1.9 asset verification'
+        type: string
+        required: false
+        default: ''
   pull_request:
     branches: [main]
     paths:
@@ -69,7 +74,7 @@ permissions:
 
 jobs:
   protocol:
-    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run }}
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run && !inputs.windows_release_source }}
     name: M1 protocol and adapter contracts
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -131,7 +136,7 @@ jobs:
           if-no-files-found: warn
 
   delivery:
-    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run }}
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run && !inputs.windows_release_source }}
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -202,3 +207,9 @@ jobs:
     with:
       source_sha: ${{ inputs.linux_candidate_source }}
       candidate_run: ${{ inputs.linux_candidate_run }}
+
+  public-windows-verification:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.windows_release_source != '' }}
+    uses: ./.github/workflows/public-windows-verification.yml
+    with:
+      source_sha: ${{ inputs.windows_release_source }}
