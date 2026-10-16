@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0",
+  "taskId": "1d3103ea-f6b1-45f6-909e-ca7e471c0685",
+  "archiveTask": ":remapJar",
+  "artifactPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/build/cloud-archives/m1_delivery-1.0.jar",
+  "sha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510"
+}

@@ -1,0 +1,5 @@
+{
+  "fixtureSha256": "4bb2fa6b5bfcd8eb921458848fdb818be43831fb637311549db609ea5352d229",
+  "wrapper": "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/gradle/wrapper/gradle-wrapper.properties",
+  "scope": "Preparation only; product must upgrade the legacy wrapper"
+}

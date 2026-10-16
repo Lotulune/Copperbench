@@ -1,0 +1,49 @@
+{
+  "kind": "published-installed-native-acceptance",
+  "status": "passed",
+  "mode": "smoke",
+  "startedAt": "2026-10-16T12:53:49.664656+00:00",
+  "product": "/opt/copperbench",
+  "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149",
+  "launcherSha256": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+  "sdkSha256": "84718015ef1df6f669f5897d8ceba7423aa8f6dcfaca6b547f242c413a0dd270",
+  "fixtureSha256": "82c87d493134a1362e73daed474fbd3169d9ab0a68b7b6269c498bd8b2d8b184",
+  "sessions": [
+    {
+      "pid": 3072,
+      "workspace": "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/cloud_smoke.mcreator",
+      "identity": {
+        "javaVersion": "25.0.2+10-b329.117",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149",
+        "buildDate": "42511",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    }
+  ],
+  "tasks": [
+    {
+      "label": "cloud_smoke-export",
+      "id": "81938c27-357f-453f-b5c0-f037d9a26c7c",
+      "state": "succeeded",
+      "expected": "succeeded"
+    }
+  ],
+  "checks": [
+    {
+      "name": "datapack-1.20.1-zip",
+      "status": "passed",
+      "sha256": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19"
+    }
+  ],
+  "preparation": "Existing test-only workspace fixture compiled against installed libraries; no approval grant issued",
+  "playerInteractionTested": false,
+  "playerWorldPersistenceTested": false,
+  "completedAt": "2026-10-16T12:54:20.735948+00:00",
+  "elapsedSeconds": 31.062665476999996
+}

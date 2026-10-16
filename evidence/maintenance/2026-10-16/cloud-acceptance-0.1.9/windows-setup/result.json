@@ -1,0 +1,283 @@
+{
+  "kind": "public-release-cloud-acceptance",
+  "status": "passed",
+  "variant": "windows-setup",
+  "nativeMode": "full",
+  "releaseTag": "v0.1.9",
+  "previousReleaseTag": "v0.1.7",
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "runnerOS": "Windows",
+  "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+  "workflowRun": "38903643192",
+  "workflowAttempt": "1",
+  "startedAt": "2026-10-16T12:53:12.436511+00:00",
+  "releases": {
+    "v0.1.9": {
+      "publicTag": "v0.1.9",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "assets": [
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 416,
+          "sha256": "af32897f5e8777ee567aba5ae235ab092eff9462b44e51ecbda98695abd778e6",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/RELEASE-METADATA.json",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38897217090/attempts/1"
+        },
+        {
+          "name": "Copperbench.0.1.9.Windows.64bit.exe",
+          "size": 501392811,
+          "sha256": "543f17da11e3cdb25a671f0dedaccc3fc6546e636343d068be8bdffbf78da4f1",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/Copperbench.0.1.9.Windows.64bit.exe",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38897217090/attempts/1"
+        }
+      ]
+    },
+    "v0.1.7": {
+      "publicTag": "v0.1.7",
+      "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+      "assets": [
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 416,
+          "sha256": "957312265f235d925e68631d72456f2ae6492e131f5d6f10170631f83a90ec1f",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7/RELEASE-METADATA.json",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38851412919/attempts/1"
+        },
+        {
+          "name": "Copperbench.0.1.7.Windows.64bit.exe",
+          "size": 501384374,
+          "sha256": "7afa22e4217e76076098865a6f17a91dfa296b63c4714975fb725ed64d59a802",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7/Copperbench.0.1.7.Windows.64bit.exe",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38851412919/attempts/1"
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "v0.1.9-public-package-identity",
+      "status": "passed",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c"
+    },
+    {
+      "name": "v0.1.9-extracted-setup-identity",
+      "status": "passed",
+      "setupJarSha256": "4f3db6b396c144c0b76416b29698333b7fe9bde0e246b9dfd738752d53387dbd",
+      "payloadManifestSha256": "fcfc82e5585079b6445265917c98f7d3fd4947f5b6fb94484ed9902d19649bfd"
+    },
+    {
+      "name": "published-installer-language-theme-components",
+      "status": "passed"
+    },
+    {
+      "name": "v0.1.9-install-fresh",
+      "status": "passed",
+      "result": {
+        "status": "passed",
+        "operation": "install",
+        "target": "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces",
+        "backup": null
+      },
+      "registration": {
+        "registry": {
+          "HKCU-64": {
+            "InstallLocation": "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces",
+            "DisplayVersion": "0.1.9",
+            "UninstallString": "\"D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\uninstall.exe\""
+          },
+          "HKCU-32": {
+            "InstallLocation": "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces",
+            "DisplayVersion": "0.1.9",
+            "UninstallString": "\"D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\uninstall.exe\""
+          }
+        },
+        "shortcuts": [
+          {
+            "path": "C:\\Users\\runneradmin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Copperbench\\Copperbench.lnk",
+            "target": "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\copperbench.exe"
+          },
+          {
+            "path": "C:\\Users\\runneradmin\\Desktop\\Copperbench.lnk",
+            "target": "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\copperbench.exe"
+          }
+        ]
+      },
+      "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca"
+    },
+    {
+      "name": "fresh-native",
+      "status": "passed",
+      "nativeResult": "D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\fresh-native\\result.json"
+    },
+    {
+      "name": "fresh-uninstall",
+      "status": "passed",
+      "managedFilesRemoved": 1473
+    },
+    {
+      "name": "fresh-uninstall-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "D:\\a\\_temp\\cba\\preferences\\cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "D:\\a\\_temp\\cba\\external-project\\user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\personal-note.txt": "d4325f809eb2197cc6c1258b416b349536f4e24b74982a70a5c1396ca0731b58",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\cloud_smoke.mcreator": "aef5a175f71e4a06b725af87711fc143581422b8f5152749d4e98b14777fbd62",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\elements\\cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\exports\\cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19"
+      }
+    },
+    {
+      "name": "v0.1.7-public-package-identity",
+      "status": "passed",
+      "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc"
+    },
+    {
+      "name": "v0.1.7-extracted-setup-identity",
+      "status": "passed",
+      "setupJarSha256": "c5fdcd4c5b79d84a4c32c77c5352ff03dfd993e041299ffa9bd4afc478ea5380",
+      "payloadManifestSha256": "05dff7303f58e30116bfa580572a86c15b145b244f927838b180531f02f69156"
+    },
+    {
+      "name": "v0.1.7-install-upgrade",
+      "status": "passed",
+      "result": {
+        "status": "passed",
+        "operation": "install",
+        "target": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+        "backup": null
+      },
+      "registration": {
+        "registry": {
+          "HKCU-64": {
+            "InstallLocation": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+            "DisplayVersion": "0.1.7",
+            "UninstallString": "\"D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\uninstall.exe\""
+          },
+          "HKCU-32": {
+            "InstallLocation": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+            "DisplayVersion": "0.1.7",
+            "UninstallString": "\"D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\uninstall.exe\""
+          }
+        },
+        "shortcuts": [
+          {
+            "path": "C:\\Users\\runneradmin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Copperbench\\Copperbench.lnk",
+            "target": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\copperbench.exe"
+          },
+          {
+            "path": "C:\\Users\\runneradmin\\Desktop\\Copperbench.lnk",
+            "target": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\copperbench.exe"
+          }
+        ]
+      },
+      "applicationSha256": "6d56bbff1584288afcd591af38895a2e654bbc71baa111213ef7c991f7dad4ce"
+    },
+    {
+      "name": "v0.1.9-extracted-setup-identity",
+      "status": "passed",
+      "setupJarSha256": "4f3db6b396c144c0b76416b29698333b7fe9bde0e246b9dfd738752d53387dbd",
+      "payloadManifestSha256": "fcfc82e5585079b6445265917c98f7d3fd4947f5b6fb94484ed9902d19649bfd"
+    },
+    {
+      "name": "v0.1.9-install-upgrade",
+      "status": "passed",
+      "result": {
+        "status": "passed",
+        "operation": "install",
+        "target": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+        "backup": "D:\\a\\_temp\\cba\\upgrade\\Copperbench-previous-a877b149-6bb1-4f6c-b80c-9221513a93db",
+        "backupApplicationSha256": "6d56bbff1584288afcd591af38895a2e654bbc71baa111213ef7c991f7dad4ce"
+      },
+      "registration": {
+        "registry": {
+          "HKCU-64": {
+            "InstallLocation": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+            "DisplayVersion": "0.1.9",
+            "UninstallString": "\"D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\uninstall.exe\""
+          },
+          "HKCU-32": {
+            "InstallLocation": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+            "DisplayVersion": "0.1.9",
+            "UninstallString": "\"D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\uninstall.exe\""
+          }
+        },
+        "shortcuts": [
+          {
+            "path": "C:\\Users\\runneradmin\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Copperbench\\Copperbench.lnk",
+            "target": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\copperbench.exe"
+          },
+          {
+            "path": "C:\\Users\\runneradmin\\Desktop\\Copperbench.lnk",
+            "target": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\copperbench.exe"
+          }
+        ]
+      },
+      "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca"
+    },
+    {
+      "name": "upgrade-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "D:\\a\\_temp\\cba\\preferences\\cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "D:\\a\\_temp\\cba\\external-project\\user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\personal-note.txt": "d4325f809eb2197cc6c1258b416b349536f4e24b74982a70a5c1396ca0731b58",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\cloud_smoke.mcreator": "aef5a175f71e4a06b725af87711fc143581422b8f5152749d4e98b14777fbd62",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\elements\\cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\exports\\cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19",
+        "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\personal-note.txt": "317a92c5708c8dd817cf34c7bc4c5347963d71a7a525994d95f7d813c0066540"
+      }
+    },
+    {
+      "name": "upgraded-native",
+      "status": "passed",
+      "nativeResult": "D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\upgraded-native\\result.json"
+    },
+    {
+      "name": "upgraded-uninstall",
+      "status": "passed",
+      "managedFilesRemoved": 1473
+    },
+    {
+      "name": "upgraded-uninstall-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "D:\\a\\_temp\\cba\\preferences\\cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "D:\\a\\_temp\\cba\\external-project\\user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "D:\\a\\_temp\\cba\\fresh\\Copperbench with spaces\\personal-note.txt": "d4325f809eb2197cc6c1258b416b349536f4e24b74982a70a5c1396ca0731b58",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\cloud_smoke.mcreator": "aef5a175f71e4a06b725af87711fc143581422b8f5152749d4e98b14777fbd62",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\elements\\cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "D:\\a\\_temp\\cba\\workspaces\\fresh-native\\cloud_smoke\\exports\\cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19",
+        "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces\\personal-note.txt": "317a92c5708c8dd817cf34c7bc4c5347963d71a7a525994d95f7d813c0066540",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\cloud_dp1201.mcreator": "32f5efaa6f6ffb7c14e303add4d1743845c5dee2e6a17a90d81fea9d3515b0bf",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1211\\cloud_dp1211.mcreator": "02e502604061d0a838929957408af2a245a809279486b2cbe382852662054122",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp261\\cloud_dp261.mcreator": "c8fc7279b8727438cf75a46663984c9e499cd19b0cd8b52913cc923d3f49515b",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\cloud_neoforge.mcreator": "e4d1f5de76cb33ec09a2c961cfdcc96fe3b3d037799ab7050168a0b70342e888",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\m1_delivery.mcreator": "e575002649afa4ca2cd5b5e0d25da647a5c70c3b9bf4aabe9be00b78c28f1e4b",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\elements\\cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\exports\\cloud_dp1201.zip": "9d1ab8b5bdcd12ce90ade279dc9e1a28c5347edc93598171174c2412f1611779",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1211\\elements\\cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1211\\exports\\cloud_dp1211.zip": "443cc91d89112d74cf87d096a6be112fa896aa66892aa8dd076dec2d7a46185c",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp261\\elements\\cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp261\\exports\\cloud_dp261.zip": "3a375e7fadb8a595f71f7844a303519ab3acd414779abe136eae3299f41dcd20",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\elements\\discovery_item.mod.json": "92dbbcde931b237ba828eecf24788dd7224d28cbfe12fe1609e143e0f03090e4",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\exports\\neoforge-custom-export.jar": "8fcc352603685138197503d18c0bd422b7d9e4ee81237844f9bfde1741f27df9",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\elements\\discovery_item.mod.json": "92dbbcde931b237ba828eecf24788dd7224d28cbfe12fe1609e143e0f03090e4",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\elements\\discovery_recipe.mod.json": "501aa5fa7642a76128f31509e3f55a5d25fd8c522aaffac8f028343d396e345d",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\exports\\fabric-custom-export.jar": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\.copperbench\\task-runs\\run_gametest\\1993c35c-8f0d-41f0-8e01-468e892fd9f2\\workspace\\m1_delivery.mcreator": "e575002649afa4ca2cd5b5e0d25da647a5c70c3b9bf4aabe9be00b78c28f1e4b",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\.copperbench\\task-runs\\run_gametest\\1993c35c-8f0d-41f0-8e01-468e892fd9f2\\workspace\\elements\\discovery_item.mod.json": "92dbbcde931b237ba828eecf24788dd7224d28cbfe12fe1609e143e0f03090e4",
+        "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\.copperbench\\task-runs\\run_gametest\\1993c35c-8f0d-41f0-8e01-468e892fd9f2\\workspace\\elements\\discovery_recipe.mod.json": "501aa5fa7642a76128f31509e3f55a5d25fd8c522aaffac8f028343d396e345d"
+      }
+    }
+  ],
+  "unverified": [
+    "Windows 11 desktop",
+    "MSIX installation",
+    "UAC elevation",
+    "GNOME Wayland/Xorg desktop",
+    "Player controls and world save/reopen",
+    "Non-ASCII Windows installation paths (external Java test-driver argument encoding)"
+  ],
+  "uiScope": "Published Swing components and offscreen preview; no human interaction or desktop certification",
+  "completedAt": "2026-10-16T13:07:18.936866+00:00"
+}

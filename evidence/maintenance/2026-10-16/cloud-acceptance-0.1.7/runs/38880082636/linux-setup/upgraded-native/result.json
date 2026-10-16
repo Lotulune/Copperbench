@@ -1,0 +1,105 @@
+{
+  "kind": "published-installed-native-acceptance",
+  "status": "failed",
+  "mode": "packs",
+  "startedAt": "2026-10-16T09:26:36.317386+00:00",
+  "product": "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path",
+  "applicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47",
+  "launcherSha256": "4fbbb73efd0809aeaeb5a4d0a0f332feabbd2fc9621d1a5af2e9d8e528d06b93",
+  "sdkSha256": "84718015ef1df6f669f5897d8ceba7423aa8f6dcfaca6b547f242c413a0dd270",
+  "fixtureSha256": "82c87d493134a1362e73daed474fbd3169d9ab0a68b7b6269c498bd8b2d8b184",
+  "sessions": [
+    {
+      "pid": 4172,
+      "workspace": "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1201/cloud_dp1201.mcreator",
+      "identity": {
+        "javaVersion": "25.0.2+10-b329.117",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.7",
+        "applicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47",
+        "buildDate": "42504",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    },
+    {
+      "pid": 4487,
+      "workspace": "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1211/cloud_dp1211.mcreator",
+      "identity": {
+        "javaVersion": "25.0.2+10-b329.117",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.7",
+        "applicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47",
+        "buildDate": "42504",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    },
+    {
+      "pid": 5003,
+      "workspace": "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp261/cloud_dp261.mcreator",
+      "identity": {
+        "javaVersion": "25.0.2+10-b329.117",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.7",
+        "applicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47",
+        "buildDate": "42504",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    }
+  ],
+  "tasks": [
+    {
+      "label": "cloud_dp1201-export",
+      "id": "44d02f37-4534-4113-b5a6-d2b1d19d5fc9",
+      "state": "failed",
+      "expected": "succeeded"
+    },
+    {
+      "label": "cloud_dp1211-export",
+      "id": "77cbccba-3e85-493b-a1bd-d4bfdbf31b2c",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "cloud_dp261-export",
+      "id": "9da78fb3-2fe3-4efd-b121-8dc70a0a4511",
+      "state": "succeeded",
+      "expected": "succeeded"
+    }
+  ],
+  "checks": [
+    {
+      "name": "datapack-1.20.1-zip",
+      "status": "failed",
+      "error": "cloud_dp1201-export: expected succeeded, received failed"
+    },
+    {
+      "name": "datapack-1.21.1-zip",
+      "status": "passed",
+      "sha256": "443cc91d89112d74cf87d096a6be112fa896aa66892aa8dd076dec2d7a46185c"
+    },
+    {
+      "name": "datapack-26.1.x-zip",
+      "status": "passed",
+      "sha256": "3a375e7fadb8a595f71f7844a303519ab3acd414779abe136eae3299f41dcd20"
+    }
+  ],
+  "preparation": "Existing test-only workspace fixture compiled against installed libraries; no approval grant issued",
+  "playerInteractionTested": false,
+  "playerWorldPersistenceTested": false,
+  "error": "Data-pack acceptance failed: datapack-1.20.1",
+  "errorType": "AssertionError",
+  "completedAt": "2026-10-16T09:28:40.765795+00:00",
+  "elapsedSeconds": 124.44248604699999
+}

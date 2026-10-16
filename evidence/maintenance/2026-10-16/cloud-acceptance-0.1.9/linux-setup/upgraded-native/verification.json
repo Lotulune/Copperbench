@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "reasonCode": "GAMETEST_PASSED",
+  "discovered": 5,
+  "executed": 5,
+  "passed": 5,
+  "failed": 0,
+  "skipped": 0,
+  "frameworkTests": 0,
+  "acceptanceExecuted": 5,
+  "cases": [
+    {
+      "name": "contractgametests.itemstacksurvivesserialization",
+      "className": "fabric-gametest-api-v1:empty",
+      "status": "passed",
+      "scope": "acceptance"
+    },
+    {
+      "name": "contractgametests.recipeproducesdeclareditem",
+      "className": "fabric-gametest-api-v1:empty",
+      "status": "passed",
+      "scope": "acceptance"
+    },
+    {
+      "name": "contractgametests.reciperejectswrongingredient",
+      "className": "fabric-gametest-api-v1:empty",
+      "status": "passed",
+      "scope": "acceptance"
+    },
+    {
+      "name": "contractgametests.registeredstacklimit",
+      "className": "fabric-gametest-api-v1:empty",
+      "status": "passed",
+      "scope": "acceptance"
+    },
+    {
+      "name": "contractgametests.repairedmanualcodehasindependentexpectedvalues",
+      "className": "fabric-gametest-api-v1:empty",
+      "status": "passed",
+      "scope": "acceptance"
+    }
+  ],
+  "mode": "packaged_jar",
+  "minimumTests": 5,
+  "environment": {
+    "generatorId": "fabric-1.21.1",
+    "loader": "fabric",
+    "minecraftVersion": "1.21.1",
+    "loaderVersion": "0.19.3",
+    "fabricApiVersion": "0.116.15+1.21.1",
+    "javaRelease": 21,
+    "pluginId": "net.fabricmc.fabric-loom-remap",
+    "pluginVersion": "1.17.19"
+  },
+  "artifactPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/host/run/mods/m1_delivery-1.0.jar",
+  "artifactSha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510",
+  "reportPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/host/run/gametest-results.xml",
+  "reportSha256": "8317a29ad894291d4dbe740cc63a2e76c97cecee281ee94e3b64b9954ef75f89",
+  "startedAt": "2026-10-16T12:57:50.220222684Z",
+  "completedAt": "2026-10-16T12:58:32.068783727Z",
+  "processExitCode": 0,
+  "sourceCurrentAtCompletion": true,
+  "taskId": "4a318b4c-9709-42bc-a607-55ddc49f4b8c",
+  "workspaceId": "62335d17-d195-4f61-8d2e-83ae54723adc",
+  "workspaceRevision": 5,
+  "sourceSnapshot": {
+    "sha256": "f713db58c84cd15910093de9860c2bb15530d128febeded04dfca4c1b41ff90d",
+    "fileCount": 41,
+    "bytes": 1311618,
+    "manifestPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/source-manifest.json"
+  },
+  "verificationPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/verification.json"
+}

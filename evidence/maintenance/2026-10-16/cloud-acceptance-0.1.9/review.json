@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "run": "38903643192",
+  "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+  "normalNativeHostExits": 16,
+  "evidenceFilesVerified": 571,
+  "previewReview": {
+    "scope": "Offscreen installer previews, not desktop/player operation",
+    "checked": [
+      "Windows Chinese/light",
+      "Linux English/dark"
+    ],
+    "observed": "Readable labels, no clipped text or missing controls"
+  },
+  "coverage": "Public installers and bundled Native SDK; source/asset identities, fresh install,0.1.7->0.1.9upgrade,uninstall,data preservation,coldlegacywrapperdownload,mod build/fail/repair,5serverGameTests perSetupplatform,exact/reopened/custom exports,three data-pack ZIP tracks",
+  "notClaimed": [
+    "Windows11desktop",
+    "non-ASCII Windows install paths",
+    "MSIX installation",
+    "UAC elevation",
+    "GNOME Wayland/Xorg interaction",
+    "player control/world save-reopen"
+  ]
+}

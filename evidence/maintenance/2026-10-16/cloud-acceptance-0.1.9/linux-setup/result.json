@@ -1,0 +1,225 @@
+{
+  "kind": "public-release-cloud-acceptance",
+  "status": "passed",
+  "variant": "linux-setup",
+  "nativeMode": "full",
+  "releaseTag": "v0.1.9",
+  "previousReleaseTag": "v0.1.7",
+  "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "runnerOS": "Linux",
+  "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+  "workflowRun": "38903643192",
+  "workflowAttempt": "1",
+  "startedAt": "2026-10-16T12:53:08.714022+00:00",
+  "releases": {
+    "v0.1.9": {
+      "publicTag": "v0.1.9-linux-stable",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "assets": [
+        {
+          "name": "LINUX-CANDIDATE-METADATA.json",
+          "size": 1991,
+          "sha256": "ae4d132f52a14c88e56349c0e3ae83ed5572bf4cb96649c1cb73c31f0bcb1158",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/LINUX-CANDIDATE-METADATA.json",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38894781422/attempts/1"
+        },
+        {
+          "name": "Copperbench.0.1.9.Linux.x86_64.Setup.tar.gz",
+          "size": 1112306976,
+          "sha256": "7f611ae643f4e29a7519c64eba4c8398b350e7e9f161837f14d4929fd1f11de4",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/Copperbench.0.1.9.Linux.x86_64.Setup.tar.gz",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38894781422/attempts/1"
+        }
+      ]
+    },
+    "v0.1.7": {
+      "publicTag": "v0.1.7-linux-stable",
+      "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+      "assets": [
+        {
+          "name": "LINUX-CANDIDATE-METADATA.json",
+          "size": 1991,
+          "sha256": "3b7f146d8e91a6c521d9cfc9ff83c84d5f42a73ad9cb563b7808775027309aa6",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/LINUX-CANDIDATE-METADATA.json",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38850069834/attempts/1"
+        },
+        {
+          "name": "Copperbench.0.1.7.Linux.x86_64.Setup.tar.gz",
+          "size": 1112289948,
+          "sha256": "685cd8c91c2508c1ce95a1d75380a3cca2f7ba0086ade05a33a6c6d51f11180b",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/Copperbench.0.1.7.Linux.x86_64.Setup.tar.gz",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38850069834/attempts/1"
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "v0.1.9-public-package-identity",
+      "status": "passed",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c"
+    },
+    {
+      "name": "v0.1.9-extracted-setup-identity",
+      "status": "passed",
+      "setupJarSha256": "ee71af03778af2c341d675532939baf7c66d19fb7e54bb5b412f2d81737fc0c7",
+      "payloadManifestSha256": "bc8d57fb84000fe1d09e4b2399c315849966d85e0858ab51881a17fbb27eb3cf"
+    },
+    {
+      "name": "published-installer-language-theme-components",
+      "status": "passed"
+    },
+    {
+      "name": "v0.1.9-install-fresh",
+      "status": "passed",
+      "result": {
+        "status": "passed",
+        "operation": "install",
+        "target": "/home/runner/work/_temp/cba/fresh/Copperbench 安装 path",
+        "backup": null
+      },
+      "registration": {
+        "/home/runner/work/_temp/cba/data/applications/copperbench.desktop": "[Desktop Entry]\nType=Application\nName=Copperbench\nName[zh_CN]=Copperbench\nComment=Create Minecraft mods with visual tools and agents\nComment[zh_CN]=可视化管理项目，与 Agent 协作创建 Minecraft 模组\nExec=\"/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/copperbench.sh\"\nIcon=/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/icon.png\nTerminal=false\nCategories=Development;IDE;\n",
+        "/home/runner/work/_temp/cba/data/applications/copperbench-uninstall.desktop": "[Desktop Entry]\nType=Application\nName=Uninstall Copperbench\nName[zh_CN]=卸载 Copperbench\nComment=Create Minecraft mods with visual tools and agents\nComment[zh_CN]=可视化管理项目，与 Agent 协作创建 Minecraft 模组\nExec=\"/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/jdk/bin/java\" -jar \"/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/copperbench-setup.jar\" --uninstall\nIcon=/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/icon.png\nTerminal=false\nCategories=Development;IDE;\n",
+        "/home/runner/work/_temp/cba/config/copperbench/install-location.txt": "/home/runner/work/_temp/cba/fresh/Copperbench 安装 path\n"
+      },
+      "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149"
+    },
+    {
+      "name": "fresh-native",
+      "status": "passed",
+      "nativeResult": "/home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native/result.json"
+    },
+    {
+      "name": "fresh-uninstall",
+      "status": "passed",
+      "managedFilesRemoved": 3619
+    },
+    {
+      "name": "fresh-uninstall-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "/home/runner/work/_temp/cba/preferences/cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "/home/runner/work/_temp/cba/external-project/user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/personal-note.txt": "d4325f809eb2197cc6c1258b416b349536f4e24b74982a70a5c1396ca0731b58",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/cloud_smoke.mcreator": "daf89978c99681ac8c53faaa70271dcb12f55d9b8055593cab61478433529826",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19"
+      }
+    },
+    {
+      "name": "v0.1.7-public-package-identity",
+      "status": "passed",
+      "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc"
+    },
+    {
+      "name": "v0.1.7-extracted-setup-identity",
+      "status": "passed",
+      "setupJarSha256": "603b1cca0662a50e87fd8b858e765406e5965eddc882ac7b47721f54dd5a7aac",
+      "payloadManifestSha256": "5c0c856da09f3ee167de6ec864375b6d1ced4a07b3f37bc5569ec11c89d4f24c"
+    },
+    {
+      "name": "v0.1.7-install-upgrade",
+      "status": "passed",
+      "result": {
+        "status": "passed",
+        "operation": "install",
+        "target": "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path",
+        "backup": null
+      },
+      "registration": {
+        "/home/runner/work/_temp/cba/data/applications/copperbench.desktop": "[Desktop Entry]\nType=Application\nName=Copperbench\nName[zh_CN]=Copperbench\nComment=Create Minecraft mods with visual tools and agents\nComment[zh_CN]=可视化管理项目，与 Agent 协作创建 Minecraft 模组\nExec=\"/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/copperbench.sh\"\nIcon=/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/icon.png\nTerminal=false\nCategories=Development;IDE;\n",
+        "/home/runner/work/_temp/cba/data/applications/copperbench-uninstall.desktop": "[Desktop Entry]\nType=Application\nName=Uninstall Copperbench\nName[zh_CN]=卸载 Copperbench\nComment=Create Minecraft mods with visual tools and agents\nComment[zh_CN]=可视化管理项目，与 Agent 协作创建 Minecraft 模组\nExec=\"/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/jdk/bin/java\" -jar \"/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/copperbench-setup.jar\" --uninstall\nIcon=/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/icon.png\nTerminal=false\nCategories=Development;IDE;\n",
+        "/home/runner/work/_temp/cba/config/copperbench/install-location.txt": "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path\n"
+      },
+      "applicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47"
+    },
+    {
+      "name": "v0.1.9-extracted-setup-identity",
+      "status": "passed",
+      "setupJarSha256": "ee71af03778af2c341d675532939baf7c66d19fb7e54bb5b412f2d81737fc0c7",
+      "payloadManifestSha256": "bc8d57fb84000fe1d09e4b2399c315849966d85e0858ab51881a17fbb27eb3cf"
+    },
+    {
+      "name": "v0.1.9-install-upgrade",
+      "status": "passed",
+      "result": {
+        "status": "passed",
+        "operation": "install",
+        "target": "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path",
+        "backup": "/home/runner/work/_temp/cba/upgrade/Copperbench-previous-d2e5e59a-d664-47c0-b554-37c1130079df",
+        "backupApplicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47"
+      },
+      "registration": {
+        "/home/runner/work/_temp/cba/data/applications/copperbench.desktop": "[Desktop Entry]\nType=Application\nName=Copperbench\nName[zh_CN]=Copperbench\nComment=Create Minecraft mods with visual tools and agents\nComment[zh_CN]=可视化管理项目，与 Agent 协作创建 Minecraft 模组\nExec=\"/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/copperbench.sh\"\nIcon=/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/icon.png\nTerminal=false\nCategories=Development;IDE;\n",
+        "/home/runner/work/_temp/cba/data/applications/copperbench-uninstall.desktop": "[Desktop Entry]\nType=Application\nName=Uninstall Copperbench\nName[zh_CN]=卸载 Copperbench\nComment=Create Minecraft mods with visual tools and agents\nComment[zh_CN]=可视化管理项目，与 Agent 协作创建 Minecraft 模组\nExec=\"/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/jdk/bin/java\" -jar \"/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/copperbench-setup.jar\" --uninstall\nIcon=/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/icon.png\nTerminal=false\nCategories=Development;IDE;\n",
+        "/home/runner/work/_temp/cba/config/copperbench/install-location.txt": "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path\n"
+      },
+      "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149"
+    },
+    {
+      "name": "upgrade-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "/home/runner/work/_temp/cba/preferences/cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "/home/runner/work/_temp/cba/external-project/user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/personal-note.txt": "d4325f809eb2197cc6c1258b416b349536f4e24b74982a70a5c1396ca0731b58",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/cloud_smoke.mcreator": "daf89978c99681ac8c53faaa70271dcb12f55d9b8055593cab61478433529826",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19",
+        "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/personal-note.txt": "317a92c5708c8dd817cf34c7bc4c5347963d71a7a525994d95f7d813c0066540"
+      }
+    },
+    {
+      "name": "upgraded-native",
+      "status": "passed",
+      "nativeResult": "/home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/upgraded-native/result.json"
+    },
+    {
+      "name": "upgraded-uninstall",
+      "status": "passed",
+      "managedFilesRemoved": 3619
+    },
+    {
+      "name": "upgraded-uninstall-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "/home/runner/work/_temp/cba/preferences/cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "/home/runner/work/_temp/cba/external-project/user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "/home/runner/work/_temp/cba/fresh/Copperbench 安装 path/personal-note.txt": "d4325f809eb2197cc6c1258b416b349536f4e24b74982a70a5c1396ca0731b58",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/cloud_smoke.mcreator": "daf89978c99681ac8c53faaa70271dcb12f55d9b8055593cab61478433529826",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/fresh-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19",
+        "/home/runner/work/_temp/cba/upgrade/Copperbench 安装 path/personal-note.txt": "317a92c5708c8dd817cf34c7bc4c5347963d71a7a525994d95f7d813c0066540",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1201/cloud_dp1201.mcreator": "d612103cbec6667baabf7ddd9dd7af4eb4f1bc0dbf1c91884f6625e434edc2f5",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_neoforge/cloud_neoforge.mcreator": "9ebdf79fa66786637c70faec24688b5e8a8f8de7c30c8cce8c6b818a9987eb14",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1211/cloud_dp1211.mcreator": "d2f0400e8906af7943f9be5f42baadbc8111ddfea9ca3dfefe9523549e63d9d6",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp261/cloud_dp261.mcreator": "c8337ac44be976cc3ce1562b193e5f1267ec712ced72eccc3928737fe57c88da",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/m1_delivery.mcreator": "a5fcb05dc4a4234640cd2f8e5743d52eb416e3856ef99fa657ab61cb1249dd9b",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1201/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1201/exports/cloud_dp1201.zip": "9d1ab8b5bdcd12ce90ade279dc9e1a28c5347edc93598171174c2412f1611779",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_neoforge/elements/discovery_item.mod.json": "92dbbcde931b237ba828eecf24788dd7224d28cbfe12fe1609e143e0f03090e4",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_neoforge/exports/neoforge-custom-export.jar": "8fcc352603685138197503d18c0bd422b7d9e4ee81237844f9bfde1741f27df9",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1211/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp1211/exports/cloud_dp1211.zip": "443cc91d89112d74cf87d096a6be112fa896aa66892aa8dd076dec2d7a46185c",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp261/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp261/exports/cloud_dp261.zip": "3a375e7fadb8a595f71f7844a303519ab3acd414779abe136eae3299f41dcd20",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/elements/discovery_item.mod.json": "92dbbcde931b237ba828eecf24788dd7224d28cbfe12fe1609e143e0f03090e4",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/elements/discovery_recipe.mod.json": "501aa5fa7642a76128f31509e3f55a5d25fd8c522aaffac8f028343d396e345d",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/exports/fabric-custom-export.jar": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/workspace/m1_delivery.mcreator": "a5fcb05dc4a4234640cd2f8e5743d52eb416e3856ef99fa657ab61cb1249dd9b",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/workspace/elements/discovery_item.mod.json": "92dbbcde931b237ba828eecf24788dd7224d28cbfe12fe1609e143e0f03090e4",
+        "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-runs/run_gametest/4a318b4c-9709-42bc-a607-55ddc49f4b8c/workspace/elements/discovery_recipe.mod.json": "501aa5fa7642a76128f31509e3f55a5d25fd8c522aaffac8f028343d396e345d"
+      }
+    }
+  ],
+  "unverified": [
+    "Windows 11 desktop",
+    "MSIX installation",
+    "UAC elevation",
+    "GNOME Wayland/Xorg desktop",
+    "Player controls and world save/reopen"
+  ],
+  "uiScope": "Published Swing components and offscreen preview; no human interaction or desktop certification",
+  "completedAt": "2026-10-16T13:04:59.918633+00:00"
+}

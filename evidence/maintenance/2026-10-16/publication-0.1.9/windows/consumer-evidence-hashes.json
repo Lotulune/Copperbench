@@ -1,0 +1,13 @@
+{
+  "SHA256SUMS.txt": "242aec5f88cc15569ae0742a39b94feb99c050d1697d58e143b9f668ab629842",
+  "RELEASE-METADATA.json": "af32897f5e8777ee567aba5ae235ab092eff9462b44e51ecbda98695abd778e6",
+  "public-verification.json": "fc75cbcb971d7670fc09342bb6a7309698c1f49ee03b9f22bd4406fd4d7ac2e0",
+  "product-status.json": "615454acc0ee589ca1932468169bb243bb29e59d96826c01f8820897a835804d",
+  "release-run.json": "c2b3e7e2229695c11f4150c377076e5ad570845ba48a467d16c65bc22fddbc9b",
+  "result.json": "4e7cce6a222d75654ba5be29d1a08ab267dc9b522f069f49dee5f9c23fc4a025",
+  "archive-entry-verification.json": "196a3427614c7a93949aeef818520b2ba914aa50ebf72aa976d715e4ab54ea38",
+  "public-release.json": "50c065b23cd24fb18713468fc67cd02bd8ded0552cf3c8134b3d01d9ba59d096",
+  "provenance/verification.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "provenance/provenance-verification.json": "4d3049cd15dab9cb4763fc5dfc6893d1e0a4b7afd2ac72d8783a6453516ed47a",
+  "provenance/verified-bundle.json": "f05b25a34b257e6cd8557650f20efd67c6b50f0bd9efa08de25d7fbdc3cdcf9d"
+}

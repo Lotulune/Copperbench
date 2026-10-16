@@ -1,0 +1,409 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "7f386f0e-20e5-48d1-a1b3-a4ddafbbb02f",
+  "workspaceId": "8598f39f-5f12-4c03-b103-a9f77ee1de72",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 2,
+  "data": {
+    "task": {
+      "id": "9a450b2d-72dc-4fce-b2b1-5cefa3e7aab8",
+      "kind": "export",
+      "state": "succeeded",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.export.completed",
+        "fallback": "Data Pack export completed",
+        "args": {
+          "backend": "Data Pack"
+        }
+      },
+      "startedAt": "2026-10-16T08:38:51.002335391Z",
+      "completedAt": "2026-10-16T08:39:01.978164177Z",
+      "diagnostics": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Data Pack",
+      "sourceSnapshot": {
+        "sha256": "b8117da6275a47f67bfcaccac9805969dfb28ecbc45aa68d1ff5621df30882ca",
+        "fileCount": 18,
+        "bytes": 799890,
+        "manifestPath": "/home/runner/work/_temp/cba/workspaces/deb-upgraded-native/cloud_smoke/.copperbench/task-inputs/9a450b2d-72dc-4fce-b2b1-5cefa3e7aab8.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T08:38:51.005759857Z",
+        "level": "info",
+        "text": "Starting Data Pack export from revision 2"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T08:38:51.020373333Z",
+        "level": "info",
+        "text": "Data Pack generation completed: 1 files; modId=Cloud cloud_smoke"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T08:38:51.862192204Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T08:38:52.960570710Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T08:38:54.460521299Z",
+        "level": "info",
+        "text": "Calculating task graph as no cached configuration is available for tasks: build"
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T08:38:57.060155761Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T08:38:57.066079559Z",
+        "level": "info",
+        "text": "> Configure project :packloader"
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T08:38:57.066875923Z",
+        "level": "info",
+        "text": "Creating Minecraft artifacts without recompilation."
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T08:38:58.763754011Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T08:38:58.764953843Z",
+        "level": "info",
+        "text": "> Task :packloader:jarJar NO-SOURCE"
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T08:38:58.765767740Z",
+        "level": "info",
+        "text": "> Task :packloader:processTestResources NO-SOURCE"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T08:38:58.860200377Z",
+        "level": "info",
+        "text": "> Task :packloader:processResources"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T08:38:58.861357348Z",
+        "level": "info",
+        "text": "> Task :build"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T08:39:00.265038999Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T08:39:00.266115199Z",
+        "level": "info",
+        "text": "> Task :packloader:createMinecraftArtifacts"
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T08:39:00.266762854Z",
+        "level": "info",
+        "text": "Loaded 131 artifacts from /home/runner/work/_temp/cba/workspaces/deb-upgraded-native/cloud_smoke/packloader/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties"
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T08:39:00.267414177Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadJson\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T08:39:00.268020214Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadJson\u001b[0m in 0.02s"
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T08:39:00.268737190Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadClientMappings\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T08:39:00.269408430Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadClient\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T08:39:00.269812859Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadServer\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T08:39:00.270342022Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadServer\u001b[0m in 0.04s"
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T08:39:00.270747853Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadClientMappings\u001b[0m in 0.04s"
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T08:39:00.271351296Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadClient\u001b[0m in 0.04s"
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T08:39:00.271982711Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mmergeMappings\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T08:39:00.272578499Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mmergeMappings\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T08:39:00.274006449Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mstripClient\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-10-16T08:39:00.274618087Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mstripClient\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-10-16T08:39:00.275276142Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mextractServer\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 30,
+        "timestamp": "2026-10-16T08:39:00.275895093Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mextractServer\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 31,
+        "timestamp": "2026-10-16T08:39:00.276519055Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mstripServer\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 32,
+        "timestamp": "2026-10-16T08:39:00.277927598Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mstripServer\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 33,
+        "timestamp": "2026-10-16T08:39:00.279065173Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mmerge\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 34,
+        "timestamp": "2026-10-16T08:39:00.280789659Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mmerge\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 35,
+        "timestamp": "2026-10-16T08:39:00.281938014Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mrename\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 36,
+        "timestamp": "2026-10-16T08:39:00.282479360Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mrename\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 37,
+        "timestamp": "2026-10-16T08:39:00.283063336Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mbinaryPatch\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 38,
+        "timestamp": "2026-10-16T08:39:00.283618989Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mbinaryPatch\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 39,
+        "timestamp": "2026-10-16T08:39:00.284233853Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mcopyUnpatchedClasses\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 40,
+        "timestamp": "2026-10-16T08:39:00.285096763Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mcopyUnpatchedClasses\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 41,
+        "timestamp": "2026-10-16T08:39:00.285689605Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mapplyDevTransforms\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 42,
+        "timestamp": "2026-10-16T08:39:00.286265446Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mapplyDevTransforms\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 43,
+        "timestamp": "2026-10-16T08:39:00.286816690Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mbinaryWithNeoForge\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 44,
+        "timestamp": "2026-10-16T08:39:00.287373906Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m♻\u001b[0m Used cache of \u001b[4mbinaryWithNeoForge\u001b[0m in 0.00s"
+      },
+      {
+        "sequence": 45,
+        "timestamp": "2026-10-16T08:39:00.289497660Z",
+        "level": "info",
+        "text": "Total runtime: 1.02s"
+      },
+      {
+        "sequence": 46,
+        "timestamp": "2026-10-16T08:39:00.290138813Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 47,
+        "timestamp": "2026-10-16T08:39:01.759946977Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 48,
+        "timestamp": "2026-10-16T08:39:01.761066929Z",
+        "level": "info",
+        "text": "> Task :packloader:compileJava FROM-CACHE"
+      },
+      {
+        "sequence": 49,
+        "timestamp": "2026-10-16T08:39:01.763914794Z",
+        "level": "info",
+        "text": "> Task :packloader:classes"
+      },
+      {
+        "sequence": 50,
+        "timestamp": "2026-10-16T08:39:01.764547772Z",
+        "level": "info",
+        "text": "> Task :packloader:compileTestJava NO-SOURCE"
+      },
+      {
+        "sequence": 51,
+        "timestamp": "2026-10-16T08:39:01.765039845Z",
+        "level": "info",
+        "text": "> Task :packloader:testClasses UP-TO-DATE"
+      },
+      {
+        "sequence": 52,
+        "timestamp": "2026-10-16T08:39:01.830955873Z",
+        "level": "info",
+        "text": "> Task :packloader:test NO-SOURCE"
+      },
+      {
+        "sequence": 53,
+        "timestamp": "2026-10-16T08:39:01.831761675Z",
+        "level": "info",
+        "text": "> Task :packloader:check UP-TO-DATE"
+      },
+      {
+        "sequence": 54,
+        "timestamp": "2026-10-16T08:39:01.832426423Z",
+        "level": "info",
+        "text": "> Task :packloader:jar"
+      },
+      {
+        "sequence": 55,
+        "timestamp": "2026-10-16T08:39:01.833759595Z",
+        "level": "info",
+        "text": "> Task :packloader:assemble"
+      },
+      {
+        "sequence": 56,
+        "timestamp": "2026-10-16T08:39:01.835381729Z",
+        "level": "info",
+        "text": "> Task :packloader:build"
+      },
+      {
+        "sequence": 57,
+        "timestamp": "2026-10-16T08:39:01.836951806Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 58,
+        "timestamp": "2026-10-16T08:39:01.837491549Z",
+        "level": "info",
+        "text": "BUILD SUCCESSFUL in 10s"
+      },
+      {
+        "sequence": 59,
+        "timestamp": "2026-10-16T08:39:01.838046521Z",
+        "level": "info",
+        "text": "5 actionable tasks: 4 executed, 1 from cache"
+      },
+      {
+        "sequence": 60,
+        "timestamp": "2026-10-16T08:39:01.838548553Z",
+        "level": "info",
+        "text": "Configuration cache entry stored."
+      },
+      {
+        "sequence": 61,
+        "timestamp": "2026-10-16T08:39:01.925097073Z",
+        "level": "info",
+        "text": "Exported Data Pack artifact to exports/cloud_smoke.zip"
+      }
+    ],
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

@@ -1,7 +1,7 @@
 # Public release cloud acceptance
 
 Dispatch the existing **Agent readiness M1 gates** workflow with `release_tag`
-and `previous_release_tag` (for example `v0.1.7` and `v0.1.6`). Empty inputs keep
+and `previous_release_tag` (for example `v0.1.9` and `v0.1.7`). Empty inputs keep
 the original source-level M1 gates. The reusable workflow tests public assets on
 Windows Server 2025 and Ubuntu 24.04; it does not rebuild Copperbench.
 
@@ -24,7 +24,7 @@ installed-product acceptance.
 `run.py` refuses to change OS registration outside this repository's disposable
 GitHub-hosted runners. It verifies GitHub asset digests and signed provenance
 against the release's source tag and producing workflow/run before execution.
-It installs 0.1.7 fresh, uninstalls it, installs 0.1.6, upgrades to 0.1.7, then
+It installs the requested version fresh, uninstalls it, installs the previous version, upgrades to the requested version, then
 uninstalls the upgraded package. Version arguments also permit future releases.
 
 The Setup cases compile only `InstallerProbe` and the existing component test
