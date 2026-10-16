@@ -320,13 +320,11 @@ test('0.1.5 publication rejects a skipped graphical installer check or a non-mai
   assert.throws(check, /step did not pass/);
 });
 
-function maintenance016UnitFixture(t) {
+function maintenanceUnitFixture(t, version = '0.1.6', commit = '9e3dfdeab1bc19c099e739bcda14940d9a6fee30', runId = '38748273030') {
   // Synthetic unit-only data. These temporary files are never production CI,
   // candidate metadata, approval or installed-acceptance evidence.
   const { root } = fixture(t);
-  const commit = '9e3dfdeab1bc19c099e739bcda14940d9a6fee30';
-  const runId = '38748273030';
-  const releaseTag = 'v0.1.6-linux-stable';
+  const releaseTag = `v${version}-linux-stable`;
   const reportPath = 'docs/testing/linux-016-unit-fixture.md';
   mkdirSync(dirname(resolve(root, reportPath)), { recursive: true });
   writeFileSync(resolve(root, reportPath), 'Synthetic unit fixture; not candidate acceptance evidence.\n');
@@ -355,7 +353,7 @@ function maintenance016UnitFixture(t) {
     steps: stepNames.map(name => ({ name, status: 'completed', conclusion: 'success' })) }] };
   const auth = { schemaVersion: '1.0', kind: 'linux-release-authorization', status: 'approved',
     releaseEligible: true, releaseTag, formalSupportClaim: false, fullInstalledAcceptance: 'not-repeated',
-    acceptancePolicy: 'maintenance-ci-0.1.6', candidateSourceCommit: commit, candidateWorkflowRunId: runId,
+    acceptancePolicy: `maintenance-ci-${version}`, candidateSourceCommit: commit, candidateWorkflowRunId: runId,
     candidateId: 'sha256:' + 'c'.repeat(64), debSha256: 'd'.repeat(64), portableSha256: 'e'.repeat(64),
     validationReportPath: reportPath, validationReportSha256: sha(readFileSync(resolve(root, reportPath))),
     maintenanceApproval: { approved: true, releaseTag, scope: 'Synthetic unit fixture only.' },
@@ -376,14 +374,14 @@ function maintenance016UnitFixture(t) {
 }
 
 test('0.1.6 exact maintenance tuple requires thirteen CI steps without installed certification', (t) => {
-  const { auth, check } = maintenance016UnitFixture(t);
+  const { auth, check } = maintenanceUnitFixture(t);
   assert.equal(check().ciStepsVerified, 13);
   assert.equal(check().fullInstalledAcceptance, 'not-repeated');
   assert.equal(auth.formalSupportClaim, false);
 });
 
 test('0.1.6 cannot reuse a PR candidate, another tuple or installed-support claim', (t) => {
-  const { auth, check } = maintenance016UnitFixture(t);
+  const { auth, check } = maintenanceUnitFixture(t);
   for (const [key, invalid] of [['releaseTag', 'v0.1.7-linux-stable'],
     ['candidateSourceCommit', 'a'.repeat(40)], ['candidateWorkflowRunId', '38744646888'],
     ['acceptancePolicy', 'maintenance-ci-0.1.5']]) {
@@ -401,10 +399,43 @@ test('0.1.6 cannot reuse a PR candidate, another tuple or installed-support clai
 });
 
 test('0.1.6 rejects a non-push run and a skipped graphical installer check', (t) => {
-  const { check, mutate } = maintenance016UnitFixture(t);
+  const { check, mutate } = maintenanceUnitFixture(t);
   mutate('run', run => { run.event = 'pull_request'; });
   assert.throws(check, /CI identity or result mismatch/);
   mutate('run', run => { run.event = 'push'; });
+  mutate('jobs', receipt => {
+    receipt.jobs[0].steps.find(step => step.name === 'Verify graphical installer package and render its bilingual wizard').conclusion = 'skipped';
+  });
+  assert.throws(check, /step did not pass/);
+});
+
+test('0.1.7 exact maintenance tuple requires all thirteen CI steps', (t) => {
+  const { auth, check } = maintenanceUnitFixture(t, '0.1.7', 'db8d08336c274cc37239b48e837f0bf3727c5fdc', '38850069834');
+  assert.equal(check().ciStepsVerified, 13);
+  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
+  assert.equal(auth.formalSupportClaim, false);
+});
+
+test('0.1.7 rejects another source, PR candidate, release tag or installed certification', (t) => {
+  const { auth, check } = maintenanceUnitFixture(t, '0.1.7', 'db8d08336c274cc37239b48e837f0bf3727c5fdc', '38850069834');
+  for (const [key, invalid] of [['releaseTag', 'v0.1.8-linux-stable'],
+    ['candidateSourceCommit', 'a'.repeat(40)], ['candidateWorkflowRunId', '38848335973'],
+    ['acceptancePolicy', 'maintenance-ci-0.1.6']]) {
+    const original = auth[key]; auth[key] = invalid;
+    assert.throws(check, /limited to the approved/); auth[key] = original;
+  }
+  auth.formalSupportClaim = true;
+  assert.throws(check, /honest installed-acceptance/);
+  auth.formalSupportClaim = false;
+  auth.maintenanceApproval.approved = false;
+  assert.throws(check, /explicit approval/);
+});
+
+test('0.1.7 rejects a non-main run and a skipped graphical installer check', (t) => {
+  const { check, mutate } = maintenanceUnitFixture(t, '0.1.7', 'db8d08336c274cc37239b48e837f0bf3727c5fdc', '38850069834');
+  mutate('run', run => { run.head_branch = 'unapproved-branch'; });
+  assert.throws(check, /CI identity or result mismatch/);
+  mutate('run', run => { run.head_branch = 'main'; });
   mutate('jobs', receipt => {
     receipt.jobs[0].steps.find(step => step.name === 'Verify graphical installer package and render its bilingual wizard').conclusion = 'skipped';
   });
