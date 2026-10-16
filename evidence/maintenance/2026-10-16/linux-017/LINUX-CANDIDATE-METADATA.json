@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-linux-immutable-candidate",
+  "status": "development-not-certified",
+  "formalSupportClaim": false,
+  "exactBinaryPromotionEligible": false,
+  "candidateId": "sha256:fae758f09d295e48290761e452e5d22d0dcb4abe878f18577ef4e081d7d2c847",
+  "productId": "dev.copperbench.studio",
+  "productVersion": "0.1.7",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "primaryDesktopSession": "GNOME Wayland",
+    "compatibilityDesktopSession": "GNOME on Xorg"
+  },
+  "source": {
+    "commit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+    "ref": "refs/heads/main",
+    "workflowRunId": "38850069834",
+    "workflowRunAttempt": "1"
+  },
+  "assets": {
+    "portable": {
+      "role": "portable",
+      "name": "Copperbench 0.1.7 Linux x86_64.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1110295372,
+      "sha256": "fdaa48f6a33f5387380fe8070c68a5a8639d1335aba3113ac26f18e2432a0598"
+    },
+    "deb": {
+      "role": "deb",
+      "name": "copperbench_0.1.7_amd64.deb",
+      "mediaType": "application/vnd.debian.binary-package",
+      "size": 1027397234,
+      "sha256": "7c632878bf8537638466435e79de8254230dbb941b81e0214c59e634f72d44a1"
+    },
+    "sbom": {
+      "role": "sbom",
+      "name": "copperbench-linux.spdx.json",
+      "mediaType": "application/spdx+json",
+      "size": 5670307,
+      "sha256": "60d58733dccf5ac8a69aaa22d2623119df2650991317fc89a865962f18d91d48"
+    },
+    "manifest": {
+      "role": "manifest",
+      "name": "linux-candidate-manifest.json",
+      "mediaType": "application/json",
+      "size": 6694,
+      "sha256": "f0ff3b8dba5b1d785c1f434d85360195441dcac241e3f3f199f58ed20b49c4b6"
+    },
+    "setup": {
+      "role": "setup",
+      "name": "Copperbench 0.1.7 Linux x86_64 Setup.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1112289948,
+      "sha256": "685cd8c91c2508c1ce95a1d75380a3cca2f7ba0086ade05a33a6c6d51f11180b"
+    }
+  }
+}

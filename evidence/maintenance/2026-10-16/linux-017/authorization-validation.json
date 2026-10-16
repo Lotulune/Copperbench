@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "candidateId": "sha256:fae758f09d295e48290761e452e5d22d0dcb4abe878f18577ef4e081d7d2c847",
+  "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+  "checks": [
+    {
+      "name": "linux-metadata",
+      "executable": "node",
+      "arguments": [
+        "scripts/verify-linux-candidate-metadata.mjs",
+        "--export-dir",
+        "output/review-release-017/linux-payload",
+        "--expected-commit",
+        "db8d08336c274cc37239b48e837f0bf3727c5fdc"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T05:00:29.3191665+00:00",
+      "completedAt": "2026-10-16T05:00:34.0582775+00:00",
+      "exitCode": 0,
+      "log": "linux-metadata.log",
+      "logSha256": "f7ceddd4158d55c251b8d0f3bde0201279bbd2d6d140fb9a5b39b7e05a1d7308"
+    },
+    {
+      "name": "linux-auth-tests-final",
+      "executable": "node",
+      "arguments": [
+        "--test",
+        "scripts/tests/linux-release-authorization.tests.mjs"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T05:03:49.4057647+00:00",
+      "completedAt": "2026-10-16T05:03:50.9019663+00:00",
+      "exitCode": 0,
+      "log": "linux-auth-tests-final.log",
+      "logSha256": "d8d06ea3db2405d60b64451e5a82d7f0c37e19fd0ab11317e97881c9f2056d84"
+    },
+    {
+      "name": "linux-auth-final",
+      "executable": "node",
+      "arguments": [
+        "scripts/verify-linux-release-authorization.mjs",
+        "--authorization",
+        "release-control/linux-candidate-authorization.json",
+        "--tag",
+        "v0.1.7-linux-stable",
+        "--payload",
+        "output/review-release-017/linux-payload"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T05:03:49.2467043+00:00",
+      "completedAt": "2026-10-16T05:03:49.3775307+00:00",
+      "exitCode": 0,
+      "log": "linux-auth-final.log",
+      "logSha256": "e4a931308c9c187a8f190f5ff407b42e6fc7b88d604fbe403e1d98a37a2768d5"
+    },
+    {
+      "name": "linux-delta",
+      "executable": "node",
+      "arguments": [
+        "scripts/verify-linux-release-authorization.mjs",
+        "--source-delta",
+        "output/review-release-017/linux-source-delta.txt"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T05:02:44.4937388+00:00",
+      "completedAt": "2026-10-16T05:02:44.8947421+00:00",
+      "exitCode": 0,
+      "log": "linux-delta.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "linux-links",
+      "executable": "node",
+      "arguments": [
+        "scripts/verify-markdown-links.mjs"
+      ],
+      "cwd": "C:\\Users\\Administrator\\.codex\\worktrees\\review-release-017\\Minecraft_ModCreator",
+      "startedAt": "2026-10-16T05:02:44.5080232+00:00",
+      "completedAt": "2026-10-16T05:02:48.3611993+00:00",
+      "exitCode": 0,
+      "log": "linux-links.log",
+      "logSha256": "4316b98b75b29f31c705481fe5cc6dcb9a15a4c6f9e59ff6f999429d0c2a7021"
+    }
+  ],
+  "stagedReportSha256": "838ad18c73bd53be7292e14ba2f727530d2cc0b305805dcf6ccaa825ec2030fe",
+  "note": "Generated report/authorization line endings were normalized to LF before the final authorization and 33-test rerun; original downloaded receipts were preserved."
+}

@@ -2,32 +2,32 @@
   "schemaVersion": "1.0",
   "kind": "linux-release-authorization",
   "status": "approved",
-  "releaseTag": "v0.1.6-linux-stable",
+  "releaseTag": "v0.1.7-linux-stable",
   "releaseEligible": true,
   "formalSupportClaim": false,
-  "candidateId": "sha256:ea64a9f7126e7cab62343780704837b62ffbd93010ae2603d0d2992444c508d1",
-  "candidateSourceCommit": "9e3dfdeab1bc19c099e739bcda14940d9a6fee30",
-  "candidateWorkflowRunId": "38748273030",
-  "debSha256": "b7b9a0a0d8e298f2f570a21b5a391e23a57bf9ec97b3fb8074c709e69d8353fd",
-  "portableSha256": "bc90f7a83a8187eca7093e962fef526701867cfae650af471cb8bbd359ba7871",
-  "validationReportPath": "docs/testing/maintenance-linux-0.1.6.md",
-  "validationReportSha256": "4e4f7f76bbd95265f702f56c208cdc10cf6bf85ef05c18a2bf972b3f5e0e0658",
-  "acceptancePolicy": "maintenance-ci-0.1.6",
+  "candidateId": "sha256:fae758f09d295e48290761e452e5d22d0dcb4abe878f18577ef4e081d7d2c847",
+  "candidateSourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+  "candidateWorkflowRunId": "38850069834",
+  "debSha256": "7c632878bf8537638466435e79de8254230dbb941b81e0214c59e634f72d44a1",
+  "portableSha256": "fdaa48f6a33f5387380fe8070c68a5a8639d1335aba3113ac26f18e2432a0598",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.7.md",
+  "validationReportSha256": "838ad18c73bd53be7292e14ba2f727530d2cc0b305805dcf6ccaa825ec2030fe",
+  "acceptancePolicy": "maintenance-ci-0.1.7",
   "fullInstalledAcceptance": "not-repeated",
   "maintenanceApproval": {
     "approved": true,
-    "releaseTag": "v0.1.6-linux-stable",
+    "releaseTag": "v0.1.7-linux-stable",
     "date": "2026-10-16",
-    "scope": "The user requested '推送并发布'. Authorize only this exact successful main-push 0.1.6 candidate after downloaded-byte, source/run/workflow provenance and selected archive-entry verification. Retain signatures, production review, permitted source delta and exact draft comparison; full installed acceptance was not repeated and formal Linux certification is not claimed."
+    "scope": "The user requested recent-commit review, bug fixes and a new release package. Approve only this exact successful main-push 0.1.7 candidate after downloaded-byte, source/run/workflow provenance and package-entry verification. Preserve signatures, production review, source-delta restrictions and exact draft comparison; full installed acceptance was not repeated and formal Linux certification is not claimed."
   },
   "candidateCi": {
     "run": {
-      "path": "evidence/maintenance/2026-10-15/linux-016/candidate-run.json",
-      "sha256": "4025ce2e28a292e82f0575103492f2e83d5e231b7446d3609586b9cc1b587feb"
+      "path": "evidence/maintenance/2026-10-16/linux-017/candidate-run.json",
+      "sha256": "2ecafd9f25df3f2cb692db3a1ab129437bbc71f24c90e0d5a6ba934410012022"
     },
     "jobs": {
-      "path": "evidence/maintenance/2026-10-15/linux-016/candidate-jobs.json",
-      "sha256": "fe3b7bae488f4b136ffe5a4ce2eda8e3febe11ffa1ca21981221b6510fa09895"
+      "path": "evidence/maintenance/2026-10-16/linux-017/candidate-jobs.json",
+      "sha256": "56a5d1a4628b0d7aa961c6b35fbe9e1547582ddd032f5c1ee0fbbe6527c2d2f6"
     }
   }
 }
