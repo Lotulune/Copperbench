@@ -23,6 +23,16 @@ on:
         type: string
         required: false
         default: ''
+      linux_candidate_run:
+        description: 'Optional completed main Linux candidate run to verify in the cloud'
+        type: string
+        required: false
+        default: ''
+      linux_candidate_source:
+        description: 'Exact source SHA for linux_candidate_run'
+        type: string
+        required: false
+        default: ''
   pull_request:
     branches: [main]
     paths:
@@ -55,10 +65,11 @@ on:
 permissions:
   contents: read
   attestations: read
+  actions: read
 
 jobs:
   protocol:
-    if: ${{ !inputs.release_tag && !inputs.windows_source_sha }}
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run }}
     name: M1 protocol and adapter contracts
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -120,7 +131,7 @@ jobs:
           if-no-files-found: warn
 
   delivery:
-    if: ${{ !inputs.release_tag && !inputs.windows_source_sha }}
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run }}
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -184,3 +195,10 @@ jobs:
     uses: ./.github/workflows/windows-source-verification.yml
     with:
       source_sha: ${{ inputs.windows_source_sha }}
+
+  linux-candidate-verification:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.linux_candidate_run != '' }}
+    uses: ./.github/workflows/linux-candidate-verification.yml
+    with:
+      source_sha: ${{ inputs.linux_candidate_source }}
+      candidate_run: ${{ inputs.linux_candidate_run }}
