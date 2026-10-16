@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,17 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.8",
-      "linuxTag": "v0.1.8-linux-stable",
+      "tag": "v0.1.9",
+      "linuxTag": "v0.1.9-linux-stable",
       "status": "ready",
       "linuxStatus": "pending-candidate",
       "decision": "approved",
       "decisionDate": "2026-10-16",
-      "scope": "Requested fix and new package after public 0.1.7 cloud acceptance found NeoForge configuration-cache and legacy data-pack Gradle/Java export failures. Final source checks, signed packages and 0.1.8 installed acceptance are pending.",
+      "scope": "Requested corrective release after cloud acceptance and the Windows release gate found configuration-cache, legacy data-pack runtime and Windows path-alias export failures. The signed 0.1.8 source tag is retained without binary publication. Final 0.1.9 CI, packages and cloud acceptance are pending.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.8.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.8.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-16/export-cache-018/previous-release-state.json",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.9.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.9.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-16/export-path-019/previous-release-state.json",
       "sourceVerification": {
         "requiredCi": {
           "status": "pending"
@@ -126,12 +126,12 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352304576"
     },
     "releaseContract": {
-      "tag": "v0.1.8",
+      "tag": "v0.1.9",
       "purpose": "cloud-export-regression-maintenance-release",
       "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.8"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.9"
     },
     "betaRelease": {
       "historical": true,

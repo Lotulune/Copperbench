@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.generator.GradleArchiveOutputIntegrationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-16T11:05:45.768Z" hostname="RIMURU" time="24.958">
+  <properties/>
+  <testcase name="[1] false" classname="dev.copperbench.generator.GradleArchiveOutputIntegrationTest" time="12.564"/>
+  <testcase name="[2] true" classname="dev.copperbench.generator.GradleArchiveOutputIntegrationTest" time="12.318"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

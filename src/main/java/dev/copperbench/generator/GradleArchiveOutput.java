@@ -42,9 +42,14 @@ final class GradleArchiveOutput {
                     throw new IOException("The artifact receipt does not identify this build's archive task");
                 Path artifact = Path.of(value.get("artifactPath").getAsString()).toAbsolutePath().normalize();
                 WorkspaceExecutionSnapshot.rejectLinks(artifact);
-                if (!artifact.startsWith(root.resolve("build")) || !Files.isRegularFile(artifact)
-                        || !artifact.getFileName().toString().endsWith(".jar"))
+                // Gradle emits canonical paths. Windows may supply the workspace through an 8.3
+                // alias, so compare physical locations and return the caller's workspace spelling.
+                Path realRoot = root.toRealPath(), realArtifact = artifact.toRealPath();
+                if (!realArtifact.startsWith(realRoot.resolve("build")) || !Files.isRegularFile(realArtifact)
+                        || !realArtifact.getFileName().toString().endsWith(".jar"))
                     throw new IOException("The declared build archive is not a workspace build JAR");
+                artifact = root.resolve(realRoot.relativize(realArtifact));
+                WorkspaceExecutionSnapshot.rejectLinks(artifact);
                 String digest = value.get("sha256").getAsString();
                 if (!digest.matches("[a-f0-9]{64}") || !digest.equals(WorkspaceExecutionSnapshot.sha256(artifact)))
                     throw new IOException("The declared build archive changed after Gradle recorded it");

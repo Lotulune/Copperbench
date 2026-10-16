@@ -152,6 +152,31 @@ class OrdinaryExportDeliveryTest {
         assertFalse(Files.exists(root.resolve("exports/current.jar")));
     }
 
+    @Test void declaredArchivesOutsideTheWorkspaceBuildTreeRemainRejected() throws Exception {
+        Path workspace = Files.createDirectories(root.resolve("workspace"));
+        for (Path artifact : List.of(workspace.resolve("src/outside.jar"), root.resolve("external.jar"))) {
+            write(artifact, "must remain outside the delivery boundary");
+            var request = GradleArchiveOutput.prepare(workspace, UUID.randomUUID(), List.of("jar"));
+            GradleArchiveOutputFixture.record(request.arguments(List.of("build")), artifact);
+            assertThrows(IOException.class, request::artifact);
+        }
+    }
+
+    @Test void aLinkedArchiveCannotBecomeTrustedByCanonicalizingItsPath() throws Exception {
+        Path artifact = root.resolve("build/real.jar"); write(artifact, "declared bytes");
+        Path linked = root.resolve("build/linked.jar");
+        try { Files.createSymbolicLink(linked, artifact.getFileName()); }
+        catch (UnsupportedOperationException | IOException unavailable) {
+            org.junit.jupiter.api.Assumptions.assumeTrue(false, "Symbolic links unavailable");
+        }
+        var request = GradleArchiveOutput.prepare(root, UUID.randomUUID(), List.of("jar"));
+        GradleArchiveOutputFixture.record(request.arguments(List.of("build")), artifact);
+        JsonObject receipt = com.google.gson.JsonParser.parseString(Files.readString(request.receipt())).getAsJsonObject();
+        receipt.addProperty("artifactPath", linked.toAbsolutePath().toString());
+        Files.writeString(request.receipt(), receipt.toString());
+        assertThrows(IOException.class, request::artifact);
+    }
+
     @Test void exportingToTheActualArchiveItselfIsAllowedWithoutClaimingOtherExistingBuildFiles() throws Exception {
         source(); Path artifact = root.resolve("build/libs/current.jar"); write(artifact, "previous archive");
         var sameTarget = WorkspaceDeliveryOutputs.prepare(root, payload("build/libs/current.jar"));

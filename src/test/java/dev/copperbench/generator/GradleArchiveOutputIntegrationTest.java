@@ -1,7 +1,8 @@
 package dev.copperbench.generator;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,8 +18,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class GradleArchiveOutputIntegrationTest {
     @TempDir Path temporary;
 
-    @Test void repeatedExportsCaptureFreshArchivesWhenTheProjectEnablesConfigurationCache() throws Exception {
-        Path project = Files.createDirectories(temporary.resolve("project"));
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void repeatedExportsCaptureFreshArchivesWhenTheProjectEnablesConfigurationCache(boolean shortAlias) throws Exception {
+        Path project = Files.createDirectories(temporary.resolve("archive project with spaces"));
+        if (shortAlias) {
+            org.junit.jupiter.api.Assumptions.assumeTrue(System.getProperty("os.name").startsWith("Windows"), "Windows 8.3 alias case");
+            ProcessBuilder probe = new ProcessBuilder("pwsh", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command",
+                    "$ErrorActionPreference = 'Stop'; (New-Object -ComObject Scripting.FileSystemObject).GetFolder($env:COPPERBENCH_TEST_SHORT_ROOT).ShortPath")
+                    .redirectErrorStream(true);
+            probe.environment().put("COPPERBENCH_TEST_SHORT_ROOT", project.toString());
+            Process process = probe.start();
+            if (!process.waitFor(30, TimeUnit.SECONDS)) { process.destroyForcibly(); fail("Windows short-path probe timed out"); }
+            String output = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).strip();
+            assertEquals(0, process.exitValue(), output);
+            Path alias = Path.of(output);
+            org.junit.jupiter.api.Assumptions.assumeFalse(alias.toString().equalsIgnoreCase(project.toRealPath().toString()), "8.3 names unavailable on this volume");
+            assertTrue(Files.isSameFile(alias, project));
+            project = alias;
+        }
         Files.writeString(project.resolve("settings.gradle"), "rootProject.name = 'archive-receipt-regression'\n");
         Files.writeString(project.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
         Files.writeString(project.resolve("build.gradle"), """
