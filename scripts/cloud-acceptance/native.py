@@ -136,9 +136,9 @@ def main():
         libs = project / "build/libs"
         if libs.exists():
             libs.rename(project / "build/previous-libs")
-        target = root / "exports" / (label + ".jar")
+        target = project / "exports" / (label + ".jar")
         target.parent.mkdir(exist_ok=True)
-        result = terminal(workspace, label, workspace.command("export_workspace", output=str(target)))
+        result = terminal(workspace, label, workspace.command("export_workspace", output=target.relative_to(project).as_posix()))
         task_id = result["data"]["task"]["id"]
         receipt_path = project / ".copperbench/task-runs/export" / task_id / "archive-output.json"
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
@@ -163,9 +163,9 @@ def main():
             require(len(code) == 1, "Function editor must expose one code field")
             workspace.update_mod_element(elementId=element_id,
                                          changes=[{"path": code[0]["path"], "value": "say Cloud acceptance"}])
-            target = root / "exports" / (mod_id + ".zip")
+            target = path.parent / "exports" / (mod_id + ".zip")
             target.parent.mkdir(exist_ok=True)
-            terminal(workspace, mod_id + "-export", workspace.command("export_workspace", output=str(target)))
+            terminal(workspace, mod_id + "-export", workspace.command("export_workspace", output=target.relative_to(path.parent).as_posix()))
             with zipfile.ZipFile(target) as archive:
                 require("pack.mcmeta" in archive.namelist(), "Data pack has no metadata")
                 functions = [name for name in archive.namelist() if name.endswith("/cloud_ping.mcfunction")]
