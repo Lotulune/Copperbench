@@ -1,0 +1,285 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "3d11bc3b-516b-4a4b-b5ed-3bfe22b167e1",
+  "workspaceId": "2a08524f-8027-4b56-a576-7a338cb30c86",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 2,
+  "data": {
+    "task": {
+      "id": "326ee041-3487-480d-8aed-505d24a4a2bb",
+      "kind": "export",
+      "state": "failed",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.failed",
+        "fallback": "Data Pack task failed",
+        "args": {
+          "backend": "Data Pack"
+        }
+      },
+      "startedAt": "2026-10-16T09:10:23.276021400Z",
+      "completedAt": "2026-10-16T09:10:29.292555Z",
+      "diagnostics": {
+        "error": 1,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Data Pack",
+      "sourceSnapshot": {
+        "sha256": "72d25aac02ecaece1d1546274dc1f58e304e07e66ece1e326c97f9b17daab748",
+        "fileCount": 12,
+        "bytes": 76873,
+        "manifestPath": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\.copperbench\\task-inputs\\326ee041-3487-480d-8aed-505d24a4a2bb.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T09:10:23.284027Z",
+        "level": "info",
+        "text": "Starting Data Pack export from revision 2"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T09:10:23.334030200Z",
+        "level": "info",
+        "text": "Data Pack generation completed: 1 files; modId=Cloud cloud_dp1201"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T09:10:24.252322900Z",
+        "level": "info",
+        "text": "WARNING: A restricted method in java.lang.System has been called"
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T09:10:24.257324500Z",
+        "level": "info",
+        "text": "WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/D:/a/_temp/cba/gradle/wrapper/dists/gradle-8.3-bin/dxjbbhstwasg8cbags9q7cvli/gradle-8.3/lib/native-platform-0.22-milestone-24.jar)"
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T09:10:24.261917Z",
+        "level": "info",
+        "text": "WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module"
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T09:10:24.265917100Z",
+        "level": "info",
+        "text": "WARNING: Restricted methods will be blocked in a future release unless native access is enabled"
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T09:10:24.270320Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T09:10:24.374120Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T09:10:24.379125600Z",
+        "level": "info",
+        "text": "Welcome to Gradle 8.3!"
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T09:10:24.382120800Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T09:10:24.385120400Z",
+        "level": "info",
+        "text": "Here are the highlights of this release:"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T09:10:24.389122Z",
+        "level": "info",
+        "text": " - Faster Java compilation"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T09:10:24.392122100Z",
+        "level": "info",
+        "text": " - Reduced memory usage"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T09:10:24.396120200Z",
+        "level": "info",
+        "text": " - Support for running on Java 20"
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T09:10:24.401123400Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T09:10:24.406125700Z",
+        "level": "info",
+        "text": "For more details see https://docs.gradle.org/8.3/release-notes.html"
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T09:10:24.409117100Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T09:10:24.474124600Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T09:10:26.174544500Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T09:10:28.873782700Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T09:10:28.880776900Z",
+        "level": "info",
+        "text": "FAILURE: Build failed with an exception."
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T09:10:28.886776200Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T09:10:28.898773300Z",
+        "level": "info",
+        "text": "* What went wrong:"
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T09:10:28.903776Z",
+        "level": "info",
+        "text": "A problem occurred configuring root project 'cloud_dp1201'."
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T09:10:28.906781600Z",
+        "level": "info",
+        "text": "> Could not open proj generic class cache for build file 'D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\build.gradle' (D:\\a\\_temp\\cba\\gradle\\caches\\8.3\\scripts\\djb4kr5ujgx8353p1ch7n7qbc)."
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T09:10:28.910780600Z",
+        "level": "info",
+        "text": "   > BUG! exception in phase 'semantic analysis' in source unit '_BuildScript_' Unsupported class file major version 69"
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T09:10:28.914779300Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-10-16T09:10:28.921783700Z",
+        "level": "info",
+        "text": "* Try:"
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-10-16T09:10:28.933774800Z",
+        "level": "info",
+        "text": "> Run with --stacktrace option to get the stack trace."
+      },
+      {
+        "sequence": 30,
+        "timestamp": "2026-10-16T09:10:28.941779400Z",
+        "level": "info",
+        "text": "> Run with --info or --debug option to get more log output."
+      },
+      {
+        "sequence": 31,
+        "timestamp": "2026-10-16T09:10:28.946783500Z",
+        "level": "info",
+        "text": "> Run with --scan to get full insights."
+      },
+      {
+        "sequence": 32,
+        "timestamp": "2026-10-16T09:10:28.951783100Z",
+        "level": "info",
+        "text": "> Get more help at https://help.gradle.org."
+      },
+      {
+        "sequence": 33,
+        "timestamp": "2026-10-16T09:10:28.956777Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 34,
+        "timestamp": "2026-10-16T09:10:28.960781100Z",
+        "level": "info",
+        "text": "BUILD FAILED in 5s"
+      },
+      {
+        "sequence": 35,
+        "timestamp": "2026-10-16T09:10:29.289556500Z",
+        "level": "error",
+        "text": "Task failed. Error ID: 76fcd578-5570-43d8-a844-47c370044c6e"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "DATA_PACK_EXPORT_FAILED",
+        "severity": "error",
+        "message": {
+          "key": "diagnostic.workspace_task_failed",
+          "fallback": "The {backend} {task} task failed.",
+          "args": {
+            "backend": "Data Pack",
+            "task": "export",
+            "failureId": "76fcd578-5570-43d8-a844-47c370044c6e"
+          }
+        },
+        "path": null,
+        "elementId": null,
+        "recoverable": true,
+        "actions": [
+          {
+            "id": "open_logs",
+            "label": {
+              "key": "action.open_logs",
+              "fallback": "View logs",
+              "args": {}
+            },
+            "kind": "open_logs",
+            "target": "76fcd578-5570-43d8-a844-47c370044c6e",
+            "payload": {
+              "taskId": "326ee041-3487-480d-8aed-505d24a4a2bb"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": []
+}

@@ -41,7 +41,7 @@
       "linuxStatus": "pending-candidate",
       "decision": "approved",
       "decisionDate": "2026-10-16",
-      "scope": "Requested fix and new package after public 0.1.7 cloud acceptance found a NeoForge configuration-cache export failure. Final source checks, signed packages and 0.1.8 installed acceptance are pending.",
+      "scope": "Requested fix and new package after public 0.1.7 cloud acceptance found NeoForge configuration-cache and legacy data-pack Gradle/Java export failures. Final source checks, signed packages and 0.1.8 installed acceptance are pending.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
       "developmentEvidence": "docs/testing/maintenance-release-0.1.8.md",
       "integrationReport": "docs/testing/maintenance-release-0.1.8.md",
@@ -127,7 +127,7 @@
     },
     "releaseContract": {
       "tag": "v0.1.8",
-      "purpose": "configuration-cache-export-maintenance-release",
+      "purpose": "cloud-export-regression-maintenance-release",
       "sourcePolicy": "Windows packages are built from the signed release commit. Linux publication requires the frozen candidate, its provenance, an approved candidate-specific authorization and downloaded draft comparison.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
