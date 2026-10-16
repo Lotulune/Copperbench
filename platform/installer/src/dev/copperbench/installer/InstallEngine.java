@@ -37,9 +37,12 @@ public final class InstallEngine {
     @FunctionalInterface public interface Integration { void register(Plan plan) throws IOException; }
 
     public static List<Entry> readManifest(Path file) throws IOException {
+        return parseManifest(Files.readAllLines(file, StandardCharsets.UTF_8));
+    }
+    public static List<Entry> parseManifest(List<String> lines) throws IOException {
         List<Entry> entries = new ArrayList<>();
         Set<String> seen = new HashSet<>();
-        for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+        for (String line : lines) {
             if (line.isBlank()) continue;
             String[] fields = line.split("\t", -1);
             try {
@@ -47,7 +50,8 @@ public final class InstallEngine {
                 String name = new String(Base64.getDecoder().decode(fields[1]), StandardCharsets.UTF_8);
                 Path relative = Path.of(name);
                 if (relative.isAbsolute() || name.contains("\\") || name.indexOf(':') >= 0 || name.indexOf('\0') >= 0
-                        || name.isBlank() || relative.normalize().startsWith("..") || !relative.equals(relative.normalize()) || !seen.add(name))
+                        || name.isBlank() || name.equals(".") || name.chars().anyMatch(c -> c < 32)
+                        || relative.normalize().startsWith("..") || !relative.equals(relative.normalize()) || !seen.add(name.toLowerCase(Locale.ROOT)))
                     throw new IllegalArgumentException();
                 long size = Long.parseLong(fields[3]);
                 int mode = Integer.parseInt(fields[4]);
@@ -136,12 +140,13 @@ public final class InstallEngine {
                 if (!entry.type().equals("L")) setPermissions(output, entry.permissions());
                 owned.add(entry.name());
             }
-            Files.copy(plan.installerJar(), stage.resolve("copperbench-setup.jar"));
+            Files.copy(plan.installerJar(), stage.resolve("copperbench-setup.jar"), StandardCopyOption.REPLACE_EXISTING);
             Files.writeString(stage.resolve("install-language.txt"), plan.language() + "\n", StandardCharsets.UTF_8);
             Files.writeString(stage.resolve("install-theme.txt"), plan.theme() + "\n", StandardCharsets.UTF_8);
             Properties receipt = new Properties();
             receipt.setProperty("product", "dev.copperbench.studio"); receipt.setProperty("version", plan.version());
             receipt.setProperty("scope", plan.scope()); receipt.setProperty("target", target.toString());
+            receipt.setProperty("desktop", Boolean.toString(plan.desktop()));
             try (Writer writer = Files.newBufferedWriter(stage.resolve(RECEIPT), StandardCharsets.UTF_8)) { receipt.store(writer, "Copperbench installation"); }
             owned.addAll(List.of("copperbench-setup.jar", "install-language.txt", "install-theme.txt", RECEIPT, MANIFEST, "uninstall.exe"));
             if (System.getProperty("os.name").startsWith("Windows")) owned.add(".copperbench-files-windows");
@@ -149,7 +154,7 @@ public final class InstallEngine {
             Files.write(stage.resolve(MANIFEST), owned, StandardCharsets.UTF_8);
             if (System.getProperty("os.name").startsWith("Windows"))
                 Files.writeString(stage.resolve(".copperbench-files-windows"), String.join("\r\n", owned) + "\r\n", StandardCharsets.UTF_16LE);
-            if (Files.isRegularFile(target.resolve(MANIFEST))) preserveUnmanaged(target, stage);
+            if (Files.exists(target)) preserveUnmanaged(target, stage, plan.legacy());
             checkCancelled(cancelled);
             progress.accept(new Progress("activate", total, total));
             // Moves are on the same filesystem. A busy Windows installation fails here before replacement.
@@ -160,8 +165,6 @@ public final class InstallEngine {
             Files.move(stage, target);
             published = true;
             integration.register(plan);
-            progress.accept(new Progress("complete", total, total));
-            return new Result(target, backup);
         } catch (IOException | RuntimeException error) {
             if (published) {
                 try { removeCreatedTree(target); } catch (IOException cleanup) { error.addSuppressed(cleanup); }
@@ -171,14 +174,28 @@ public final class InstallEngine {
             }
             throw error;
         } finally { if (Files.exists(stage)) removeCreatedTree(stage); }
+        // The new version and its registration are committed. Never roll back to a partially
+        // removed backup if cleanup fails; report the remaining temporary directory instead.
+        if (backup != null) {
+            progress.accept(new Progress("cleanup", total, total));
+            try { removeCreatedTree(backup); backup = null; }
+            catch (IOException cleanup) { /* The caller reports the concrete cleanup failure. */ }
+        }
+        progress.accept(new Progress("complete", total, total));
+        return new Result(target, backup);
     }
 
-    private static void preserveUnmanaged(Path existing, Path stage) throws IOException {
-        Set<String> owned = new HashSet<>(Files.readAllLines(existing.resolve(MANIFEST), StandardCharsets.UTF_8));
+    private static void preserveUnmanaged(Path existing, Path stage, boolean legacy) throws IOException {
+        Set<String> owned = Files.isRegularFile(existing.resolve(MANIFEST), LinkOption.NOFOLLOW_LINKS)
+                ? new HashSet<>(Files.readAllLines(existing.resolve(MANIFEST), StandardCharsets.UTF_8)) : Set.of();
         try (var paths = Files.walk(existing)) {
             for (Path path : paths.toList()) {
                 Path relative = existing.relativize(path);
                 if (relative.toString().isEmpty() || owned.contains(relative.toString().replace('\\', '/'))) continue;
+                // Old NSIS packages have no inventory. Their runtime directories contain only
+                // shipped binaries; retain custom plugins and other untracked user additions.
+                if (legacy && owned.isEmpty() && Set.of("jdk", "jdk21", "lib", "license", "gradle", "gradle-dists")
+                        .contains(relative.getName(0).toString())) continue;
                 Path to = stage.resolve(relative);
                 if (Files.exists(to, LinkOption.NOFOLLOW_LINKS)) continue;
                 ensureNoLinks(path.getParent());
@@ -236,7 +253,7 @@ public final class InstallEngine {
     }
     private static void checkCancelled(BooleanSupplier cancelled) { if (cancelled.getAsBoolean()) throw new CancellationException(); }
     private static MessageDigest sha256() { try { return MessageDigest.getInstance("SHA-256"); } catch (Exception error) { throw new IllegalStateException(error); } }
-    private static void setPermissions(Path file, int mode) throws IOException {
+    static void setPermissions(Path file, int mode) throws IOException {
         if (!file.getFileSystem().supportedFileAttributeViews().contains("posix")) return;
         PosixFilePermission[] permissions = PosixFilePermission.values();
         Set<PosixFilePermission> values = EnumSet.noneOf(PosixFilePermission.class);

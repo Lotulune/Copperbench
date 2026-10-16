@@ -89,14 +89,14 @@ jobs:
         shell: pwsh
         run: |
           $buildDate = Get-Date -Format 'yyyyMMddHHmm'
-          .\gradlew.bat --no-daemon --no-build-cache exportWindowsZip buildInstallerWin64 buildMsixWin64 "-Pbuilddate=$buildDate"
+          .\gradlew.bat --no-daemon --no-build-cache exportWindowsZip buildInstallerWin64 buildMsixWin64 buildWindowsUpdates "-Pbuilddate=$buildDate"
           if ($LASTEXITCODE -ne 0) { throw 'Windows package build failed' }
       - name: Collect release binaries
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force build/release | Out-Null
           Get-ChildItem build/export -File |
-            Where-Object Extension -In '.exe', '.zip', '.msix' |
+            Where-Object { $_.Extension -in '.exe', '.zip', '.msix' -or $_.Name -eq 'copperbench-update-windows-x64.properties' } |
             Copy-Item -Destination build/release
           Copy-Item LICENSE.txt, LICENSE-ADDITIONAL-TERMS.md, product-status.json, compliance/THIRD_PARTY_NOTICES.md -Destination build/release
       - name: Generate SPDX SBOM

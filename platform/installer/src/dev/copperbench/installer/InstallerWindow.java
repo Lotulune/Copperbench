@@ -142,7 +142,7 @@ final class InstallerWindow extends JFrame {
             }
         } else {
             addForm(paragraph(location), c, 12);
-            if (backup != null) addForm(paragraph(t("旧版程序已保留，确认新版本正常后可删除：\n", "Previous app files were kept. You can remove them after checking the new version:\n") + backup), c, 14);
+            if (backup != null) addForm(paragraph(t("升级已完成，但临时文件被占用，未能清理：\n", "Upgrade complete, but temporary files could not be removed:\n") + backup), c, 14);
         }
         if (!error.isEmpty()) {
             addForm(paragraph(t("操作未完成，请查看详情后重试。", "Could not complete the operation. Review the details and retry.")), c, 8);
@@ -170,6 +170,7 @@ final class InstallerWindow extends JFrame {
         return switch (phase) {
             case "copy" -> t("正在复制并校验文件…", "Copying and verifying files…");
             case "activate" -> t("正在完成安装，请稍候…", "Finishing installation. Please wait…");
+            case "cleanup" -> t("正在清理旧版程序…", "Removing the previous application files…");
             case "package" -> t("正在准备系统升级包…", "Preparing the system upgrade package…");
             case "authorize" -> t("正在等待系统授权并安装…", "Waiting for system authorization and installing…");
             case "complete" -> t("安装完成", "Installation complete");

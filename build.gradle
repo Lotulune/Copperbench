@@ -77,6 +77,8 @@ sourceSets {
     main {
         compileClasspath += gradleBridge.output
         runtimeClasspath += gradleBridge.output
+        compileClasspath += installer.output
+        runtimeClasspath += installer.output
     }
     test {
         compileClasspath += gradleBridge.output
@@ -97,6 +99,18 @@ tasks.named('compileGradleBridgeJava', JavaCompile) {
 
 tasks.named('jar', Jar) {
     from sourceSets.gradleBridge.output
+    from sourceSets.installer.output
+}
+
+tasks.register('installerJar', Jar) {
+    archiveFileName = 'copperbench-setup.jar'
+    destinationDirectory = layout.buildDirectory.dir('installer')
+    from sourceSets.installer.output
+    from('platform/installer/assets')
+    from('LICENSE.txt')
+    from('LICENSE-ADDITIONAL-TERMS.md')
+    from('src/main/resources/net/mcreator/ui/res/icon.png')
+    manifest { attributes('Main-Class': 'dev.copperbench.installer.InstallerMain') }
 }
 
 // Tooling API transports ordinary -D properties after daemon startup. The tiny

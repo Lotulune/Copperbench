@@ -1,4 +1,4 @@
-.workspace-entry-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 28px; }
+.workspace-entry-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 28px; }
 .workspace-entry-actions > button { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 82px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-main); background: var(--bg-panel); text-align: left; }
 .workspace-entry-actions > button:hover:not(:disabled) { border-color: var(--border-focus); background: var(--bg-hover); }
 .workspace-entry-actions > button > span { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 7px; }
@@ -7,6 +7,20 @@
 .workspace-entry-actions > p { grid-column: 1 / -1; margin: 0; color: var(--text-muted); font-size: 12px; }
 .workspace-entry-actions > button:disabled { opacity: .65; cursor: not-allowed; }
 .first-creation-guide { width: min(780px, calc(100vw - 36px)); max-width: 780px; display: flex; flex-direction: column; }
+.first-creation-progress { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
+.first-creation-progress button { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; min-height: 58px; padding: 8px 4px; color: var(--text-muted); font-size: 12px; overflow-wrap: anywhere; }
+.first-creation-progress button span { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid var(--border-subtle); border-radius: 50%; }
+.first-creation-progress button[aria-current="step"] { color: var(--accent-copper); font-weight: 600; }
+.first-creation-progress button[aria-current="step"] span { background: var(--accent-copper); color: var(--bg-surface); border-color: var(--accent-copper); }
+.first-creation-details { font-size: 12px; margin: 8px 0; }
+.first-creation-steps > li { animation: tour-card-in 180ms ease-out; }
+[data-testid="first-creation-overlay"] { animation: tour-mask-in 180ms ease-out; }
+[data-testid="first-creation-overlay"] .first-creation-guide { animation: tour-card-in 220ms ease-out; }
+.first-creation-resume { position: fixed; right: 24px; bottom: 48px; z-index: 55; display: flex; gap: 4px; background: var(--bg-surface); border: 1px solid var(--accent-copper); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 4px; }
+.first-creation-resume button { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 12px; color: var(--text-main); }
+@keyframes tour-mask-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tour-card-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { [data-testid="first-creation-overlay"], [data-testid="first-creation-overlay"] .first-creation-guide, .first-creation-steps > li { animation: none; } }
 .first-creation-guide .modal-header h2 { display: inline-flex; gap: 10px; align-items: center; }
 .first-creation-guide .modal-header > button { display: grid; place-items: center; min-width: 36px; min-height: 36px; }
 .first-creation-content { overflow-y: auto; font-size: 13px; line-height: 1.65; }

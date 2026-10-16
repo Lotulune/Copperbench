@@ -81,10 +81,15 @@ public final class BlockbenchEnvironmentService {
 		AtomicBoolean cancelled = new AtomicBoolean();
 		if (!PROBES.tryAcquire()) return interruptedResult(progress.get(), endpoint, probe, "busy");
 		boolean requested = probe;
-		FutureTask<JsonObject> discovery = new FutureTask<>(() -> inspectWithinBudget(endpoint, requested, progress, cancelled)) {
+		AtomicBoolean permitReleased = new AtomicBoolean();
+		Runnable releasePermit = () -> { if (permitReleased.compareAndSet(false, true)) PROBES.release(); };
+		FutureTask<JsonObject> discovery = new FutureTask<>(() -> {
+			try { return inspectWithinBudget(endpoint, requested, progress, cancelled); }
+			finally { releasePermit.run(); } // Release before FutureTask publishes a completed result.
+		}) {
 			@Override public void run() {
 				try { super.run(); }
-				finally { PROBES.release(); }
+				finally { releasePermit.run(); } // Cancellation before execution never enters the callable.
 			}
 		};
 		Thread.ofVirtual().name("blockbench-discovery").start(discovery);

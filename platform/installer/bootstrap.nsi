@@ -103,6 +103,7 @@ Function .onInit
 FunctionEnd
 
 Section
+!ifndef UPDATE_HOST
   !insertmacro MUI_HEADER_TEXT "Copperbench" "$(Preparing)"
   InitPluginsDir
   SetOutPath "$PLUGINSDIR\payload"
@@ -123,6 +124,7 @@ startup_failed:
   MessageBox MB_OK|MB_ICONSTOP "$(StartFailed)"
   SetErrorLevel 1
 startup_done:
+!endif
 SectionEnd
 
 Function Register

@@ -111,6 +111,10 @@ public class Launcher {
 				System.getProperty("java.vendor"));
 		LOG.info("Current JAVA_HOME for running instance: {}", System.getProperty("java.home"));
 
+		try { dev.copperbench.shell.FirstRunOnboarding.initialize(); }
+		catch (IOException exception) { LOG.warn("Could not initialize first-run guidance", exception); }
+		dev.copperbench.release.ProductUpdates.cleanupFinished();
+
 		// after we have libraries loaded, we load preferences
 		PreferencesManager.init();
 

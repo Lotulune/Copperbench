@@ -142,3 +142,18 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(graphicalSmoke, /dump_bootstrap_failure/);
   assert.match(graphicalSmoke, /dump_product_failure/);
 });
+
+test('component update assets are bound to source identity and cannot be substituted', () => {
+  const directory = fixture();
+  const part = resolve(directory, 'copperbench-update-linux-x64-application.zip');
+  writeFileSync(part, 'component');
+  writeFileSync(resolve(directory, 'copperbench-update-linux-x64.properties'), 'inventory');
+  assert.equal(generate(directory).status, 0);
+  const metadata = JSON.parse(readFileSync(resolve(directory, 'LINUX-CANDIDATE-METADATA.json'), 'utf8'));
+  assert.equal(Object.keys(metadata.assets).filter(key => key.startsWith('update')).length, 2);
+  assert.equal(verify(directory).status, 0);
+  writeFileSync(part, 'different');
+  const checked = verify(directory);
+  assert.notEqual(checked.status, 0);
+  assert.match(checked.stderr, /update.*SHA-256 mismatch/);
+});
