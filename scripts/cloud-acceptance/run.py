@@ -164,10 +164,7 @@ class Acceptance:
                               "--source-digest", source, "--source-ref", ref, "--signer-workflow",
                               f"{REPOSITORY}/.github/workflows/{workflow}", "--deny-self-hosted-runners", "--format", "json"],
                              tag + f"-attestation-{index}", timeout=300)
-            # gh writes progress to stderr; the JSON array starts on its own line.
-            start = output.find("[\n")
-            require(start >= 0, "Attestation command did not return JSON")
-            results, _ = json.JSONDecoder().raw_decode(output[start:])
+            results = json.loads(output)
             asset["attestationRun"] = verify_provenance(results, asset["sha256"], source, workflow, ref, run_id, attempt)
         self.record["releases"][tag] = {"publicTag": actual_tag, "sourceCommit": source, "assets": assets}
         self.checkpoint(tag + "-public-package-identity", sourceCommit=source)

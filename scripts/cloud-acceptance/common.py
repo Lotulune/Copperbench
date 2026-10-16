@@ -30,18 +30,20 @@ def command(argv, log, *, cwd=None, env=None, timeout=900):
     log.parent.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     print("RUN", Path(str(argv[0])).name, log.stem, flush=True)
-    receipt = {"argv": [str(arg) for arg in argv], "cwd": str(cwd) if cwd else None}
+    errors = log.with_suffix(".stderr.log")
+    receipt = {"argv": [str(arg) for arg in argv], "cwd": str(cwd) if cwd else None, "stderrFile": str(errors)}
     try:
-        with log.open("wb") as output:
+        with log.open("wb") as output, errors.open("wb") as stderr:
             completed = subprocess.run([str(arg) for arg in argv], cwd=cwd, env=env,
-                                       stdout=output, stderr=subprocess.STDOUT, timeout=timeout)
+                                       stdout=output, stderr=stderr, timeout=timeout)
         receipt["exitCode"] = completed.returncode
         require(completed.returncode == 0, f"Command failed ({completed.returncode}); see {log}")
         return log.read_text(encoding="utf-8-sig", errors="replace")
     except Exception as error:
         receipt["error"] = str(error)
-        if log.exists():
-            print(log.read_text(encoding="utf-8-sig", errors="replace")[-16000:], flush=True)
+        for path in [log, errors]:
+            if path.exists():
+                print(path.read_text(encoding="utf-8-sig", errors="replace")[-16000:], flush=True)
         raise
     finally:
         receipt["elapsedSeconds"] = time.monotonic() - started

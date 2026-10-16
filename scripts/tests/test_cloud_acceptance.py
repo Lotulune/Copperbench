@@ -1,6 +1,7 @@
 """Identity and cleanup boundaries of the public-package cloud runner."""
 import copy
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -54,6 +55,15 @@ class ProvenanceTest(unittest.TestCase):
 
 
 class SafetyTest(unittest.TestCase):
+    def test_machine_json_is_independent_of_stderr_and_whitespace(self):
+        with tempfile.TemporaryDirectory() as folder:
+            log = Path(folder) / "command.log"
+            for data in ['[{"verified":true}]', '[\n  {"verified": true}\n]']:
+                script = "import sys; print(sys.argv[1]); print('verification progress', file=sys.stderr)"
+                result = runner.command([sys.executable, "-c", script, data], log)
+                self.assertEqual(json.loads(result), [{"verified": True}])
+                self.assertIn("verification progress", log.with_suffix(".stderr.log").read_text(encoding="utf-8"))
+
     def test_requires_exact_release_tags(self):
         self.assertEqual(runner.release_version("v0.1.7"), "0.1.7")
         for value in ["main", "v0.1.7-linux-stable", "../v0.1.7", "v0.1.7\n", ""]:
