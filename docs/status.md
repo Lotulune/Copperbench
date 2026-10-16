@@ -1,14 +1,14 @@
 # 当前状态与发布能力
 
-当前稳定版为 **0.1.6**，各平台公开链接与实际核验见[当前下载](releases/current.md)。二进制来源为 A `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；Linux 晋级来源另记，后续文档提交不替换这两种身份。
+当前稳定版为 **0.1.7**，各平台公开链接与实际核验见[当前下载](releases/current.md)。二进制来源为 A `db8d08336c274cc37239b48e837f0bf3727c5fdc`；Linux 晋级来源另记，后续文档提交不替换这两种身份。
 
 | 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **0.1.6 已交付能力** | 首作入口和引导、普通／精确交付、草稿保护和外部修改恢复、编译诊断定位、SDK 增量恢复与计量、贡献者工具；保留 0.1.5 修复及双语离线安装器 | [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) |
-| **发布验证** | A 的主线 CI 和 Linux 冻结候选通过；Windows 十项 API／来源及 ZIP／23 项内容核验通过；Linux 公开资产核验 passed | [发布记录](testing/maintenance-release-0.1.6.md) |
+| **0.1.7 已交付能力** | 数据包 ZIP 默认路径、自定义 Gradle 归档导出修复；首作入口和引导、普通／精确交付、草稿保护和外部修改恢复、编译诊断定位、SDK 增量恢复与计量、贡献者工具；保留 0.1.5 修复及双语离线安装器 | [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) |
+| **发布验证** | A 的主线 CI 和 Linux 冻结候选通过；Windows 十项下载字节／API 摘要、签名来源及四项 ZIP 内容核验通过；Linux 八项冻结候选与授权文件对应的九项公开资产核验通过 | [发布记录](testing/maintenance-release-0.1.7.md) |
 | **历史验收** | VM r14/r12、C1–C4、Linux run3 和十三项补修保留原来源、失败和复验，不转作新包的完整安装／玩法通过 | [历史优化报告](testing/optimization-2026-10-15.md) |
 | **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
-| **未重复的验收** | 最终包完整安装、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开未重跑；旧性能和暖缓存结论保留原范围 | [具体边界](testing/maintenance-linux-0.1.6.md) |
+| **未重复的验收** | 最终包完整安装、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开未重跑；旧性能和暖缓存结论保留原范围 | [具体边界](testing/maintenance-linux-0.1.7.md) |
 
 ## 支持范围
 

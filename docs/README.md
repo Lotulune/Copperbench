@@ -1,8 +1,8 @@
 # Documentation / 项目文档导航
 
-先看[当前状态与发布能力](./status.md)：Windows 与 Linux 0.1.6 的公开状态与资产证明统一列在[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
+先看[当前状态与发布能力](./status.md)：Windows 与 Linux 0.1.7 的公开状态与资产证明统一列在[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
 
-0.1.6 的二进制来源为 `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`；[发布记录](./testing/maintenance-release-0.1.6.md)分别记录主线检查、冻结候选、Linux promotion 与公开资产结果。
+0.1.7 的二进制来源为 `db8d08336c274cc37239b48e837f0bf3727c5fdc`；[发布记录](./testing/maintenance-release-0.1.7.md)分别记录主线检查、冻结候选、Linux promotion 与公开资产结果。
 
 ## 从这里开始
 

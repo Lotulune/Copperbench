@@ -3,14 +3,14 @@
   <h1>Copperbench</h1>
   <p><strong>Visual editing, manual Java and local Agent collaboration in one Minecraft mod project.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="docs/releases/current.md">Download 0.1.6</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
+  <p><a href="docs/releases/current.md">Download 0.1.7</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable release: 0.1.6.** It integrates first-creation guidance, draft recovery, diagnostic navigation and SDK delivery improvements. See [current downloads](docs/releases/current.md) for actual Windows/Linux publication and verification records.
+**Current stable release: 0.1.7.** It fixes data-pack export defaults and custom Gradle archive exports, retaining the first-creation, recovery and SDK improvements. See [current downloads](docs/releases/current.md) for actual Windows/Linux publication and verification records.
 
-Product and binary source is `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`; Linux promotion source is recorded separately. Historical candidate checks keep their original identities in the [release record](docs/testing/maintenance-release-0.1.6.md).
+Product and binary source is `db8d08336c274cc37239b48e837f0bf3727c5fdc`; Linux promotion source is recorded separately. Historical candidate checks keep their original identities in the [release record](docs/testing/maintenance-release-0.1.7.md).
 
 <a id="getting-started"></a>
 
@@ -18,8 +18,8 @@ Product and binary source is `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`; Linux p
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.6](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.6-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
+| Windows 11 x64 | [0.1.7](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.7) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.7](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.7-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
@@ -27,7 +27,7 @@ Product and binary source is `9e3dfdeab1bc19c099e739bcda14940d9a6fee30`; Linux p
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
 
-Additional bundled **26.3 preview** targets require explicit opt-in and expose bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.6 support claim.
+Additional bundled **26.3 preview** targets require explicit opt-in and expose bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published 0.1.7 support claim.
 
 Windows packages remain unsigned for Authenticode; first builds need network access and Blockbench is installed separately. [Current downloads](docs/releases/current.md) records source/asset verification and the installed/gameplay checks not repeated on final packages.
 

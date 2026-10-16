@@ -1,8 +1,8 @@
 # Copperbench 图形安装指南
 
-适用于 Copperbench 0.1.6 双语离线安装包；实际公开链接与验证范围见[当前下载](../releases/current.md)。
+适用于 Copperbench 0.1.7 双语离线安装包；实际公开链接与验证范围见[当前下载](../releases/current.md)。
 
-These instructions apply to the 0.1.6 bilingual offline installers. [Current downloads](../releases/current.md) records actual publication and verification scope.
+These instructions apply to the 0.1.7 bilingual offline installers. [Current downloads](../releases/current.md) records actual publication and verification scope.
 
 ## 简体中文
 
