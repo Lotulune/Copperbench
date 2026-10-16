@@ -1,0 +1,7 @@
+{
+  "candidateId": "sha256:f6c6e5167dc044f7f3ab17e5e6648b5aa0dcc163f960cc08e109dfdc5beb792d",
+  "releaseTag": "v0.1.9-linux-stable",
+  "acceptancePolicy": "maintenance-ci-0.1.9",
+  "ciStepsVerified": 13,
+  "fullInstalledAcceptance": "not-repeated"
+}

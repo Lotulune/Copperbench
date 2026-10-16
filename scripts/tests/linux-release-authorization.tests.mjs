@@ -441,3 +441,36 @@ test('0.1.7 rejects a non-main run and a skipped graphical installer check', (t)
   });
   assert.throws(check, /step did not pass/);
 });
+
+test('0.1.9 exact maintenance tuple requires all thirteen CI steps', (t) => {
+  const { auth, check } = maintenanceUnitFixture(t, '0.1.9', '9e8fcda24e58d165cb2b767f3a0cb3092a7f527c', '38894781422');
+  assert.equal(check().ciStepsVerified, 13);
+  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
+  assert.equal(auth.formalSupportClaim, false);
+});
+
+test('0.1.9 rejects another source, PR candidate, release tag or installed certification', (t) => {
+  const { auth, check } = maintenanceUnitFixture(t, '0.1.9', '9e8fcda24e58d165cb2b767f3a0cb3092a7f527c', '38894781422');
+  for (const [key, invalid] of [['releaseTag', 'v0.1.8-linux-stable'],
+    ['candidateSourceCommit', 'a'.repeat(40)], ['candidateWorkflowRunId', '38848335973'],
+    ['acceptancePolicy', 'maintenance-ci-0.1.6']]) {
+    const original = auth[key]; auth[key] = invalid;
+    assert.throws(check, /limited to the approved/); auth[key] = original;
+  }
+  auth.formalSupportClaim = true;
+  assert.throws(check, /honest installed-acceptance/);
+  auth.formalSupportClaim = false;
+  auth.maintenanceApproval.approved = false;
+  assert.throws(check, /explicit approval/);
+});
+
+test('0.1.9 rejects a non-main run and a skipped graphical installer check', (t) => {
+  const { check, mutate } = maintenanceUnitFixture(t, '0.1.9', '9e8fcda24e58d165cb2b767f3a0cb3092a7f527c', '38894781422');
+  mutate('run', run => { run.head_branch = 'unapproved-branch'; });
+  assert.throws(check, /CI identity or result mismatch/);
+  mutate('run', run => { run.head_branch = 'main'; });
+  mutate('jobs', receipt => {
+    receipt.jobs[0].steps.find(step => step.name === 'Verify graphical installer package and render its bilingual wizard').conclusion = 'skipped';
+  });
+  assert.throws(check, /step did not pass/);
+});
