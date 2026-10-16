@@ -1,0 +1,133 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "f332c905-feca-413c-a6ae-9910e08e13fc",
+  "workspaceId": "3722a989-0b57-4d68-b550-537138923235",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 2,
+  "data": {
+    "task": {
+      "id": "7d74984e-e742-41ee-8d62-545254a17daa",
+      "kind": "export",
+      "state": "succeeded",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.export.completed",
+        "fallback": "Data Pack export completed",
+        "args": {
+          "backend": "Data Pack"
+        }
+      },
+      "startedAt": "2026-10-16T13:05:00.472349200Z",
+      "completedAt": "2026-10-16T13:05:05.385922900Z",
+      "diagnostics": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Data Pack",
+      "sourceSnapshot": {
+        "sha256": "e18b0aa0758745fc513016b940d16430595337f61ebf6e286c3bbfb62f568233",
+        "fileCount": 12,
+        "bytes": 76875,
+        "manifestPath": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\.copperbench\\task-inputs\\7d74984e-e742-41ee-8d62-545254a17daa.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T13:05:00.477877600Z",
+        "level": "info",
+        "text": "Starting Data Pack export from revision 2"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T13:05:00.516352Z",
+        "level": "info",
+        "text": "Data Pack generation completed: 1 files; modId=Cloud cloud_dp1201"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T13:05:01.303918800Z",
+        "level": "info",
+        "text": "WARNING: A restricted method in java.lang.System has been called"
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T13:05:01.306454800Z",
+        "level": "info",
+        "text": "WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/D:/a/_temp/cba/gradle/wrapper/dists/gradle-9.7.0-bin/d4tj7w02tcgubx9zk9hbippn6/gradle-9.7.0/lib/native-platform-0.22-milestone-29.jar)"
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T13:05:01.310457300Z",
+        "level": "info",
+        "text": "WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module"
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T13:05:01.313460400Z",
+        "level": "info",
+        "text": "WARNING: Restricted methods will be blocked in a future release unless native access is enabled"
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T13:05:01.316458300Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T13:05:01.555463500Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T13:05:02.750596Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T13:05:05.253569300Z",
+        "level": "info",
+        "text": "> Task :build"
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T13:05:05.256562200Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T13:05:05.259562600Z",
+        "level": "info",
+        "text": "BUILD SUCCESSFUL in 4s"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T13:05:05.262562900Z",
+        "level": "info",
+        "text": "1 actionable task: 1 executed"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T13:05:05.269564700Z",
+        "level": "info",
+        "text": "Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.0/userguide/configuration_cache_enabling.html"
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T13:05:05.345922900Z",
+        "level": "info",
+        "text": "Exported Data Pack artifact to exports/cloud_dp1201.zip"
+      }
+    ],
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "platform": "windows",
+  "verifiedAt": "2026-10-16T12:38:24.611201+00:00",
+  "releaseTag": "v0.1.9",
+  "releaseId": 414944777,
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9",
+  "publishedAt": "2026-10-16T12:35:43Z",
+  "assetCount": 10,
+  "assets": [
+    {
+      "name": "Copperbench.0.1.9.Windows.64bit.exe",
+      "size": 501392811,
+      "sha256": "543f17da11e3cdb25a671f0dedaccc3fc6546e636343d068be8bdffbf78da4f1",
+      "publicName": "Copperbench.0.1.9.Windows.64bit.exe",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/Copperbench.0.1.9.Windows.64bit.exe"
+    },
+    {
+      "name": "Copperbench.0.1.9.Windows.64bit.msix",
+      "size": 623146472,
+      "sha256": "dfe6d1174cd27d442e3f2420f7fc931b94fdacf0b47e6989a809b37edf1fdafe",
+      "publicName": "Copperbench.0.1.9.Windows.64bit.msix",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/Copperbench.0.1.9.Windows.64bit.msix"
+    },
+    {
+      "name": "Copperbench.0.1.9.Windows.64bit.zip",
+      "size": 602454951,
+      "sha256": "329c84da0b96d3e6abe46ba25a9e444372d795c1f80dc313dea282df1e4852c0",
+      "publicName": "Copperbench.0.1.9.Windows.64bit.zip",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/Copperbench.0.1.9.Windows.64bit.zip"
+    },
+    {
+      "name": "LICENSE-ADDITIONAL-TERMS.md",
+      "size": 2484,
+      "sha256": "8d1a71caa1e2829c91d3a6b4b41ec7eea5525a63a796eca37f3d917818a9936e",
+      "publicName": "LICENSE-ADDITIONAL-TERMS.md",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/LICENSE-ADDITIONAL-TERMS.md"
+    },
+    {
+      "name": "LICENSE.txt",
+      "size": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "publicName": "LICENSE.txt",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/LICENSE.txt"
+    },
+    {
+      "name": "RELEASE-METADATA.json",
+      "size": 416,
+      "sha256": "af32897f5e8777ee567aba5ae235ab092eff9462b44e51ecbda98695abd778e6",
+      "publicName": "RELEASE-METADATA.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/RELEASE-METADATA.json"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 839,
+      "sha256": "242aec5f88cc15569ae0742a39b94feb99c050d1697d58e143b9f668ab629842",
+      "publicName": "SHA256SUMS.txt",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/SHA256SUMS.txt"
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.md",
+      "size": 3463,
+      "sha256": "1705c3fc3238ea5a583cf19a27a4c9f2d784429eb1b968c719d4645dc164902c",
+      "publicName": "THIRD_PARTY_NOTICES.md",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "name": "copperbench.spdx.json",
+      "size": 737051,
+      "sha256": "7fcfc0600845356fd10eafcf9749e2fa5c8a9e55a10b76db3f70affccf31ceee",
+      "publicName": "copperbench.spdx.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/copperbench.spdx.json"
+    },
+    {
+      "name": "product-status.json",
+      "size": 29148,
+      "sha256": "615454acc0ee589ca1932468169bb243bb29e59d96826c01f8820897a835804d",
+      "publicName": "product-status.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9/product-status.json"
+    }
+  ],
+  "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+  "workflowRunId": "38897217090",
+  "scope": "Every local payload byte hash and size matches the public GitHub asset digest; workflow provenance is recorded separately."
+}

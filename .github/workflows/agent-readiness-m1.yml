@@ -2,6 +2,42 @@ name: Agent readiness M1 gates
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Public version to validate (empty runs the source M1 gates)'
+        type: string
+        required: false
+        default: ''
+      previous_release_tag:
+        description: 'Public version to upgrade from, required with release_tag'
+        type: string
+        required: false
+        default: ''
+      packs_only:
+        description: 'Supplemental data-pack/lifecycle checks only; does not replace the full Core gate'
+        type: boolean
+        required: false
+        default: false
+      windows_source_sha:
+        description: 'Optional exact source SHA for full Windows release tests before creating a release tag'
+        type: string
+        required: false
+        default: ''
+      linux_candidate_run:
+        description: 'Optional completed main Linux candidate run to verify in the cloud'
+        type: string
+        required: false
+        default: ''
+      linux_candidate_source:
+        description: 'Exact source SHA for linux_candidate_run'
+        type: string
+        required: false
+        default: ''
+      windows_release_source:
+        description: 'Optional exact source SHA for an independent public Windows 0.1.9 asset verification'
+        type: string
+        required: false
+        default: ''
   pull_request:
     branches: [main]
     paths:
@@ -33,9 +69,12 @@ on:
 
 permissions:
   contents: read
+  attestations: read
+  actions: read
 
 jobs:
   protocol:
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run && !inputs.windows_release_source }}
     name: M1 protocol and adapter contracts
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -97,6 +136,7 @@ jobs:
           if-no-files-found: warn
 
   delivery:
+    if: ${{ !inputs.release_tag && !inputs.windows_source_sha && !inputs.linux_candidate_run && !inputs.windows_release_source }}
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -146,3 +186,30 @@ jobs:
             logs/
             ${{ runner.temp }}/m1-delivery-state/copperbench/logs/
           if-no-files-found: warn
+
+  published-release:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag != '' }}
+    uses: ./.github/workflows/published-release-acceptance.yml
+    with:
+      release_tag: ${{ inputs.release_tag }}
+      previous_release_tag: ${{ inputs.previous_release_tag }}
+      packs_only: ${{ inputs.packs_only || false }}
+
+  windows-source:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.windows_source_sha != '' }}
+    uses: ./.github/workflows/windows-source-verification.yml
+    with:
+      source_sha: ${{ inputs.windows_source_sha }}
+
+  linux-candidate-verification:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.linux_candidate_run != '' }}
+    uses: ./.github/workflows/linux-candidate-verification.yml
+    with:
+      source_sha: ${{ inputs.linux_candidate_source }}
+      candidate_run: ${{ inputs.linux_candidate_run }}
+
+  public-windows-verification:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.windows_release_source != '' }}
+    uses: ./.github/workflows/public-windows-verification.yml
+    with:
+      source_sha: ${{ inputs.windows_release_source }}

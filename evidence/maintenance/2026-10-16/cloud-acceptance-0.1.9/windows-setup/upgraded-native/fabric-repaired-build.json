@@ -1,0 +1,217 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "a5775503-7da3-4c7b-a87a-c9770a16426b",
+  "workspaceId": "a6fa2d9d-8106-4dda-8bd8-a6d18a258d0d",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 5,
+  "data": {
+    "task": {
+      "id": "d3b6254a-b317-42fa-83ec-9e970adf86c7",
+      "kind": "build",
+      "state": "succeeded",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.build.completed",
+        "fallback": "Fabric 1.21.1 build completed",
+        "args": {
+          "backend": "Fabric 1.21.1"
+        }
+      },
+      "startedAt": "2026-10-16T12:58:52.246706900Z",
+      "completedAt": "2026-10-16T12:59:00.878437500Z",
+      "diagnostics": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Fabric 1.21.1",
+      "sourceSnapshot": {
+        "sha256": "712cb317d06df552d1d8d4b0c68d421e26662048a23304814abbb1850747d3d5",
+        "fileCount": 41,
+        "bytes": 1314235,
+        "manifestPath": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\.copperbench\\task-inputs\\d3b6254a-b317-42fa-83ec-9e970adf86c7.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T12:58:52.250694900Z",
+        "level": "info",
+        "text": "Starting Fabric 1.21.1 build from revision 5"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T12:58:52.266697500Z",
+        "level": "info",
+        "text": "Fabric 1.21.1 generation completed: 27 files; modId=m1_delivery"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T12:58:53.344501900Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T12:58:54.441606600Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T12:58:58.442178600Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T12:58:58.445185Z",
+        "level": "info",
+        "text": "> Configure project :"
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T12:58:58.448186100Z",
+        "level": "info",
+        "text": "Fabric Loom: 1.17.19"
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T12:58:59.844732800Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T12:58:59.853724500Z",
+        "level": "info",
+        "text": "> Task :compileJava UP-TO-DATE"
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T12:58:59.859725800Z",
+        "level": "info",
+        "text": "> Task :processResources UP-TO-DATE"
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T12:58:59.862725700Z",
+        "level": "info",
+        "text": "> Task :classes UP-TO-DATE"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T12:58:59.866726800Z",
+        "level": "info",
+        "text": "> Task :jar UP-TO-DATE"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T12:58:59.870728500Z",
+        "level": "info",
+        "text": "> Task :processIncludeJars UP-TO-DATE"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T12:58:59.956727200Z",
+        "level": "info",
+        "text": "> Task :remapJar UP-TO-DATE"
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T12:58:59.962734900Z",
+        "level": "info",
+        "text": "> Task :sourcesJar UP-TO-DATE"
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T12:58:59.964730700Z",
+        "level": "info",
+        "text": "> Task :remapSourcesJar UP-TO-DATE"
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T12:58:59.967731Z",
+        "level": "info",
+        "text": "> Task :assemble UP-TO-DATE"
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T12:58:59.970726Z",
+        "level": "info",
+        "text": "> Task :compileTestJava NO-SOURCE"
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T12:58:59.976729500Z",
+        "level": "info",
+        "text": "> Task :processTestResources NO-SOURCE"
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T12:58:59.980730900Z",
+        "level": "info",
+        "text": "> Task :testClasses UP-TO-DATE"
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T12:58:59.983735900Z",
+        "level": "info",
+        "text": "> Task :test NO-SOURCE"
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T12:58:59.985737800Z",
+        "level": "info",
+        "text": "> Task :validateAccessWidener UP-TO-DATE"
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T12:58:59.988734200Z",
+        "level": "info",
+        "text": "> Task :check UP-TO-DATE"
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T12:58:59.990734700Z",
+        "level": "info",
+        "text": "> Task :build UP-TO-DATE"
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T12:59:00.143717100Z",
+        "level": "info",
+        "text": "> Task :copperbenchCaptureResourceContext38a19c625ef345fcab892328a2d5bd9c"
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T12:59:00.147717500Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T12:59:00.150715400Z",
+        "level": "info",
+        "text": "BUILD SUCCESSFUL in 7s"
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-10-16T12:59:00.153721800Z",
+        "level": "info",
+        "text": "9 actionable tasks: 1 executed, 8 up-to-date"
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-10-16T12:59:00.740446600Z",
+        "level": "info",
+        "text": "RESOURCE_INDEX_AVAILABLE"
+      }
+    ],
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

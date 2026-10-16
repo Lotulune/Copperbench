@@ -1,0 +1,157 @@
+{
+  "kind": "public-release-cloud-acceptance",
+  "status": "passed",
+  "variant": "deb",
+  "nativeMode": "full",
+  "releaseTag": "v0.1.9",
+  "previousReleaseTag": "v0.1.7",
+  "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "runnerOS": "Linux",
+  "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+  "workflowRun": "38903643192",
+  "workflowAttempt": "1",
+  "startedAt": "2026-10-16T12:53:09.232366+00:00",
+  "releases": {
+    "v0.1.9": {
+      "publicTag": "v0.1.9-linux-stable",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "assets": [
+        {
+          "name": "LINUX-CANDIDATE-METADATA.json",
+          "size": 1991,
+          "sha256": "ae4d132f52a14c88e56349c0e3ae83ed5572bf4cb96649c1cb73c31f0bcb1158",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/LINUX-CANDIDATE-METADATA.json",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38894781422/attempts/1"
+        },
+        {
+          "name": "copperbench_0.1.9_amd64.deb",
+          "size": 1027350004,
+          "sha256": "f0930342fa8fbfd5a998f5c639991efd6296b3a9134a75b11354abe9a0bca8aa",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/copperbench_0.1.9_amd64.deb",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38894781422/attempts/1"
+        }
+      ]
+    },
+    "v0.1.7": {
+      "publicTag": "v0.1.7-linux-stable",
+      "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc",
+      "assets": [
+        {
+          "name": "LINUX-CANDIDATE-METADATA.json",
+          "size": 1991,
+          "sha256": "3b7f146d8e91a6c521d9cfc9ff83c84d5f42a73ad9cb563b7808775027309aa6",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/LINUX-CANDIDATE-METADATA.json",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38850069834/attempts/1"
+        },
+        {
+          "name": "copperbench_0.1.7_amd64.deb",
+          "size": 1027397234,
+          "sha256": "7c632878bf8537638466435e79de8254230dbb941b81e0214c59e634f72d44a1",
+          "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.7-linux-stable/copperbench_0.1.7_amd64.deb",
+          "attestationRun": "https://github.com/Lotulune/Copperbench/actions/runs/38850069834/attempts/1"
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "v0.1.9-public-package-identity",
+      "status": "passed",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c"
+    },
+    {
+      "name": "v0.1.7-public-package-identity",
+      "status": "passed",
+      "sourceCommit": "db8d08336c274cc37239b48e837f0bf3727c5fdc"
+    },
+    {
+      "name": "deb-fresh-install",
+      "status": "passed",
+      "version": "0.1.9",
+      "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149"
+    },
+    {
+      "name": "deb-fresh-native",
+      "status": "passed",
+      "nativeResult": "/home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native/result.json"
+    },
+    {
+      "name": "deb-fresh-uninstall",
+      "status": "passed",
+      "managedFilesRemoved": 3617
+    },
+    {
+      "name": "deb-fresh-uninstall-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "/home/runner/work/_temp/cba/preferences/cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "/home/runner/work/_temp/cba/external-project/user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "/home/runner/work/_temp/cba/deb-personal-note.txt": "537ca430bfea1557194843c4611da6e0f14cddb965d9b097c59f1df0da115a48",
+        "/opt/copperbench/personal-note.txt": "537ca430bfea1557194843c4611da6e0f14cddb965d9b097c59f1df0da115a48",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/cloud_smoke.mcreator": "f15dc4be71197375aacb8144377f1d50334e335657edce4cdd8662f9cd7c7d2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19"
+      }
+    },
+    {
+      "name": "deb-previous-install",
+      "status": "passed",
+      "version": "0.1.7",
+      "applicationSha256": "a4bdfad2f8909d58ef77cb68fb3b6357f5dcf0d31bf012f2e130a83467ff2e47"
+    },
+    {
+      "name": "deb-upgrade-install",
+      "status": "passed",
+      "version": "0.1.9",
+      "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149"
+    },
+    {
+      "name": "deb-upgrade-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "/home/runner/work/_temp/cba/preferences/cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "/home/runner/work/_temp/cba/external-project/user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "/home/runner/work/_temp/cba/deb-personal-note.txt": "537ca430bfea1557194843c4611da6e0f14cddb965d9b097c59f1df0da115a48",
+        "/opt/copperbench/personal-note.txt": "537ca430bfea1557194843c4611da6e0f14cddb965d9b097c59f1df0da115a48",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/cloud_smoke.mcreator": "f15dc4be71197375aacb8144377f1d50334e335657edce4cdd8662f9cd7c7d2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19"
+      }
+    },
+    {
+      "name": "deb-upgraded-native",
+      "status": "passed",
+      "nativeResult": "/home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-upgraded-native/result.json"
+    },
+    {
+      "name": "deb-upgraded-uninstall",
+      "status": "passed",
+      "managedFilesRemoved": 3617
+    },
+    {
+      "name": "deb-upgraded-uninstall-data-preservation",
+      "status": "passed",
+      "preservedFiles": {
+        "/home/runner/work/_temp/cba/preferences/cloud-user-preference.txt": "fc900ff5c7055daa8b9050a9c50c9c8d165c631a127f48fa8b7b9a6f18a713b7",
+        "/home/runner/work/_temp/cba/external-project/user-workspace.mcreator": "acf5e454364d4d981d61998ec08b5b2ab4979101513aa384b57a8956ec4edd17",
+        "/home/runner/work/_temp/cba/deb-personal-note.txt": "537ca430bfea1557194843c4611da6e0f14cddb965d9b097c59f1df0da115a48",
+        "/opt/copperbench/personal-note.txt": "537ca430bfea1557194843c4611da6e0f14cddb965d9b097c59f1df0da115a48",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/cloud_smoke.mcreator": "f15dc4be71197375aacb8144377f1d50334e335657edce4cdd8662f9cd7c7d2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19",
+        "/home/runner/work/_temp/cba/workspaces/deb-upgraded-native/cloud_smoke/cloud_smoke.mcreator": "907c9a99483514e53515daa195cbecfc7864b37aca11bee33c2c072e7b11fe83",
+        "/home/runner/work/_temp/cba/workspaces/deb-upgraded-native/cloud_smoke/elements/cloud_ping.mod.json": "40cc4d78a7c4ade8d9094c0031c8a0be2f2001b356fea71c3df1bd99ab8d1b2f",
+        "/home/runner/work/_temp/cba/workspaces/deb-upgraded-native/cloud_smoke/exports/cloud_smoke.zip": "9154b994c03f2e3b0340f3bdfdedcef189e9b903653c3bc4a2bcbe2ecf114e19"
+      }
+    }
+  ],
+  "unverified": [
+    "Windows 11 desktop",
+    "MSIX installation",
+    "UAC elevation",
+    "GNOME Wayland/Xorg desktop",
+    "Player controls and world save/reopen"
+  ],
+  "uiScope": "Published Swing components and offscreen preview; no human interaction or desktop certification",
+  "completedAt": "2026-10-16T12:55:13.149394+00:00"
+}

@@ -1,0 +1,205 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "22efedd9-01e6-40f1-ae79-ad0f60008c3d",
+  "workspaceId": "7b444ea2-77aa-45b7-8f4a-3aa1e1e76200",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 2,
+  "data": {
+    "task": {
+      "id": "81938c27-357f-453f-b5c0-f037d9a26c7c",
+      "kind": "export",
+      "state": "succeeded",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.export.completed",
+        "fallback": "Data Pack export completed",
+        "args": {
+          "backend": "Data Pack"
+        }
+      },
+      "startedAt": "2026-10-16T12:54:09.463655796Z",
+      "completedAt": "2026-10-16T12:54:18.595296944Z",
+      "diagnostics": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Data Pack",
+      "sourceSnapshot": {
+        "sha256": "9d0a7201c8f3542c1a2932a7342799c8f97d706b19c6658efb2ce450ffa1aa6d",
+        "fileCount": 12,
+        "bytes": 76872,
+        "manifestPath": "/home/runner/work/_temp/cba/workspaces/deb-fresh-native/cloud_smoke/.copperbench/task-inputs/81938c27-357f-453f-b5c0-f037d9a26c7c.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T12:54:09.466944653Z",
+        "level": "info",
+        "text": "Starting Data Pack export from revision 2"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T12:54:09.509506167Z",
+        "level": "info",
+        "text": "Data Pack generation completed: 1 files; modId=Cloud cloud_smoke"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T12:54:09.655405683Z",
+        "level": "info",
+        "text": "Downloading https://services.gradle.org/distributions/gradle-9.7.0-bin.zip"
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T12:54:12.490643526Z",
+        "level": "info",
+        "text": "..............10%..............20%..............30%...............40%..............50%...............60%..............70%..............80%...............90%..............100%"
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T12:54:13.896710061Z",
+        "level": "info",
+        "text": "WARNING: A restricted method in java.lang.System has been called"
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T12:54:13.899389822Z",
+        "level": "info",
+        "text": "WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/runner/work/_temp/cba/gradle/wrapper/dists/gradle-9.7.0-bin/d4tj7w02tcgubx9zk9hbippn6/gradle-9.7.0/lib/native-platform-0.22-milestone-29.jar)"
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T12:54:13.900189464Z",
+        "level": "info",
+        "text": "WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module"
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T12:54:13.901407657Z",
+        "level": "info",
+        "text": "WARNING: Restricted methods will be blocked in a future release unless native access is enabled"
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T12:54:13.902038344Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T12:54:14.041210832Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T12:54:14.042102716Z",
+        "level": "info",
+        "text": "Welcome to Gradle 9.7.0!"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T12:54:14.042711061Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T12:54:14.043258673Z",
+        "level": "info",
+        "text": "Here are the highlights of this release:"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T12:54:14.043880293Z",
+        "level": "info",
+        "text": " - Isolated Projects graduates to incubating"
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T12:54:14.044332457Z",
+        "level": "info",
+        "text": " - Broader Configuration Cache compatibility"
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T12:54:14.044846175Z",
+        "level": "info",
+        "text": " - More source locations in problem reports"
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T12:54:14.045309210Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T12:54:14.045904671Z",
+        "level": "info",
+        "text": "For more details see https://docs.gradle.org/9.7.0/release-notes.html"
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T12:54:14.046502056Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T12:54:14.142539635Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T12:54:15.243045746Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T12:54:18.442709031Z",
+        "level": "info",
+        "text": "> Task :build"
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T12:54:18.443647973Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T12:54:18.444214170Z",
+        "level": "info",
+        "text": "BUILD SUCCESSFUL in 8s"
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T12:54:18.444760239Z",
+        "level": "info",
+        "text": "1 actionable task: 1 executed"
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T12:54:18.483587210Z",
+        "level": "info",
+        "text": "Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.0/userguide/configuration_cache_enabling.html"
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T12:54:18.586292283Z",
+        "level": "info",
+        "text": "Exported Data Pack artifact to exports/cloud_smoke.zip"
+      }
+    ],
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

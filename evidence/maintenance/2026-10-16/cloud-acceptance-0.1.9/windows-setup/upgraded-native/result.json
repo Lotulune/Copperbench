@@ -1,0 +1,284 @@
+{
+  "kind": "published-installed-native-acceptance",
+  "status": "passed",
+  "mode": "full",
+  "startedAt": "2026-10-16T12:56:14.522259+00:00",
+  "product": "D:\\a\\_temp\\cba\\upgrade\\Copperbench with spaces",
+  "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+  "launcherSha256": "d3b2f7c0924f0d094defbf347bb2fece9d6f254020f34a716f3b6502a4d05017",
+  "sdkSha256": "84718015ef1df6f669f5897d8ceba7423aa8f6dcfaca6b547f242c413a0dd270",
+  "fixtureSha256": "82c87d493134a1362e73daed474fbd3169d9ab0a68b7b6269c498bd8b2d8b184",
+  "sessions": [
+    {
+      "pid": 7196,
+      "workspace": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\m1_delivery.mcreator",
+      "identity": {
+        "javaVersion": "25.0.3+1-b329.124",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+        "buildDate": "202610161221",
+        "snapshot": "false"
+      },
+      "gradle": {
+        "distribution": "gradle-9.7.0-bin.zip",
+        "windowsLauncher": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\gradlew.bat",
+        "posixLauncher": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\gradlew",
+        "userHome": "D:\\a\\_temp\\cba\\gradle",
+        "userHomeSource": "COPPERBENCH_GRADLE_USER_HOME",
+        "reuseExternalDistributions": false,
+        "tasks": {
+          "build": "build",
+          "runClient": "runClient",
+          "runServer": "runServer",
+          "runDatagen": "runDatagen",
+          "runGameTest": "runGameTest"
+        }
+      },
+      "exitCode": 0
+    },
+    {
+      "pid": 1928,
+      "workspace": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\m1_delivery.mcreator",
+      "identity": {
+        "javaVersion": "25.0.3+1-b329.124",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+        "buildDate": "202610161221",
+        "snapshot": "false"
+      },
+      "gradle": {
+        "distribution": "gradle-9.7.0-bin.zip",
+        "windowsLauncher": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\gradlew.bat",
+        "posixLauncher": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\gradlew",
+        "userHome": "D:\\a\\_temp\\cba\\gradle",
+        "userHomeSource": "COPPERBENCH_GRADLE_USER_HOME",
+        "reuseExternalDistributions": false,
+        "tasks": {
+          "build": "build",
+          "runClient": "runClient",
+          "runServer": "runServer",
+          "runDatagen": "runDatagen",
+          "runGameTest": "runGameTest"
+        }
+      },
+      "exitCode": 0
+    },
+    {
+      "pid": 7040,
+      "workspace": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\cloud_neoforge.mcreator",
+      "identity": {
+        "javaVersion": "25.0.3+1-b329.124",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+        "buildDate": "202610161221",
+        "snapshot": "false"
+      },
+      "gradle": {
+        "distribution": "gradle-9.7.0-bin.zip",
+        "windowsLauncher": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\gradlew.bat",
+        "posixLauncher": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\gradlew",
+        "userHome": "D:\\a\\_temp\\cba\\gradle",
+        "userHomeSource": "COPPERBENCH_GRADLE_USER_HOME",
+        "reuseExternalDistributions": false,
+        "tasks": {
+          "build": "build",
+          "runClient": "runClient",
+          "runServer": "runServer",
+          "runDatagen": "runDatagen",
+          "runGameTest": "runGameTest"
+        }
+      },
+      "exitCode": 0
+    },
+    {
+      "pid": 9056,
+      "workspace": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1201\\cloud_dp1201.mcreator",
+      "identity": {
+        "javaVersion": "25.0.3+1-b329.124",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+        "buildDate": "202610161221",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    },
+    {
+      "pid": 7264,
+      "workspace": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp1211\\cloud_dp1211.mcreator",
+      "identity": {
+        "javaVersion": "25.0.3+1-b329.124",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+        "buildDate": "202610161221",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    },
+    {
+      "pid": 840,
+      "workspace": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_dp261\\cloud_dp261.mcreator",
+      "identity": {
+        "javaVersion": "25.0.3+1-b329.124",
+        "javaVendor": "JetBrains s.r.o.",
+        "mcpSdkVersion": "2.0.0",
+        "sourceState": "packaged_binary",
+        "version": "0.1.9",
+        "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+        "buildDate": "202610161221",
+        "snapshot": "false"
+      },
+      "gradle": null,
+      "exitCode": 0
+    }
+  ],
+  "tasks": [
+    {
+      "label": "fabric-initial-build",
+      "id": "720d31fe-6050-4df0-9875-61f162111e5d",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "fabric-controlled-failure",
+      "id": "f179e0fd-b39f-440a-a3f8-48defbd3221c",
+      "state": "failed",
+      "expected": "failed"
+    },
+    {
+      "label": "fabric-repaired-build",
+      "id": "d3b6254a-b317-42fa-83ec-9e970adf86c7",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "fabric-packaged-gametest",
+      "id": "1993c35c-8f0d-41f0-8e01-468e892fd9f2",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "fabric-verified-export",
+      "id": "cab7c09e-1109-49b2-bb63-bc0f6853b20a",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "fabric-reopened-export",
+      "id": "6ec5a1e8-bcf3-4ead-bb8c-fefde6573483",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "fabric-custom-export",
+      "id": "40ea318c-f52a-4bf6-9b8d-b4371739eae3",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "neoforge-build",
+      "id": "1b4d3958-8ef9-47f3-bd05-3ffb8b7a5ae6",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "neoforge-custom-export",
+      "id": "e0ed8e30-ef76-401c-9191-a27de8182725",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "cloud_dp1201-export",
+      "id": "7d74984e-e742-41ee-8d62-545254a17daa",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "cloud_dp1211-export",
+      "id": "158e12da-2f95-48c1-8b71-ca83a958c47e",
+      "state": "succeeded",
+      "expected": "succeeded"
+    },
+    {
+      "label": "cloud_dp261-export",
+      "id": "c27a30f0-2030-4b5c-bf26-b3535abcb6b8",
+      "state": "succeeded",
+      "expected": "succeeded"
+    }
+  ],
+  "checks": [
+    {
+      "name": "workspace-and-task-persistence",
+      "status": "passed",
+      "revision": 5
+    },
+    {
+      "name": "fabric-custom-export",
+      "status": "passed",
+      "archive": {
+        "schemaVersion": "1.0",
+        "taskId": "40ea318c-f52a-4bf6-9b8d-b4371739eae3",
+        "archiveTask": ":remapJar",
+        "artifactPath": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\build\\cloud-archives\\m1_delivery-1.0.jar",
+        "sha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510"
+      },
+      "buildLibsAbsent": true,
+      "exportSha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510"
+    },
+    {
+      "name": "neoforge-custom-export",
+      "status": "passed",
+      "archive": {
+        "schemaVersion": "1.0",
+        "taskId": "e0ed8e30-ef76-401c-9191-a27de8182725",
+        "archiveTask": ":jar",
+        "artifactPath": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\cloud_neoforge\\build\\cloud-archives\\cloud_neoforge-1.0.jar",
+        "sha256": "8fcc352603685138197503d18c0bd422b7d9e4ee81237844f9bfde1741f27df9"
+      },
+      "buildLibsAbsent": true,
+      "exportSha256": "8fcc352603685138197503d18c0bd422b7d9e4ee81237844f9bfde1741f27df9"
+    },
+    {
+      "name": "datapack-1.20.1-zip",
+      "status": "passed",
+      "sha256": "9d1ab8b5bdcd12ce90ade279dc9e1a28c5347edc93598171174c2412f1611779"
+    },
+    {
+      "name": "datapack-1.21.1-zip",
+      "status": "passed",
+      "sha256": "443cc91d89112d74cf87d096a6be112fa896aa66892aa8dd076dec2d7a46185c"
+    },
+    {
+      "name": "datapack-26.1.x-zip",
+      "status": "passed",
+      "sha256": "3a375e7fadb8a595f71f7844a303519ab3acd414779abe136eae3299f41dcd20"
+    }
+  ],
+  "preparation": "Existing test-only workspace fixture compiled against installed libraries; no approval grant issued",
+  "playerInteractionTested": false,
+  "playerWorldPersistenceTested": false,
+  "gameTestFixtureHashes": {
+    "ContractGameTests.java": "1227e597978203e13d3df8741f5720233076373f15e481e0669576497325e25d",
+    "copperbench-tests.json": "322aeab6f9c49dcaf00658d29591c475fa4ad8329ea6aed1ee733006154b91fd",
+    "README.md": "a7c298e988545e4d71252ce711cdc301dd4275d41ef3de50cd920d5b93ac6fa8",
+    "recovery_probe.java": "d25493836f0b7538c9ce265cd974db577598c5611c3d2a3a2a31d1a042d2bc94"
+  },
+  "completedAt": "2026-10-16T13:07:15.718593+00:00",
+  "elapsedSeconds": 661.1870000000001
+}

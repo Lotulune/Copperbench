@@ -1,0 +1,88 @@
+name: Verify frozen Linux candidate bytes
+
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        type: string
+        required: true
+      candidate_run:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+  attestations: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      CANDIDATE_RUN: ${{ inputs.candidate_run }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Download and verify the frozen main candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          evidence="$GITHUB_WORKSPACE/output/minecraft-validation/linux-candidate-verification"
+          payload="$RUNNER_TEMP/candidate-payload"
+          mkdir -p "$evidence"
+          python - <<'PY'
+          import os,re
+          assert re.fullmatch('[0-9a-f]{40}',os.environ['SOURCE_SHA'])
+          assert re.fullmatch('[1-9][0-9]*',os.environ['CANDIDATE_RUN'])
+          assert os.environ['GITHUB_REPOSITORY']=='Lotulune/Copperbench'
+          PY
+          git fetch --depth=1 origin "$SOURCE_SHA"
+          gh api "repos/Lotulune/Copperbench/actions/runs/$CANDIDATE_RUN" > "$evidence/candidate-run.json"
+          gh api "repos/Lotulune/Copperbench/actions/runs/$CANDIDATE_RUN/jobs?per_page=100" > "$evidence/candidate-jobs.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          path=Path('output/minecraft-validation/linux-candidate-verification/candidate-run.json')
+          run=json.loads(path.read_text())
+          assert run['head_sha']==os.environ['SOURCE_SHA'] and run['event']=='push' and run['head_branch']=='main'
+          assert run['status']=='completed' and run['conclusion']=='success'
+          assert run['path']=='.github/workflows/stage15-linux-candidate.yml'
+          PY
+          gh run download "$CANDIDATE_RUN" --repo Lotulune/Copperbench --name stage15-linux-candidate --dir "$payload"
+          node scripts/verify-linux-candidate-metadata.mjs --export-dir "$payload" --expected-commit "$SOURCE_SHA"
+          python scripts/cloud-acceptance/verify-candidate-provenance.py --payload "$payload" \
+            --metadata LINUX-CANDIDATE-METADATA.json --workflow stage15-linux-candidate.yml --source-ref refs/heads/main \
+            --source "$SOURCE_SHA" --run "$CANDIDATE_RUN" --output "$evidence/provenance"
+          python scripts/cloud-acceptance/verify-candidate-package.py \
+            --archive "$payload/Copperbench 0.1.9 Linux x86_64.tar.gz" --source "$SOURCE_SHA" \
+            --result "$evidence/archive-entry-verification.json"
+          cp "$payload/LINUX-CANDIDATE-METADATA.json" "$payload/linux-candidate-sha256.txt" "$payload/linux-candidate-manifest.json" "$evidence/"
+          python - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          root=Path('output/minecraft-validation/linux-candidate-verification')
+          metadata=json.loads((root/'LINUX-CANDIDATE-METADATA.json').read_text())
+          assert metadata['productVersion']=='0.1.9'
+          result={'status':'passed','kind':'cloud-candidate-byte-verification','sourceCommit':os.environ['SOURCE_SHA'],
+                  'candidateRun':os.environ['CANDIDATE_RUN'],'candidateId':metadata['candidateId'],
+                  'verificationRun':os.environ['GITHUB_RUN_ID'],'harnessCommit':os.environ['GITHUB_SHA'],
+                  'scope':'All eight downloaded candidate files match the verified signed statement; packaged docs, application version, three fixes and legacy template checked; no installed/player acceptance'}
+          (root/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+          hashes={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
+          (root/'evidence-hashes.json').write_text(json.dumps(hashes,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: linux-candidate-verification-${{ inputs.candidate_run }}
+          path: output/minecraft-validation/linux-candidate-verification/
+          if-no-files-found: error
+          retention-days: 30

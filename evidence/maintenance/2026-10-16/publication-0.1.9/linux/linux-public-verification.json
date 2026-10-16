@@ -1,0 +1,85 @@
+{
+  "status": "passed",
+  "releaseTag": "v0.1.9-linux-stable",
+  "releaseId": 414956148,
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9-linux-stable",
+  "publishedAt": "2026-10-16T12:49:41Z",
+  "verifiedAt": "2026-10-16T12:52:42.598082+00:00",
+  "assetCount": 9,
+  "binarySourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+  "promotionSourceCommit": "474b2df4c52ecf52e1f3724448c2d12c8af85396",
+  "candidateId": "sha256:f6c6e5167dc044f7f3ab17e5e6648b5aa0dcc163f960cc08e109dfdc5beb792d",
+  "candidateWorkflowRunId": "38894781422",
+  "releaseWorkflowRunId": "38902713886",
+  "assets": [
+    {
+      "name": "Copperbench 0.1.9 Linux x86_64 Setup.tar.gz",
+      "size": 1112306976,
+      "sha256": "7f611ae643f4e29a7519c64eba4c8398b350e7e9f161837f14d4929fd1f11de4",
+      "publicName": "Copperbench.0.1.9.Linux.x86_64.Setup.tar.gz",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/Copperbench.0.1.9.Linux.x86_64.Setup.tar.gz"
+    },
+    {
+      "name": "Copperbench 0.1.9 Linux x86_64 Setup.tar.gz.build.json",
+      "size": 311,
+      "sha256": "40701797ab5aedec8f01049c0cefe7c7c470e9e8fbf0222a49cbf4a8d1004540",
+      "publicName": "Copperbench.0.1.9.Linux.x86_64.Setup.tar.gz.build.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/Copperbench.0.1.9.Linux.x86_64.Setup.tar.gz.build.json"
+    },
+    {
+      "name": "Copperbench 0.1.9 Linux x86_64.tar.gz",
+      "size": 1110301981,
+      "sha256": "f44e1e4f1faf25f2006c06bd4b687a5167309aa248c69d1671d2dcb0a0e287b2",
+      "publicName": "Copperbench.0.1.9.Linux.x86_64.tar.gz",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/Copperbench.0.1.9.Linux.x86_64.tar.gz"
+    },
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "size": 1991,
+      "sha256": "ae4d132f52a14c88e56349c0e3ae83ed5572bf4cb96649c1cb73c31f0bcb1158",
+      "publicName": "LINUX-CANDIDATE-METADATA.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/LINUX-CANDIDATE-METADATA.json"
+    },
+    {
+      "name": "copperbench-linux.spdx.json",
+      "size": 5670307,
+      "sha256": "996b7441e674c5aa10eb625b4baa6d90d588686e42f007011eeb685b0b1e60e5",
+      "publicName": "copperbench-linux.spdx.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/copperbench-linux.spdx.json"
+    },
+    {
+      "name": "copperbench_0.1.9_amd64.deb",
+      "size": 1027350004,
+      "sha256": "f0930342fa8fbfd5a998f5c639991efd6296b3a9134a75b11354abe9a0bca8aa",
+      "publicName": "copperbench_0.1.9_amd64.deb",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/copperbench_0.1.9_amd64.deb"
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "size": 6694,
+      "sha256": "75dbf2c918f2ae19a00723b7dc37606701e4fe9fa64bb7373f0d31170f1f6e3e",
+      "publicName": "linux-candidate-manifest.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/linux-candidate-manifest.json"
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "size": 806,
+      "sha256": "f6926eb4e8e8f2b4117442587f31843c881fc4706b9e4a6fcb09310344cdb68c",
+      "publicName": "linux-candidate-sha256.txt",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/linux-candidate-sha256.txt"
+    },
+    {
+      "name": "LINUX-RELEASE-AUTHORIZATION.json",
+      "size": 1863,
+      "sha256": "6dc35a3641f8e4fa03ecff0253a0c56b11e3de79680888a2a5f6fa4b21a06b00",
+      "publicName": "LINUX-RELEASE-AUTHORIZATION.json",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.9-linux-stable/LINUX-RELEASE-AUTHORIZATION.json"
+    }
+  ],
+  "scope": "Public API digests/sizes match independently cloud-downloaded candidate bytes and the signed promotion authorization; promotion also downloaded and byte-compared all draft assets before publishing",
+  "smallPublicMetadataDownloadedAndByteCompared": [
+    "LINUX-CANDIDATE-METADATA.json",
+    "LINUX-RELEASE-AUTHORIZATION.json",
+    "linux-candidate-sha256.txt"
+  ]
+}

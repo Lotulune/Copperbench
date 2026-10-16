@@ -1,0 +1,342 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "e46fb840-0855-41f7-84d0-c07525202f14",
+  "workspaceId": "62335d17-d195-4f61-8d2e-83ae54723adc",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 4,
+  "data": {
+    "task": {
+      "id": "28604954-3e2b-410b-91e5-909a8322ab19",
+      "kind": "build",
+      "state": "failed",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.failed",
+        "fallback": "Fabric 1.21.1 task failed",
+        "args": {
+          "backend": "Fabric 1.21.1"
+        }
+      },
+      "startedAt": "2026-10-16T12:57:08.835981217Z",
+      "completedAt": "2026-10-16T12:57:17.494287978Z",
+      "diagnostics": {
+        "error": 2,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Fabric 1.21.1",
+      "sourceSnapshot": {
+        "sha256": "40c80ac9d0c0ad38ddfaf6692d27c25994d3b62e411d57609a5f03a5aef0e1db",
+        "fileCount": 41,
+        "bytes": 1311618,
+        "manifestPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/.copperbench/task-inputs/28604954-3e2b-410b-91e5-909a8322ab19.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T12:57:08.836795121Z",
+        "level": "info",
+        "text": "Starting Fabric 1.21.1 build from revision 4"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T12:57:08.845157247Z",
+        "level": "info",
+        "text": "Fabric 1.21.1 generation completed: 27 files; modId=m1_delivery"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T12:57:09.570218Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T12:57:10.567366085Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T12:57:14.468437353Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T12:57:14.469333250Z",
+        "level": "info",
+        "text": "> Configure project :"
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T12:57:14.469913587Z",
+        "level": "info",
+        "text": "Fabric Loom: 1.17.19"
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T12:57:17.068534988Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T12:57:17.069474598Z",
+        "level": "info",
+        "text": "> Task :compileJava FAILED"
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T12:57:17.070034306Z",
+        "level": "info",
+        "text": "/home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/src/main/java/net/mcreator/m1_delivery/recovery_probe.java:8: error: cannot find symbol"
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T12:57:17.072807966Z",
+        "level": "info",
+        "text": "        return missing_m1_symbol;"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T12:57:17.073313783Z",
+        "level": "info",
+        "text": "               ^"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T12:57:17.073845358Z",
+        "level": "info",
+        "text": "  symbol:   variable missing_m1_symbol"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T12:57:17.074321259Z",
+        "level": "info",
+        "text": "  location: class recovery_probe"
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T12:57:17.074843537Z",
+        "level": "info",
+        "text": "1 error"
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T12:57:17.075432771Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T12:57:17.076916078Z",
+        "level": "info",
+        "text": "[Incubating] Problems report is available at: file:///home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/build/reports/problems/problems-report.html"
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T12:57:17.077913125Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T12:57:17.078401389Z",
+        "level": "info",
+        "text": "FAILURE: Build failed with an exception."
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T12:57:17.079958795Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T12:57:17.080544903Z",
+        "level": "info",
+        "text": "* What went wrong:"
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T12:57:17.084201310Z",
+        "level": "info",
+        "text": "Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin')."
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T12:57:17.085163882Z",
+        "level": "info",
+        "text": "> Compilation failed; see the compiler output below."
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T12:57:17.086486178Z",
+        "level": "info",
+        "text": "  /home/runner/work/_temp/cba/workspaces/upgraded-native/m1_delivery/src/main/java/net/mcreator/m1_delivery/recovery_probe.java:8: error: cannot find symbol"
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T12:57:17.087209322Z",
+        "level": "info",
+        "text": "          return missing_m1_symbol;"
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T12:57:17.089218604Z",
+        "level": "info",
+        "text": "                 ^"
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T12:57:17.089778603Z",
+        "level": "info",
+        "text": "    symbol:   variable missing_m1_symbol"
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-10-16T12:57:17.090254985Z",
+        "level": "info",
+        "text": "    location: class recovery_probe"
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-10-16T12:57:17.090820994Z",
+        "level": "info",
+        "text": "  1 error"
+      },
+      {
+        "sequence": 30,
+        "timestamp": "2026-10-16T12:57:17.091273442Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 31,
+        "timestamp": "2026-10-16T12:57:17.092095311Z",
+        "level": "info",
+        "text": "* Try:"
+      },
+      {
+        "sequence": 32,
+        "timestamp": "2026-10-16T12:57:17.093169532Z",
+        "level": "info",
+        "text": "> Check your code and dependencies to fix the compilation error(s)"
+      },
+      {
+        "sequence": 33,
+        "timestamp": "2026-10-16T12:57:17.093805363Z",
+        "level": "info",
+        "text": "> Run with --scan to get full insights from a Build Scan (powered by Develocity)."
+      },
+      {
+        "sequence": 34,
+        "timestamp": "2026-10-16T12:57:17.094281614Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 35,
+        "timestamp": "2026-10-16T12:57:17.094915091Z",
+        "level": "info",
+        "text": "BUILD FAILED in 8s"
+      },
+      {
+        "sequence": 36,
+        "timestamp": "2026-10-16T12:57:17.095476803Z",
+        "level": "info",
+        "text": "1 actionable task: 1 executed"
+      },
+      {
+        "sequence": 37,
+        "timestamp": "2026-10-16T12:57:17.491487975Z",
+        "level": "info",
+        "text": "RESOURCE_INDEX_UNAVAILABLE"
+      },
+      {
+        "sequence": 38,
+        "timestamp": "2026-10-16T12:57:17.493689567Z",
+        "level": "error",
+        "text": "Task failed. Error ID: d9f3eb8a-fbb5-4f5a-a959-b4412dbb9235"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "JAVA_COMPILE_ERROR",
+        "severity": "error",
+        "message": {
+          "key": "diagnostic.java_compile_error",
+          "fallback": "Line 8: cannot find symbol",
+          "args": {
+            "message": "Line 8: cannot find symbol"
+          }
+        },
+        "path": "/src/main/java/net/mcreator/m1_delivery/recovery_probe.java",
+        "elementId": null,
+        "recoverable": true,
+        "actions": [
+          {
+            "id": "open_generated_source",
+            "label": {
+              "key": "action.open_source",
+              "fallback": "View source",
+              "args": {}
+            },
+            "kind": "open_source",
+            "target": "/src/main/java/net/mcreator/m1_delivery/recovery_probe.java",
+            "payload": {
+              "line": 8
+            }
+          },
+          {
+            "id": "open_task_logs",
+            "label": {
+              "key": "action.open_logs",
+              "fallback": "View task logs",
+              "args": {}
+            },
+            "kind": "open_logs",
+            "target": "28604954-3e2b-410b-91e5-909a8322ab19"
+          }
+        ]
+      },
+      {
+        "code": "FABRIC_BUILD_FAILED",
+        "severity": "error",
+        "message": {
+          "key": "diagnostic.workspace_task_failed",
+          "fallback": "The {backend} {task} task failed.",
+          "args": {
+            "backend": "Fabric 1.21.1",
+            "task": "build",
+            "failureId": "d9f3eb8a-fbb5-4f5a-a959-b4412dbb9235"
+          }
+        },
+        "path": null,
+        "elementId": null,
+        "recoverable": true,
+        "actions": [
+          {
+            "id": "open_logs",
+            "label": {
+              "key": "action.open_logs",
+              "fallback": "View logs",
+              "args": {}
+            },
+            "kind": "open_logs",
+            "target": "d9f3eb8a-fbb5-4f5a-a959-b4412dbb9235",
+            "payload": {
+              "taskId": "28604954-3e2b-410b-91e5-909a8322ab19"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": []
+}

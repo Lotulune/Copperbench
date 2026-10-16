@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "archive": "Copperbench.0.1.9.Windows.64bit.zip",
+  "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+  "entries": {
+    "docs/releases/v0.1.9-linux.md": {
+      "entry": "Copperbench019/docs/releases/v0.1.9-linux.md",
+      "size": 562,
+      "sha256": "108db57930c6936dd606c32b16cc53c9594dc546d2159ac24141ce42c20e8b08"
+    },
+    "docs/releases/v0.1.9.md": {
+      "entry": "Copperbench019/docs/releases/v0.1.9.md",
+      "size": 816,
+      "sha256": "d16ca34d3c85b1be78864f83a38935864adedcb8d7735827742bc7388728f05f"
+    },
+    "docs/testing/maintenance-release-0.1.9.md": {
+      "entry": "Copperbench019/docs/testing/maintenance-release-0.1.9.md",
+      "size": 2289,
+      "sha256": "11c5fb6ed44b5352b30562e64c7b234d2bb52bbebae05029a1f648110fb862bc"
+    },
+    "lib/copperbench.jar": {
+      "entry": "Copperbench019/lib/copperbench.jar",
+      "size": 8053019,
+      "sha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+      "productVersion": "0.1.9",
+      "archiveRequestClassSha256": "04024d0c1363a3a9422148f6a3af9c442c234189bc2a90fcccf0758180a03e65",
+      "dataPackGatewayClassSha256": "13125e8172c5d61af0b08803a4f5fcbd2a5bdd1070b5b6f0d65afdc4ad534d26"
+    },
+    "plugins/generator-1.20.1.zip": {
+      "entry": "Copperbench019/plugins/generator-1.20.1.zip",
+      "size": 1076574,
+      "sha256": "e36787de48e1d510fcc1fadf3c491652f9f174084f56b89ba85f517f787cfc5b",
+      "sourceEntries": {
+        "datapack-1.20.1/generator.yaml": "525fff7a7b1bb6503a479e68e364ee1f4232bcb54e18334645d0c17cc6397200",
+        "datapack-1.20.1/workspacebase/gradle/wrapper/gradle-wrapper.properties": "fe7efbcfecf51c6f046eeb53d5543e103215db4c160babfc98d6bafef0662e02"
+      }
+    }
+  },
+  "scope": "Selected release-document bytes and packaged application version/class identity; no installed or gameplay acceptance."
+}

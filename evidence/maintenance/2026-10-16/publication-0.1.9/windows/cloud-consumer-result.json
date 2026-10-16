@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "kind": "cloud-public-windows-byte-verification",
+  "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+  "releaseTag": "v0.1.9",
+  "releaseRun": "38897217090",
+  "verificationRun": "38901865344",
+  "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+  "scope": "All ten public assets downloaded and matched API/checksum/provenance; package docs, version, fix classes and data-pack template inspected; installation acceptance is separate"
+}

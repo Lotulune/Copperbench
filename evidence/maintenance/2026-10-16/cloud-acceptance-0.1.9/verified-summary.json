@@ -1,0 +1,134 @@
+{
+  "status": "passed",
+  "kind": "public-0.1.9-installed-acceptance-review",
+  "run": "38903643192",
+  "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+  "variants": {
+    "windows-setup": {
+      "status": "passed",
+      "os": "Windows-2025Server-10.0.26100-SP0",
+      "applicationSha256": "af5abe34c6277d45766326e57e75c3167fc2789e9570cb610866e1c62e0d6bca",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+      "workflowRun": "38903643192",
+      "normalNativeHostExits": 7,
+      "coldLegacyGradleDownloadObserved": true,
+      "rootChecks": [
+        "v0.1.9-public-package-identity",
+        "v0.1.9-extracted-setup-identity",
+        "published-installer-language-theme-components",
+        "v0.1.9-install-fresh",
+        "fresh-native",
+        "fresh-uninstall",
+        "fresh-uninstall-data-preservation",
+        "v0.1.7-public-package-identity",
+        "v0.1.7-extracted-setup-identity",
+        "v0.1.7-install-upgrade",
+        "v0.1.9-extracted-setup-identity",
+        "v0.1.9-install-upgrade",
+        "upgrade-data-preservation",
+        "upgraded-native",
+        "upgraded-uninstall",
+        "upgraded-uninstall-data-preservation"
+      ],
+      "evidenceFilesVerified": 234,
+      "unverified": [
+        "Windows 11 desktop",
+        "MSIX installation",
+        "UAC elevation",
+        "GNOME Wayland/Xorg desktop",
+        "Player controls and world save/reopen",
+        "Non-ASCII Windows installation paths (external Java test-driver argument encoding)"
+      ],
+      "gameTestCasesPassed": 5,
+      "gameTestArtifactSha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510",
+      "nativeChecks": [
+        "datapack-1.20.1-zip",
+        "datapack-1.21.1-zip",
+        "datapack-26.1.x-zip",
+        "fabric-custom-export",
+        "neoforge-custom-export",
+        "workspace-and-task-persistence"
+      ]
+    },
+    "linux-setup": {
+      "status": "passed",
+      "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+      "workflowRun": "38903643192",
+      "normalNativeHostExits": 7,
+      "coldLegacyGradleDownloadObserved": true,
+      "rootChecks": [
+        "v0.1.9-public-package-identity",
+        "v0.1.9-extracted-setup-identity",
+        "published-installer-language-theme-components",
+        "v0.1.9-install-fresh",
+        "fresh-native",
+        "fresh-uninstall",
+        "fresh-uninstall-data-preservation",
+        "v0.1.7-public-package-identity",
+        "v0.1.7-extracted-setup-identity",
+        "v0.1.7-install-upgrade",
+        "v0.1.9-extracted-setup-identity",
+        "v0.1.9-install-upgrade",
+        "upgrade-data-preservation",
+        "upgraded-native",
+        "upgraded-uninstall",
+        "upgraded-uninstall-data-preservation"
+      ],
+      "evidenceFilesVerified": 219,
+      "unverified": [
+        "Windows 11 desktop",
+        "MSIX installation",
+        "UAC elevation",
+        "GNOME Wayland/Xorg desktop",
+        "Player controls and world save/reopen"
+      ],
+      "gameTestCasesPassed": 5,
+      "gameTestArtifactSha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510",
+      "nativeChecks": [
+        "datapack-1.20.1-zip",
+        "datapack-1.21.1-zip",
+        "datapack-26.1.x-zip",
+        "fabric-custom-export",
+        "neoforge-custom-export",
+        "workspace-and-task-persistence"
+      ]
+    },
+    "deb": {
+      "status": "passed",
+      "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "applicationSha256": "afe4c6ac7ee2671ea95e4191568c861ddddfc10fb17b8630ee06ca77aa8c1149",
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "harnessCommit": "65bd2de4b324fead129b8f4ebef5666ab0896e1d",
+      "workflowRun": "38903643192",
+      "normalNativeHostExits": 2,
+      "coldLegacyGradleDownloadObserved": true,
+      "rootChecks": [
+        "v0.1.9-public-package-identity",
+        "v0.1.7-public-package-identity",
+        "deb-fresh-install",
+        "deb-fresh-native",
+        "deb-fresh-uninstall",
+        "deb-fresh-uninstall-data-preservation",
+        "deb-previous-install",
+        "deb-upgrade-install",
+        "deb-upgrade-data-preservation",
+        "deb-upgraded-native",
+        "deb-upgraded-uninstall",
+        "deb-upgraded-uninstall-data-preservation"
+      ],
+      "evidenceFilesVerified": 118,
+      "unverified": [
+        "Windows 11 desktop",
+        "MSIX installation",
+        "UAC elevation",
+        "GNOME Wayland/Xorg desktop",
+        "Player controls and world save/reopen"
+      ]
+    }
+  },
+  "scope": "Automated installed-product, Native Core and server GameTest acceptance; no Windows11/GNOME/player-world certification"
+}

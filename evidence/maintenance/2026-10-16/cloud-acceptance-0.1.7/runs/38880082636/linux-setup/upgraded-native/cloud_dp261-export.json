@@ -1,0 +1,397 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "10e2a0ba-1bc1-4d75-a763-377af6726ccc",
+  "workspaceId": "4e403617-c031-4264-8b94-d7ad68f46978",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 2,
+  "data": {
+    "task": {
+      "id": "9da78fb3-2fe3-4efd-b121-8dc70a0a4511",
+      "kind": "export",
+      "state": "succeeded",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.export.completed",
+        "fallback": "Data Pack export completed",
+        "args": {
+          "backend": "Data Pack"
+        }
+      },
+      "startedAt": "2026-10-16T09:27:59.489975589Z",
+      "completedAt": "2026-10-16T09:28:36.966968760Z",
+      "diagnostics": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Data Pack",
+      "sourceSnapshot": {
+        "sha256": "3ba62483d676ef7328a33dafe49f6d89d91d694e622d7c3c4f90f0bfaa988e27",
+        "fileCount": 18,
+        "bytes": 853736,
+        "manifestPath": "/home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp261/.copperbench/task-inputs/9da78fb3-2fe3-4efd-b121-8dc70a0a4511.json"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T09:27:59.492259494Z",
+        "level": "info",
+        "text": "Starting Data Pack export from revision 2"
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-10-16T09:27:59.506325612Z",
+        "level": "info",
+        "text": "Data Pack generation completed: 1 files; modId=Cloud cloud_dp261"
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-10-16T09:28:00.323902379Z",
+        "level": "info",
+        "text": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation."
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-10-16T09:28:01.421372651Z",
+        "level": "info",
+        "text": "Daemon will be stopped at the end of the build "
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-10-16T09:28:02.921353224Z",
+        "level": "info",
+        "text": "Calculating task graph as no cached configuration is available for tasks: build"
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-10-16T09:28:05.425452141Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-10-16T09:28:05.431380306Z",
+        "level": "info",
+        "text": "> Configure project :packloader"
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-10-16T09:28:05.432361805Z",
+        "level": "info",
+        "text": "Creating Minecraft artifacts without recompilation."
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-10-16T09:28:08.621922801Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-10-16T09:28:08.623349487Z",
+        "level": "info",
+        "text": "> Task :packloader:jarJar NO-SOURCE"
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-10-16T09:28:08.624042709Z",
+        "level": "info",
+        "text": "> Task :packloader:processTestResources NO-SOURCE"
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-10-16T09:28:08.723331573Z",
+        "level": "info",
+        "text": "> Task :packloader:processResources"
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-10-16T09:28:08.724229466Z",
+        "level": "info",
+        "text": "> Task :build"
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-10-16T09:28:10.621117986Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-10-16T09:28:10.622444197Z",
+        "level": "info",
+        "text": "> Task :packloader:createMinecraftArtifacts"
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-10-16T09:28:10.623379910Z",
+        "level": "info",
+        "text": "Loaded 127 artifacts from /home/runner/work/_temp/cba/workspaces/upgraded-native/cloud_dp261/packloader/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties"
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-10-16T09:28:10.624711832Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadManifest\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-10-16T09:28:10.625338079Z",
+        "level": "info",
+        "text": "  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json"
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-10-16T09:28:10.625920544Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadManifest\u001b[0m in 0.34s"
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-10-16T09:28:10.626606021Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadJson\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-10-16T09:28:10.630627504Z",
+        "level": "info",
+        "text": "  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json"
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-10-16T09:28:10.631231580Z",
+        "level": "info",
+        "text": "  ↓ https://piston-meta.mojang.com/v1/packages/8cca2c0efc47ef22351e5073bb1f5e7ab339279b/26.1.2.json"
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-10-16T09:28:10.631743734Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadJson\u001b[0m in 0.10s"
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-10-16T09:28:10.632322873Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadClient\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-10-16T09:28:10.634282577Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mdownloadServer\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-10-16T09:28:10.634908322Z",
+        "level": "info",
+        "text": "  ↓ https://piston-data.mojang.com/v1/objects/97ccd4c0ed3f81bbb7bfacddd1090b0c56f9bc51/server.jar"
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-10-16T09:28:10.635425736Z",
+        "level": "info",
+        "text": "  ↓ https://piston-data.mojang.com/v1/objects/4e618f09a0c649dde3fdf829df443ce0b8831e65/client.jar"
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-10-16T09:28:10.721108602Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadServer\u001b[0m in 0.90s"
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-10-16T09:28:11.221185442Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mdownloadClient\u001b[0m in 1.38s"
+      },
+      {
+        "sequence": 30,
+        "timestamp": "2026-10-16T09:28:11.321157181Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mpreProcessJar\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 31,
+        "timestamp": "2026-10-16T09:28:11.322070192Z",
+        "level": "info",
+        "text": " ↳ Running external tool net.neoforged.installertools:installertools:4.0.16:fatjar"
+      },
+      {
+        "sequence": 32,
+        "timestamp": "2026-10-16T09:28:14.723372440Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mpreProcessJar\u001b[0m in 3.42s"
+      },
+      {
+        "sequence": 33,
+        "timestamp": "2026-10-16T09:28:14.724570943Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mbinaryPatch\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 34,
+        "timestamp": "2026-10-16T09:28:14.725351026Z",
+        "level": "info",
+        "text": "  \u001b[33mWARNING: \u001b[0mnet.neoforged.installertools:binarypatcher:4.0.12:fatjar is not present in the artifact manifest"
+      },
+      {
+        "sequence": 35,
+        "timestamp": "2026-10-16T09:28:14.728164346Z",
+        "level": "info",
+        "text": "  ↓ https://maven.neoforged.net/releases/net/neoforged/installertools/binarypatcher/4.0.12/binarypatcher-4.0.12-fatjar.jar"
+      },
+      {
+        "sequence": 36,
+        "timestamp": "2026-10-16T09:28:14.821259241Z",
+        "level": "info",
+        "text": " ↳ Running external tool net.neoforged.installertools:binarypatcher:4.0.12:fatjar"
+      },
+      {
+        "sequence": 37,
+        "timestamp": "2026-10-16T09:28:18.321194248Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mbinaryPatch\u001b[0m in 3.60s"
+      },
+      {
+        "sequence": 38,
+        "timestamp": "2026-10-16T09:28:18.322170578Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mcopyUnpatchedClasses\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 39,
+        "timestamp": "2026-10-16T09:28:21.021171316Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mcopyUnpatchedClasses\u001b[0m in 2.67s"
+      },
+      {
+        "sequence": 40,
+        "timestamp": "2026-10-16T09:28:21.022096690Z",
+        "level": "info",
+        "text": "\u001b[1m*** Started working on \u001b[4mapplyDevTransforms\u001b[0m\u001b[0m"
+      },
+      {
+        "sequence": 41,
+        "timestamp": "2026-10-16T09:28:21.022626597Z",
+        "level": "info",
+        "text": " ↳ Running external tool net.neoforged.installertools:installertools:4.0.12:fatjar"
+      },
+      {
+        "sequence": 42,
+        "timestamp": "2026-10-16T09:28:24.121099597Z",
+        "level": "info",
+        "text": " \u001b[1m\u001b[92m✓\u001b[0m Completed \u001b[4mapplyDevTransforms\u001b[0m in 3.09s"
+      },
+      {
+        "sequence": 43,
+        "timestamp": "2026-10-16T09:28:24.121913453Z",
+        "level": "info",
+        "text": "Total runtime: 15.16s"
+      },
+      {
+        "sequence": 44,
+        "timestamp": "2026-10-16T09:28:24.122450113Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 45,
+        "timestamp": "2026-10-16T09:28:36.722916549Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 46,
+        "timestamp": "2026-10-16T09:28:36.723763307Z",
+        "level": "info",
+        "text": "> Task :packloader:compileJava"
+      },
+      {
+        "sequence": 47,
+        "timestamp": "2026-10-16T09:28:36.724377862Z",
+        "level": "info",
+        "text": "> Task :packloader:classes"
+      },
+      {
+        "sequence": 48,
+        "timestamp": "2026-10-16T09:28:36.727938597Z",
+        "level": "info",
+        "text": "> Task :packloader:compileTestJava NO-SOURCE"
+      },
+      {
+        "sequence": 49,
+        "timestamp": "2026-10-16T09:28:36.728496446Z",
+        "level": "info",
+        "text": "> Task :packloader:testClasses UP-TO-DATE"
+      },
+      {
+        "sequence": 50,
+        "timestamp": "2026-10-16T09:28:36.729041311Z",
+        "level": "info",
+        "text": "> Task :packloader:test NO-SOURCE"
+      },
+      {
+        "sequence": 51,
+        "timestamp": "2026-10-16T09:28:36.729548406Z",
+        "level": "info",
+        "text": "> Task :packloader:jar"
+      },
+      {
+        "sequence": 52,
+        "timestamp": "2026-10-16T09:28:36.730069667Z",
+        "level": "info",
+        "text": "> Task :packloader:assemble"
+      },
+      {
+        "sequence": 53,
+        "timestamp": "2026-10-16T09:28:36.730579036Z",
+        "level": "info",
+        "text": "> Task :packloader:check UP-TO-DATE"
+      },
+      {
+        "sequence": 54,
+        "timestamp": "2026-10-16T09:28:36.734245067Z",
+        "level": "info",
+        "text": "> Task :packloader:build"
+      },
+      {
+        "sequence": 55,
+        "timestamp": "2026-10-16T09:28:36.796148015Z",
+        "level": "info",
+        "text": ""
+      },
+      {
+        "sequence": 56,
+        "timestamp": "2026-10-16T09:28:36.797169468Z",
+        "level": "info",
+        "text": "BUILD SUCCESSFUL in 37s"
+      },
+      {
+        "sequence": 57,
+        "timestamp": "2026-10-16T09:28:36.799053238Z",
+        "level": "info",
+        "text": "5 actionable tasks: 5 executed"
+      },
+      {
+        "sequence": 58,
+        "timestamp": "2026-10-16T09:28:36.800227306Z",
+        "level": "info",
+        "text": "Configuration cache entry stored."
+      },
+      {
+        "sequence": 59,
+        "timestamp": "2026-10-16T09:28:36.905018714Z",
+        "level": "info",
+        "text": "Exported Data Pack artifact to exports/cloud_dp261.zip"
+      }
+    ],
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

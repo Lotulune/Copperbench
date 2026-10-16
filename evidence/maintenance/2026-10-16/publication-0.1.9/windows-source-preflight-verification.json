@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "source": {
+    "sourceCommit": "269cc2041c71bc82dc148f53a61ae8a94e3244bb",
+    "sourceTree": "904e5791701aa5b54df5b701d030c841720b3ed0",
+    "workflowCommit": "dbd9c1b2d4eb71a862a33175301c02c1e77a5430",
+    "workflowRun": "38892934564",
+    "scope": "Full Windows source tests before tagging; no package publication or desktop acceptance"
+  },
+  "actualTestTask": {
+    "tests": 1457,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 73
+  },
+  "sourceReceiptSha256": "32ed27109c9b31717ce4676ec2e5cfe758ef731c609bbd1d8cf44b3f1908c499",
+  "scope": "Actual Gradle test task only; excludes synthetic report fixtures under other output directories"
+}

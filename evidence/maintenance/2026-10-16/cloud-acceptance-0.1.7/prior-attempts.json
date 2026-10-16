@@ -1,0 +1,434 @@
+[
+  {
+    "runId": 38866812996,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38866812996",
+    "harnessCommit": "6f7db6c42bba32ab63bea33576acd140cc0e85cf",
+    "conclusion": "failure",
+    "classification": "harness-json-format",
+    "results": [
+      {
+        "path": "public-release-deb-1/result.json",
+        "sha256": "f5f61a38a1c7ced830f533c3481bd53ba670f101a52202c7b4ee6335af891fd5",
+        "status": "failed",
+        "error": "Attestation command did not return JSON"
+      },
+      {
+        "path": "public-release-linux-setup-1/result.json",
+        "sha256": "a5b0049fbe3cd8c7ca4a6bd8497c4c0f8bf16b3379d63f2c5beccde39fd66b23",
+        "status": "failed",
+        "error": "Attestation command did not return JSON"
+      },
+      {
+        "path": "public-release-windows-setup-1/result.json",
+        "sha256": "1e5d44f986e67e21c1b79ec849f44235b79e523554290e1e0134122952a843fa",
+        "status": "failed",
+        "error": "Attestation command did not return JSON"
+      }
+    ]
+  },
+  {
+    "runId": 38867075327,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38867075327",
+    "harnessCommit": "0d4fc5e06c560fe6f731377b98ed0aba562f8b96",
+    "conclusion": "failure",
+    "classification": "harness-fixture-and-command-encoding",
+    "results": [
+      {
+        "path": "public-release-deb-1/result.json",
+        "sha256": "9b2c77b054d972aa3da0c412a6ca4fbcd174f6e07996fe40c0c6d3ae81d63342",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native.log"
+      },
+      {
+        "path": "public-release-linux-setup-1/result.json",
+        "sha256": "e1d8aabdf6dde7aae8eb0d3b4220530ef1263bf99896baf8e3c94a736761ed5a",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/result.json",
+        "sha256": "a4b7c4c9dfff85d71e39f680960385599ca71e66838bda3f486ca99e527eeaa9",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\v0.1.7-install-fresh.log"
+      },
+      {
+        "path": "public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "9d5c9c8c9eab23aa81e157887bcd76f0872dd6bc6e36dfdc0489cbd7140bf476",
+        "status": "failed",
+        "error": "Command failed (4); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native/prepare-cloud_smoke.log"
+      },
+      {
+        "path": "public-release-deb-1/deb-fresh-native/result.json",
+        "sha256": "eb704dbb04b730881e6485bf227f9dd135d77d01ebbdaabe978d61773608684b",
+        "status": "failed",
+        "error": "Command failed (4); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native/prepare-cloud_smoke.log"
+      }
+    ]
+  },
+  {
+    "runId": 38867742555,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38867742555",
+    "harnessCommit": "6b980690554373a9c4306ba9ff4423a570ad0310",
+    "conclusion": "failure",
+    "classification": "harness-cache-directory-discovery",
+    "results": [
+      {
+        "path": "windows/public-release-windows-setup-1/result.json",
+        "sha256": "bd37722c7ac111d7c62403dfd1161764a159fac7fd2b4f1ca517b83c76fc3016",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\fresh-native.log"
+      },
+      {
+        "path": "windows/public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "ca63eb1a97f78e6cf968c1c5ec24cf7df66f58073224d9bb088e9bf7336dbb13",
+        "status": "failed",
+        "error": "Expected one fixture workspace file"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/result.json",
+        "sha256": "274d2bc849ecb37c75c8b85f162a1c0741e03b629952cdc7290433afdce72a19",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native.log"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "bbedcf08d4ed2076f8d4b4c884bd0019eb68ca92db9e021ec136f49b9d357595",
+        "status": "failed",
+        "error": "Expected one fixture workspace file"
+      },
+      {
+        "path": "deb/public-release-deb-1/result.json",
+        "sha256": "b084b329c13d113eca6ebc3a745dc6c1d31310072b153900aa04bbe25ae03ed1",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native.log"
+      },
+      {
+        "path": "deb/public-release-deb-1/deb-fresh-native/result.json",
+        "sha256": "5a6efa86f757eec4babee35a4882933b9f74272b32d8c2f867e9e9c367801802",
+        "status": "failed",
+        "error": "Expected one fixture workspace file"
+      }
+    ]
+  },
+  {
+    "runId": 38873767152,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38873767152",
+    "harnessCommit": "ed2eb671f7198003a8cc5a30a156fcb49d99f9cc",
+    "conclusion": "failure",
+    "classification": "harness-adapter-projection-assumption",
+    "results": [
+      {
+        "path": "windows/public-release-windows-setup-1/result.json",
+        "sha256": "b1cc3899b650d169735b6386b176c313f794070719986d21e4b9929a0b1fe80a",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\fresh-native.log"
+      },
+      {
+        "path": "windows/public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "88748990dd4d76a94fa979cdd529352e9b7e1dd0cca3a80cbe104f6d1bdcd636",
+        "status": "failed",
+        "error": "'gradle'"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/result.json",
+        "sha256": "5f2b4cf39eec62ddc6764c372a1a5d854da8ab1aaed7ba846cf77ca0e6c0ae4b",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native.log"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "13962d8b8aa50bcfddb7ab2b7ba92f6b5ac2913c0b87c1479f3bd4714def0360",
+        "status": "failed",
+        "error": "'gradle'"
+      },
+      {
+        "path": "deb/public-release-deb-1/result.json",
+        "sha256": "539faf6238645f6c48fc49ddc3daee94f02995b2cf5c9579b8a496855cf81405",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native.log"
+      },
+      {
+        "path": "deb/public-release-deb-1/deb-fresh-native/result.json",
+        "sha256": "6f75652c8650282c6c8f90093f2358a1fab360605b9246009d61a8da4fc8591a",
+        "status": "failed",
+        "error": "'gradle'"
+      }
+    ]
+  },
+  {
+    "runId": 38874263669,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38874263669",
+    "harnessCommit": "26786f5984189451bb5421c727b06a0101e646c6",
+    "conclusion": "failure",
+    "classification": "harness-required-initial-values",
+    "results": [
+      {
+        "path": "windows/public-release-windows-setup-1/result.json",
+        "sha256": "8f815a0e2bb3dde77339e10d508b3de973d14d4c80095a71fd16adbcfb16874b",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\fresh-native.log"
+      },
+      {
+        "path": "windows/public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "454a0f1b5a99b8dd733d097061ad69e9acb294bfaf99e22f9299cd5e88e99675",
+        "status": "failed",
+        "error": "/initialValues: expected object. Supply initialValues as an object; use {} for an element whose defaults are sufficient."
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/result.json",
+        "sha256": "07fee6f110dcf9e1c19f3f2c083d1d347e73aa10be50e699c737d727868b19d8",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native.log"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "da69f28c70e8fa0833d9d87c26b69871622ede1baae13086a33540af2d170dcd",
+        "status": "failed",
+        "error": "/initialValues: expected object. Supply initialValues as an object; use {} for an element whose defaults are sufficient."
+      },
+      {
+        "path": "deb/public-release-deb-1/result.json",
+        "sha256": "97c5d928d11dc49b364e52ce187780855b60209774065877f6a8a5256ba99242",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native.log"
+      },
+      {
+        "path": "deb/public-release-deb-1/deb-fresh-native/result.json",
+        "sha256": "4a282a163cf54d464534c8353324bb32bd835af4b14d8a26fa38cbff7fdd5c6c",
+        "status": "failed",
+        "error": "/initialValues: expected object. Supply initialValues as an object; use {} for an element whose defaults are sufficient."
+      }
+    ]
+  },
+  {
+    "runId": 38874428266,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38874428266",
+    "harnessCommit": "0fe4b8da1a61b992c43b4299902154dd20d107f5",
+    "conclusion": "failure",
+    "classification": "harness-required-initial-values",
+    "results": [
+      {
+        "path": "public-release-deb-1/result.json",
+        "sha256": "8bce6ac017ca3b048d4016d78e0903ac3ea49a998059b820cbf9818c2d7d4999",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/deb/deb-fresh-native.log"
+      },
+      {
+        "path": "public-release-linux-setup-1/result.json",
+        "sha256": "f6507f046732092bfcb389aafa290798d6da87e0b784e897d4bd4b3248812a9e",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/fresh-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/result.json",
+        "sha256": "8eebcb4fe58a897054f3e597fbf32d50f7aba6c12eea4f0cd61a1033e6caef1d",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\fresh-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "90551c3c852d6cdb2b104c3033dcd0d85175aaa6b28e1810242b6b214f11ae99",
+        "status": "failed",
+        "error": "/initialValues: expected object. Supply initialValues as an object; use {} for an element whose defaults are sufficient."
+      },
+      {
+        "path": "public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "3535a20a92c7c928f7872e47a9b3e2d44a4f3d93fad44cd7af2e5ffe62598c43",
+        "status": "failed",
+        "error": "/initialValues: expected object. Supply initialValues as an object; use {} for an element whose defaults are sufficient."
+      },
+      {
+        "path": "public-release-deb-1/deb-fresh-native/result.json",
+        "sha256": "8d03d9b70e6be38c60b2890de8670c98cc6026b3ff4db8b7e8698fafb67d4427",
+        "status": "failed",
+        "error": "/initialValues: expected object. Supply initialValues as an object; use {} for an element whose defaults are sufficient."
+      }
+    ]
+  },
+  {
+    "runId": 38874596880,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38874596880",
+    "harnessCommit": "2b40ab4634dd56ab5ce91a5bad9a9f696b7074a8",
+    "conclusion": "failure",
+    "classification": "product-configuration-cache-failure",
+    "results": [
+      {
+        "path": "windows/public-release-windows-setup-1/result.json",
+        "sha256": "3cf8fa369dfe7716c9f1f9d0c00f21a06b74c50ac767d0ba7e473315a9350a1d",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\upgraded-native.log"
+      },
+      {
+        "path": "windows/public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "dd3694fd7d2be95bbf7e9b82a2631d6114e3b8959544f3a9c96695e5e1451aee",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "windows/public-release-windows-setup-1/upgraded-native/result.json",
+        "sha256": "3b8a7ab63b70b068d614aa867f8774bf3db7dd68f9c1d508f3f60e97833c119d",
+        "status": "failed",
+        "error": "neoforge-custom-export: expected succeeded, received failed"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/result.json",
+        "sha256": "331031f9bf0db9493ed7f7f9d7d6f709e2a36cf183ab7d0b870ff12ee7f02cae",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/upgraded-native.log"
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "71d1ccf71ce9263f4e63d9615e2949f0e2802dcb1a59c65b6f21cbd860bc9bee",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "linux/public-release-linux-setup-1/upgraded-native/result.json",
+        "sha256": "70b741fc5570819833239b8bbafc3a40fca9cbc0b8b89a613697bbb078ba704a",
+        "status": "failed",
+        "error": "neoforge-custom-export: expected succeeded, received failed"
+      },
+      {
+        "path": "deb/public-release-deb-1/result.json",
+        "sha256": "c455bdb57c9d5e912c500335d23e88516e080d6db0983c7d4bc73cef8f65ff23",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "deb/public-release-deb-1/deb-fresh-native/result.json",
+        "sha256": "fdd2910027ab1c25adb3de4e8d32e71c73c72b11b76526e57b19a1b7e02d371a",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "deb/public-release-deb-1/deb-upgraded-native/result.json",
+        "sha256": "c9153c916fe300c6f07727fa8662b9af1b0754b01a3bd8680b3115f41f1e69d7",
+        "status": "passed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "runId": 38877141322,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38877141322",
+    "harnessCommit": "9de366d2f5d8010292fc2b6162f2f09a3fd55902",
+    "conclusion": "failure",
+    "classification": "harness-instance-mode-reference",
+    "results": [
+      {
+        "path": "public-release-linux-setup-1/result.json",
+        "sha256": "d7d0db0ac5e09982e3e2a5360ceb021465e8ec0a012116b939256299f7723543",
+        "status": "failed",
+        "error": "name 'args' is not defined"
+      },
+      {
+        "path": "public-release-windows-setup-1/result.json",
+        "sha256": "7d9fe9f7d1d3a071d1b8197d4e5a78ff5fa80af9fb86d79141c73d40ce75c212",
+        "status": "failed",
+        "error": "name 'args' is not defined"
+      },
+      {
+        "path": "public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "479ae79a8f3a1ea241674c75ad9536e73db45991a877afc6db4670932e4aa10c",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "e2e38bad4bf094dabafa55ee86df81fb7dd26f8a908ca221c6880e10bf0c48b2",
+        "status": "passed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "runId": 38877992508,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38877992508",
+    "harnessCommit": "1fe75d4c7710619dc796c634a841c8a79ea08786",
+    "conclusion": "failure",
+    "classification": "product-legacy-gradle-failure",
+    "results": [
+      {
+        "path": "public-release-linux-setup-1/result.json",
+        "sha256": "6d3082f2f22995135f475c6f3e3a86b9fd2b62d082df105f431781a498a2342d",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/upgraded-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/result.json",
+        "sha256": "76d5065d1a16f241914382bab5ae21f4f889f69c56042fe56d5a973d67cc75cb",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\upgraded-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "4388e67021dd0bca6f003052aefc97617616d668fca3cdf9fb299b58bb7f3e84",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "public-release-windows-setup-1/upgraded-native/result.json",
+        "sha256": "ad92fcc2ab7156e04fcf022e9a624410fb2a6b3ab97cdda87fc88f36daa99d41",
+        "status": "failed",
+        "error": "cloud_dp1201-export: expected succeeded, received failed"
+      },
+      {
+        "path": "public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "f41d2ddb8556a6ef3f85a51a11db9aed38a68bd025ccc5b07b1bc96430cbc03d",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "public-release-linux-setup-1/upgraded-native/result.json",
+        "sha256": "253dd67871bab1ffd2ae23c5e4d175d703baaca71d9d0f4d1fd9f467942286e3",
+        "status": "failed",
+        "error": "cloud_dp1201-export: expected succeeded, received failed"
+      }
+    ]
+  },
+  {
+    "runId": 38880082636,
+    "url": "https://github.com/Lotulune/Copperbench/actions/runs/38880082636",
+    "harnessCommit": "57f648d0f8cf768156088f7c66c58f5bf05547ca",
+    "conclusion": "failure",
+    "classification": "product-legacy-gradle-failure-with-independent-results",
+    "results": [
+      {
+        "path": "public-release-linux-setup-1/result.json",
+        "sha256": "2109ba4a97745cbff6578e191485b672af1eac3a7a210083bbe8fca089be2716",
+        "status": "failed",
+        "error": "Command failed (1); see /home/runner/work/Copperbench/Copperbench/output/minecraft-validation/cloud-release/linux-setup/upgraded-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/result.json",
+        "sha256": "576c2f968ed549fe7e35a42b082605ed6d79b639e6ef820578471af747785cd6",
+        "status": "failed",
+        "error": "Command failed (1); see D:\\a\\Copperbench\\Copperbench\\output\\minecraft-validation\\cloud-release\\windows-setup\\upgraded-native.log"
+      },
+      {
+        "path": "public-release-windows-setup-1/fresh-native/result.json",
+        "sha256": "419ededef55870b7773652efc0bb859e9103f8cb0af20e15fa41550080f8a2a1",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "public-release-windows-setup-1/upgraded-native/result.json",
+        "sha256": "2b0762a3fa7ebffad5e459543ffd9bbc4469af17ef1511c8a900a933e443f480",
+        "status": "failed",
+        "error": "Data-pack acceptance failed: datapack-1.20.1"
+      },
+      {
+        "path": "public-release-linux-setup-1/fresh-native/result.json",
+        "sha256": "8caf5baf3ce74a6ef223ca5204d147fc4edb18e3f471315fa9faa050394d614c",
+        "status": "passed",
+        "error": null
+      },
+      {
+        "path": "public-release-linux-setup-1/upgraded-native/result.json",
+        "sha256": "6dd30a9a3e65ee031968a5649887bcae85382e8d88a9ac44c1237d03ccd89657",
+        "status": "failed",
+        "error": "Data-pack acceptance failed: datapack-1.20.1"
+      }
+    ]
+  }
+]

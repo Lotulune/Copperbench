@@ -1,0 +1,69 @@
+{
+  "messageType": "query_result",
+  "schemaVersion": "1.0",
+  "requestId": "144960d1-c527-46ec-9b99-5c7c59efcec2",
+  "workspaceId": "a6fa2d9d-8106-4dda-8bd8-a6d18a258d0d",
+  "operation": "get_task",
+  "status": "succeeded",
+  "revision": 5,
+  "data": {
+    "task": {
+      "id": "6ec5a1e8-bcf3-4ead-bb8c-fefde6573483",
+      "kind": "export",
+      "state": "succeeded",
+      "cancellable": false,
+      "progress": 1,
+      "stage": {
+        "key": "task.export.completed",
+        "fallback": "Verified acceptance artifact exported",
+        "args": {
+          "backend": "Fabric 1.21.1"
+        }
+      },
+      "startedAt": "2026-10-16T13:00:21.964074Z",
+      "completedAt": "2026-10-16T13:00:22.315655800Z",
+      "diagnostics": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "backendIdentity": "Fabric 1.21.1",
+      "verifiedExport": {
+        "schemaVersion": "1.0",
+        "taskId": "1993c35c-8f0d-41f0-8e01-468e892fd9f2",
+        "status": "passed_current_input",
+        "scope": "Only the acceptance cases listed in gametest-results.xml; client behavior is not implied.",
+        "artifactPath": "verified-mod.jar",
+        "reportPath": "gametest-results.xml",
+        "artifactSha256": "6eb604114fc159610045d5695d31bce42d55f40fed2fd9d65bc68b74a9707510",
+        "reportSha256": "e30bb693284ff723c666b544785e448b1e88e5d10f4276ad9eccd580366687b3",
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "acceptanceExecuted": 5,
+        "environment": {
+          "generatorId": "fabric-1.21.1",
+          "loader": "fabric",
+          "minecraftVersion": "1.21.1",
+          "loaderVersion": "0.19.3",
+          "javaRelease": 21,
+          "fabricApiVersion": "0.116.15+1.21.1",
+          "pluginId": "net.fabricmc.fabric-loom-remap",
+          "pluginVersion": "1.17.19"
+        },
+        "sourceSha256": "712cb317d06df552d1d8d4b0c68d421e26662048a23304814abbb1850747d3d5",
+        "exportDirectory": "D:\\a\\_temp\\cba\\workspaces\\upgraded-native\\m1_delivery\\.copperbench\\verified-exports\\6ec5a1e8-bcf3-4ead-bb8c-fefde6573483"
+      }
+    },
+    "logs": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-10-16T13:00:21.970073400Z",
+        "level": "info",
+        "text": "Starting Fabric 1.21.1 export from revision 5"
+      }
+    ],
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-16T11:42:33.096466+00:00",
+  "releases": [
+    {
+      "tag": "v0.1.8",
+      "exists": false,
+      "httpStatus": 404
+    },
+    {
+      "tag": "v0.1.8-linux-stable",
+      "exists": false,
+      "httpStatus": 404
+    }
+  ]
+}
