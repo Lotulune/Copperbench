@@ -1,0 +1,99 @@
+{
+  "status": "passed",
+  "installedFilesVerified": 4764,
+  "versions": {
+    "before": "0.1.9",
+    "after": "0.1.10"
+  },
+  "componentBytesDownloaded": 23115496,
+  "allComponentBytes": 1395509810,
+  "totalTransferredBytes": 24380007,
+  "httpRequests": [
+    {
+      "path": "/releases",
+      "at": "2026-10-16T17:42:05.666736100Z",
+      "bytes": 1620
+    },
+    {
+      "path": "/assets/copperbench-update-windows-x64.properties",
+      "at": "2026-10-16T17:42:06.178768Z",
+      "bytes": 1262891
+    },
+    {
+      "path": "/assets/copperbench-update-windows-x64-application.zip",
+      "at": "2026-10-16T17:42:55.856630800Z",
+      "bytes": 23115496
+    }
+  ],
+  "runtimeComponentsReused": true,
+  "userAdditionsPreserved": true,
+  "workspaceSentinelPreserved": true,
+  "preferencesPreserved": true,
+  "previousVersionDirectoriesRemaining": 0,
+  "preparedUpdateDirectoriesRemaining": 0,
+  "date": "2026-10-17",
+  "timezone": "Asia/Tokyo",
+  "sourceCommit": "fc0e7a68c4a91ea7440df60852eb9354d8e0e6dd",
+  "scope": "Isolated installed Windows candidate, loopback HTTPS update source, isolated registry and shortcut destinations. Both versions contain this PR updater; 0.1.10 changes the version resources and registrar version. Neither candidate is a public release.",
+  "registry": {
+    "context": "External Windows process, same execution context as the updated application",
+    "displayVersion": "0.1.10",
+    "installLocation": "installed/"
+  },
+  "processes": {
+    "originalExitCode": 0,
+    "workerResult": "success",
+    "workerExited": true,
+    "restartedApplicationLoggedVersion": "0.1.10",
+    "restartedApplicationLoggedNormalClose": true,
+    "restartedExitCode": null
+  },
+  "checks": {
+    "javaPassed": 30,
+    "javaPosixSkippedOnWindows": 2,
+    "uiUnitPassed": 68,
+    "playwrightPassed": 49,
+    "releaseTestsPassed": 43,
+    "javadoc": "passed",
+    "windowsComponentBuild": "passed",
+    "markdownLinks": "passed"
+  },
+  "limitations": [
+    "This verifies the update flow with a loopback HTTPS source, not a published GitHub release.",
+    "System-scope UAC and Linux desktop upgrade flows were not exercised.",
+    "The post-restart application logged its normal shutdown; its process exit code was unavailable to the external observer."
+  ],
+  "artifacts": [
+    {
+      "path": "base-payload/lib/copperbench.jar",
+      "bytes": 8167693,
+      "sha256": "08b184d254fcc56c66c74098610b8f13ab1d80b20e0ab9e88f18a9ffdd0cf7f9"
+    },
+    {
+      "path": "candidate-payload/lib/copperbench.jar",
+      "bytes": 8167692,
+      "sha256": "0a04f121c04cf44d90b62e992eb6c4a5b87a3be664115a99ca18e11aa0348c64"
+    },
+    {
+      "path": "fixture-setup.jar",
+      "bytes": 2236895,
+      "sha256": "989d2ff1eeb240c2586930d6d78280ddfa1ab5a87a76937e726d8ea6d1151b1c"
+    },
+    {
+      "path": "candidate-payload/copperbench-update-host.exe",
+      "bytes": 82734,
+      "sha256": "0bf71ddc531b91680b6760c45f9910526751fa392b6fc9578ade810e934f5418"
+    },
+    {
+      "path": "assets/copperbench-update-windows-x64.properties",
+      "bytes": 1262891,
+      "sha256": "253305cf95a83926bcb029caf19e1145a6dbf602ac962cede7a9bf4be81b339d"
+    },
+    {
+      "path": "assets/copperbench-update-windows-x64-application.zip",
+      "bytes": 23115496,
+      "sha256": "3548c78f0fe963a22eda0802bc1b734e8813c6de656c8e5c1b1fb9de4d240e9d"
+    }
+  ],
+  "downloadReductionPercent": 98.34
+}

@@ -35,6 +35,12 @@ def main():
         raise SystemExit('Run exportWin64 first')
     output.mkdir(parents=True)
     java = root / 'jdk/jbr25_win_64/bin'
+    keytool = java / 'keytool.exe'
+    if not keytool.is_file():
+        keytool = root / 'jdk/jdk21_win_64/bin/keytool.exe'
+    for tool in [java / 'java.exe', java / 'javac.exe', keytool]:
+        if not tool.is_file():
+            raise SystemExit(f'Required acceptance tool is missing: {tool}')
     classes = root / 'build/classes/java/test'
     registry = 'Software\\CopperbenchUpdateAcceptance\\' + uuid.uuid4().hex
     for name in ['shortcuts', 'desktop', 'profile', 'fixtures/classes', 'fixtures/src/dev/copperbench/installer']:
@@ -66,7 +72,16 @@ def main():
     setup = output / 'fixture-setup.jar'
     shutil.copy2(root / 'build/installer/copperbench-setup.jar', setup)
     run(java / 'javac.exe', '--release', '17', '-encoding', 'UTF-8', '-cp', setup, '-d', output / 'fixtures/classes', isolated)
-    run(java / 'jar.exe', '--update', '--file', setup, '-C', output / 'fixtures/classes', '.')
+    replacements = {file.relative_to(output / 'fixtures/classes').as_posix(): file
+                    for file in (output / 'fixtures/classes').rglob('*.class')}
+    rebuilt = output / 'fixture-setup-new.jar'
+    with zipfile.ZipFile(setup) as before, zipfile.ZipFile(rebuilt, 'w') as after:
+        for item in before.infolist():
+            replacement = replacements.pop(item.filename, None)
+            after.writestr(item, replacement.read_bytes() if replacement else before.read(item.filename))
+        for name, file in replacements.items():
+            after.write(file, name)
+    rebuilt.replace(setup)
 
     base = output / 'base-payload'
     shutil.copytree(exported, base)
@@ -117,7 +132,7 @@ def main():
 
     password_file = output / 'tls-password.txt'
     password_file.write_text(secrets.token_urlsafe(32), encoding='utf-8')
-    run(java / 'keytool.exe', '-genkeypair', '-alias', 'localhost', '-keyalg', 'RSA', '-keysize', '2048', '-validity', '3',
+    run(keytool, '-genkeypair', '-alias', 'localhost', '-keyalg', 'RSA', '-keysize', '2048', '-validity', '3',
         '-dname', 'CN=localhost', '-ext', 'SAN=dns:localhost,ip:127.0.0.1', '-storetype', 'PKCS12',
         '-keystore', output / 'localhost.p12', '-storepass:file', password_file, '-keypass:file', password_file, '-noprompt')
     classpath = str(target / 'lib/*') + os.pathsep + str(classes)
