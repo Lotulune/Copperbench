@@ -42,6 +42,7 @@ jobs:
           python scripts/cloud-acceptance/verify-public-assets.py --platform windows --source "$SOURCE_SHA" \
             --release "$evidence/public-release.json" --payload "$payload" --result "$evidence/public-verification.json"
           release_run="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["workflowRun"])' "$payload/RELEASE-METADATA.json")"
+          [[ "$release_run" =~ ^[1-9][0-9]*$ ]]
           gh api "repos/Lotulune/Copperbench/actions/runs/$release_run" > "$evidence/release-run.json"
           python scripts/cloud-acceptance/verify-candidate-provenance.py --payload "$payload" \
             --metadata RELEASE-METADATA.json --workflow deploy.yml --source-ref refs/tags/v0.1.9 \

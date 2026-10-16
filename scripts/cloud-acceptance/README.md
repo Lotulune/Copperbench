@@ -14,6 +14,13 @@ turn a failed full run into a pass.
 the release workflow before a tag is created. Its receipt records both the tested
 commit/tree and the workflow commit. It does not publish packages or certify a desktop.
 
+`linux_candidate_run` with `linux_candidate_source` independently downloads and
+verifies the frozen Linux candidate in a cloud consumer, then uploads its small
+evidence bundle. `windows_release_source` similarly checks every public 0.1.9
+Windows asset against API digests, checksums and signed provenance and inspects
+the packaged fix classes/templates. These read-only byte checks do not replace
+installed-product acceptance.
+
 `run.py` refuses to change OS registration outside this repository's disposable
 GitHub-hosted runners. It verifies GitHub asset digests and signed provenance
 against the release's source tag and producing workflow/run before execution.
