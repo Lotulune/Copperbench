@@ -1,0 +1,81 @@
+{
+  "status": "passed",
+  "testedAt": "2026-10-16T09:00:59.831806+00:00",
+  "javaSuites": [
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest",
+      "tests": "22",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-16T08:56:08.235Z",
+      "hostname": "RIMURU",
+      "time": "57.828"
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-16T08:57:06.064Z",
+      "hostname": "RIMURU",
+      "time": "13.009"
+    },
+    {
+      "name": "dev.copperbench.generator.OrdinaryExportDeliveryTest",
+      "tests": "11",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-16T08:55:56.638Z",
+      "hostname": "RIMURU",
+      "time": "11.595"
+    },
+    {
+      "name": "dev.copperbench.generator.GradleArchiveOutputIntegrationTest",
+      "tests": "1",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-16T08:58:21.366Z",
+      "hostname": "RIMURU",
+      "time": "22.148"
+    }
+  ],
+  "javaPassed": 36,
+  "uiCorePassed": 50,
+  "releaseHistoryPassed": 3,
+  "productStatus": "passed",
+  "markdownLinks": "passed",
+  "applicationJarSha256": "e34c68e8d23300701646e39c6f14ff6c5e3b066de54caba4bef526021a730863",
+  "sourceFileHashes": {
+    "src/main/java/dev/copperbench/generator/GradleArchiveOutput.java": "5e25a51411cde6e28c16bd89d127a0b4e0d73cf3e1f23648c038a9ca2d9f3c1e",
+    "src/test/java/dev/copperbench/generator/GradleArchiveOutputIntegrationTest.java": "1906ba51e3fd5c74e9c2c60e1310dc84e1bd5034f87e3193ddb9522869981d7b",
+    "build.gradle": "258c169e3748911e0ed25dd201cb4a50b443ad83ffa4022f1e4e938354dc126a",
+    "src/main/resources/mcreator.conf": "01148d87a17b5c4940b2d64d018b177792202e02dcffeb5212563bf173e633f1",
+    "ui-core/fixtures/v1.0/release/release-notes.json": "98b5af7113885c2a96336315e776be1420a408677259d67baa02027ae30dada8"
+  },
+  "logs": {
+    "java-external.log": "d2c94aef97437a066e70411b28adff419b7f4e61886980c9313245e2bc509ee4",
+    "java-regression.log": "9476e55b40d538577928cbe58d9bfeda6215421bf45c4a0d20b8555b8383c98f",
+    "java.log": "d8abfc32eb139c3241e1eee328162aa9bba5e16685121ea186104ae571efe889",
+    "npm-core-install.log": "343a1e3bf84569695803e7d53925d7075f76c3341dbcc1cd8e51245122e1feeb",
+    "npm-shell-install.log": "a58f08478dcde5329621081a8430dc11484f4e2001994889cb2e22ee679c3996",
+    "release-history.log": "c189a06b1f396773d3a299d87dc8c9e42e1ab162f530a287cb4b9ca013fa91bb",
+    "ui-core.log": "7db24332d4dbc5c56b78af7db1aea641a34647de6773adc216d778e5bd6657d6"
+  },
+  "priorAttempts": [
+    {
+      "file": "java.log",
+      "status": "failed",
+      "cause": "Host loopback restriction; use the repository external-process launcher"
+    },
+    {
+      "file": "java-external.log",
+      "status": "failed",
+      "cause": "New test used a wildcard as a Windows Path component; corrected test construction and reran the affected integration test"
+    }
+  ],
+  "scope": "Local production JAR/UI build, related export suites and a real offline Gradle configuration-cache regression; not published 0.1.8 installed acceptance"
+}

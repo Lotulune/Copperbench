@@ -22,6 +22,9 @@ final class GradleArchiveOutput {
     record Request(Path root, UUID taskId, List<String> archiveTasks, Path script, Path receipt) {
         List<String> arguments(List<String> buildArguments) {
             List<String> result = new ArrayList<>(buildArguments);
+            // Each export inspects live task state and writes a task-specific receipt. The init
+            // action captures Project/task graph objects, so it must not enter configuration cache.
+            result.add("--no-configuration-cache");
             result.add("--init-script"); result.add(script.toString());
             return List.copyOf(result);
         }
