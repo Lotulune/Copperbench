@@ -30,6 +30,19 @@ def workspace_document(root):
     return files[0]
 
 
+def observed_gradle(environment, expected_home):
+    gradle = environment.get("execution", {}).get("gradle")
+    if gradle is None and environment.get("generator", {}).get("id") in {
+            "datapack-1.20.1", "datapack-1.21.1", "datapack-26.1.x"}:
+        # Released data-pack adapters expose host identity but no Gradle environment projection.
+        return None
+    require(isinstance(gradle, dict), "Mod adapter did not report its Gradle execution environment")
+    require(Path(gradle["userHome"]).resolve() == Path(expected_home).resolve()
+            and gradle["userHomeSource"] == "COPPERBENCH_GRADLE_USER_HOME"
+            and gradle["reuseExternalDistributions"] is False, "Gradle cache isolation is not effective")
+    return gradle
+
+
 def command(argv, log, *, cwd=None, env=None, timeout=900):
     """Retain stdout/stderr and exit status, including failed and timed-out commands."""
     log = Path(log)

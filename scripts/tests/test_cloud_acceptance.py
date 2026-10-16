@@ -12,7 +12,7 @@ sys.path.insert(0, str(DIRECTORY))
 spec = importlib.util.spec_from_file_location("cloud_acceptance", DIRECTORY / "run.py")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
-from common import workspace_document
+from common import workspace_document, observed_gradle
 
 
 class ProvenanceTest(unittest.TestCase):
@@ -56,6 +56,17 @@ class ProvenanceTest(unittest.TestCase):
 
 
 class SafetyTest(unittest.TestCase):
+    def test_only_known_data_pack_adapters_may_omit_gradle_projection(self):
+        with tempfile.TemporaryDirectory() as folder:
+            for generator in ["datapack-1.20.1", "datapack-1.21.1", "datapack-26.1.x"]:
+                self.assertIsNone(observed_gradle({"generator": {"id": generator}, "execution": {"host": {}}}, folder))
+            with self.assertRaises(AssertionError):
+                observed_gradle({"generator": {"id": "fabric-1.21.1"}}, folder)
+            gradle = {"userHome": folder, "userHomeSource": "COPPERBENCH_GRADLE_USER_HOME", "reuseExternalDistributions": False}
+            self.assertEqual(observed_gradle({"execution": {"gradle": gradle}}, folder), gradle)
+            with self.assertRaises(AssertionError):
+                observed_gradle({"execution": {"gradle": {**gradle, "reuseExternalDistributions": True}}}, folder)
+
     def test_document_discovery_excludes_mcreator_cache_directory(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

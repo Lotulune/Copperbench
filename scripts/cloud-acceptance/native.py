@@ -18,7 +18,7 @@ import time
 import traceback
 import zipfile
 
-from common import command, require, save, sha256, workspace_document
+from common import command, require, save, sha256, workspace_document, observed_gradle
 
 
 def main():
@@ -87,10 +87,7 @@ def main():
             require(application["sourceState"] == "packaged_binary" and
                     application["applicationSha256"] == record["applicationSha256"],
                     "The running application differs from the installed package")
-            gradle = result["data"]["execution"]["gradle"]
-            require(Path(gradle["userHome"]).resolve() == Path(os.environ["COPPERBENCH_GRADLE_USER_HOME"]).resolve()
-                    and gradle["userHomeSource"] == "COPPERBENCH_GRADLE_USER_HOME"
-                    and gradle["reuseExternalDistributions"] is False, "Gradle cache isolation is not effective")
+            gradle = observed_gradle(result["data"], os.environ["COPPERBENCH_GRADLE_USER_HOME"])
             current.update(identity=application, gradle=gradle)
             persist()
             yield workspace
@@ -250,7 +247,7 @@ def main():
         # Stop only the test's isolated Gradle daemons before the real uninstaller checks processes.
         for project in workspaces:
             wrapper = project / ("gradlew.bat" if os.name == "nt" else "gradlew")
-            if not wrapper.is_file():
+            if not wrapper.is_file() or not (project / ".gradle").is_dir():
                 continue
             try:
                 environment = dict(os.environ, JAVA_HOME=str(product / "jdk21"))
