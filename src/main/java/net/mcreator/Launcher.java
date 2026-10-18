@@ -167,9 +167,6 @@ public class Launcher {
 			return;
 		}
 
-		try { dev.copperbench.shell.UiLocalePreferences.initialize(); }
-		catch (IOException exception) { LOG.warn("Could not persist the initial UI language preference", exception); }
-
 		if (bootstrap) {
 			int exitCode = BootstrapProductLauncher.run(Arrays.copyOfRange(args, 1, args.length), machineOutput);
 			System.exit(exitCode);

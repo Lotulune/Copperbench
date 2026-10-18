@@ -505,6 +505,7 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-card {
+  max-height: calc(100dvh - 40px);
   background: var(--modal-bg);
   border: 1px solid var(--border-subtle);
   border-top: 3px solid var(--accent-copper);
@@ -518,14 +519,19 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-header {
+  flex-shrink: 0;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
+.modal-header h2 { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+
 .modal-header > button {
+  flex-shrink: 0;
   min-width: 32px;
   min-height: 32px;
   display: inline-grid;
@@ -533,6 +539,10 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-body {
+  overflow-wrap: anywhere;
+  min-height: 0;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
   padding: 20px;
   overflow-y: auto;
   max-height: 70vh;
@@ -542,6 +552,8 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-footer {
+  flex-wrap: wrap;
+  flex-shrink: 0;
   padding: 14px 20px;
   background: var(--bg-panel);
   border-top: 1px solid var(--border-subtle);

@@ -70,7 +70,7 @@ public class PreferencesDialog extends MCreatorDialog {
 		this.parent = parent;
 
 		setModal(true);
-		setTitle(L10N.t("dialog.preferences.title_mcreator"));
+		setTitle(dev.copperbench.shell.UiLocalePreferences.text("Copperbench 偏好设置", "Copperbench preferences"));
 
 		sections.setBackground(getBackground());
 		sections.setRootVisible(false);
@@ -96,7 +96,7 @@ public class PreferencesDialog extends MCreatorDialog {
 		spne.setDividerLocation(185);
 		add("Center", spne);
 
-		sections.setBackground(Theme.current().getBackgroundColor());
+		sections.setBackground(UIManager.getColor("Panel.background"));
 		ComponentUtils.deriveFont(sections, 13);
 
 		JButton ok = L10N.button("dialog.preferences.save");
@@ -149,7 +149,9 @@ public class PreferencesDialog extends MCreatorDialog {
 		cancel.addActionListener(_ -> dispose());
 
 		pack();
-		setSize(Math.max(960, getBounds().width), 570);
+		Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		setSize(Math.min(1000, screen.width - 48), Math.min(660, screen.height - 72));
+		setMinimumSize(new Dimension(Math.min(760, screen.width - 48), Math.min(420, screen.height - 72)));
 		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
@@ -243,8 +245,8 @@ public class PreferencesDialog extends MCreatorDialog {
 		JPanel sectionPanel = new JPanel(new GridBagLayout());
 		sectionPanel.setOpaque(false);
 
-		JComponent titlebar = L10N.label("dialog.preferences.description", name, description);
-		titlebar.setBorder(BorderFactory.createEmptyBorder(0, 10, 5, 10));
+		JLabel titlebar = new JLabel("<html><div style='width:460px'><b>" + name + "</b><br><br>" + description + "</div></html>");
+		titlebar.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
 
 		JScrollPane scrollPane = new JScrollPane(PanelUtils.pullElementUp(sectionPanel));
 		scrollPane.getVerticalScrollBar().setUnitIncrement(10);
@@ -280,13 +282,13 @@ public class PreferencesDialog extends MCreatorDialog {
 		if (description == null)
 			description = "";
 
-		JComponent label = L10N.label("dialog.preferences.entry_description", name, description);
+		JComponent label = new JLabel("<html><div style='width:310px'>" + name + "<br><small>" + description + "</small></div></html>");
 		JComponent component = entry.getComponent(parent, _ -> markChanged());
 		if (component != null) {
 			JPanel wrap = new JPanel(new BorderLayout()) {
 				@Override public Dimension getPreferredSize() {
 					Dimension retval = super.getPreferredSize();
-					retval.height = 32;
+					retval.height = Math.max(32, retval.height);
 					if (!(component instanceof JCheckBox)) {
 						retval.width = Math.max(retval.width, 128);
 					}

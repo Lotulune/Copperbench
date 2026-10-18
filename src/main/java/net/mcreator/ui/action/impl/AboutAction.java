@@ -19,6 +19,9 @@
 package net.mcreator.ui.action.impl;
 
 import dev.copperbench.ProductIdentity;
+import dev.copperbench.shell.ProductDialogs;
+import dev.copperbench.shell.ProductUpdateDialog;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 import dev.copperbench.release.UserGuideLocator;
 import net.mcreator.Launcher;
 import net.mcreator.element.GeneratableElement;
@@ -49,44 +52,56 @@ public class AboutAction extends BasicAction {
 	}
 
 	public static void showDialog(Window parent) {
-		Object[] options = { "使用说明", "上游源码", "GPL-3.0 许可证", "第三方许可证" };
-
-		JPanel logoPanel = new JPanel(new BorderLayout(24, 24));
-		logoPanel.add("North", new JLabel(AppIcon.getAppIcon(128, 128)));
-		logoPanel.add("Center", new JLabel(UIRES.SVG.getBuiltIn("logo", 250, (int) (250 * (63 / 350.0)))));
-		logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
-
-		String versionString = ProductIdentity.displayVersion();
-		if (WindowsPackage.isRunningAsMSIX()) {
-			versionString += " (MSIX)";
-		}
-
-		JLabel aboutLabel = new JLabel("<html><b>" + ProductIdentity.NAME + " " + ProductIdentity.VERSION
-				+ "</b><br>基于 MCreator " + Launcher.version.getFullString()
-				+ " 的独立 GPL-3.0 衍生项目。<br><br>构建版本：" + versionString + "<br>系统架构：" + OS.getArchitecture()
-				+ " / " + OS.getBundledJVMBits() + " 位 JVM<br><br>"
-				+ "MCreator 和 Pylo 的名称及标识归各自权利人所有。</html>");
-
-		JComponent dialogPanel = PanelUtils.westAndCenterElement(
-				PanelUtils.pullElementUp(PanelUtils.centerInPanel(logoPanel)), aboutLabel, 48, 48);
-		dialogPanel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 32));
-
-		int n = JOptionPane.showOptionDialog(parent, dialogPanel, "关于 " + ProductIdentity.NAME,
-				JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-		if (n == 0) {
-			openUserGuide(parent);
-		} else if (n == 1) {
-			DesktopUtils.browseSafe("https://github.com/MCreator/MCreator/tree/2026.2.33518");
-		} else if (n == 2) {
-			showLicenseWindow(parent);
-		} else if (n == 3) {
-			try {
-				Desktop.getDesktop().open(new File("./license"));
-			} catch (IOException e) {
-				JOptionPane.showMessageDialog(parent, L10N.t("dialog.about.third_party.message"),
-						L10N.t("dialog.about.third_party.title"), JOptionPane.INFORMATION_MESSAGE);
+		JDialog dialog = new net.mcreator.ui.dialogs.MCreatorDialog(parent, text("帮助与关于", "Help & about"), true);
+		JPanel content = new JPanel(new BorderLayout(0, 20));
+		content.setBorder(BorderFactory.createEmptyBorder(24, 28, 20, 28));
+		JPanel heading = new JPanel(new BorderLayout(16, 0));
+		heading.add(new JLabel(AppIcon.getAppIcon(64, 64)), BorderLayout.WEST);
+		JLabel name = new JLabel(ProductIdentity.NAME + " " + ProductIdentity.VERSION);
+		name.setFont(name.getFont().deriveFont(Font.BOLD, 22f));
+		heading.add(name, BorderLayout.CENTER);
+		content.add(heading, BorderLayout.NORTH);
+		JPanel middle = new JPanel(new BorderLayout(0, 20));
+		JTextArea description = ProductDialogs.body(text("基于 MCreator ", "Based on MCreator ")
+				+ (Launcher.version != null ? Launcher.version.getFullString() : "2026.2")
+				+ text(" 的独立 GPL-3.0 衍生项目。", ", an independent GPL-3.0 derivative.")
+				+ "\n\n" + text("构建版本：", "Build: ") + ProductIdentity.displayVersion()
+				+ (WindowsPackage.isRunningAsMSIX() ? " (MSIX)" : "")
+				+ "\n" + text("系统架构：", "Architecture: ") + OS.getArchitecture()
+				+ " / " + OS.getBundledJVMBits() + text(" 位 JVM", "-bit JVM")
+				+ "\n\n" + text("MCreator 与 Pylo 的名称和标识归各自权利人所有。", "MCreator and Pylo names and marks belong to their respective owners."));
+		description.setColumns(40); description.setRows(7);
+		middle.add(description, BorderLayout.NORTH);
+		JPanel links = new JPanel(new GridLayout(0, 2, 10, 10));
+		addLink(links, text("使用指南", "User guide"), () -> openUserGuide(dialog));
+		addLink(links, text("检查更新", "Check for updates"), () -> { dialog.dispose(); ProductUpdateDialog.show(parent); });
+		addLink(links, text("上游源码", "Upstream source"), () -> DesktopUtils.browseSafe("https://github.com/MCreator/MCreator/tree/2026.2.33518"));
+		addLink(links, text("GPL-3.0 许可证", "GPL-3.0 license"), () -> showLicenseWindow(dialog));
+		addLink(links, text("第三方许可证", "Third-party licenses"), () -> {
+			try { Desktop.getDesktop().open(new File("./license")); }
+			catch (IOException error) {
+				ProductDialogs.show(dialog, L10N.t("dialog.about.third_party.message"),
+						L10N.t("dialog.about.third_party.title"), JOptionPane.INFORMATION_MESSAGE,
+						new Object[]{text("确定", "OK")}, text("确定", "OK"));
 			}
-		}
+		});
+		middle.add(links, BorderLayout.CENTER);
+		content.add(middle, BorderLayout.CENTER);
+		JButton close = new JButton(text("关闭", "Close"));
+		close.addActionListener(_ -> dialog.dispose());
+		JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0)); footer.add(close);
+		content.add(footer, BorderLayout.SOUTH);
+		dialog.setContentPane(content); dialog.getRootPane().setDefaultButton(close);
+		dialog.pack(); dialog.setResizable(true); dialog.setMinimumSize(dialog.getSize());
+		dialog.setLocationRelativeTo(parent); dialog.setVisible(true);
+	}
+
+	private static void addLink(JPanel panel, String label, Runnable action) {
+		JButton button = new JButton(label);
+		button.setHorizontalAlignment(SwingConstants.LEFT);
+		button.setMargin(new Insets(12, 14, 12, 14));
+		button.addActionListener(_ -> action.run());
+		panel.add(button);
 	}
 
 	static void openUserGuide(Window parent) {
@@ -96,8 +111,8 @@ public class AboutAction extends BasicAction {
 			return;
 		}
 		JOptionPane.showMessageDialog(parent,
-				"未找到开发测试版使用说明（docs/user/README.md 或 user/README.md）。",
-				"使用说明", JOptionPane.INFORMATION_MESSAGE);
+				text("未找到使用指南，请检查安装目录中的 docs/user/README.md。", "The user guide was not found. Check docs/user/README.md in the installation folder."),
+				text("使用指南", "User guide"), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public static void showLicenseWindow(Window parent) {
@@ -110,7 +125,8 @@ public class AboutAction extends BasicAction {
 		licenseText.setWrapStyleWord(true);
 		licenseText.setText(FileIO.readFileToString(new File("./LICENSE.txt"))
 				+ "\n\n" + FileIO.readFileToString(new File("./LICENSE-ADDITIONAL-TERMS.md")));
-		gradlesp.setPreferredSize(new Dimension(570, 570));
+		Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		gradlesp.setPreferredSize(new Dimension(Math.min(570, screen.width - 160), Math.min(570, screen.height - 200)));
 		gradlesp.getHorizontalScrollBar().setValue(0);
 		gradlesp.getVerticalScrollBar().setValue(0);
 		licenseText.setCaretPosition(0);

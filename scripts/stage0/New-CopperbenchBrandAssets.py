@@ -19,8 +19,8 @@ MAC = ROOT / "platform/mac"
 
 CHARCOAL = (24, 29, 36, 255)
 CHARCOAL_LIGHT = (43, 51, 61, 255)
-LIME = (170, 239, 25, 255)
-CYAN = (0, 213, 216, 255)
+COPPER = (207, 119, 61, 255)
+OXIDE = (78, 130, 124, 255)
 HIGHLIGHT = (238, 244, 247, 255)
 
 
@@ -82,8 +82,8 @@ def write_svg_assets() -> None:
     logo = f"""<svg width="350pt" height="63pt" viewBox="0 0 700 126" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <linearGradient id="accent" x1="0" x2="1">
-      <stop offset="0" stop-color="#aaef19"/>
-      <stop offset="1" stop-color="#00d5d8"/>
+      <stop offset="0" stop-color="#cf773d"/>
+      <stop offset="1" stop-color="#4e827c"/>
     </linearGradient>
   </defs>
   <image x="3" y="3" width="120" height="120" preserveAspectRatio="xMidYMid meet" href="{logo_uri}" xlink:href="{logo_uri}"/>
@@ -116,8 +116,8 @@ def write_raster_assets() -> None:
     draw = ImageDraw.Draw(splash)
     for x in range(-760, 1280, 80):
         draw.line((x, 760, x + 760, 0), fill=CHARCOAL_LIGHT, width=2)
-    draw.rectangle((0, 0, 20, 760), fill=LIME)
-    draw.rectangle((20, 0, 26, 760), fill=CYAN)
+    draw.rectangle((0, 0, 20, 760), fill=COPPER)
+    draw.rectangle((20, 0, 26, 760), fill=OXIDE)
     splash.alpha_composite(render_icon(520), (750, 20))
     splash.convert("RGB").save(RES / "splash.png", optimize=True)
 
@@ -130,12 +130,12 @@ def write_raster_assets() -> None:
         render_icon(size, padding_ratio=0.06).save(WINDOWS_MSIX / name, optimize=True)
 
     for name in ("installer.ico", "uninstaller.ico"):
-        icon.save(WINDOWS_INSTALLER / name, sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
+        icon.save(WINDOWS_INSTALLER / name, sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
     render_on_canvas((150, 57), 54, CHARCOAL).convert("RGB").save(WINDOWS_INSTALLER / "installer.bmp")
     side = Image.new("RGBA", (164, 314), CHARCOAL)
     side_draw = ImageDraw.Draw(side)
-    side_draw.rectangle((0, 0, 7, 314), fill=LIME)
-    side_draw.rectangle((7, 0, 11, 314), fill=CYAN)
+    side_draw.rectangle((0, 0, 7, 314), fill=COPPER)
+    side_draw.rectangle((7, 0, 11, 314), fill=OXIDE)
     side.alpha_composite(render_icon(142), (17, 16))
     side.convert("RGB").save(WINDOWS_INSTALLER / "installer_side.bmp")
 
@@ -143,8 +143,8 @@ def write_raster_assets() -> None:
         icon.save(MAC / name, format="ICNS")
     disk = Image.new("RGBA", (1440, 915), CHARCOAL)
     disk_draw = ImageDraw.Draw(disk)
-    disk_draw.rectangle((0, 0, 18, 915), fill=LIME)
-    disk_draw.rectangle((18, 0, 26, 915), fill=CYAN)
+    disk_draw.rectangle((0, 0, 18, 915), fill=COPPER)
+    disk_draw.rectangle((18, 0, 26, 915), fill=OXIDE)
     disk.alpha_composite(render_icon(610), (415, 70))
     disk.convert("RGB").save(MAC / "diskimage.png", optimize=True)
 

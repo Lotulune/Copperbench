@@ -14,6 +14,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.LongByReference;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
 import org.apache.logging.log4j.LogManager;
@@ -37,6 +38,9 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private static final int GWL_WNDPROC = -4;
 	private static final int GWL_STYLE = -16;
 	private static final int WS_THICKFRAME = 0x00040000;
+	private static final int WS_CAPTION = 0x00C00000;
+	private static final int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+	private static final int DWMWCP_ROUND = 2;
 	private static final int WS_MINIMIZEBOX = 0x00020000;
 	private static final int WS_MAXIMIZEBOX = 0x00010000;
 	private static final int WS_SYSMENU = 0x00080000;
@@ -77,6 +81,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private boolean installed;
 	private volatile int dpi = 96;
 	private PointerDrag pointerDrag;
+	private Integer previousCornerPreference;
 
 	/** Screen positions are CSS pixels, including negative coordinates on secondary displays. */
 	public record PointerGesture(String phase, double x, double y, double screenX, double screenY) {
@@ -177,7 +182,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 				throw new IllegalStateException("AWT did not expose a native window handle");
 
 			int style = User32.INSTANCE.GetWindowLongW(hwnd, GWL_STYLE);
-			style |= WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
+			style |= WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
 			User32.INSTANCE.SetWindowLongW(hwnd, GWL_STYLE, style);
 
 			Native.setLastError(0);
@@ -191,6 +196,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 					SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED))
 				throw new IllegalStateException("SetWindowPos failed with error " + Native.getLastError());
 			installed = true;
+			requestRoundedCorners();
 			LOG.info("Installed Windows product-shell chrome at {} DPI", dpi);
 			return true;
 		} catch (Throwable exception) {
@@ -198,6 +204,28 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 			fallbackToSystemFrame();
 			return false;
 		}
+	}
+
+	private void requestRoundedCorners() {
+		// DWM owns the OUTER window contour, including JCEF, shadows and maximize/restore behavior.
+		// https://learn.microsoft.com/windows/apps/desktop/modernize/apply-rounded-corners
+		try {
+			IntByReference previous = new IntByReference();
+			if (DwmApi.INSTANCE.DwmGetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, previous, Integer.BYTES) >= 0)
+				previousCornerPreference = previous.getValue();
+			int result = DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE,
+					new IntByReference(DWMWCP_ROUND), Integer.BYTES);
+			if (result < 0) LOG.warn("DWM could not enable rounded window corners: 0x{}", Integer.toHexString(result));
+		} catch (UnsatisfiedLinkError error) {
+			LOG.warn("DWM window corner preferences are unavailable", error);
+		}
+	}
+
+	int cornerPreferenceForTesting() {
+		IntByReference value = new IntByReference();
+		if (hwnd == null || DwmApi.INSTANCE.DwmGetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, value, Integer.BYTES) < 0)
+			throw new IllegalStateException("Window corner preference is unavailable");
+		return value.getValue();
 	}
 
 	public void accept(WindowChromeSnapshot snapshot) {
@@ -399,12 +427,16 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private synchronized void restoreWindowProc() {
 		if (hwnd != null && previousWindowProc != null && window.isDisplayable()) {
 			try {
+				if (previousCornerPreference != null)
+					DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE,
+							new IntByReference(previousCornerPreference), Integer.BYTES);
 				User32.INSTANCE.SetWindowLongPtrW(hwnd, GWL_WNDPROC, previousWindowProc);
 			} catch (Throwable exception) {
 				LOG.warn("Could not restore the original Win32 window procedure", exception);
 			}
 		}
 		installed = false;
+		previousCornerPreference = null;
 		previousWindowProc = null;
 		hwnd = null;
 	}
@@ -502,6 +534,8 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 		DwmApi INSTANCE = Native.load("dwmapi", DwmApi.class, W32APIOptions.DEFAULT_OPTIONS);
 
 		boolean DwmDefWindowProc(Pointer hwnd, int message, long wParam, long lParam, LongByReference result);
+		int DwmSetWindowAttribute(Pointer hwnd, int attribute, IntByReference value, int size);
+		int DwmGetWindowAttribute(Pointer hwnd, int attribute, IntByReference value, int size);
 	}
 
 	@Structure.FieldOrder({ "x", "y" })

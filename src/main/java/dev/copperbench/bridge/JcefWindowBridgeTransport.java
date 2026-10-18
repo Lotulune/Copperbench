@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.shell.AppPreferencesService;
 import dev.copperbench.shell.UiLocalePreferences;
+import dev.copperbench.shell.ProductUpdateNotifications;
 import dev.copperbench.window.WindowChromeSnapshot;
 import dev.copperbench.window.WindowsWindowChromeController.PointerGesture;
 import net.mcreator.ui.chromium.WebView;
@@ -42,7 +43,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	public static final String GESTURE_QUERY_PREFIX = "copperbench:window-gesture:";
 	public static final String PREFERENCES_QUERY_PREFIX = "copperbench:preferences:";
 	public static final String UNSAVED_SOURCE_QUERY_PREFIX = "copperbench:unsaved-source:";
-	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "check_updates", "set_locale_en", "set_locale_zh");
+	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "check_updates", "set_locale_en", "set_locale_zh", "set_theme_light", "set_theme_dark");
 	private static final Gson JSON = new Gson();
 
 	private final WebView webView;
@@ -58,6 +59,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
 	private final Consumer<String> localeListener;
+	private final Consumer<String> updateListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private JcefWindowBridgeTransport(WebView webView, JFrame window, Runnable closeAction,
@@ -81,10 +83,13 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			if (!closed.get()) webView.executeScriptAsync("window.dispatchEvent(new CustomEvent('copperbench:locale-changed',{detail:" + JSON.toJson(locale) + "}));");
 		});
 		UiLocalePreferences.addListener(localeListener);
+		this.updateListener = version -> SwingUtilities.invokeLater(this::publishUpdateState);
+		ProductUpdateNotifications.INSTANCE.addListener(updateListener);
 		this.router.addHandler(this, false);
 		this.webView.addLoadStartListener(loadStartListener);
 		this.webView.addCloseListener(closeListener);
 		installHost();
+		ProductUpdateNotifications.INSTANCE.start();
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction) {
@@ -117,7 +122,15 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			webView.executeScriptAsync(generateLocaleBootstrapScript(UiLocalePreferences.read())
 					+ generateBootstrapScript(!nativeChrome, nativeChrome, unsavedSourceConsumer != null));
 			publishWindowState();
+			publishUpdateState();
 		}
+	}
+
+	private void publishUpdateState() {
+		if (closed.get()) return;
+		webView.executeScriptAsync("if (window.__COPPERBENCH_WINDOW_HOST__) { "
+				+ "window.__COPPERBENCH_WINDOW_HOST__.availableUpdateVersion = " + JSON.toJson(ProductUpdateNotifications.INSTANCE.availableVersion()) + ";"
+				+ "window.dispatchEvent(new CustomEvent('copperbench:update-available')); }");
 	}
 
 	private void publishWindowState() {
@@ -259,6 +272,8 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			case "close" -> closeAction.run();
 			case "open_preferences" -> new PreferencesDialog(window);
 			case "check_updates" -> dev.copperbench.shell.ProductUpdateDialog.show(window);
+			case "set_theme_light" -> net.mcreator.ui.laf.themes.ThemeManager.synchronizeProductAppearance(false);
+			case "set_theme_dark" -> net.mcreator.ui.laf.themes.ThemeManager.synchronizeProductAppearance(true);
 			default -> throw new IllegalArgumentException("Unsupported window action: " + action);
 		}
 	}
@@ -340,6 +355,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				        systemFrame: %s,
 				        preferencesAvailable: true,
 				        updatesAvailable: true,
+				        appearanceAvailable: true,
 				        preferencesSchemaVersion: '1.0',
 				        getPreferences: function() { return preferences('get'); },
 				        savePreferences: function(patch) { return preferences('save', patch); },
@@ -382,6 +398,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			return;
 		webView.removeLoadStartListener(loadStartListener);
 		UiLocalePreferences.removeListener(localeListener);
+		ProductUpdateNotifications.INSTANCE.removeListener(updateListener);
 		window.removeWindowStateListener(windowStateListener);
 		webView.removeCloseListener(closeListener);
 		try {

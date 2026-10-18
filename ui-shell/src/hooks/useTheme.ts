@@ -24,6 +24,12 @@ export function useTheme() {
   }, [theme, themePreference]);
 
   useEffect(() => {
+    const host = window.__COPPERBENCH_WINDOW_HOST__;
+    if (host?.appearanceAvailable) void host.invoke(theme === 'dark' ? 'set_theme_dark' : 'set_theme_light')
+      .catch(error => console.warn('[Copperbench] Could not synchronize dialog appearance', error));
+  }, [theme]);
+
+  useEffect(() => {
     const query = window.matchMedia(SYSTEM_QUERY);
     const update = () => setSystemDark(query.matches);
     update();

@@ -57,11 +57,13 @@ export interface NativeWindowHost {
   readonly maximized?: boolean;
   readonly preferencesAvailable?: boolean;
   readonly updatesAvailable?: boolean;
+  readonly availableUpdateVersion?: string | null;
+  readonly appearanceAvailable?: boolean;
   readonly preferencesSchemaVersion?: typeof PREFERENCES_SCHEMA_VERSION;
   getPreferences?(): Promise<AppPreferencesSnapshot>;
   savePreferences?(patch: AppPreferencesPatch): Promise<AppPreferencesSnapshot>;
   readonly chromeRegionSchemaVersion?: typeof WINDOW_CHROME_SCHEMA_VERSION;
-  invoke(action: 'minimize' | 'toggle_maximize' | 'close' | 'open_preferences' | 'check_updates'): Promise<void>;
+  invoke(action: 'minimize' | 'toggle_maximize' | 'close' | 'open_preferences' | 'check_updates' | 'set_theme_light' | 'set_theme_dark'): Promise<void>;
   reportChromeRegions?(snapshot: WindowChromeSnapshot): Promise<void>;
   pointerGesture?(gesture: WindowPointerGesture): void;
 }

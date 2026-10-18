@@ -54,6 +54,7 @@ class WindowsWindowChromeControllerSmokeTest {
 		JFrame window = windowRef[0];
 		WindowsWindowChromeController controller = controllerRef[0];
 		try {
+			assertEquals(2, controller.cornerPreferenceForTesting(), "The outer window must opt into DWM rounded corners");
 			double dpr = controller.devicePixelRatioForTesting();
 			controller.accept(new WindowChromeSnapshot("1.0", 1, "css_viewport", dpr,
 					new WindowChromeSnapshot.Viewport(900 / dpr, 700 / dpr), List.of(
@@ -89,6 +90,7 @@ class WindowsWindowChromeControllerSmokeTest {
 			assertEquals(Frame.ICONIFIED, window.getState());
 			SwingUtilities.invokeAndWait(() -> window.setState(Frame.NORMAL));
 			assertEquals(Frame.NORMAL, window.getState());
+			assertEquals(2, controller.cornerPreferenceForTesting(), "Rounding preference must survive restore");
 
 			WindowChromeHitTest.WindowBounds dpiBounds = new WindowChromeHitTest.WindowBounds(bounds.left() + 12,
 					bounds.top() + 12, bounds.right() + 112, bounds.bottom() + 62);

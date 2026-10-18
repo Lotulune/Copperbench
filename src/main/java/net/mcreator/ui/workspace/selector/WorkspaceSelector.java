@@ -24,6 +24,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.Strictness;
 import dev.copperbench.ProductIdentity;
+import dev.copperbench.shell.ProductTheme;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 import net.mcreator.Launcher;
 import net.mcreator.io.FileIO;
 import net.mcreator.io.OS;
@@ -85,12 +87,14 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 
 	private final JButton newWorkspace;
 
-	private final JPanel subactions = new JPanel(new GridLayout(-1, 1, 0, 2));
+	private final JPanel subactions = new JPanel(new GridLayout(-1, 1, 0, 8));
 
 	private final NotificationsRenderer notificationsRenderer;
 
 	private final DefaultListModel<RecentWorkspaceEntry> defaultListModel = new DefaultListModel<>();
-	private final JList<RecentWorkspaceEntry> recentsList = new JList<>(defaultListModel);
+	private final JList<RecentWorkspaceEntry> recentsList = new JList<>(defaultListModel) {
+		@Override public boolean getScrollableTracksViewportWidth() { return true; }
+	};
 	private final JPopupMenu recentListPopupMenu;
 
 	public WorkspaceSelector(@Nullable MCreatorApplication application, WorkspaceOpenListener workspaceOpenListener) {
@@ -139,68 +143,49 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 			}
 		});
 
-		JPanel logoPanel = new JPanel(new BorderLayout(5, 5));
-		JLabel logo = new JLabel("COPPERBENCH", SwingConstants.CENTER);
-		logo.setFont(logo.getFont().deriveFont(Font.BOLD, 26f));
-		logo.setForeground(Theme.current().getForegroundColor());
-		logoPanel.add("North", logo);
+		JPanel logoPanel = new JPanel(new BorderLayout(20, 0));
+		JPanel introduction = new JPanel(new GridLayout(0, 1, 0, 8));
+		introduction.setOpaque(false);
+		JLabel logo = new JLabel("Copperbench");
+		logo.setFont(logo.getFont().deriveFont(Font.BOLD, 30f));
+		introduction.add(logo);
+		JTextArea subtitle = dev.copperbench.shell.ProductDialogs.body(text("让下一个想法，成为你的 Minecraft 作品。", "Make your next Minecraft creation."));
+		subtitle.setRows(2);
+		subtitle.setBorder(BorderFactory.createEmptyBorder());
+		subtitle.setFocusable(false);
+		subtitle.setFont(subtitle.getFont().deriveFont(13f));
+		subtitle.setForeground(ProductTheme.muted());
+		introduction.add(subtitle);
+		logoPanel.add(introduction, BorderLayout.CENTER);
+		logoPanel.add(new JLabel(AppIcon.getAppIcon(80, 80)), BorderLayout.EAST);
+		logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
 
-		logoPanel.setBorder(BorderFactory.createEmptyBorder(12, 0, 28, 0));
-
-		JPanel southcenter = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-		JButton prefs = new JButton(L10N.t("dialog.workspace_selector.preferences"));
-		prefs.setIcon(UIRES.get("settings"));
-		prefs.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		ComponentUtils.deriveFont(prefs, 13);
-		prefs.setForeground(Theme.current().getForegroundColor());
-		prefs.setMargin(new Insets(8, 10, 8, 10));
-		prefs.setHorizontalTextPosition(JLabel.LEFT);
+		JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+		JButton help = new JButton(text("帮助与关于", "Help & about"), ProductTheme.monochrome(UIRES.get("info")));
+		help.setName("help-and-about");
+		help.setMargin(new Insets(9, 12, 9, 12));
+		help.addActionListener(_ -> AboutAction.showDialog(this));
+		footer.add(help);
+		JButton prefs = new JButton(L10N.t("dialog.workspace_selector.preferences"), ProductTheme.monochrome(UIRES.get("settings")));
+		prefs.setMargin(new Insets(9, 12, 9, 12));
 		prefs.addActionListener(_ -> new PreferencesDialog(WorkspaceSelector.this));
-		JButton updates = new JButton(dev.copperbench.shell.UiLocalePreferences.text("检查更新", "Check for updates"));
-		updates.setName("check-product-updates");
-		updates.setMargin(new Insets(8, 10, 8, 10));
-		updates.addActionListener(_ -> dev.copperbench.shell.ProductUpdateDialog.show(this));
-		southcenter.add(updates);
-		southcenter.add(prefs);
+		footer.add(prefs);
+		footer.setBorder(BorderFactory.createEmptyBorder(8, 24, 16, 24));
 
-		JPanel southcenterleft = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-		JLabel version = new JLabel(ProductIdentity.VERSION);
-		version.setToolTipText(ProductIdentity.displayVersion());
-		version.addMouseListener(new MouseAdapter() {
-			@Override public void mouseClicked(MouseEvent mouseEvent) {
-				AboutAction.showDialog(WorkspaceSelector.this);
-			}
-		});
-		ComponentUtils.deriveFont(version, 13);
-		version.setForeground(Theme.current().getForegroundColor());
-		version.setHorizontalTextPosition(SwingConstants.LEFT);
-		version.setIcon(UIRES.get("info"));
-		version.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		southcenterleft.add(version);
-
-		JComponent southSubComponent = PanelUtils.westAndEastElement(southcenterleft, southcenter);
-
-		// Copperbench 2026-09-13: optional modeling setup must also exist before a workspace is opened.
-		JPanel optionalTools = new JPanel(new BorderLayout(0, 8));
-		optionalTools.setOpaque(false);
 		JPanel alignedModelingSetup = new JPanel(new BorderLayout());
 		alignedModelingSetup.setOpaque(false);
+		alignedModelingSetup.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")),
+				BorderFactory.createEmptyBorder(16, 0, 0, 0)));
 		alignedModelingSetup.add(new dev.copperbench.shell.BlockbenchStartupPanel(
 				dev.copperbench.assets.BlockbenchConfiguration.productDefault(),
 				() -> dev.copperbench.shell.BlockbenchStartupPanel.showGuide(this)), BorderLayout.CENTER);
-		optionalTools.add(southSubComponent, BorderLayout.SOUTH);
-		southSubComponent = optionalTools;
-
-		southSubComponent.setBorder(BorderFactory.createEmptyBorder(0, 25, 20, 25));
-
-		JPanel start = new JPanel(new BorderLayout(0, 24));
+		JPanel start = new JPanel(new BorderLayout(0, 16));
 		start.add(logoPanel, BorderLayout.NORTH);
 		start.add(actions, BorderLayout.CENTER);
 		start.add(alignedModelingSetup, BorderLayout.SOUTH);
-		start.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-		JPanel centered = new JPanel(new GridBagLayout());
+		start.setBorder(BorderFactory.createEmptyBorder(24, 32, 16, 32));
+		JPanel centered = new WelcomeViewport();
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.weightx = 1;
 		constraints.fill = GridBagConstraints.HORIZONTAL;
@@ -209,37 +194,38 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		contentScroll.setBorder(BorderFactory.createEmptyBorder());
 		contentScroll.getVerticalScrollBar().setUnitIncrement(16);
 		contentScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		JComponent centerComponent = PanelUtils.centerAndSouthElement(contentScroll, southSubComponent);
-
+		JComponent centerComponent = PanelUtils.centerAndSouthElement(contentScroll, footer);
 		notificationsRenderer = new NotificationsRenderer(centerComponent);
-
 		add("Center", centerComponent);
 
-		recentPanel.setBackground(Theme.current().getSecondAltBackgroundColor());
-		recentPanel.setPreferredSize(new Dimension(225, 10));
+		recentPanel.setBackground(UIManager.getColor("Button.background"));
+		recentPanel.setPreferredSize(new Dimension(246, 10));
 
 		JLabel norecentsloaded = L10N.label("dialog.workspace_selector.no_workspaces_loaded");
-		norecentsloaded.setForeground(Theme.current().getAltForegroundColor());
+		norecentsloaded.setForeground(ProductTheme.muted());
 		JLabel norecents = L10N.label("dialog.workspace_selector.no_workspaces");
-		norecents.setForeground(Theme.current().getAltForegroundColor());
+		norecents.setForeground(ProductTheme.muted());
 
 		recentsList.setComponentPopupMenu(recentListPopupMenu = buildRightClickMenu());
 
-		recentsList.setBackground(Theme.current().getSecondAltBackgroundColor());
+		recentsList.setBackground(UIManager.getColor("Button.background"));
+		recentsList.setFixedCellHeight(86);
 		recentsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		recentsList.addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent mouseEvent) {
 				if (mouseEvent.getButton() == MouseEvent.BUTTON2) {
 					int idx = recentsList.locationToIndex(mouseEvent.getPoint());
+					if (idx < 0 || !recentsList.getCellBounds(idx, idx).contains(mouseEvent.getPoint())) return;
 					removeRecentWorkspace(defaultListModel.elementAt(idx));
 					reloadRecents();
-				} else if (mouseEvent.getClickCount() == 2) {
+				} else if (mouseEvent.getClickCount() == 2 && recentsList.getSelectedValue() != null) {
 					workspaceOpenListener.workspaceOpened(recentsList.getSelectedValue().getPath());
 				}
 			}
 		});
 		recentsList.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed(KeyEvent e) {
+				if (recentsList.getSelectedValue() == null) return;
 				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 					Object[] options = { L10N.t("dialog.workspace_selector.delete_workspace.recent_list"),
 							L10N.t("dialog.workspace_selector.delete_workspace.workspace"), L10N.t("common.cancel") };
@@ -271,34 +257,29 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		JScrollPane recentsScrollPane = new JScrollPane(recentsList);
 		recentsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-		JLabel userTip = L10N.label("dialog.workspace_selector.recent_workspaces");
-		userTip.setOpaque(true);
-		ComponentUtils.deriveFont(userTip, 11);
-		userTip.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 0));
-		userTip.setForeground(Theme.current().getAltBackgroundColor().brighter());
-		userTip.setBackground(Theme.current().getSecondAltBackgroundColor());
-
-		recentsList.setBorder(BorderFactory.createEmptyBorder(0, 0, 17, 0));
-
-		JLayeredPane layered = new JLayeredPane();
-		layered.setLayout(null);
-		layered.add(recentsScrollPane, JLayeredPane.DEFAULT_LAYER);
-		layered.add(userTip, JLayeredPane.PALETTE_LAYER);
-		layered.addComponentListener(new ComponentAdapter() {
-			@Override public void componentResized(ComponentEvent e) {
-				int w = layered.getWidth();
-				int h = layered.getHeight();
-				int fh = userTip.getPreferredSize().height;
-				recentsScrollPane.setBounds(0, 0, w, h);
-				userTip.setBounds(0, h - fh, w - 10, fh);
-			}
-		});
-
-		recentPanel.add("recents", layered);
+		recentsScrollPane.setBorder(BorderFactory.createEmptyBorder());
+		recentsList.setBorder(BorderFactory.createEmptyBorder(0, 6, 12, 6));
+		recentPanel.add("recents", recentsScrollPane);
 		recentPanel.add("norecentsloaded", PanelUtils.totalCenterInPanel(norecentsloaded));
 		recentPanel.add("norecents", PanelUtils.totalCenterInPanel(norecents));
-
-		add("West", recentPanel);
+		JPanel sidebar = new JPanel(new BorderLayout(0, 16));
+		sidebar.setBackground(UIManager.getColor("Button.background"));
+		sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("Component.borderColor")));
+		JLabel recentHeading = new JLabel(text("最近工作区", "Recent workspaces"));
+		recentHeading.setFont(recentHeading.getFont().deriveFont(Font.BOLD, 13f));
+		recentHeading.setBorder(BorderFactory.createEmptyBorder(28, 20, 0, 12));
+		sidebar.add(recentHeading, BorderLayout.NORTH);
+		sidebar.add(recentPanel, BorderLayout.CENTER);
+		JPanel sidebarFooter = new JPanel(new BorderLayout(0, 12));
+		sidebarFooter.setOpaque(false);
+		sidebarFooter.setBorder(BorderFactory.createEmptyBorder(0, 16, 22, 16));
+		sidebarFooter.add(new dev.copperbench.shell.ProductUpdateButton(), BorderLayout.NORTH);
+		JLabel version = new JLabel("Copperbench " + ProductIdentity.VERSION);
+		version.setForeground(ProductTheme.muted());
+		version.setFont(version.getFont().deriveFont(11f));
+		sidebarFooter.add(version, BorderLayout.SOUTH);
+		sidebar.add(sidebarFooter, BorderLayout.SOUTH);
+		add("West", sidebar);
 
 		new DropTarget(this, DnDConstants.ACTION_MOVE, this, true, null);
 
@@ -328,6 +309,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		}
 		addWindowListener(new WindowAdapter() {
 			@Override public void windowOpened(WindowEvent event) {
+				dev.copperbench.shell.ProductUpdateNotifications.INSTANCE.start();
 				if (dev.copperbench.shell.FirstRunOnboarding.claim())
 					dev.copperbench.shell.StartupTour.show(WorkspaceSelector.this, newWorkspace, () -> {
 						NewWorkspaceDialog dialog = new NewWorkspaceDialog(WorkspaceSelector.this, true);
@@ -521,39 +503,40 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 	}
 
 	private JButton mainWorkspaceButton(String text, ImageIcon icon, ActionListener event) {
-		JButton newWorkspace = new JButton(text);
-		ComponentUtils.deriveFont(newWorkspace, 13);
-		newWorkspace.setBackground(Theme.current().getBackgroundColor());
-		newWorkspace.setMargin(new Insets(14, 16, 14, 16));
-		newWorkspace.setIcon(icon);
-		newWorkspace.addActionListener(event);
-		newWorkspace.setVerticalTextPosition(SwingConstants.CENTER);
-		newWorkspace.setHorizontalTextPosition(SwingConstants.RIGHT);
-		newWorkspace.setHorizontalAlignment(SwingConstants.LEFT);
-		newWorkspace.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		return newWorkspace;
+		JButton button = new JButton(text);
+		button.setName("new-workspace");
+		button.setFont(button.getFont().deriveFont(Font.BOLD, 15f));
+		button.setBackground(ProductTheme.accent());
+		button.setForeground(new Color(ProductTheme.dark() ? 0x241a12 : 0xffffff));
+		button.setMargin(new Insets(14, 18, 14, 18));
+		button.setIcon(ProductTheme.monochrome(new ImageIcon(ImageUtils.resizeAA(icon.getImage(), 28, 28))));
+		button.setIconTextGap(16);
+		button.addActionListener(event);
+		button.setHorizontalAlignment(SwingConstants.LEFT);
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		return button;
 	}
 
-	/**
-	 * Adds a new "quick start" button to the main panel of the workspace selector.
-	 *
-	 * @param text  The text displayed by the button being added.
-	 * @param icon  The icon to be shown by the button being added.
-	 * @param event The action performed when the button is clicked.
-	 */
+	private static final class WelcomeViewport extends JPanel implements Scrollable {
+		WelcomeViewport() { super(new GridBagLayout()); }
+		@Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+		@Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 16; }
+		@Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) { return Math.max(16, visible.height - 32); }
+		@Override public boolean getScrollableTracksViewportWidth() { return true; }
+		@Override public boolean getScrollableTracksViewportHeight() { return getParent() != null && getParent().getHeight() > getPreferredSize().height; }
+	}
+
+	/** Keeps plugin-provided quick-start actions in the same keyboard-accessible list. */
 	public void addWorkspaceButton(String text, ImageIcon icon, ActionListener event) {
-		JButton workspaceButton = new JButton(text);
-		ComponentUtils.deriveFont(workspaceButton, 11);
-		workspaceButton.setBackground(Theme.current().getBackgroundColor());
-		workspaceButton.setMargin(new Insets(10, 16, 10, 16));
-		workspaceButton.setIcon(
-				ImageUtils.drawOver(new EmptyIcon.ImageIcon(45, 16), icon, 45 / 2 - 16 / 2 + 2, 0, 16, 16));
-		workspaceButton.addActionListener(event);
-		workspaceButton.setVerticalTextPosition(SwingConstants.CENTER);
-		workspaceButton.setHorizontalTextPosition(SwingConstants.RIGHT);
-		workspaceButton.setHorizontalAlignment(SwingConstants.LEFT);
-		workspaceButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		subactions.add(workspaceButton);
+		JButton button = new JButton(text);
+		button.setFont(button.getFont().deriveFont(13f));
+		button.setMargin(new Insets(8, 18, 8, 18));
+		button.setIcon(ProductTheme.monochrome(icon));
+		button.setIconTextGap(18);
+		button.addActionListener(event);
+		button.setHorizontalAlignment(SwingConstants.LEFT);
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		subactions.add(button);
 	}
 
 	private void initWebsitePanel() {

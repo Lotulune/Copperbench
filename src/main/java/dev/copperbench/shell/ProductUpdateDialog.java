@@ -21,14 +21,15 @@ public final class ProductUpdateDialog {
     private ProductUpdateDialog() {}
     public static void show(Window owner) {
         if (active != null && active.isDisplayable()) { active.toFront(); return; }
-        new Controller(owner, dev.copperbench.installer.UpdatePreparation::open, null).check();
+        new Controller(owner, dev.copperbench.installer.UpdatePreparation::open, null, true).check();
     }
     static void show(Window owner, dev.copperbench.installer.UpdatePreparation.ContentSource source, Runnable closeAction) {
-        new Controller(owner, source, closeAction).check();
+        new Controller(owner, source, closeAction, false).check();
     }
     private static final class Controller {
         private final dev.copperbench.installer.UpdatePreparation.ContentSource source;
         private final Runnable closeAction;
+        private final boolean sharedNotifications;
         private enum Stage { CHECKING, CURRENT, AVAILABLE, PREPARING, READY, FAILED }
         private Stage stage = Stage.CHECKING;
         private Throwable error;
@@ -45,16 +46,17 @@ public final class ProductUpdateDialog {
         private ProductUpdates.Available available;
         private Path prepared;
         private boolean busy;
-        Controller(Window owner, dev.copperbench.installer.UpdatePreparation.ContentSource source, Runnable closeAction) {
-            this.source = source; this.closeAction = closeAction;
-            this.owner = owner; dialog = new JDialog(owner, text("Copperbench 更新", "Copperbench updates")); active = dialog;
+        Controller(Window owner, dev.copperbench.installer.UpdatePreparation.ContentSource source, Runnable closeAction, boolean sharedNotifications) {
+            this.source = source; this.closeAction = closeAction; this.sharedNotifications = sharedNotifications;
+            this.owner = owner; dialog = new net.mcreator.ui.dialogs.MCreatorDialog(owner, text("Copperbench 更新", "Copperbench updates")); active = dialog;
             JPanel panel = new JPanel(new BorderLayout(0, 18)); panel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
             localeListener = ignored -> SwingUtilities.invokeLater(() -> { if (dialog.isDisplayable()) render(); });
             title.setFont(title.getFont().deriveFont(Font.BOLD, 18f)); panel.add(title, BorderLayout.NORTH);
             status.setEditable(false); status.setOpaque(false); status.setLineWrap(true); status.setWrapStyleWord(true); status.setFont(UIManager.getFont("Label.font"));
-            JPanel middle = new JPanel(new BorderLayout(0, 12)); middle.add(status, BorderLayout.CENTER); middle.add(progress, BorderLayout.SOUTH); panel.add(middle, BorderLayout.CENTER);
+            JPanel middle = new JPanel(new BorderLayout(0, 12)); JScrollPane statusScroll = new JScrollPane(status); statusScroll.setBorder(BorderFactory.createEmptyBorder()); statusScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER); middle.add(statusScroll, BorderLayout.CENTER); middle.add(progress, BorderLayout.SOUTH); panel.add(middle, BorderLayout.CENTER);
             JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0)); buttons.add(details); buttons.add(cancel); buttons.add(action); panel.add(buttons, BorderLayout.SOUTH);
             action.addActionListener(_ -> { if (prepared != null) install(); else if (available != null) download(); else check(); });
+            dialog.getRootPane().setDefaultButton(action);
             cancel.addActionListener(_ -> close());
             details.setName("update-error-details");
             details.addActionListener(_ -> {
@@ -75,7 +77,7 @@ public final class ProductUpdateDialog {
             begin(Stage.CHECKING);
             new SwingWorker<ProductUpdates.Available, Void>() {
                 @Override protected ProductUpdates.Available doInBackground() throws Exception {
-                    var release = ProductUpdates.check(source); return release.isPresent() ? ProductUpdates.inspect(release.get(), cancelled::get, source) : null;
+                    var release = sharedNotifications ? ProductUpdateNotifications.INSTANCE.check().get() : ProductUpdates.check(source); return release.isPresent() ? ProductUpdates.inspect(release.get(), cancelled::get, source) : null;
                 }
                 @Override protected void done() {
                     finish(); if (cancelled.get()) return;

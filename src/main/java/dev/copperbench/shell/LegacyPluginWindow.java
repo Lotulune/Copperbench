@@ -57,8 +57,8 @@ public final class LegacyPluginWindow implements AutoCloseable {
 		} catch (RuntimeException exception) {
 			LOG.error("Failed to open legacy plugin window", exception);
 			try {
-				JOptionPane.showMessageDialog(owner, "旧版插件窗口无法打开，主工作台可以继续使用。",
-						"插件窗口错误", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(owner, UiLocalePreferences.text("旧版插件窗口无法打开，主工作台可以继续使用。", "Could not open the legacy plugin window. You can continue using the workbench."),
+						UiLocalePreferences.text("插件窗口错误", "Plugin window error"), JOptionPane.ERROR_MESSAGE);
 			} catch (RuntimeException notificationFailure) {
 				LOG.warn("Failed to display legacy plugin window error", notificationFailure);
 			}
@@ -66,7 +66,7 @@ public final class LegacyPluginWindow implements AutoCloseable {
 	}
 
 	private JFrame createDialog() {
-		JFrame created = new JFrame("旧版插件窗口 - " + owner.getTitle());
+		JFrame created = new JFrame(UiLocalePreferences.text("旧版插件窗口 — ", "Legacy plugins — ") + owner.getTitle());
 		created.setName("legacy-plugin-window");
 		created.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		created.setIconImages(owner.getIconImages());
@@ -84,11 +84,11 @@ public final class LegacyPluginWindow implements AutoCloseable {
 		legacyToolBar.setVisible(true);
 
 		JLabel notice = new JLabel(
-				"C 级插件的 Swing 界面在此窗口中运行；关闭此窗口不会卸载插件。",
+				UiLocalePreferences.text("旧版插件在此窗口中运行。", "Legacy plugins run in this window."),
 				UIManager.getIcon("OptionPane.informationIcon"), SwingConstants.LEADING);
 		notice.setBorder(new EmptyBorder(8, 12, 8, 12));
 		notice.getAccessibleContext().setAccessibleDescription(
-				"旧版插件兼容窗口。关闭窗口只隐藏界面，不卸载插件。");
+				UiLocalePreferences.text("旧版插件兼容窗口。关闭窗口只隐藏界面，不卸载插件。", "Legacy plugin window. Closing it hides the interface without unloading plugins."));
 
 		JPanel header = new JPanel(new BorderLayout());
 		header.add(notice, BorderLayout.NORTH);

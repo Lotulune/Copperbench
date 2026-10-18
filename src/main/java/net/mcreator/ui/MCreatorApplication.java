@@ -118,7 +118,7 @@ public final class MCreatorApplication {
 		final SplashScreen splashScreen = new SplashScreen();
 
 		new Thread(() -> {
-			splashScreen.setProgress(5, "Loading plugins");
+			splashScreen.setProgress(5, dev.copperbench.shell.UiLocalePreferences.text("正在加载插件", "Loading plugins"));
 
 			PluginLoader.initInstance();
 
@@ -127,12 +127,12 @@ public final class MCreatorApplication {
 			// As plugins are now loaded, preferences from Java plugins can now be loaded
 			PreferencesManager.initNonCore();
 
-			splashScreen.setProgress(10, "Loading UI Themes");
+			splashScreen.setProgress(10, dev.copperbench.shell.UiLocalePreferences.text("正在加载界面主题", "Loading UI themes"));
 
 			// We load UI theme now as theme plugins are loaded at this point
 			ThemeManager.loadThemes();
 
-			splashScreen.setProgress(15, "Loading UI core");
+			splashScreen.setProgress(15, dev.copperbench.shell.UiLocalePreferences.text("正在加载界面核心", "Loading UI core"));
 
 			UIRES.preloadImages();
 
@@ -141,7 +141,7 @@ public final class MCreatorApplication {
 
 			taskbarIntegration = new TaskbarIntegration();
 
-			splashScreen.setProgress(25, "Loading interface components");
+			splashScreen.setProgress(25, dev.copperbench.shell.UiLocalePreferences.text("正在加载界面组件", "Loading interface components"));
 
 			// preload CEF into RAM so it loads faster when needed
 			WebView.preload();
@@ -152,19 +152,19 @@ public final class MCreatorApplication {
 			// load translations after plugins are loaded
 			L10N.initTranslations();
 
-			splashScreen.setProgress(35, "Loading plugin data");
+			splashScreen.setProgress(35, dev.copperbench.shell.UiLocalePreferences.text("正在加载插件数据", "Loading plugin data"));
 
 			// load datalists and icons for them after plugins are loaded
 			BlockItemIcons.init();
 			DataListLoader.preloadCache();
 
-			splashScreen.setProgress(45, "Building plugin cache");
+			splashScreen.setProgress(45, dev.copperbench.shell.UiLocalePreferences.text("正在建立插件缓存", "Building plugin cache"));
 
 			// load templates for image makers
 			ImageMakerTexturesCache.init();
 			ArmorMakerTexturesCache.init();
 
-			splashScreen.setProgress(55, "Loading plugin data");
+			splashScreen.setProgress(55, dev.copperbench.shell.UiLocalePreferences.text("正在加载插件数据", "Loading plugin data"));
 
 			// load apis defined by plugins after plugins are loaded
 			ModAPIManager.initAPIs();
@@ -176,7 +176,7 @@ public final class MCreatorApplication {
 			BlocklyJavaScriptsLoader.init();
 			BlocklyToolboxesLoader.init();
 
-			splashScreen.setProgress(60, "Processing plugin data");
+			splashScreen.setProgress(60, dev.copperbench.shell.UiLocalePreferences.text("正在处理插件数据", "Processing plugin data"));
 
 			// load blockly blocks after plugins are loaded
 			BlocklyLoader.init();
@@ -187,7 +187,7 @@ public final class MCreatorApplication {
 			// register mod element types
 			ModElementTypeLoader.loadModElements();
 
-			splashScreen.setProgress(70, "Loading generators");
+			splashScreen.setProgress(70, dev.copperbench.shell.UiLocalePreferences.text("正在加载生成器", "Loading generators"));
 
 			MCREvent.event(new PreGeneratorsLoadingEvent(this));
 
@@ -197,7 +197,7 @@ public final class MCreatorApplication {
 			int i = 0;
 			for (String generator : fileNames) {
 				splashScreen.setProgress(70 + i * ((90 - 70) / fileNames.size()),
-						"Loading generators: " + generator.split("/")[0]);
+						dev.copperbench.shell.UiLocalePreferences.text("正在加载生成器：", "Loading generators: ") + generator.split("/")[0]);
 				LOG.info("Loading generator: {}", generator);
 				generator = generator.replace("/generator.yaml", "");
 				try {
@@ -208,7 +208,7 @@ public final class MCreatorApplication {
 				i++;
 			}
 
-			splashScreen.setProgress(93, "Initiating user session");
+			splashScreen.setProgress(93, dev.copperbench.shell.UiLocalePreferences.text("正在初始化用户会话", "Starting user session"));
 
 			deviceInfo = new DeviceInfo();
 			isInternet = MCreatorApplication.WEB_API.initAPI();
@@ -221,7 +221,7 @@ public final class MCreatorApplication {
 			// Do not externalize this text
 			discordClient.updatePresence("Just opened", "Version " + Launcher.version.getMajorString());
 
-			splashScreen.setProgress(100, "Loading MCreator windows");
+			splashScreen.setProgress(100, dev.copperbench.shell.UiLocalePreferences.text("正在打开 Copperbench", "Opening Copperbench"));
 
 			try {
 				if (Desktop.getDesktop().isSupported(Desktop.Action.APP_ABOUT))

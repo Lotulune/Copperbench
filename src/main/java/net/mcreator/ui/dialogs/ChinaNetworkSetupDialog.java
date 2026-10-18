@@ -10,6 +10,8 @@
 package net.mcreator.ui.dialogs;
 
 import dev.copperbench.ProductIdentity;
+import dev.copperbench.shell.ProductDialogs;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 import dev.copperbench.network.ChinaMirrorService;
 import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.ui.component.util.ThreadUtil;
@@ -40,27 +42,15 @@ public final class ChinaNetworkSetupDialog {
 		MCreatorDialog dialog = new MCreatorDialog(parent, ProductIdentity.NAME, true);
 		dialog.setClosable(false);
 
-		JLabel message = new JLabel("""
-				<html>
-				<div style='width:460px'>
-				<h2>您是否在中国大陆？</h2>
-				<p>创建工作区时需要下载 Gradle 和 Maven 依赖。官方地址 <code>services.gradle.org</code> 在中国大陆经常很慢或超时。</p>
-				<p>选择“是”后，Copperbench 会帮你配置：</p>
-				<ul>
-				<li>Gradle 发行版 → 华为云镜像</li>
-				<li>Maven Central / Gradle Plugin Portal → 阿里云镜像</li>
-				<li>Minecraft 库（libraries.minecraft.net）→ BMCLAPI</li>
-				</ul>
-				<p>Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设置的 Gradle 页更改。</p>
-				<hr>
-				<h2>Are you in mainland China?</h2>
-				<p>Workspace setup downloads Gradle and Maven artifacts. Official <code>services.gradle.org</code> often times out on networks in China.</p>
-				<p>Choosing Yes configures Huawei Cloud for Gradle distributions, Aliyun for Maven Central / Plugin Portal, and BMCLAPI for Minecraft libraries.</p>
-				<p>Fabric Maven and NeoForge specialised repositories stay official. You can change this later in Preferences → Gradle.</p>
-				</div>
-				""");
-		message.setForeground(Theme.current().getForegroundColor());
-		message.setPreferredSize(new Dimension(520, 440));
+		JLabel heading = new JLabel(text("使用中国大陆下载镜像？", "Use download mirrors in mainland China?"));
+		heading.setFont(heading.getFont().deriveFont(Font.BOLD, 18f));
+		JTextArea message = ProductDialogs.body(text(
+				"镜像可改善中国大陆网络下的依赖下载速度。\n\n启用后，将使用：\nGradle 发行版：华为云\nMaven Central / Plugin Portal：阿里云\nMinecraft 库：BMCLAPI\n\nFabric 和 NeoForge 专用仓库继续使用官方地址。你可以随时在偏好设置 → Gradle 中更改。",
+				"Mirrors can improve dependency downloads on mainland China networks.\n\nWhen enabled, downloads use:\nGradle distributions: Huawei Cloud\nMaven Central / Plugin Portal: Aliyun\nMinecraft libraries: BMCLAPI\n\nFabric and NeoForge repositories keep their official addresses. Change this later in Preferences → Gradle."));
+		message.setColumns(42); message.setRows(12);
+		JScrollPane scroll = new JScrollPane(message);
+		scroll.setBorder(BorderFactory.createEmptyBorder());
+		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		JButton yes = new JButton(L10N.t("dialog.china_network.yes"));
 		JButton no = new JButton(L10N.t("dialog.china_network.no"));
@@ -81,7 +71,8 @@ public final class ChinaNetworkSetupDialog {
 		JPanel content = new JPanel(new BorderLayout(0, 16));
 		content.setOpaque(false);
 		content.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
-		content.add(message, BorderLayout.CENTER);
+		content.add(heading, BorderLayout.NORTH);
+		content.add(scroll, BorderLayout.CENTER);
 		content.add(buttons, BorderLayout.SOUTH);
 
 		dialog.add(content);
@@ -90,6 +81,9 @@ public final class ChinaNetworkSetupDialog {
 		else
 			dialog.getRootPane().setDefaultButton(no);
 		dialog.pack();
+		Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		dialog.setSize(Math.min(dialog.getWidth(), screen.width - 64), Math.min(dialog.getHeight(), screen.height - 64));
+		dialog.setResizable(true);
 		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
 	}

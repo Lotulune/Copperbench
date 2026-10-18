@@ -33,6 +33,7 @@ final class InstallerWindow extends JFrame {
     private JButton install, cancel;
     private JProgressBar progress;
     private BufferedImage landscape;
+    private BufferedImage productIcon;
 
     InstallerWindow(Map<String, String> options) {
         super("Copperbench");
@@ -40,7 +41,8 @@ final class InstallerWindow extends JFrame {
         uninstall = options.containsKey("uninstall");
         try {
             landscape = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/landscape.png")));
-            setIconImage(ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/icon.png"))));
+            productIcon = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/icon.png")));
+            setIconImage(productIcon);
             if (!options.containsKey("preview")) existing = PlatformInstall.detect();
             if (existing != null) location = existing.path().toString();
             if (uninstall) location = InstallerMain.ownJar().getParent().toString();
@@ -86,7 +88,12 @@ final class InstallerWindow extends JFrame {
         root = new JPanel(new BorderLayout()); root.setBackground(bg());
         root.setBorder(new CompoundBorder(new MatteBorder(3, 1, 1, 1, copper()), new EmptyBorder(20, 24, 24, 24)));
         JPanel header = panel(new BorderLayout(20, 0)); header.setBorder(new EmptyBorder(0, 0, 20, 0));
-        header.add(label("Copperbench", 25, copper(), true), BorderLayout.WEST);
+        JLabel brand = label("Copperbench", 25, copper(), true);
+        if (productIcon != null) {
+            brand.setIcon(new ImageIcon(productIcon.getScaledInstance(42, 42, Image.SCALE_SMOOTH)));
+            brand.setIconTextGap(12);
+        }
+        header.add(brand, BorderLayout.WEST);
         JPanel choices = panel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         JComboBox<String> languages = new JComboBox<>(new String[]{"简体中文", "English"});
         languages.setSelectedIndex(locale.equals("zh") ? 0 : 1); languages.setEnabled(!running);

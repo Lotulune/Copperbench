@@ -1,6 +1,9 @@
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
+  --update-bg: #21384c;
+  --update-text: #b8dcff;
+  --update-border: #3b5e7b;
   --bg-base: #191a19;
   --bg-surface: #1c1d1c;
   --bg-panel: #242624;
@@ -63,6 +66,9 @@
 }
 
 [data-theme="light"] {
+  --update-bg: #eaf4ff;
+  --update-text: #245d8f;
+  --update-border: #c2dcf3;
   color-scheme: light;
   --bg-base: #ffffff;
   --bg-surface: #ffffff;

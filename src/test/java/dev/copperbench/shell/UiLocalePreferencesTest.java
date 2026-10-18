@@ -42,4 +42,12 @@ class UiLocalePreferencesTest {
         assertThrows(java.io.IOException.class, () -> UiLocalePreferences.save(blocker.resolve("ui-language.txt"), "en"));
         assertEquals("keep", Files.readString(blocker));
     }
+
+    @Test void automaticDetectionNeverTurnsTheSystemLanguageIntoAnExplicitPreference() {
+        Path preference = directory.resolve("ui-language.txt");
+        assertEquals("zh", UiLocalePreferences.read(preference, null, Locale.SIMPLIFIED_CHINESE));
+        assertFalse(Files.exists(preference));
+        assertEquals("en", UiLocalePreferences.read(preference, null, Locale.US));
+        assertFalse(Files.exists(preference));
+    }
 }

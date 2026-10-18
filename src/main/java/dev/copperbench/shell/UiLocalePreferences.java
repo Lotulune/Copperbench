@@ -70,11 +70,6 @@ public final class UiLocalePreferences {
         LISTENERS.forEach(listener -> listener.accept(locale));
     }
 
-    public static void initialize() throws IOException {
-        Path path = UserFolderManager.getFileFromConfigFolder("ui-language.txt").toPath();
-        if (readSupported(path) == null) save(path, read());
-    }
-
     public static void addListener(Consumer<String> listener) { LISTENERS.add(listener); }
     public static void removeListener(Consumer<String> listener) { LISTENERS.remove(listener); }
 
