@@ -110,7 +110,13 @@ tasks.register('installerJar', Jar) {
     from('LICENSE.txt')
     from('LICENSE-ADDITIONAL-TERMS.md')
     from('src/main/resources/net/mcreator/ui/res/icon.png')
-    manifest { attributes('Main-Class': 'dev.copperbench.installer.InstallerMain') }
+    from('compliance/THIRD_PARTY_NOTICES.md')
+    from({ configurations.installerRuntimeClasspath.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF', 'module-info.class', 'META-INF/versions/**/module-info.class'
+        exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA'
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest { attributes('Main-Class': 'dev.copperbench.installer.InstallerMain', 'Enable-Native-Access': 'ALL-UNNAMED') }
 }
 
 // Tooling API transports ordinary -D properties after daemon startup. The tiny
@@ -236,6 +242,7 @@ dependencies {
 
     implementation "com.github.weisj:jsvg:2.1.0"
     implementation "com.formdev:flatlaf:3.7.1:no-natives"
+    installerImplementation "com.formdev:flatlaf:3.7.1"
     implementation("com.formdev:flatlaf-extras:3.7.1") {
         dep -> exclude group: 'com.formdev', module: 'flatlaf'
     }

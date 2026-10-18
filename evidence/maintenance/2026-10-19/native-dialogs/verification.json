@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19",
+  "baseCommit": "1fc74e93f1014c0f7f6d0892b96cd7b83bb78123",
+  "candidateVersion": "0.1.11",
+  "status": "passed",
+  "scope": "Native Java dialog presentation and packaging fixture; not installed-product acceptance",
+  "setupJar": {
+    "path": "build/installer/copperbench-setup.jar",
+    "sha256": "fa5070669292c7bdd5ae4ad92eff5757fdf2f76a2c0872136a4af83c54b6efc7"
+  },
+  "checks": {
+    "focusedJavaInitial": 14,
+    "focusedJavaFinal": 8,
+    "javadoc": "passed",
+    "productionUiBuild": "passed",
+    "uiCore": 50,
+    "uiUnit": 68,
+    "installerInteractions": "passed",
+    "brandAssets": 23,
+    "fixtureExeIconMaxDifference": 0
+  },
+  "unverified": [
+    "Real installation/upgrade/uninstallation",
+    "OS registration",
+    "Minecraft gameplay"
+  ],
+  "sources": [
+    {
+      "path": "build.gradle",
+      "sha256": "e58148a838a590c891000de705d27cd09def78aeff634e1cb460ba7884017e76"
+    },
+    {
+      "path": "platform/installer/build.mjs",
+      "sha256": "85bd8b4a3fdfd13c568d526835333d932478584298689087c0b860588de00341"
+    },
+    {
+      "path": "platform/installer/README.md",
+      "sha256": "dbc54147776f3f2139e37be3b2dfb2c3475fd48802a8a0698bd61bc05f15b478"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/InstallerMain.java",
+      "sha256": "d0206da58ff86c8250b4a381f487e4ac30bdea0ec5502d438c4a8177edcc6342"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/InstallerWindow.java",
+      "sha256": "3c82c0d1ffca1c63703ea81514742697224bac097495d2a358a5f3a77ebea7df"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/UpdateInstaller.java",
+      "sha256": "4802b4e0aa953e9bab98e89607252a50e8e42c17b950271bf5911df5c24643c9"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/UpdateInstallerWindow.java",
+      "sha256": "8efef5e4b2373eb2fe950e9d8a79a0f67b40f284bea3b2ea61a7b1ade3453d88"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/UpdateUiMessages.java",
+      "sha256": "b9d26aa495c3a9aaedbaa54b05b212bd8de3b3a3459d972718fb4ace85a66537"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/ui/NativeDialogs.java",
+      "sha256": "ff117531d6a4e136401e3928444e8fa834c1fa580de09c87538be7eb45ff61f0"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/ui/NativeDialogTheme.java",
+      "sha256": "bcbb8cc77b635c723592ed85507a8c5a1b479eb08f04be982f501334865794b9"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/ui/NativeOptionPaneUI.java",
+      "sha256": "aae94ac66b85aac638819264c180a290756ddcec37418cfe16d5305c25708fa3"
+    },
+    {
+      "path": "platform/installer/test/InstallerInteractionTest.java",
+      "sha256": "8789199d1488ebae1ca385b6709b6a43ba316d0eed01f2b56d498b8668a9da3b"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/release/ProductUpdates.java",
+      "sha256": "a6d0ed968bfdf500447052e7c061685a2bfddd943b1981c486e6507a859d47ad"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/shell/ProductDialogs.java",
+      "sha256": "14ad3bd10b8adb367a90b38e64c3ec443d96c8e7238d01d02db0ef791b33cfee"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/shell/ProductTheme.java",
+      "sha256": "7f99916b875b9ed7dbf2683e81b662156db8caeb749c7c04ab2fdb054deac584"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/shell/ProductUpdateDialog.java",
+      "sha256": "e05fbaa00f61e84dd43c7ca478c0b5dd4a3bd6b5fefd269453ce2bfd66243444"
+    },
+    {
+      "path": "src/main/java/net/mcreator/ui/dialogs/ProgressDialog.java",
+      "sha256": "718dcfbcb91c8126a19921befcdcc77b270e852101a19c63e94d40fba478b206"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/installer/NativeDialogPresentationTest.java",
+      "sha256": "f2055b8e7effde2df2001ea859d21a6b7865377c2342685cdf5abef1612db64b"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/installer/UpdateUiMessagesTest.java",
+      "sha256": "e4e380b9616fdb2b012d82b9c7fe572b285e9a056ea828332293d6a9b42efc19"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/installer/UpdateWorkerLocaleFixture.java",
+      "sha256": "78e178a95073ff0da548ba0de8a6c7fc37a8d9f4502b03c615ab254e707c89a0"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/release/ProductUpdatesTest.java",
+      "sha256": "8052bf93c54f65db1ccbbcf658afcc68bc2a6b8e57807696e6c7faca55af63c0"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/shell/StartupLayoutFixture.java",
+      "sha256": "59b3c5b796de0ebe246d48927563c494c3abc94c34082909715fc1b6f3512c5b"
+    }
+  ],
+  "corePreviewClasses": [
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductDialogs.class",
+      "sha256": "013a1f69948d7ef01e5f0080cbc143be2c57adab06867fe76872b8b2671d132a"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductShellSettings.class",
+      "sha256": "88e47915ea3e876bd613a3cf4dc24c6c9bf5fa6bb9c3e79d5477f70620511968"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductTheme.class",
+      "sha256": "d74b559e84c75ff75499e104f5f3e28248244d257f85b0e318814e268930b4f1"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductTheme$1.class",
+      "sha256": "349ebbd99a76260b386fa3516b5b0b24f61375dbcca424a560b6ce7d23d72f1b"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateButton.class",
+      "sha256": "602f35a5a3753af12e0f46f2f82e92870fa7dcf22d5f92bf1b7b48d585d868e3"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateDialog.class",
+      "sha256": "3ce306fe489a789b9fadc5f1658bd348a63281ff9931ae83238f7500b9cfbd4d"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateDialog$Controller.class",
+      "sha256": "a621884e276176d49a5a181f16f771a45a2e7f166aff1a2f75cf6ac75c730db9"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateDialog$Controller$1.class",
+      "sha256": "64824651526308df396c92b8c382f3472a1f70d21abee1bfd20b741e775bedb0"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateDialog$Controller$2.class",
+      "sha256": "dea508103091efc587660698f51561c0fe641c5eec490fa09ec3d85d83a24d9e"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateDialog$Controller$3.class",
+      "sha256": "0aa1ecca61d17850af3cb8b8918d62a178e8b9714dc6b504bf82d1e7ec22ffa1"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateDialog$Controller$Stage.class",
+      "sha256": "765b382bea3ee32c00efa56f047d17d79174cbc6e3bc71cfea68cf56d494aca7"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/shell/ProductUpdateNotifications.class",
+      "sha256": "227717dd677f31be2b92f828bd8f61aedc7d77745ce4359940a55f096c6faa8b"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog.class",
+      "sha256": "82c58559172577e0639623f119020ff5f70f8dd4287a45dca6e68dafacc08e58"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog$1.class",
+      "sha256": "eda875fadfc7a1cdd63c5fb2908a317d59d83bcd15454bd5d3652b08cee3b261"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog$2.class",
+      "sha256": "6ee4bc5b1893c5feb1a8807e7ba7fd4efed63085d1b8df98f71e0ecd07220dde"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog$3.class",
+      "sha256": "baaa97d1fc5054aa698260cd0cc39c103198d5558b2f61690728a9b65a2eac74"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog$ProgressUnit.class",
+      "sha256": "994c53e5795d676f300a4e1dd2b805e53ea14a7eadea7d3b350704d2e492ec66"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog$ProgressUnit$Status.class",
+      "sha256": "9dd2fa1f98240d8b5fccf7eed629a843ba296dffa0163c3975e4d191fafb6d7d"
+    },
+    {
+      "path": "build/classes/java/main/net/mcreator/ui/dialogs/ProgressDialog$Render.class",
+      "sha256": "a01e44ca03f4ae45463eb382e2cf584b8a3ace6866b4d246fbfdaa09d257084e"
+    },
+    {
+      "path": "build/classes/java/test/dev/copperbench/shell/StartupLayoutFixture.class",
+      "sha256": "696c32fa4b70c43e5b63e78f2b85afa5eeda37e709987e234405069a674bcc70"
+    },
+    {
+      "path": "build/classes/java/test/dev/copperbench/shell/StartupLayoutFixture$1.class",
+      "sha256": "82c1ac9c84b5eaa68e6153d98f8355cdd496b301d97814c05b1f7e54a268277b"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "core-progress-zh-dark.png",
+      "sha256": "463f9a951aa73f958589728e60492dd47224cea5355639a44dfc4f64e744b54c"
+    },
+    {
+      "path": "core-zh-dark-1.25.launch.json",
+      "sha256": "535636a1f3739d7176e24f887067948558ac6185e192d2194edb1398d6c8782e"
+    },
+    {
+      "path": "details-zh-dark-1.25.launch.json",
+      "sha256": "482566c676293f235b943026e34e9ba224342bd799770ae359e1a7a6040638db"
+    },
+    {
+      "path": "details-zh-dark.png",
+      "sha256": "80cf426060e7597d7468e303e3e5afe203b223636a98100be8301301f5627f71"
+    },
+    {
+      "path": "error-zh-dark-1.25.launch.json",
+      "sha256": "adb1b3b55adc3cfe37da6251c6371ac352f4355912b847ffe11e09462ff95a80"
+    },
+    {
+      "path": "installer-en-light-2.launch.json",
+      "sha256": "824092e8b02ade1848e11ffd513e62e61a03396320d33695285f8b13f76047e3"
+    },
+    {
+      "path": "installer-en-light-200.png",
+      "sha256": "98a0eaa6a797c26204333a30ccf7adc4b18c5d6c600f1ecdd08dd9c1eb9b7610"
+    },
+    {
+      "path": "installer-interaction.log",
+      "sha256": "469d821bc95fde8c0a957507b45960a2b4b2ef5c6bc13fe505ffc2f02228b11e"
+    },
+    {
+      "path": "java-final.log",
+      "sha256": "634ca5a7b3f07ae5ea90ae3bf06db2f606e3434bfe82012c03b193b53fac0977"
+    },
+    {
+      "path": "java-release-checks.log",
+      "sha256": "97cd0c421011167bd2cce9caee4cd70ff44795b199385cda953ffa1b974f64e5"
+    },
+    {
+      "path": "license-en-light-200.png",
+      "sha256": "80cf6a8952880d972edc1cd69f67bd35977f3c11c62fcfc9630be33cc9ef5794"
+    },
+    {
+      "path": "package-brand.json",
+      "sha256": "7c9791a5b12f5671207ec8e794c0286b561a7328b52d53187671ef3e0cbd2668"
+    },
+    {
+      "path": "package-build.log",
+      "sha256": "0d7bd3b1a75f0f731f66935f86b7fa0af38cd28a9ca5b41c78fb3fd4da27fd9b"
+    },
+    {
+      "path": "previous-release.json",
+      "sha256": "1b98d70134167c30e8e72f076cef2b9603ab2dec1e948750fa776e9524420f9f"
+    },
+    {
+      "path": "progress-en-dark-2.launch.json",
+      "sha256": "d708d0816a3b978f2daf32c8197b25bff8eab894cd7a21f13fa581ebf7844cba"
+    },
+    {
+      "path": "ui-core.log",
+      "sha256": "67e966910cd849a717ec5dfb2f2bf25c1c4c1e1e03ef04f34d20e610a371aa64"
+    },
+    {
+      "path": "ui-unit.log",
+      "sha256": "74d2787af35e4d7263007e27b1aad9bf10ee2aef7f5bbd13d836aad268c110e4"
+    },
+    {
+      "path": "update-error-zh-dark.png",
+      "sha256": "ef30a047b30dd40a5a20367ee504eb04d7392fbee79db9d94d4a60c743060a87"
+    },
+    {
+      "path": "update-progress-en-dark-200.png",
+      "sha256": "8c87ce00767126f42ea59eb9276b596879fd2c87066511867e2e75034bee94ce"
+    },
+    {
+      "path": "update-waiting-zh-light.png",
+      "sha256": "bede992f13c30c7de4b1b30f3ed48513243ffd10d219a27254f3c45859255275"
+    },
+    {
+      "path": "waiting-zh-light-1.25.launch.json",
+      "sha256": "1c8c3eb93e105186251648e44072018d372c387e3b5d1b354935257688707235"
+    }
+  ]
+}

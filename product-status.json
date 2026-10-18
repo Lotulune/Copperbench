@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,17 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.10",
+      "tag": "v0.1.11",
       "linuxTag": "v0.1.9-linux-stable",
       "status": "ready",
       "linuxStatus": "public-stable",
       "decision": "approved",
-      "decisionDate": "2026-10-18",
-      "scope": "Requested Windows 0.1.10 release for component updates, localized startup/dialogs, desktop motion, native outer-window rounding and unified branding. Focused source checks and a complete-payload file lifecycle rehearsal passed; final-main CI and public release packaging are pending. Linux remains public at 0.1.9; historical installed-product and gameplay evidence retains its original source/binary scope.",
+      "decisionDate": "2026-10-19",
+      "scope": "Corrective Windows release for the native dialogs missed by 0.1.10: shared themes, product identity, localized controls, truthful update progress and bounded content. Final source CI and release packaging are pending. Linux remains public at 0.1.9; historical installed-product and gameplay evidence keeps its original scope.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.10.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.10.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-18/display-brand-0110/previous-release-state.json",
+      "developmentEvidence": "docs/testing/native-dialogs-2026-10-19.md",
+      "integrationReport": "docs/testing/native-dialogs-2026-10-19.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-19/native-dialogs/previous-release.json",
       "sourceVerification": {
         "requiredCi": {
           "status": "pending"
@@ -53,13 +53,9 @@
         "documentation": {
           "status": "pending"
         },
-        "installedPackageAcceptance": "pending-final-public-package",
+        "installedPackageAcceptance": "not-repeated",
         "fullGameplayAcceptance": "not-repeated",
-        "localCandidate": {
-          "sourceCommit": "4f6335e15875d5ba7b2dc5f67861b7a20352168f",
-          "verification": "evidence/maintenance/2026-10-18/display-brand-0110/verification.json",
-          "scope": "Focused source checks, final installer icon validation and complete-payload file lifecycle; no OS registration or application/game launch in that rehearsal"
-        }
+        "nativeUiEvidence": "docs/testing/native-dialogs-2026-10-19.md"
       }
     },
     "linuxMaintenanceRelease": {

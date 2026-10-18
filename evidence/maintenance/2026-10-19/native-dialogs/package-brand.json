@@ -1,0 +1,9 @@
+{
+  "product": "Copperbench",
+  "status": "passed",
+  "assetsChecked": 23,
+  "packageChecked": false,
+  "installerIconChecked": true,
+  "installerIconMaxDifference": 0,
+  "failures": []
+}

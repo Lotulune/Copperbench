@@ -23,6 +23,22 @@ public final class StartupLayoutFixture {
         PluginLoader.initInstance(); ThemeManager.loadThemes(); UIRES.preloadImages(); ThemeManager.applySelectedTheme(); L10N.initTranslations();
         SwingUtilities.invokeLater(() -> {
             if (args.length > 2 && args[2].equals("switch-dark")) ThemeManager.synchronizeProductAppearance(true);
+            if (args.length > 1 && args[1].equals("progress")) {
+                var dialog = new net.mcreator.ui.dialogs.ProgressDialog(null,
+                        UiLocalePreferences.text("Copperbench 工作区准备", "Copperbench workspace preparation"));
+                dialog.setTitle("Copperbench Native Check — core progress / " + (args.length > 0 ? args[0] : "zh"));
+                dialog.setClosable(true); dialog.setModal(false);
+                var copy = new net.mcreator.ui.dialogs.ProgressDialog.ProgressUnit(UiLocalePreferences.text("正在准备项目文件", "Preparing project files"));
+                copy.setDetail("C:/Copperbench/" + "very-long-workspace-directory/".repeat(8) + "generated-resources.json");
+                dialog.addProgressUnit(copy); copy.setPercent(42);
+                var done = new net.mcreator.ui.dialogs.ProgressDialog.ProgressUnit(UiLocalePreferences.text("资源索引已完成", "Resource indexing completed"));
+                dialog.addProgressUnit(done); done.markStateOk();
+                var warning = new net.mcreator.ui.dialogs.ProgressDialog.ProgressUnit(UiLocalePreferences.text("需要检查资源引用", "Check resource references"));
+                warning.setDetail(UiLocalePreferences.text("发现缺失的纹理引用。请在资源管理器中检查对应文件后重试。", "A referenced texture is missing. Review the resource file and retry."));
+                dialog.addProgressUnit(warning); warning.markStateWarning();
+                dialog.addWindowListener(new java.awt.event.WindowAdapter() { @Override public void windowClosed(java.awt.event.WindowEvent event) { System.exit(0); } });
+                dialog.setVisible(true); return;
+            }
             if (args.length > 1 && args[1].equals("splash")) {
                 net.mcreator.ui.SplashScreen splash = new net.mcreator.ui.SplashScreen();
                 splash.setProgress(25, UiLocalePreferences.text("正在加载界面组件", "Loading interface components"));

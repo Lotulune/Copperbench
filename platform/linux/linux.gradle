@@ -188,7 +188,8 @@ tasks.register('buildInstallerLinux64', Exec.class) {
     dependsOn exportLinux64
     onlyIf { Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC) }
     commandLine 'node', 'platform/installer/build.mjs', '--platform', 'linux',
-            '--version', project.productVersion, '--payload', 'build/export/linux64'
+            '--version', project.productVersion, '--payload', 'build/export/linux64',
+            '--installer-jar', 'build/installer/copperbench-setup.jar'
 }
 
 tasks.register('exportLinux') {

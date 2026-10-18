@@ -12,20 +12,17 @@ const version = option('--version');
 if (!['windows', 'linux'].includes(platform) || !/^\d+\.\d+\.\d+$/.test(version ?? '') || version.split('.').some(p => +p > 65535)) throw new Error('Use windows/linux and a numeric three-part version (each <=65535).');
 const work = join(root, 'build/unified-installer', platform);
 if (!work.startsWith(join(root, 'build/unified-installer') + sep)) throw new Error('Invalid staging directory');
-rmSync(work, { recursive: true, force: true }); mkdirSync(join(work, 'classes'), { recursive: true });
-const host = process.platform === 'win32' ? 'win' : 'linux', suffix = process.platform === 'win32' ? '.exe' : '';
-const java = resolve(option('--jdk', join(root, `jdk/jbr25_${host}_64`)));
+const compiledJar = option('--installer-jar');
+if (!compiledJar || args.includes('--compile-only')) throw new Error('Build the themed wizard with Gradle installerJar, then pass --installer-jar build/installer/copperbench-setup.jar.');
+const jarSource = resolve(compiledJar);
+if (jarSource.startsWith(work + sep) || !statSync(jarSource).isFile()) throw new Error('The compiled installer JAR must be outside the staging directory.');
+rmSync(work, { recursive: true, force: true }); mkdirSync(work, { recursive: true });
 function run(program, argv, cwd = root) {
   const result = spawnSync(program, argv, { cwd, stdio: 'inherit', windowsHide: true });
   if (result.error || result.status !== 0) throw new Error(`${basename(program)} failed: ${result.error?.message ?? result.status}`);
 }
-function files(dir, predicate) { return readdirSync(dir, { withFileTypes: true }).flatMap(item => item.isDirectory() ? files(join(dir, item.name), predicate) : predicate(item.name) ? [join(dir, item.name)] : []); }
-run(join(java, `bin/javac${suffix}`), ['--release', '17', '-encoding', 'UTF-8', '-d', join(work, 'classes'), ...files(join(source, 'src'), name => name.endsWith('.java'))]);
-for (const [from, to] of [[join(source, 'assets/landscape.png'), 'landscape.png'], [join(root, 'LICENSE.txt'), 'LICENSE.txt'], [join(root, 'LICENSE-ADDITIONAL-TERMS.md'), 'LICENSE-ADDITIONAL-TERMS.md'], [join(root, 'src/main/resources/net/mcreator/ui/res/icon.png'), 'icon.png']]) copyFileSync(from, join(work, 'classes', to));
 const jar = join(work, 'copperbench-setup.jar');
-const jarTool = existsSync(join(java, `bin/jar${suffix}`)) ? join(java, `bin/jar${suffix}`) : join(root, `jdk/jdk21_${host}_64/bin/jar${suffix}`);
-run(jarTool, ['--create', '--file', jar, '--main-class', 'dev.copperbench.installer.InstallerMain', '-C', join(work, 'classes'), '.']);
-if (args.includes('--compile-only')) { console.log(jar); process.exit(0); }
+copyFileSync(jarSource, jar);
 const payload = resolve(option('--payload', join(root, 'build/export', platform === 'windows' ? 'win64' : 'linux64')));
 if (!existsSync(payload)) throw new Error(`Application payload missing: ${payload}`);
 async function digest(path) { const hash = createHash('sha256'); for await (const chunk of createReadStream(path)) hash.update(chunk); return hash.digest('hex'); }

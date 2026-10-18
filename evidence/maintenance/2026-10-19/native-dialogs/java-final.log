@@ -1,0 +1,49 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Directory 'C:\Users\Administrator\.codex\worktrees\display-brand-0110\Minecraft_ModCreator\jdk\jbr25_mac_x64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Directory 'C:\Users\Administrator\.codex\worktrees\display-brand-0110\Minecraft_ModCreator\jdk\jbr25_mac_aarch64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Path for java installation 'D:\AICoding\Minecraft_ModCreator\jdk\jbr25_linux_64' (Gradle property 'org.gradle.java.installations.paths') does not contain a java executable
+
+> Task :compileInstallerJava
+> Task :processInstallerResources NO-SOURCE
+> Task :installerClasses
+> Task :installerJar
+> Task :compileGradleBridgeJava UP-TO-DATE
+> Task :processGradleBridgeResources NO-SOURCE
+> Task :gradleBridgeClasses UP-TO-DATE
+> Task :localIpcAgentJar UP-TO-DATE
+> Task :compileJava UP-TO-DATE
+> Task :buildUiShell UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+
+> Task :test
+
+NativeDialogPresentationTest > standaloneWindowsKeepThemeIdentityAndHonestProgressAcrossLanguages() PASSED
+
+UpdateUiMessagesTest > independentChineseWorkerOverridesEnglishJvmDialogDefaults() PASSED
+
+UpdateUiMessagesTest > chineseFailuresDescribeTheActionWithoutExposingRawEnglishOnTheMainSurface() PASSED
+
+UpdateUiMessagesTest > nestedNetworkErrorsAndEnglishRemainActionable() PASSED
+
+ProductUpdatesTest > refusesAnAssetOutsideTheSelectedOfficialRelease() PASSED
+
+ProductUpdatesTest > usesNumericStableVersionsAndSeparatesLinuxAndWindows() PASSED
+
+ProductUpdatesTest > launchUsesTheLatestUiLanguageAndThemeAndKeepsThePreparedTarget() PASSED
+
+ReleaseManifestTest > officialManifestMatchesTheUiCoreFixtureAndCatalog() PASSED
+
+> Task :javadoc
+> Task :writeNativeDialogClasspath
+
+BUILD SUCCESSFUL in 54s
+12 actionable tasks: 6 executed, 6 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
+externalGradleLog=C:\Users\Administrator\.codex\worktrees\display-brand-0110\Minecraft_ModCreator\.tmp\gradle-external\a48079d659d34d4b954d99ada502ef97.log

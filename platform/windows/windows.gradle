@@ -144,7 +144,8 @@ tasks.register('buildInstallerWin64', Exec.class) {
     dependsOn downloadNSIS
     dependsOn exportWin64
     commandLine 'node', 'platform/installer/build.mjs', '--platform', 'windows',
-            '--version', project.productVersion, '--payload', 'build/export/win64'
+            '--version', project.productVersion, '--payload', 'build/export/win64',
+            '--installer-jar', 'build/installer/copperbench-setup.jar'
     doLast {
         signFile(file('build/export/' + project.productName + ' ' + project.productVersion + ' Windows 64bit.exe'))
     }

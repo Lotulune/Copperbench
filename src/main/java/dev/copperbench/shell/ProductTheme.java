@@ -31,34 +31,6 @@ public final class ProductTheme {
         };
     }
     public static void apply(boolean dark) {
-        Color surface = new Color(dark ? 0x1c1d1c : 0xffffff);
-        Color panel = new Color(dark ? 0x242624 : 0xf7f7f6);
-        Color foreground = new Color(dark ? 0xe6e8e2 : 0x262923);
-        for (String key : new String[]{"Panel", "OptionPane", "Viewport", "ScrollPane", "TextArea", "List", "Table"}) {
-            UIManager.put(key + ".background", surface);
-            UIManager.put(key + ".foreground", foreground);
-        }
-        for (String key : new String[]{"Label", "Button", "CheckBox", "RadioButton", "TabbedPane", "TextField", "EditorPane", "TextPane"})
-            UIManager.put(key + ".foreground", foreground);
-        UIManager.put("Button.background", panel);
-        UIManager.put("TextField.background", panel);
-        UIManager.put("TitlePane.background", panel);
-        UIManager.put("TitlePane.foreground", foreground);
-        UIManager.put("TitlePane.inactiveBackground", panel);
-        UIManager.put("TitlePane.inactiveForeground", foreground);
-        UIManager.put("Button.arc", 8);
-        UIManager.put("Component.arc", 8);
-        UIManager.put("Component.focusWidth", 1);
-        UIManager.put("Component.focusColor", accent());
-        for (String key : new String[]{"Component.focusedBorderColor", "Button.focusedBorderColor", "Button.default.focusColor", "Button.default.focusedBorderColor"})
-            UIManager.put(key, accent());
-        UIManager.put("Component.borderColor", new Color(dark ? 0x42463e : 0xd8ddd6));
-        UIManager.put("Button.default.background", accent());
-        UIManager.put("Button.default.foreground", new Color(dark ? 0x241a12 : 0xffffff));
-        UIManager.put("OptionPane.sameSizeButtons", false);
-        UIManager.put("OptionPane.buttonPadding", 12);
-        UIManager.put("OptionPane.messagePadding", 16);
-        UIManager.put("OptionPane.border", BorderFactory.createEmptyBorder(20, 24, 16, 24));
-        UIManager.put("OptionPaneUI", ProductOptionPaneUI.class.getName());
+        dev.copperbench.ui.NativeDialogTheme.apply(dark);
     }
 }

@@ -38,7 +38,7 @@ public final class ProductUpdateDialog {
         private final JButton details = new JButton();
         private final Window owner;
         private final JDialog dialog;
-        private final JTextArea status = new JTextArea(5, 38);
+        private final JTextArea status = dev.copperbench.ui.NativeDialogs.body("");
         private final JProgressBar progress = new JProgressBar(0, 100);
         private final JButton action = new JButton(text("检查更新", "Check for updates"));
         private final JButton cancel = new JButton(text("关闭", "Close"));
@@ -52,7 +52,7 @@ public final class ProductUpdateDialog {
             JPanel panel = new JPanel(new BorderLayout(0, 18)); panel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
             localeListener = ignored -> SwingUtilities.invokeLater(() -> { if (dialog.isDisplayable()) render(); });
             title.setFont(title.getFont().deriveFont(Font.BOLD, 18f)); panel.add(title, BorderLayout.NORTH);
-            status.setEditable(false); status.setOpaque(false); status.setLineWrap(true); status.setWrapStyleWord(true); status.setFont(UIManager.getFont("Label.font"));
+            status.setRows(5); status.setColumns(38);
             JPanel middle = new JPanel(new BorderLayout(0, 12)); JScrollPane statusScroll = new JScrollPane(status); statusScroll.setBorder(BorderFactory.createEmptyBorder()); statusScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER); middle.add(statusScroll, BorderLayout.CENTER); middle.add(progress, BorderLayout.SOUTH); panel.add(middle, BorderLayout.CENTER);
             JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0)); buttons.add(details); buttons.add(cancel); buttons.add(action); panel.add(buttons, BorderLayout.SOUTH);
             action.addActionListener(_ -> { if (prepared != null) install(); else if (available != null) download(); else check(); });
@@ -62,8 +62,7 @@ public final class ProductUpdateDialog {
             details.addActionListener(_ -> {
                 if (error == null) return;
                 String close = text("关闭", "Close");
-                ProductDialogs.show(dialog, UpdateUiMessages.details(error), text("更新错误详情", "Update error details"),
-                        JOptionPane.INFORMATION_MESSAGE, new Object[]{close}, close);
+                dev.copperbench.ui.NativeDialogs.details(dialog, UpdateUiMessages.details(error), text("更新错误详情", "Update error details"), close);
             });
             dialog.addWindowListener(new WindowAdapter() {
                 @Override public void windowClosing(WindowEvent e) { close(); }
@@ -71,7 +70,7 @@ public final class ProductUpdateDialog {
             });
             dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); dialog.setContentPane(panel); render(); dialog.pack();
             UiLocalePreferences.addListener(localeListener);
-            dialog.setMinimumSize(dialog.getSize()); dialog.setResizable(true); dialog.setLocationRelativeTo(owner); dialog.setVisible(true);
+            dialog.setResizable(true); dev.copperbench.ui.NativeDialogs.fit(dialog, owner); dialog.setVisible(true);
         }
         private void check() {
             begin(Stage.CHECKING);
@@ -147,7 +146,8 @@ public final class ProductUpdateDialog {
             action.setText(stage == Stage.FAILED
                     ? prepared != null ? text("重试安装", "Retry installation") : available != null ? text("重试下载", "Retry download") : text("重试检查", "Retry check")
                     : prepared != null ? text("安装并重启", "Install and restart") : available != null ? text("下载更新", "Download update") : text("重新检查", "Check again"));
-            if (dialog.isDisplayable()) { dialog.pack(); dialog.setLocationRelativeTo(owner); }
+            progress.setVisible(busy || stage == Stage.READY);
+            if (dialog.isDisplayable()) dev.copperbench.ui.NativeDialogs.fit(dialog, owner);
         }
         private void close() { cancelled.set(true); dialog.dispose(); if (!busy) discard(); }
         private void discard() {

@@ -2,7 +2,7 @@
 package dev.copperbench.shell;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import dev.copperbench.ui.NativeDialogs;
 import java.awt.*;
 
 /** Shared, keyboard-accessible presentation for product-owned native dialogs. */
@@ -10,43 +10,14 @@ public final class ProductDialogs {
     private ProductDialogs() {}
 
     public static JOptionPane pane(String message, int type, Object[] options, Object initial) {
-        JTextArea body = body(message);
-        int width = Math.min(480, Math.max(240, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width - 160));
-        body.setSize(width, Short.MAX_VALUE);
-        JScrollPane scroll = new JScrollPane(body);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.setOpaque(false);
-        scroll.getViewport().setOpaque(false);
-        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scroll.setPreferredSize(new Dimension(width, Math.min(body.getPreferredSize().height + 8,
-                Math.max(80, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().height - 220))));
-        return new JOptionPane(scroll, type, JOptionPane.DEFAULT_OPTION, null, options, initial);
+        return NativeDialogs.pane(message, type, options, initial);
     }
 
     public static JTextArea body(String message) {
-        JTextArea body = new JTextArea(message);
-        body.setEditable(false);
-        body.setOpaque(false);
-        body.setLineWrap(true);
-        body.setWrapStyleWord(true);
-        body.setFont(UIManager.getFont("Label.font"));
-        body.setForeground(UIManager.getColor("Label.foreground"));
-        body.setColumns(0);
-        body.setBorder(new EmptyBorder(8, 4, 12, 4));
-        body.getAccessibleContext().setAccessibleName(message);
-        return body;
+        return NativeDialogs.body(message);
     }
 
     public static int show(Component parent, String message, String title, int type, Object[] options, Object initial) {
-        JOptionPane pane = pane(message, type, options, initial);
-        JDialog dialog = pane.createDialog(parent, title);
-        dialog.setResizable(true);
-        dialog.pack();
-        dialog.setMinimumSize(dialog.getSize());
-        dialog.setLocationRelativeTo(parent);
-        try { dialog.setVisible(true); } finally { dialog.dispose(); }
-        for (int i = 0; i < options.length; i++)
-            if (options[i].equals(pane.getValue())) return i;
-        return JOptionPane.CLOSED_OPTION;
+        return NativeDialogs.show(parent, message, title, type, options, initial);
     }
 }
