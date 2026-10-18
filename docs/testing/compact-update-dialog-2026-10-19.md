@@ -21,3 +21,5 @@ Screenshots were inspected through the Windows computer-use controller. Preview 
 - The layout detector reported no findings for the Java file; rendered native observations above supply the visual evidence.
 
 No installation, upgrade, uninstallation or Minecraft player acceptance was repeated for this spacing correction. The prior [public 0.1.11 receipt](../../evidence/maintenance/2026-10-19/compact-update-dialog/previous-release.json) retains its original source and artifact identities. Linux remains public at 0.1.9.
+
+Windows 0.1.12 is now public. The [publication record](maintenance-release-0.1.12.md) contains the final signed source, successful release workflow and public package verification; the preparation receipts above retain their original pre-publication scope.
