@@ -66,9 +66,9 @@ public final class UpstreamToolCatalog {
 			new Tool("plugin_manager", "插件管理（Plugins）", Surface.NEW_UI,
 					"可查看已安装插件；Swing 界面插件在旧版窗口打开，Java 插件需要手动启用。"),
 			new Tool("website_community_publish_donate", "官网、社区、发布与捐赠（Help）",
-					Surface.NOT_APPLICABLE, "不提供产品账号、商店或自动联网服务。"),
-			new Tool("check_for_updates", "检查产品和插件更新（Check for Updates）", Surface.NOT_APPLICABLE,
-					"自动联网服务已禁用，当前版本不提供更新检查。"));
+					Surface.NOT_APPLICABLE, "不提供产品账号、商店或捐赠入口。"),
+			new Tool("check_for_updates", "检查产品和插件更新（Check for Updates）", Surface.NEW_UI,
+					"自动检查产品新版本，在帮助与关于中也可手动检查；下载并校验更新组件后重启升级。插件更新由用户管理。"));
 
 	private UpstreamToolCatalog() {
 	}
