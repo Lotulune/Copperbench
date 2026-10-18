@@ -382,14 +382,14 @@ for (const theme of ['light', 'dark']) {
   });
 }
 
-test('settings opens the native updater without changing workspace state', async ({ page }) => {
+test('help opens the native updater through the desktop host', async ({ page }) => {
   await page.addInitScript(() => {
     (window as any).__UPDATE_ACTIONS__ = [];
     (window as any).__COPPERBENCH_WINDOW_HOST__ = { systemFrame: false, updatesAvailable: true,
       invoke: async (action: string) => { (window as any).__UPDATE_ACTIONS__.push(action); } };
   });
   await page.goto('/');
-  await page.getByTestId('nav-settings').click();
-  await page.getByTestId('settings-check-updates').click();
+  await page.getByTestId('nav-help').click();
+  await page.getByTestId('help-check-updates').click();
   expect(await page.evaluate(() => (window as any).__UPDATE_ACTIONS__)).toEqual(['check_updates']);
 });
