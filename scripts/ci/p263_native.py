@@ -117,7 +117,9 @@ def main():
             raise ValueError('Cloud regression must start from the selected clean source commit')
         nightly.save(output / 'source.json', {'schemaVersion': 1, **nightly.identity(), 'source': source,
                                            'generatorId': args.generator, 'scope': 'source_native_regression'})
-        code = run_gradle('backend', ['test', '--tests',
+        # Each delivery needs a new workspace outside Gradle's declared test outputs.
+        # Rerun only this task: neither cached nor up-to-date results recreate it.
+        code = run_gradle('backend', ['test', '--rerun', '--tests',
             f'dev.copperbench.generator.workspace.{loader_class}263AcceptanceTest',
             f'-Dcopperbench.p263.{args.generator.split("-")[0]}NativeAcceptance=true',
             f'-Dcopperbench.gradle.user.home={args.gradle_home.resolve()}'])

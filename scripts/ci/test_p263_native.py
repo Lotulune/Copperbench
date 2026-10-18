@@ -1,6 +1,8 @@
 """Evidence collection must retain failures without reusing old runs or copying authority keys."""
 import json
+import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -12,6 +14,39 @@ class ExactNativeEvidenceTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+
+    def test_backend_forces_fresh_execution_for_each_generator_and_launcher(self):
+        for generator, loader_class in [('fabric-26.3', 'Fabric'), ('neoforge-26.3', 'NeoForge')]:
+            for hosted in ['true', 'false']:
+                with self.subTest(generator=generator, hosted=hosted):
+                    output = self.root / f'{generator}-{hosted}'
+                    argv = ['p263_native.py', '--generator', generator,
+                            '--gradle-home', str(self.root / 'gradle home'), '--output', str(output)]
+                    with patch.object(p263_native, 'ROOT', self.root), \
+                            patch.object(p263_native, 'source_snapshot', return_value={}), \
+                            patch.object(p263_native, 'source_identity', return_value={'commit': 'source', 'dirty': False}), \
+                            patch.dict(os.environ, {'GITHUB_ACTIONS': hosted, 'GITHUB_SHA': 'source'}), \
+                            patch.object(sys, 'argv', argv), \
+                            patch.object(nightly, 'run_check', return_value=1) as run_check:
+                        # Stop at the process boundary without starting a Minecraft build.
+                        self.assertEqual(1, p263_native.main())
+                    run_check.assert_called_once()
+                    directory, stage, command = run_check.call_args.args
+                    self.assertEqual(output.resolve(), directory)
+                    self.assertEqual('backend', stage)
+                    if os.name == 'nt' and hosted == 'false':
+                        arguments = json.loads(Path(command[-1]).read_text(encoding='utf-8'))
+                    else:
+                        arguments = command[1:]
+                    # Task-scoped --rerun bypasses both FROM-CACHE and UP-TO-DATE,
+                    # while leaving compiler and dependency caching available.
+                    index = arguments.index('test')
+                    self.assertEqual('--rerun', arguments[index + 1])
+                    self.assertEqual(f'dev.copperbench.generator.workspace.{loader_class}263AcceptanceTest',
+                                     arguments[arguments.index('--tests') + 1])
+                    self.assertIn(f'-Dcopperbench.p263.{generator.split("-")[0]}NativeAcceptance=true', arguments)
+                    self.assertNotIn('--no-build-cache', arguments)
+                    self.assertNotIn('--rerun-tasks', arguments)
 
     def test_old_or_ambiguous_workspace_cannot_be_selected_for_a_new_run(self):
         old = self.root / 'backend-old'; old.mkdir()
