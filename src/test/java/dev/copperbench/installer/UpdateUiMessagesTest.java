@@ -42,7 +42,8 @@ class UpdateUiMessagesTest {
             UpdateUiMessages.configureLocale("zh");
             if (!"确定".equals(UIManager.getString("OptionPane.okButtonText"))
                     || !"取消".equals(UIManager.getString("OptionPane.cancelButtonText"))
-                    || !Locale.SIMPLIFIED_CHINESE.equals(JComponent.getDefaultLocale())) throw new AssertionError("Chinese defaults were not applied");
+                    || !Locale.SIMPLIFIED_CHINESE.equals(JComponent.getDefaultLocale())
+                    || !Locale.SIMPLIFIED_CHINESE.equals(UIManager.getLookAndFeelDefaults().getDefaultLocale())) throw new AssertionError("Chinese defaults were not applied");
             UpdateUiMessages.configureLocale("en");
             if (!"OK".equals(UIManager.getString("OptionPane.okButtonText"))) throw new AssertionError("English defaults were not restored");
             System.out.println("locale-probe=passed");

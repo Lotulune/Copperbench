@@ -26,13 +26,14 @@ import net.mcreator.ui.component.SquareLoaderIcon;
 import net.mcreator.ui.component.util.PanelUtils;
 import net.mcreator.ui.component.util.ThreadUtil;
 import net.mcreator.ui.init.UIRES;
-import net.mcreator.ui.laf.themes.Theme;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class ProgressDialog extends MCreatorDialog {
 		JScrollPane panes = new JScrollPane(progressUnits);
 		panes.setOpaque(false);
 		panes.getViewport().setOpaque(false);
-		panes.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 3));
+		panes.setBorder(BorderFactory.createEmptyBorder(4, 20, 16, 20));
 
 		// If we use undecorated Dialog on Linux or macOS, the dialog contents flicker (#4757)
 		if (OS.getOS() == OS.WINDOWS) {
@@ -65,14 +66,16 @@ public class ProgressDialog extends MCreatorDialog {
 
 			JPanel contentPane = new JPanel() {
 				@Override protected void paintComponent(Graphics g) {
-					Graphics2D g2d = (Graphics2D) g;
-					g2d.setColor(Theme.current().getBackgroundColor());
+					Graphics2D g2d = (Graphics2D) g.create();
+					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					g2d.setColor(UIManager.getColor("Panel.background"));
 					g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+					g2d.dispose();
 					super.paintComponent(g);
 				}
 			};
 			contentPane.setBorder(
-					new FlatLineBorder(new Insets(0, 0, 0, 0), UIManager.getColor("PopupMenu.borderColor"), 1, 15));
+					new FlatLineBorder(new Insets(0, 0, 0, 0), UIManager.getColor("Component.borderColor"), 1, 15));
 			contentPane.setLayout(new BorderLayout(0, 0));
 			contentPane.setOpaque(false);
 			setContentPane(contentPane);
@@ -80,8 +83,11 @@ public class ProgressDialog extends MCreatorDialog {
 			setBackground(new Color(0, 0, 0, 0));
 
 			titleLabel.setText(title);
-			titleLabel.setBorder(BorderFactory.createEmptyBorder(7, 10, 2, 10));
-			titleLabel.setForeground(Theme.current().getAltForegroundColor());
+			titleLabel.setBorder(BorderFactory.createEmptyBorder(16, 20, 12, 20));
+			titleLabel.setForeground(UIManager.getColor("Label.foreground"));
+			titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 17f));
+			titleLabel.setIcon(dev.copperbench.ui.NativeDialogs.icon(28));
+			titleLabel.setIconTextGap(12);
 			add("North", titleLabel);
 		} else if (OS.getOS() == OS.MAC
 				&& SystemInfo.isMacFullWindowContentSupported) { // on macOS, we use full window content instead
@@ -94,6 +100,14 @@ public class ProgressDialog extends MCreatorDialog {
 		progressUnits.setCellRenderer(new Render());
 		progressUnits.setOpaque(false);
 		progressUnits.setBorder(null);
+		progressUnits.addComponentListener(new ComponentAdapter() {
+			private int width;
+			@Override public void componentResized(ComponentEvent event) {
+				if (width == progressUnits.getWidth()) return;
+				width = progressUnits.getWidth();
+				for (int i = 0; i < listModel.size(); i++) listModel.setElementAt(listModel.get(i), i);
+			}
+		});
 
 		add("Center", panes);
 
@@ -105,8 +119,8 @@ public class ProgressDialog extends MCreatorDialog {
 			}
 		});
 
-		setSize(520, 320);
-		setLocationRelativeTo(w);
+		setPreferredSize(new Dimension(560, 340));
+		dev.copperbench.ui.NativeDialogs.fit(this, w);
 	}
 
 	public void hideDialog() {
@@ -155,17 +169,14 @@ public class ProgressDialog extends MCreatorDialog {
 
 		public void markStateOk() {
 			status = Status.COMPLETE;
-
-			if (progressDialog != null) {
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
-			}
+			repaintUnit();
 		}
 
 		public void markStateError() {
 			status = Status.ERROR;
 
 			if (progressDialog != null) {
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
+				repaintUnit();
 
 				if (progressDialog.mcreator != null)
 					progressDialog.mcreator.getApplication().getTaskbarIntegration()
@@ -177,7 +188,7 @@ public class ProgressDialog extends MCreatorDialog {
 			status = Status.WARNING;
 
 			if (progressDialog != null) {
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
+				repaintUnit();
 
 				if (progressDialog.mcreator != null)
 					progressDialog.mcreator.getApplication().getTaskbarIntegration()
@@ -195,7 +206,10 @@ public class ProgressDialog extends MCreatorDialog {
 
 		private void repaintUnit() {
 			if (progressDialog != null)
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
+				ThreadUtil.runOnSwingThread(() -> {
+					int index = progressDialog.listModel.indexOf(this);
+					if (index >= 0) progressDialog.listModel.setElementAt(this, index);
+				});
 		}
 
 		enum Status {
@@ -217,26 +231,15 @@ public class ProgressDialog extends MCreatorDialog {
 				boolean isSelected, boolean cellHasFocus) {
 			removeAll();
 			setOpaque(false);
-			setLayout(new BorderLayout());
+			setLayout(new BorderLayout(16, 0));
 
 			JPanel stap = new JPanel(new BorderLayout(2, 0));
 			stap.setOpaque(false);
 
-			JPanel labels = new JPanel();
-			labels.setOpaque(false);
-			labels.setLayout(new BoxLayout(labels, BoxLayout.Y_AXIS));
-			JLabel status = new JLabel(ma.name);
-			labels.add(status);
-			if (ma.detail != null && !ma.detail.isBlank()) {
-				JLabel detail = new JLabel(ma.detail);
-				detail.setForeground(Theme.current().getAltForegroundColor());
-				labels.add(detail);
-			}
-
 			switch (ma.status) {
 			case LOADING -> {
 				JLabel status2 = new JLabel(LOADER_CACHE.computeIfAbsent(ma,
-						e -> new SquareLoaderIcon(list, 4, 1, Theme.current().getForegroundColor())));
+						e -> new SquareLoaderIcon(list, 4, 1, UIManager.getColor("Label.foreground"))));
 				status2.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 2));
 				stap.add("East", PanelUtils.centerInPanel(status2));
 
@@ -254,10 +257,25 @@ public class ProgressDialog extends MCreatorDialog {
 			case WARNING -> stap.add("East", PanelUtils.centerInPanel(new JLabel(warning)));
 			}
 
-			add("West", labels);
-			add("East", stap);
+			int width = Math.max(120, (list.getWidth() > 0 ? list.getWidth() : 520) - stap.getPreferredSize().width - 20);
+			JPanel labels = new JPanel();
+			labels.setOpaque(false);
+			labels.setLayout(new BoxLayout(labels, BoxLayout.Y_AXIS));
+			labels.add(wrapped(ma.name, width, UIManager.getColor("Label.foreground")));
+			if (ma.detail != null && !ma.detail.isBlank())
+				labels.add(wrapped(ma.detail, width, UIManager.getColor("Label.disabledForeground")));
+			add("Center", labels);
+			JPanel indicator = new JPanel(new BorderLayout()); indicator.setOpaque(false);
+			indicator.add(stap, BorderLayout.NORTH); add("East", indicator);
 			setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 			return this;
+		}
+		private JComponent wrapped(String message, int width, Color foreground) {
+			JComponent text = dev.copperbench.ui.NativeDialogs.textComponent(message);
+			text.setForeground(foreground);
+			text.setSize(width, Short.MAX_VALUE);
+			text.setPreferredSize(new Dimension(width, text.getPreferredSize().height));
+			return text;
 		}
 	}
 

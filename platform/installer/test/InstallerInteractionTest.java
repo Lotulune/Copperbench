@@ -16,7 +16,7 @@ public final class InstallerInteractionTest {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 Locale.setDefault(Locale.US);
-                window = new InstallerWindow(Map.of("preview", "true"));
+                window = InstallerWindow.create(Map.of("preview", "true"));
                 window.setVisible(true);
                 ((JTextField) named(window, "installer-location")).setText("/tmp/Copperbench test location");
                 checkbox(window).doClick();
@@ -29,7 +29,22 @@ public final class InstallerInteractionTest {
             verify("Install Copperbench", "Install", "#f7f5f0");
             select("installer-theme", 0);
             verify("Install Copperbench", "Install", "#1c1d1c");
-            System.out.println("PASS: open-popup language/theme changes preserve the form and enabled actions");
+            SwingUtilities.invokeAndWait(() -> window.setSize(720, 480));
+            SwingUtilities.invokeAndWait(() -> {
+                window.validate();
+                JComponent form = (JComponent) named(window, "installer-form");
+                JViewport viewport = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, form);
+                if (form.getWidth() != viewport.getExtentSize().width) throw new AssertionError("Compact form overflows horizontally");
+                for (String control : new String[]{"installer-browse", "installer-license"}) {
+                    JComponent action = (JComponent) named(window, control);
+                    action.scrollRectToVisible(new Rectangle(0, 0, action.getWidth(), action.getHeight()));
+                    if (action.getVisibleRect().width != action.getWidth()) throw new AssertionError("Clipped compact action: " + control);
+                }
+                JComponent primary = (JComponent) named(window, "installer-primary");
+                if (!primary.getVisibleRect().equals(new Rectangle(0, 0, primary.getWidth(), primary.getHeight())))
+                    throw new AssertionError("Primary action must remain outside the scrolling form");
+            });
+            System.out.println("PASS: language/theme popups preserve inputs and compact forms keep their actions reachable");
         } finally {
             SwingUtilities.invokeAndWait(() -> { if (window != null) window.dispose(); });
             Locale.setDefault(original);

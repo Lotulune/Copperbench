@@ -17,8 +17,8 @@ public final class UpdateInstaller {
         AtomicBoolean cancel = new AtomicBoolean();
         var view = new java.util.concurrent.atomic.AtomicReference<UpdateInstallerWindow>();
         SwingUtilities.invokeAndWait(() -> {
-            UpdateUiMessages.configureLocale(language);
-            view.set(new UpdateInstallerWindow(language, cancel)); view.get().setVisible(true);
+            view.set(UpdateInstallerWindow.create(language, p.getProperty("theme", "dark"), p.getProperty("version", ""), cancel));
+            view.get().setVisible(true);
         });
         UpdateInstallerWindow frame = view.get();
         Properties result = new Properties(); result.setProperty("pid", Long.toString(ProcessHandle.current().pid()));

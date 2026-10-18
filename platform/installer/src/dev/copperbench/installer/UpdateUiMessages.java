@@ -17,6 +17,7 @@ public final class UpdateUiMessages {
     public static void configureLocale(String language) {
         Locale locale = "zh".equals(language) ? Locale.SIMPLIFIED_CHINESE : Locale.US;
         Locale.setDefault(locale); JComponent.setDefaultLocale(locale); UIManager.getDefaults().setDefaultLocale(locale);
+        UIManager.getLookAndFeelDefaults().setDefaultLocale(locale);
         UIManager.put("OptionPane.okButtonText", text(language, "确定", "OK"));
         UIManager.put("OptionPane.cancelButtonText", text(language, "取消", "Cancel"));
         UIManager.put("OptionPane.yesButtonText", text(language, "是", "Yes"));

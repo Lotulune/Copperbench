@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Copperbench contributors; SPDX-License-Identifier: GPL-3.0-only */
 package dev.copperbench.installer;
 
+import dev.copperbench.ui.NativeDialogTheme;
+import dev.copperbench.ui.NativeDialogs;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -25,7 +27,8 @@ final class InstallerWindow extends JFrame {
     private String location = PlatformInstall.defaultTarget().toString();
     private boolean desktop = true, accepted, running, committed, complete, initializationFailed;
     private final boolean uninstall;
-    private String error = "", phase = "prepare";
+    private Throwable failure;
+    private String phase = "prepare";
     private Path backup;
     private JPanel root, form;
     private JLabel status;
@@ -34,8 +37,14 @@ final class InstallerWindow extends JFrame {
     private JProgressBar progress;
     private BufferedImage landscape;
     private BufferedImage productIcon;
+    private Landscape artwork;
 
-    InstallerWindow(Map<String, String> options) {
+    static InstallerWindow create(Map<String, String> options) {
+        NativeDialogTheme.install("dark", "zh".equals(Locale.getDefault().getLanguage()) ? "zh" : "en");
+        return new InstallerWindow(options);
+    }
+
+    private InstallerWindow(Map<String, String> options) {
         super("Copperbench");
         this.options = options;
         uninstall = options.containsKey("uninstall");
@@ -49,14 +58,20 @@ final class InstallerWindow extends JFrame {
             if (!options.containsKey("preview")) {
                 locale = PlatformInstall.preference(Path.of(location), "ui-language.txt", "install-language.txt", Set.of("zh", "en"), locale);
                 theme = PlatformInstall.preference(Path.of(location), "installer-theme.txt", "install-theme.txt", Set.of("dark", "light"), theme);
+            } else {
+                locale = options.getOrDefault("language", locale);
+                theme = options.getOrDefault("theme", theme);
+                location = PlatformInstall.WINDOWS ? "C:/Copperbench" : "/opt/copperbench";
             }
-        } catch (Exception exception) { error = localizedError(exception); initializationFailed = true; }
+        } catch (Exception exception) { failure = exception; initializationFailed = true; }
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() { @Override public void windowClosing(WindowEvent event) { close(); } });
-        setMinimumSize(new Dimension(900, 660));
-        setSize(1040, 700);
-        setLocationRelativeTo(null);
+        addComponentListener(new ComponentAdapter() { @Override public void componentResized(ComponentEvent event) { adaptArtwork(); } });
         render();
+        setPreferredSize(new Dimension(1040, 700));
+        NativeDialogs.fit(this, null);
+        setMinimumSize(new Dimension(Math.min(620, getWidth()), Math.min(420, getHeight())));
+        adaptArtwork();
     }
     String t(String zh, String en) { return locale.equals("zh") ? zh : en; }
     private Color bg() { return Color.decode(theme.equals("dark") ? "#1c1d1c" : "#f7f5f0"); }
@@ -73,18 +88,11 @@ final class InstallerWindow extends JFrame {
     }
     private JButton button(String title, boolean primary) {
         JButton b = new JButton(title); b.setFont(new Font(FONT, Font.BOLD, 15));
-        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
-            @Override protected void paintFocus(Graphics g, AbstractButton button, Rectangle view, Rectangle text, Rectangle icon) {
-                g.setColor(button.getForeground()); g.drawRect(4, 4, button.getWidth() - 9, button.getHeight() - 11);
-            }
-        }); b.setOpaque(true); b.setContentAreaFilled(true);
         b.setBackground(primary ? copper() : bg()); b.setForeground(primary ? (theme.equals("dark") ? Color.decode("#241a12") : Color.WHITE) : fg());
-        b.setBorder(new CompoundBorder(new MatteBorder(1, 1, 4, 1, primary ? copper().darker() : muted()), new EmptyBorder(10, 20, 8, 20)));
         return b;
     }
     private void render() {
-        Locale selectedLocale = locale.equals("zh") ? Locale.SIMPLIFIED_CHINESE : Locale.US;
-        Locale.setDefault(selectedLocale); JComponent.setDefaultLocale(selectedLocale);
+        NativeDialogTheme.install(theme, locale);
         root = new JPanel(new BorderLayout()); root.setBackground(bg());
         root.setBorder(new CompoundBorder(new MatteBorder(3, 1, 1, 1, copper()), new EmptyBorder(20, 24, 24, 24)));
         JPanel header = panel(new BorderLayout(20, 0)); header.setBorder(new EmptyBorder(0, 0, 20, 0));
@@ -112,12 +120,12 @@ final class InstallerWindow extends JFrame {
         });
         for (JComboBox<String> box : List.of(languages, themes)) {
             box.setFont(new Font(FONT, Font.PLAIN, 14)); box.setBackground(bg()); box.setForeground(fg());
-            box.setBorder(new LineBorder(muted())); box.setPreferredSize(new Dimension(box == languages ? 130 : 95, 38)); choices.add(box);
+            box.setPreferredSize(new Dimension(box == languages ? 130 : 95, 38)); choices.add(box);
         }
         header.add(choices, BorderLayout.EAST); root.add(header, BorderLayout.NORTH);
         JPanel body = panel(new BorderLayout(30, 0));
-        body.add(new Landscape(), BorderLayout.WEST);
-        form = panel(new GridBagLayout());
+        artwork = new Landscape(); body.add(artwork, BorderLayout.WEST);
+        form = new FormPanel(); form.setName("installer-form");
         GridBagConstraints c = new GridBagConstraints(); c.gridx = 0; c.gridy = 0; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.anchor = GridBagConstraints.NORTHWEST;
         addForm(label(complete ? t("03  完成", "03  COMPLETE") : running ? (uninstall ? t("02  卸载", "02  UNINSTALL") : t("02  安装", "02  INSTALL")) : t("01  准备", "01  PREPARE"), 13, copper(), true), c, 18);
         String heading = uninstall ? t("卸载 Copperbench", "Uninstall Copperbench") : complete ? t("安装完成", "Ready to create") : t("安装 Copperbench", "Install Copperbench");
@@ -131,9 +139,10 @@ final class InstallerWindow extends JFrame {
             JLabel pathLabel = label(uninstall ? t("程序位置", "Application location") : t("安装位置", "Install location"), 14, fg(), true); addForm(pathLabel, c, 8);
             JPanel pathRow = panel(new BorderLayout(8, 0));
             path = new JTextField(location); path.setName("installer-location"); path.setFont(new Font(FONT, Font.PLAIN, 13));
-            path.setBackground(bg()); path.setForeground(fg()); path.setCaretColor(fg()); path.setBorder(new CompoundBorder(new LineBorder(muted()), new EmptyBorder(10, 8, 10, 8)));
+            path.setBackground(bg()); path.setForeground(fg()); path.setCaretColor(fg()); path.setMargin(new Insets(10, 8, 10, 8));
             path.setEditable(!running && !uninstall && existing == null); pathLabel.setLabelFor(path);
             JButton browse = button(t("浏览…", "Browse…"), false); browse.setEnabled(path.isEditable());
+            browse.setName("installer-browse");
             browse.addActionListener(e -> { JFileChooser chooser = new JFileChooser(); chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); chooser.setDialogTitle(t("选择父目录", "Choose parent folder"));
                 if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) { location = chooser.getSelectedFile().toPath().resolve("Copperbench").toString(); path.setText(location); } });
             pathRow.add(path, BorderLayout.CENTER); pathRow.add(browse, BorderLayout.EAST); addForm(pathRow, c, 14);
@@ -145,26 +154,51 @@ final class InstallerWindow extends JFrame {
                 JCheckBox license = new JCheckBox(t("我已阅读并接受许可协议", "I have read and accept the license"), accepted); license.setOpaque(false); license.setForeground(fg()); license.setEnabled(!running);
                 license.addActionListener(e -> { accepted = license.isSelected(); install.setEnabled(accepted && !running && !initializationFailed); });
                 JPanel licenseRow = panel(new BorderLayout()); licenseRow.add(license, BorderLayout.CENTER);
-                JButton read = button(t("查看", "Read"), false); read.addActionListener(e -> showLicense()); licenseRow.add(read, BorderLayout.EAST); addForm(licenseRow, c, 14);
+                JButton read = button(t("查看", "Read"), false); read.setName("installer-license"); read.addActionListener(e -> showLicense()); licenseRow.add(read, BorderLayout.EAST); addForm(licenseRow, c, 14);
             }
         } else {
             addForm(paragraph(location), c, 12);
             if (backup != null) addForm(paragraph(t("升级已完成，但临时文件被占用，未能清理：\n", "Upgrade complete, but temporary files could not be removed:\n") + backup), c, 14);
         }
-        if (!error.isEmpty()) {
-            addForm(paragraph(t("操作未完成，请查看详情后重试。", "Could not complete the operation. Review the details and retry.")), c, 8);
-            JTextArea details = new JTextArea(error, 3, 28); details.setEditable(false); details.setLineWrap(true); details.setWrapStyleWord(true);
-            details.setFont(new Font(FONT, Font.PLAIN, 12)); details.setBackground(bg()); details.setForeground(fg()); addForm(new JScrollPane(details), c, 12);
+        if (failure != null) {
+            addForm(paragraph(localizedError(failure)), c, 8);
+            if (!(failure instanceof CancellationException)) {
+                JButton details = button(t("错误详情", "Error details"), false);
+                details.addActionListener(event -> NativeDialogs.details(this, UpdateUiMessages.details(failure),
+                        t("操作错误详情", "Operation error details"), t("关闭", "Close")));
+                JPanel detailActions = panel(new FlowLayout(FlowLayout.LEFT, 0, 0)); detailActions.add(details);
+                addForm(detailActions, c, 12);
+            }
         }
-        status = label(phaseText(), 13, muted(), false); status.getAccessibleContext().setAccessibleName(phaseText()); addForm(status, c, 10);
-        progress = new JProgressBar(0, 100); progress.setForeground(copper()); progress.setBackground(bg()); progress.setVisible(running); progress.setStringPainted(true); addForm(progress, c, 14);
+        status = label(phaseText(), 13, muted(), false); status.getAccessibleContext().setAccessibleName(phaseText());
+        progress = new JProgressBar(0, 100); progress.setForeground(copper()); progress.setBackground(bg()); progress.setVisible(running); progress.setStringPainted(true);
         c.weighty = 1; addForm(Box.createVerticalGlue(), c, 0); c.weighty = 0;
         JPanel actions = panel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         cancel = button(complete ? t("关闭", "Close") : t("取消", "Cancel"), false); cancel.addActionListener(e -> close()); cancel.setEnabled(!committed || complete);
         install = button(complete ? t("打开 Copperbench", "Open Copperbench") : uninstall ? t("卸载", "Uninstall") : t("开始安装", "Install"), true);
         install.setName("installer-primary"); install.setEnabled(!initializationFailed && !running && (accepted || complete || uninstall)); install.addActionListener(e -> { if (complete) launch(); else begin(); });
-        actions.add(cancel); actions.add(install); addForm(actions, c, 0);
-        body.add(form, BorderLayout.CENTER); root.add(body, BorderLayout.CENTER); setContentPane(root); getRootPane().setDefaultButton(install); revalidate(); repaint();
+        actions.add(cancel); actions.add(install);
+        JPanel footer = panel(new BorderLayout(0, 12)); footer.setBorder(new EmptyBorder(16, 0, 0, 0));
+        JPanel state = panel(new BorderLayout(0, 8)); state.add(status, BorderLayout.NORTH); state.add(progress, BorderLayout.CENTER);
+        footer.add(state, BorderLayout.NORTH); footer.add(actions, BorderLayout.SOUTH);
+        root.add(footer, BorderLayout.SOUTH);
+        body.add(NativeDialogs.scroll(form), BorderLayout.CENTER); root.add(body, BorderLayout.CENTER); setContentPane(root);
+        SwingUtilities.updateComponentTreeUI(this);
+        getRootPane().setDefaultButton(install); adaptArtwork(); revalidate(); repaint();
+    }
+    private void adaptArtwork() {
+        if (artwork != null) {
+            boolean visible = getWidth() >= 900 && getHeight() >= 640;
+            if (artwork.isVisible() != visible) { artwork.setVisible(visible); root.revalidate(); }
+        }
+    }
+    private static final class FormPanel extends JPanel implements Scrollable {
+        FormPanel() { super(new GridBagLayout()); setOpaque(false); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) { return 24; }
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) { return Math.max(24, visible.height - 24); }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { return getParent() instanceof JViewport viewport && getPreferredSize().height < viewport.getHeight(); }
     }
     private void addForm(Component component, GridBagConstraints c, int below) { c.insets = new Insets(0, 0, below, 0); form.add(component, c); c.gridy++; }
     private void remember() { if (path != null && !complete) location = path.getText(); }
@@ -185,7 +219,8 @@ final class InstallerWindow extends JFrame {
         };
     }
     private void begin() {
-        remember(); cancelled.set(false); error = ""; running = true; committed = uninstall; phase = "copy"; render();
+        if (options.containsKey("preview")) return;
+        remember(); cancelled.set(false); failure = null; running = true; committed = uninstall; phase = "copy"; render();
         new SwingWorker<InstallEngine.Result, InstallEngine.Progress>() {
             @Override protected InstallEngine.Result doInBackground() throws Exception {
                 if (uninstall) {
@@ -215,13 +250,14 @@ final class InstallerWindow extends JFrame {
                     if (uninstall) { dispose(); return; }
                 } catch (Exception exception) {
                     Throwable cause = exception.getCause() == null ? exception : exception.getCause();
-                    error = cause instanceof CancellationException ? t("安装已取消，原安装未被替换。", "Installation cancelled. The previous installation was not replaced.") : localizedError(cause); phase = "prepare";
+                    failure = cause; phase = "prepare";
                 }
                 render();
             }
         }.execute();
     }
     private String localizedError(Throwable cause) {
+        if (cause instanceof CancellationException) return t("安装已取消，原安装未被替换。", "Installation cancelled. The previous installation was not replaced.");
         String detail = Objects.toString(cause.getMessage(), cause.toString());
         String guidance = t("请检查安装位置的写入权限，关闭 Copperbench 后重试。", "Check that the install folder is writable, close Copperbench, and retry.");
         if (detail.contains("verification failed") || detail.contains("Missing package")) guidance = t("安装包文件不完整或校验失败，请重新下载完整安装包。", "The package is incomplete or failed verification. Download the complete package again.");
@@ -231,16 +267,14 @@ final class InstallerWindow extends JFrame {
         else if (detail.contains("Close Copperbench")) guidance = t("请保存工作，关闭 Copperbench 和它启动的 Minecraft 客户端后重试。", "Save your work, close Copperbench and its Minecraft clients, then retry.");
         else if (detail.contains("authorization was cancelled")) guidance = t("系统授权未完成。请重试并在系统窗口中确认授权。", "System authorization did not complete. Retry and approve the system prompt.");
         else if (detail.contains("is required")) guidance = t("此安装包支持 Windows 11 x64 或 Ubuntu 24.04 LTS x86_64。请检查系统版本。", "Check your OS version. This package requires Windows 11 x64 or Ubuntu 24.04 LTS x86_64.");
-        StringBuilder result = new StringBuilder(guidance).append("\n\n").append(detail);
-        for (Throwable suppressed : cause.getSuppressed()) result.append("\n").append(suppressed);
-        return result.toString();
+        return guidance;
     }
     private void close() {
         if (!running) { dispose(); return; }
         if (committed) return;
         Object[] actions = {t("继续安装", "Keep installing"), t("取消安装", "Cancel installation")};
-        if (JOptionPane.showOptionDialog(this, t("取消后会清理本次复制的文件，原安装不变。", "Cancel and remove files copied during this installation? The previous installation will stay in place."),
-                "Copperbench", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, actions, actions[0]) == 1) {
+        if (NativeDialogs.show(this, t("取消后会清理本次复制的文件，原安装不变。", "Cancel and remove files copied during this installation? The previous installation will stay in place."),
+                t("取消安装", "Cancel installation"), JOptionPane.QUESTION_MESSAGE, actions, actions[0]) == 1) {
             cancelled.set(true); cancel.setEnabled(false); status.setText(t("正在取消…", "Cancelling…"));
         }
     }
@@ -254,12 +288,13 @@ final class InstallerWindow extends JFrame {
                     tabs.addTab(file.equals("LICENSE.txt") ? "GPL v3" : t("附加条款", "Additional terms"), new JScrollPane(text));
                 }
             }
-            JOptionPane.showOptionDialog(this, tabs, t("许可协议", "License agreement"), JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[]{t("关闭", "Close")}, null);
-        } catch (IOException exception) { error = exception.getMessage(); render(); }
+            String close = t("关闭", "Close");
+            NativeDialogs.show(this, tabs, t("许可协议", "License agreement"), JOptionPane.PLAIN_MESSAGE, new Object[]{close}, close);
+        } catch (IOException exception) { failure = exception; render(); }
     }
     private void launch() {
         try { PlatformInstall.launchApplication(Path.of(location)); dispose(); }
-        catch (IOException exception) { error = exception.getMessage(); render(); }
+        catch (IOException exception) { failure = exception; render(); }
     }
     private final class Landscape extends JPanel {
         Landscape() { setPreferredSize(new Dimension(330, 500)); }
@@ -280,7 +315,7 @@ final class InstallerWindow extends JFrame {
     static void preview(Path output) throws Exception {
         Files.createDirectories(output);
         SwingUtilities.invokeAndWait(() -> {
-            InstallerWindow window = new InstallerWindow(Map.of("preview", "true"));
+            InstallerWindow window = create(Map.of("preview", "true"));
             try {
                 for (String language : List.of("zh", "en")) for (String theme : List.of("dark", "light")) {
                     window.locale = language; window.theme = theme; window.render(); window.addNotify(); window.validate();

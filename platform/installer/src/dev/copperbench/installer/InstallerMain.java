@@ -24,8 +24,7 @@ public final class InstallerMain {
         }
         if (options.containsKey("worker")) { worker(Path.of(options.get("worker"))); return; }
         if (options.containsKey("preview")) { InstallerWindow.preview(Path.of(options.get("preview"))); return; }
-        UIManager.put("Button.arc", 2);
-        SwingUtilities.invokeLater(() -> new InstallerWindow(options).setVisible(true));
+        SwingUtilities.invokeLater(() -> InstallerWindow.create(options).setVisible(true));
     }
     static InstallEngine.Result execute(InstallEngine.Plan plan, Path registrar, boolean deb, AtomicBoolean cancel,
                                         Consumer<InstallEngine.Progress> progress) throws IOException {

@@ -1,0 +1,10 @@
+{
+  "pid": 52932,
+  "scene": "installer",
+  "language": "en",
+  "theme": "light",
+  "scale": 2.0,
+  "core": false,
+  "startedUtc": "2026-10-18T18:14:38.5153709Z",
+  "setupJarSha256": "fa5070669292c7bdd5ae4ad92eff5757fdf2f76a2c0872136a4af83c54b6efc7"
+}
