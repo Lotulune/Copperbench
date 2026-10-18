@@ -8,9 +8,9 @@
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable releases: Windows 0.1.11 and Linux 0.1.9.** Windows 0.1.11 completes native dialog theming, localization and layout corrections. See [current downloads](docs/releases/current.md) for packages and verification records.
+**Current stable releases: Windows 0.1.12 and Linux 0.1.9.** Windows 0.1.12 tightens the update dialog spacing and sizes its status area to the content. See [current downloads](docs/releases/current.md) for packages and verification records.
 
-Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.11](docs/testing/maintenance-release-0.1.11.md) and [Linux 0.1.9](docs/testing/maintenance-release-0.1.9.md).
+Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.12](docs/testing/maintenance-release-0.1.12.md) and [Linux 0.1.9](docs/testing/maintenance-release-0.1.9.md).
 
 <a id="getting-started"></a>
 
@@ -18,7 +18,7 @@ Source identity, package hashes and verification scope are recorded separately f
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.11](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.11) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
+| Windows 11 x64 | [0.1.12](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.12) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
 | Ubuntu 24.04 LTS x86_64 | [0.1.9](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
