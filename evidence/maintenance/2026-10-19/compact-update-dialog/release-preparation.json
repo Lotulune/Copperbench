@@ -1,0 +1,87 @@
+{
+  "candidateVersion": "0.1.12",
+  "baseCommit": "fb8f10da29205bd387791305eb22b85a52563c4d",
+  "date": "2026-10-19",
+  "status": "passed",
+  "checks": {
+    "java": 5,
+    "uiCore": 50,
+    "uiUnit": 68,
+    "aboutNavigationChromium": 2,
+    "productionUiBuild": "passed"
+  },
+  "sources": [
+    {
+      "sha256": "5f653e36661dc9860bf567836b2dafe444811897d55c383f8710ca040bae0c15",
+      "path": "src/main/java/dev/copperbench/shell/ProductUpdateDialog.java"
+    },
+    {
+      "sha256": "98bb4698c57ebb25d8034e56521dfb5b13a799ba1726871a987fd1ddc37e4382",
+      "path": "src/main/resources/mcreator.conf"
+    },
+    {
+      "sha256": "4c04e6a08adbce45c9b5edf6c26588685da6f4543a52bc737f310dfb3631c77b",
+      "path": "ui-shell/package.json"
+    },
+    {
+      "sha256": "4fd1e1cb0e8557529d60c6b46a81778443cfb20ad1e3598d5744fb4edf4d9d99",
+      "path": "ui-shell/package-lock.json"
+    },
+    {
+      "sha256": "05d2032ee45e619c51f1ab4d32e2d3e994ac65ed8fefe8e14b8613d937ad7475",
+      "path": "ui-shell/src/content/userGuide.ts"
+    },
+    {
+      "sha256": "95adc5322c799d1e2c92b4ac7703db5266756b600b9c75a5ba5bfb28891f9a94",
+      "path": "ui-core/fixtures/v1.0/release/release-notes.json"
+    },
+    {
+      "sha256": "2a9664378b82fe20b6738fb17a959ea7ab26fef455e0cc23a799b14976cf7a25",
+      "path": "product-status.json"
+    }
+  ],
+  "evidence": [
+    {
+      "sha256": "46775ba229e2d7bebb5f9b7ec6bd01e3fc9c0eb3b1d12480b0368c5f0373c07a",
+      "path": "available-en-dark-200.png"
+    },
+    {
+      "sha256": "60900a12eb232de8cde36445462b7fa7cfdbd2e8bdaa26ae0ab10da9f859d3fb",
+      "path": "error-en-light-200.png"
+    },
+    {
+      "sha256": "565f4a474b0f25599cea96fdf6a59468c849a68aa2750b94270b545a5bb33166",
+      "path": "preparing-zh-light.png"
+    },
+    {
+      "sha256": "4af8eb786ddf6dfc136aa9098490b025f59256dcdca208ad004f870c7c891009",
+      "path": "preview-java-checks.log"
+    },
+    {
+      "sha256": "e1640db96383c749d57b44af73370cc6e198ab11edb9f0789ceb5ded65ec15f1",
+      "path": "preview-verification.json"
+    },
+    {
+      "sha256": "fee29d878f9bb4cc6b2394b476f57f0ae0c194a5bae48f0c1cf8c1b0b1a807a3",
+      "path": "previous-release.json"
+    },
+    {
+      "sha256": "adf4aef4ed87873b2e2d6bbfb48ed25bce424ae8229542ada3f191ea1010def0",
+      "path": "release-about-e2e.log"
+    },
+    {
+      "sha256": "0a5fde603737e16a8354246f5a5c87569bf104e0ec7a5c01f04a5941841fdc33",
+      "path": "release-ui-core.log"
+    },
+    {
+      "sha256": "57513c80b954bbd21f6390b03146477dd31cf03fffe230eb30b2b6630501098d",
+      "path": "release-ui-unit.log"
+    },
+    {
+      "sha256": "5824dbb4c8468f3f0e1bfb0d07307904c6b718954b246c05dbaf0f9901164363",
+      "path": "release-version-checks.log"
+    }
+  ],
+  "scope": "Local source and presentation checks. Official release packaging and public artifact verification are pending.",
+  "logsNormalization": "Trailing horizontal whitespace removed from copied logs; original output logs retained locally."
+}

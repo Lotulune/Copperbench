@@ -39,7 +39,9 @@ public final class ProductUpdateDialog {
         private final Window owner;
         private final JDialog dialog;
         private final JTextArea status = dev.copperbench.ui.NativeDialogs.body("");
+        private final JScrollPane statusScroll = dev.copperbench.ui.NativeDialogs.scroll(status);
         private final JProgressBar progress = new JProgressBar(0, 100);
+        private final JPanel meter = new JPanel(new BorderLayout());
         private final JButton action = new JButton(text("检查更新", "Check for updates"));
         private final JButton cancel = new JButton(text("关闭", "Close"));
         private final AtomicBoolean cancelled = new AtomicBoolean();
@@ -49,11 +51,15 @@ public final class ProductUpdateDialog {
         Controller(Window owner, dev.copperbench.installer.UpdatePreparation.ContentSource source, Runnable closeAction, boolean sharedNotifications) {
             this.source = source; this.closeAction = closeAction; this.sharedNotifications = sharedNotifications;
             this.owner = owner; dialog = new net.mcreator.ui.dialogs.MCreatorDialog(owner, text("Copperbench 更新", "Copperbench updates")); active = dialog;
-            JPanel panel = new JPanel(new BorderLayout(0, 18)); panel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+            JPanel panel = new JPanel(new BorderLayout(0, 16)); panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             localeListener = ignored -> SwingUtilities.invokeLater(() -> { if (dialog.isDisplayable()) render(); });
-            title.setFont(title.getFont().deriveFont(Font.BOLD, 18f)); panel.add(title, BorderLayout.NORTH);
-            status.setRows(5); status.setColumns(38);
-            JPanel middle = new JPanel(new BorderLayout(0, 12)); JScrollPane statusScroll = new JScrollPane(status); statusScroll.setBorder(BorderFactory.createEmptyBorder()); statusScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER); middle.add(statusScroll, BorderLayout.CENTER); middle.add(progress, BorderLayout.SOUTH); panel.add(middle, BorderLayout.CENTER);
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
+            JPanel content = new JPanel(); content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+            title.setAlignmentX(Component.LEFT_ALIGNMENT); statusScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+            meter.setAlignmentX(Component.LEFT_ALIGNMENT); meter.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+            meter.add(progress, BorderLayout.CENTER);
+            content.add(title); content.add(Box.createVerticalStrut(8)); content.add(statusScroll); content.add(meter);
+            panel.add(content, BorderLayout.CENTER);
             JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0)); buttons.add(details); buttons.add(cancel); buttons.add(action); panel.add(buttons, BorderLayout.SOUTH);
             action.addActionListener(_ -> { if (prepared != null) install(); else if (available != null) download(); else check(); });
             dialog.getRootPane().setDefaultButton(action);
@@ -147,7 +153,18 @@ public final class ProductUpdateDialog {
                     ? prepared != null ? text("重试安装", "Retry installation") : available != null ? text("重试下载", "Retry download") : text("重试检查", "Retry check")
                     : prepared != null ? text("安装并重启", "Install and restart") : available != null ? text("下载更新", "Download update") : text("重新检查", "Check again"));
             progress.setVisible(busy || stage == Stage.READY);
-            if (dialog.isDisplayable()) dev.copperbench.ui.NativeDialogs.fit(dialog, owner);
+            meter.setVisible(progress.isVisible());
+            // Measure wrapped content instead of reserving blank rows for every update state.
+            status.setSize(420, Short.MAX_VALUE);
+            int messageHeight = Math.min(144, status.getPreferredSize().height);
+            statusScroll.setPreferredSize(new Dimension(420, messageHeight));
+            statusScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, messageHeight));
+            statusScroll.setMinimumSize(new Dimension(0, status.getFontMetrics(status.getFont()).getHeight() + 4));
+            meter.setMaximumSize(new Dimension(Integer.MAX_VALUE, meter.getPreferredSize().height));
+            if (dialog.isDisplayable()) {
+                dialog.setMinimumSize(new Dimension());
+                dev.copperbench.ui.NativeDialogs.fit(dialog, owner);
+            }
         }
         private void close() { cancelled.set(true); dialog.dispose(); if (!busy) discard(); }
         private void discard() {

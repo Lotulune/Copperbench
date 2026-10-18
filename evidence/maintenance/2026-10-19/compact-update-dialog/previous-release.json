@@ -1,0 +1,17 @@
+{
+  "result": "passed",
+  "tag": "v0.1.11",
+  "sourceCommit": "ad62a523eaddde9b0a28850aaa88b81f1a29a752",
+  "workflowRun": 39157240306,
+  "publishedAt": "2026-10-18T19:34:07Z",
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.11",
+  "assetCount": 15,
+  "updateComponents": 4,
+  "installer": {
+    "name": "Copperbench.0.1.11.Windows.64bit.exe",
+    "size": 503043094,
+    "digest": "sha256:093eef5e9811ac4bb3886798d7c2e9100fdf2859ef0311b9d6199f9015fc6fd3",
+    "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.11/Copperbench.0.1.11.Windows.64bit.exe"
+  },
+  "scope": "Public API upload digests match SHA256SUMS; downloaded hashes, source metadata and updater descriptor are verified. The component inventory matches published component sizes and hashes. This check does not download or run the installer."
+}

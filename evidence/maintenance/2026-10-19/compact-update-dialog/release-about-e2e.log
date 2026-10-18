@@ -1,0 +1,15 @@
+
+> @mod-creator/ui-shell@0.1.12 test:e2e
+> playwright test e2e/adaptive-and-frameless.spec.ts --project=chromium --grep navigation rail tabs|help/about view
+
+[WebServer] (node:49492) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:11232) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium] › e2e\adaptive-and-frameless.spec.ts:157:3 › Adaptive Layout, Frameless Window & Theme Tests › navigation rail tabs switch views properly (3.2s)
+  ok 2 [chromium] › e2e\adaptive-and-frameless.spec.ts:184:3 › Adaptive Layout, Frameless Window & Theme Tests › help/about view displays honest facts, honest track statuses, and user guide content (1.4s)
+
+  2 passed (11.5s)
