@@ -18,7 +18,8 @@
     "uiUnit": 68,
     "installerInteractions": "passed",
     "brandAssets": 23,
-    "fixtureExeIconMaxDifference": 0
+    "fixtureExeIconMaxDifference": 0,
+    "aboutNavigationChromium": 2
   },
   "unverified": [
     "Real installation/upgrade/uninstallation",
@@ -113,6 +114,10 @@
     {
       "path": "src/test/java/dev/copperbench/shell/StartupLayoutFixture.java",
       "sha256": "59b3c5b796de0ebe246d48927563c494c3abc94c34082909715fc1b6f3512c5b"
+    },
+    {
+      "path": "ui-shell/e2e/adaptive-and-frameless.spec.ts",
+      "sha256": "1cb6cb917950bd9dec4b38018d2c48fc9c129616f2bbd9c8859d0fc4bfe427bc"
     }
   ],
   "corePreviewClasses": [
@@ -285,6 +290,10 @@
     {
       "path": "waiting-zh-light-1.25.launch.json",
       "sha256": "1c8c3eb93e105186251648e44072018d372c387e3b5d1b354935257688707235"
+    },
+    {
+      "path": "about-version-e2e.log",
+      "sha256": "4d3cfe80144d9d0a6d11aca6df9b6a0bb6df930cb962eb256fc6b3f8dce7bcd3"
     }
   ]
 }

@@ -19,6 +19,7 @@ The [verification receipt](../../evidence/maintenance/2026-10-19/native-dialogs/
 | --- | --- |
 | Focused Java regression, production UI build and Javadoc | 14 tests passed. After the final font adjustment, the 8 affected tests and Javadoc passed again. |
 | UI-Core / UI unit tests | 50 / 68 passed. |
+| Help/About and navigation version regression | 2 Chromium cases passed after binding the expected version to the release package metadata instead of the previous release number. |
 | Installer interaction fixture | Language/theme popups preserve input and license selection. At 720×480 the form has no horizontal overflow, Browse/Read remain reachable, and the primary action stays visible. |
 | Packaging fixture | The Node packager preserved the Gradle setup JAR bytes; 23 branding assets passed and the generated EXE icon had zero pixel difference. This marker-only payload is not a full application installer and is not a release artifact. |
 | Repository checks | Product status, Markdown local links and Node syntax passed. The design detector reported no findings for the version-only user-guide edit; native presentation was inspected separately. |

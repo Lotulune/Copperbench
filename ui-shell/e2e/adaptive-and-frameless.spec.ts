@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import packageMetadata from '../package.json' with { type: 'json' };
 
 test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -174,7 +175,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await page.click('[data-testid="nav-help"]');
     await expect(page.locator('[data-testid="help-view"]')).toBeVisible();
     await expect(page.locator('[data-testid="about-panel"]')).toBeVisible();
-    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.10');
+    await expect(page.locator('[data-testid="about-panel"]')).toContainText(`Copperbench ${packageMetadata.version}`);
 
     await page.click('[data-testid="nav-hub"]');
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
@@ -192,7 +193,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     // About panel facts
     const aboutPanel = page.locator('[data-testid="about-panel"]');
     await expect(aboutPanel).toBeVisible();
-    await expect(aboutPanel).toContainText('Copperbench 0.1.10');
+    await expect(aboutPanel).toContainText(`Copperbench ${packageMetadata.version}`);
     await expect(aboutPanel).toContainText('GPL-3.0');
     await expect(aboutPanel).toContainText('MCreator 2026.2.33518');
     await expect(aboutPanel).toContainText('Fabric / NeoForge · 26.2 / 26.1.2 / 1.21.1 / 1.20.1');
