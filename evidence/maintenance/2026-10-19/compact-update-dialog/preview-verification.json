@@ -1,0 +1,27 @@
+{
+  "source": "src/main/java/dev/copperbench/shell/ProductUpdateDialog.java",
+  "sourceSha256": "5f653e36661dc9860bf567836b2dafe444811897d55c383f8710ca040bae0c15",
+  "baseCommit": "fb8f10da29205bd387791305eb22b85a52563c4d",
+  "published": false,
+  "javaChecks": 4,
+  "manualScenes": [
+    "preparing / zh / light / 125%",
+    "available / en / dark / 200%",
+    "error / en / light / 200%"
+  ],
+  "scope": "Production dialog presentation in isolated fixtures; no network, download or installation; primary install/download actions disabled in the fixture.",
+  "screenshots": [
+    {
+      "sha256": "46775ba229e2d7bebb5f9b7ec6bd01e3fc9c0eb3b1d12480b0368c5f0373c07a",
+      "file": "available-en-dark-200.png"
+    },
+    {
+      "sha256": "60900a12eb232de8cde36445462b7fa7cfdbd2e8bdaa26ae0ab10da9f859d3fb",
+      "file": "error-en-light-200.png"
+    },
+    {
+      "sha256": "565f4a474b0f25599cea96fdf6a59468c849a68aa2750b94270b545a5bb33166",
+      "file": "preparing-zh-light.png"
+    }
+  ]
+}
