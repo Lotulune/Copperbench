@@ -509,7 +509,7 @@ input:disabled, select:disabled, textarea:disabled {
   border: 1px solid var(--border-subtle);
   border-top: 3px solid var(--accent-copper);
   border-radius: 2px;
-  box-shadow: 5px 5px 0 var(--bg-base), var(--shadow-lg);
+  box-shadow: var(--shadow-lg);
   max-width: 520px;
   width: 100%;
   overflow: hidden;

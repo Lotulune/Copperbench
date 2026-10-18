@@ -16,10 +16,19 @@ public final class ProductDialogs {
         body.setLineWrap(true);
         body.setWrapStyleWord(true);
         body.setFont(UIManager.getFont("Label.font"));
-        body.setColumns(38);
+        body.setColumns(0);
         body.setBorder(new EmptyBorder(8, 4, 12, 4));
         body.getAccessibleContext().setAccessibleName(message);
-        JOptionPane pane = new JOptionPane(body, type, JOptionPane.DEFAULT_OPTION, null, options, initial);
+        int width = Math.min(460, Math.max(240, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width - 180));
+        body.setSize(width, Short.MAX_VALUE);
+        JScrollPane scroll = new JScrollPane(body);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setPreferredSize(new Dimension(width, Math.min(body.getPreferredSize().height + 8,
+                Math.max(80, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().height - 220))));
+        JOptionPane pane = new JOptionPane(scroll, type, JOptionPane.DEFAULT_OPTION, null, options, initial);
         Color surface = UIManager.getColor("Panel.background");
         boolean dark = surface != null && surface.getRed() + surface.getGreen() + surface.getBlue() < 384;
         pane.setBorder(BorderFactory.createCompoundBorder(
@@ -31,6 +40,10 @@ public final class ProductDialogs {
     public static int show(Component parent, String message, String title, int type, Object[] options, Object initial) {
         JOptionPane pane = pane(message, type, options, initial);
         JDialog dialog = pane.createDialog(parent, title);
+        dialog.setResizable(true);
+        dialog.pack();
+        dialog.setMinimumSize(dialog.getSize());
+        dialog.setLocationRelativeTo(parent);
         try { dialog.setVisible(true); } finally { dialog.dispose(); }
         for (int i = 0; i < options.length; i++)
             if (options[i].equals(pane.getValue())) return i;

@@ -1,26 +1,9 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, Bot, Flag, FolderOpen, X } from 'lucide-react';
-import { isNativeHostPresent } from '../bridge';
-import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
+import { FolderOpen, X } from 'lucide-react';
 import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
-import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { renderUiMessage, uiMessage, uiText, type UiMessage } from '../i18n';
 import { useFirstCreation } from '../onboarding/FirstCreationContext';
-
-export function WorkspaceEntryActions() {
-  const { setActiveView } = useWorkbench();
-  const { openGuide, currentBinding, openWorkspaceOpen } = useFirstCreation();
-  return <section className="workspace-entry-actions" aria-label={uiText('开始创作', 'Start creating')} data-testid="workspace-entry-actions">
-    <button type="button" data-testid="hub-first-creation" onClick={() => openGuide()}><Flag size={18} aria-hidden="true" />
-      <span><strong>{currentBinding ? uiText('继续第一件作品', 'Continue first creation') : uiText('第一件作品', 'First creation')}</strong><small>{uiText('从真实方块到游戏检查与交付', 'From a real block to game checks and delivery')}</small></span><ArrowRight size={14} aria-hidden="true" /></button>
-    <button type="button" data-testid="hub-open-workspace" disabled={!workspaceOpenBridge.available} title={!workspaceOpenBridge.available ? uiText('在桌面应用中打开本机工作区', 'Open a local workspace in the desktop app') : undefined} onClick={openWorkspaceOpen}><FolderOpen size={18} aria-hidden="true" />
-      <span><strong>{uiText('打开已有工作区', 'Open existing workspace')}</strong><small>{uiText('从原工程继续编辑', 'Keep editing the original project')}</small></span><ArrowRight size={14} aria-hidden="true" /></button>
-    <button type="button" data-testid="hub-connect-agent" disabled={!mcpRuntimeBridge.available} title={!mcpRuntimeBridge.available ? uiText('在桌面应用的 AI 与 MCP 中连接', 'Connect through AI & MCP in the desktop app') : undefined} onClick={() => setActiveView('ai')}><Bot size={18} aria-hidden="true" />
-      <span><strong>{uiText('连接外部 Agent', 'Connect external Agent')}</strong><small>{uiText('打开现有 AI 与 MCP 入口', 'Open the existing AI & MCP controls')}</small></span><ArrowRight size={14} aria-hidden="true" /></button>
-    {!isNativeHostPresent() && <p role="status">{uiText('本机工作区与 Agent 连接请使用桌面应用。', 'Use the desktop app for local workspaces and Agent connections.')}</p>}
-  </section>;
-}
 
 export function OpenWorkspaceDialog() {
   const { workspaceOpen, closeWorkspaceOpen } = useFirstCreation();

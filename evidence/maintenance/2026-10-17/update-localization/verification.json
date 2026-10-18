@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Tokyo",
+  "status": "passed",
+  "scope": "Chinese native UI and language handoff; no installation, registry writes or payload replacement in this follow-up.",
+  "observations": [
+    "Chinese main update title, status, error summary, details, close and retry controls",
+    "Open main dialog switches Chinese to English and back without reopening",
+    "Standalone worker started with English JVM defaults displays Chinese progress and cancel controls",
+    "Checksum-failure summary, error-details button and close button are Chinese",
+    "Clicking the Chinese close button dismisses the failure dialog"
+  ],
+  "validation": {
+    "focusedJavaPassed": 43,
+    "posixSkippedOnWindows": 2,
+    "independentLocaleJvmRetestPassed": 3,
+    "uiBuild": "passed",
+    "javadoc": "passed",
+    "latestUiLanguageWrittenBeforeWorkerLaunch": "passed"
+  },
+  "screenshots": [
+    "update-error-zh.png",
+    "update-error-zh-after-switch.png",
+    "update-worker-zh.png",
+    "update-worker-error-zh.png"
+  ],
+  "fixtures": "The main fixture injects HTTP 429; worker fixtures display copy progress and checksum failure through the production view classes. These are UI acceptance fixtures, not a new published release.",
+  "sourceFiles": [
+    {
+      "path": "src/main/java/dev/copperbench/shell/ProductUpdateDialog.java",
+      "sha256": "2793a4b02422c7b6e7bde58299fd438de223ee099e3d77b3e5fa664d1b6a7eb4"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/release/ProductUpdates.java",
+      "sha256": "429ddaea79a6864fabd2e6db66da157a705ebb310beb9a362d1aa467e5b7286e"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/UpdateUiMessages.java",
+      "sha256": "d4d03b8d608e26ab620d034e4f704f46b3d9d822ea8debfafdacb4349a8b861f"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/UpdateInstallerWindow.java",
+      "sha256": "cd1f8ddd39802abd93178cdb1d0e930232c4a38e20b32c54a0397954ef3b72f7"
+    },
+    {
+      "path": "platform/installer/src/dev/copperbench/installer/UpdateInstaller.java",
+      "sha256": "2726bf05ab22adb666544d8f5a2bd8697a4277ea11d010be7f367e561611742f"
+    }
+  ]
+}

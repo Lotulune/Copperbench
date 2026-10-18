@@ -20,16 +20,14 @@ public final class InstallRehearsal {
         if (first.previousVersion() != null) throw new AssertionError("Fresh install unexpectedly replaced something");
         Files.writeString(target.resolve("personal-note.txt"), "keep me");
         var upgrade = engine.install(plan, () -> false, ignored -> {}, ignored -> {});
-        if (upgrade.previousVersion() == null || !Files.exists(upgrade.previousVersion().resolve("copperbench.exe")))
-            throw new AssertionError("Upgrade did not retain the old files");
+        if (upgrade.previousVersion() != null) throw new AssertionError("Upgrade left previous application files behind");
+        try (var siblings = Files.list(output)) {
+            if (siblings.anyMatch(path -> path.getFileName().toString().startsWith("Copperbench-previous-"))) throw new AssertionError("Upgrade retained an old version directory");
+        }
         if (!Files.readString(target.resolve("personal-note.txt")).equals("keep me")) throw new AssertionError("Upgrade lost unmanaged data");
         InstallEngine.uninstall(target);
         if (Files.exists(target.resolve("copperbench.exe")) || !Files.readString(target.resolve("personal-note.txt")).equals("keep me")
                 || !Files.readString(project).equals("workspace must survive")) throw new AssertionError("Uninstall data preservation failed");
-        // The backup is no longer needed in this isolated rehearsal. Validate it stays inside the new output directory.
-        Path backup = upgrade.previousVersion().toAbsolutePath().normalize();
-        if (!backup.startsWith(output) || backup.equals(output)) throw new AssertionError("Unsafe rehearsal cleanup");
-        InstallerMain.deleteScratch(backup);
         String receipt = "{\n  \"result\": \"passed\",\n  \"scope\": \"full-payload file install, upgrade, uninstall and data preservation\",\n"
                 + "  \"osRegistrationTested\": false,\n  \"applicationLaunched\": false,\n  \"durationSeconds\": "
                 + ((System.nanoTime() - start) / 1_000_000_000.0) + "\n}\n";

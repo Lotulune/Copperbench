@@ -14,16 +14,23 @@ public final class BlockbenchStartupPanel extends JPanel {
 	public BlockbenchStartupPanel(BlockbenchConfiguration configuration, Runnable openGuide) {
 		super(new BorderLayout(0, 4));
 		setOpaque(false);
-		JLabel introduction = new JLabel(text("自定义模型可使用独立的 Blockbench，也可稍后设置。", "Use Blockbench for custom models, or set it up later."));
+		JTextArea introduction = new JTextArea(UiLocalePreferences.text("自定义模型可使用 Blockbench，也可稍后设置。", "Use Blockbench for custom models, or set it up later."));
+		introduction.setFont(UIManager.getFont("Label.font"));
+		introduction.setEditable(false);
+		introduction.setOpaque(false);
+		introduction.setLineWrap(true);
+		introduction.setWrapStyleWord(true);
+		introduction.setColumns(26);
+		introduction.setRows(2);
 		introduction.setName("blockbench-startup-introduction");
 		JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 		actions.setOpaque(false);
-		JButton guide = new JButton(text("建模工具设置 · 可选", "Blockbench setup · Optional"));
+		JButton guide = new JButton(UiLocalePreferences.text("建模工具设置", "Modeling tools"));
 		guide.setName("blockbench-startup-guide");
 		guide.addActionListener(_ -> openGuide.run());
 		actions.add(guide);
 		actions.add(Box.createHorizontalStrut(6));
-		JButton skip = new JButton(text("稍后设置", "Set up later"));
+		JButton skip = new JButton(UiLocalePreferences.text("稍后设置", "Later"));
 		skip.setName("blockbench-startup-skip");
 		skip.addActionListener(_ -> {
 			try {

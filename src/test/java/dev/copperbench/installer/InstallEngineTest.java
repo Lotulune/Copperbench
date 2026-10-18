@@ -44,12 +44,14 @@ class InstallEngineTest {
         assertThrows(IOException.class, () -> new InstallEngine().install(next, () -> false, ignored -> {}, ignored -> { throw new IOException("registration failed"); }));
         assertEquals("old", Files.readString(next.target().resolve("app.txt")));
     }
-    @Test void upgradePreservesUnmanagedFilesAndKeepsPreviousVersion() throws Exception {
+    @Test void upgradePreservesUnmanagedFilesAndRemovesPreviousVersion() throws Exception {
         InstallEngine.Plan first = plan("old"); install(first);
         Files.writeString(first.target().resolve("personal-notes.txt"), "keep");
         InstallEngine.Result result = install(plan("new"));
         assertEquals("keep", Files.readString(result.target().resolve("personal-notes.txt")));
-        assertEquals("old", Files.readString(result.previousVersion().resolve("app.txt")));
+        assertNull(result.previousVersion());
+        assertEquals("new", Files.readString(result.target().resolve("app.txt")));
+        try (var siblings = Files.list(directory)) { assertFalse(siblings.anyMatch(path -> path.getFileName().toString().startsWith("Copperbench-previous-"))); }
     }
     @Test void cancellationDuringCopyLeavesTheOldInstallationInPlace() throws Exception {
         InstallEngine.Plan first = plan("old"); install(first);
@@ -102,7 +104,7 @@ class InstallEngineTest {
                 Base64.getEncoder().encodeToString("app.txt".getBytes(StandardCharsets.UTF_8)),
                 Base64.getEncoder().encodeToString("example.mcreator".getBytes(StandardCharsets.UTF_8))));
         install(plan);
-        assertNotNull(install(plan).previousVersion());
+        assertNull(install(plan).previousVersion());
     }
     @Test void ignoresRelativeXdgValuesAndEscapesDesktopCommandArguments() {
         Path fallback = directory.resolve("config");

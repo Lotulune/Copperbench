@@ -6,7 +6,6 @@ import { elementLabel, elementShortLabel, valueLabel } from '../i18n/labels';
 import { englishCount, t, uiText } from '../i18n';
 import type { WorkspaceSourceIndex } from '../types/contract';
 import { BlockbenchOnboarding } from './BlockbenchOnboarding';
-import { WorkspaceEntryActions } from './WorkspaceEntryActions';
 import './workspaceHub.css';
 
 export const WorkspaceHub = () => {
@@ -57,7 +56,6 @@ export const WorkspaceHub = () => {
           <button type="button" className="overview-action overview-action-primary" data-testid="empty-primary-action" onClick={() => setIsCreateModalOpen(true)}><Plus size={14} aria-hidden="true" />{uiText('新建元素', 'New element')}</button>
         </div>
       </header>
-      <WorkspaceEntryActions />
       <div className="overview-counts" aria-label={uiText('工作区内容', 'Workspace contents')}>
         <span>{uiText('模组元素', 'Mod elements')} <strong>{counts?.total ?? 0}</strong></span>
         {assetCount !== undefined && <button type="button" onClick={() => setActiveView('assets')}>{uiText('资产', 'Assets')} <strong>{assetCount}</strong></button>}

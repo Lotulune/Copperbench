@@ -607,7 +607,7 @@ jobs:
           find build/export -maxdepth 1 -type f \( \
             -name '*Linux x86_64.tar.gz' -o -name '*Linux x86_64 Setup.tar.gz' -o -name '*Setup.tar.gz.build.json' -o -name 'copperbench_*_amd64.deb' -o \
             -name 'copperbench-linux.spdx.json' -o -name 'linux-candidate-manifest.json' -o \
-            -name 'LINUX-CANDIDATE-METADATA.json' \) -print0 \
+              -name 'LINUX-CANDIDATE-METADATA.json' -o -name 'copperbench-update-linux-x64*' \) -print0 \
             | sort -z | xargs -0 sha256sum | tee build/export/linux-candidate-sha256.txt
 
       - name: Attest Linux candidate provenance
@@ -615,6 +615,7 @@ jobs:
         uses: actions/attest-build-provenance@v3
         with:
           subject-path: |
+            build/export/copperbench-update-linux-x64*
             build/export/*Linux x86_64.tar.gz
             build/export/*Linux x86_64 Setup.tar.gz
             build/export/*Setup.tar.gz.build.json
@@ -629,6 +630,7 @@ jobs:
         with:
           name: stage15-linux-candidate
           path: |
+            build/export/copperbench-update-linux-x64*
             build/export/*Linux x86_64.tar.gz
             build/export/*Linux x86_64 Setup.tar.gz
             build/export/*Setup.tar.gz.build.json

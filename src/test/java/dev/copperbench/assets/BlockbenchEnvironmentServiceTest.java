@@ -153,12 +153,21 @@ class BlockbenchEnvironmentServiceTest {
 					});
 			JsonObject result = service.inspect(probePayload());
 			JsonObject mcp = result.getAsJsonObject("mcp");
+			assertTrue(mcp.has("failurePhase"), () -> failure + ": " + result);
 			assertEquals(failure, mcp.get("failurePhase").getAsString());
 			assertEquals(failure.endsWith("construction") ? "initialization_error" : "protocol_error", mcp.get("state").getAsString());
 			assertTrue(result.getAsJsonObject("editor").get("available").getAsBoolean());
 			assertFalse(result.toString().contains("secret"));
 			assertEquals(failure.equals("client_construction") ? 1 : 0, transportClosed.get());
 			assertEquals(failure.endsWith("construction") ? 0 : 1, clientClosed.get());
+		}
+	}
+
+	@Test void completedInspectionsReleaseTheirBudgetBeforeTheNextRequest() {
+		var service = new BlockbenchEnvironmentService(BlockbenchEnvironmentServiceTest::installed, Duration.ofSeconds(1));
+		for (int i = 0; i < 200; i++) {
+			JsonObject result = service.inspect(new JsonObject());
+			assertEquals("not_checked", result.getAsJsonObject("mcp").get("state").getAsString(), result::toString);
 		}
 	}
 
