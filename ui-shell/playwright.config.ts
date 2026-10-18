@@ -1,4 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+
+const rawPort = process.env.COPPERBENCH_E2E_PORT ?? '5183';
+const port = Number(rawPort);
+if (!/^\d+$/.test(rawPort) || !Number.isInteger(port) || port < 1024 || port > 65535)
+  throw new Error('COPPERBENCH_E2E_PORT must be a port between 1024 and 65535.');
+const testUrl = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: './e2e',
@@ -9,7 +16,7 @@ export default defineConfig({
   reporter: 'list',
   use: {
     locale: 'zh-CN',
-    baseURL: 'http://localhost:5173',
+    baseURL: testUrl,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'
   },
@@ -46,9 +53,10 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    command: `node node_modules/vite/bin/vite.js --host 127.0.0.1 --port ${port} --strictPort`,
+    cwd: fileURLToPath(new URL('.', import.meta.url)),
+    url: testUrl,
+    reuseExistingServer: false,
     timeout: 15000
   }
 });

@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "product": {
     "name": "Copperbench",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "id": "dev.copperbench.studio",
     "publisher": "Copperbench Contributors",
     "license": "GPL-3.0-only",
@@ -251,11 +251,11 @@
     "schemaVersion": "1.0",
     "kind": "development-inventory",
     "productId": "dev.copperbench.studio",
-    "productVersion": "0.1.9",
+    "productVersion": "0.1.10",
     "components": [
       {
         "name": "Copperbench",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "application",
         "license": "GPL-3.0-only",
         "path": "."
@@ -276,77 +276,77 @@
       },
       {
         "name": "core",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-core"
       },
       {
         "name": "generator-1.20.1",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-1.20.1"
       },
       {
         "name": "generator-1.21.1",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-1.21.1"
       },
       {
         "name": "generator-26.1.x",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-26.1.x"
       },
       {
         "name": "generator-26.2",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-26.2"
       },
       {
         "name": "generator-addon-26.1x",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-addon-26.1x"
       },
       {
         "name": "generator-fabric-26.1.2",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-fabric-26.1.2"
       },
       {
         "name": "generator-fabric-26.2",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-fabric-26.2"
       },
       {
         "name": "localization",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-localization"
       },
       {
         "name": "mcreator-link",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-link"
       },
       {
         "name": "themes",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-themes"
@@ -598,8 +598,8 @@
       {"id": "preferences", "upstream": "偏好设置（Preferences）", "surface": "legacy_window", "notes": "完整偏好设置仍在旧版 Swing 窗口中，隐私默认值由 Copperbench 管理。"},
       {"id": "local_history", "upstream": "本地历史（Local History）", "surface": "new_ui", "notes": "支持创建恢复点和还原工作区，不改写 Git 远程配置。"},
       {"id": "plugin_manager", "upstream": "插件管理（Plugins）", "surface": "new_ui", "notes": "可查看已安装插件；Swing 界面插件在旧版窗口打开，Java 插件需要手动启用。"},
-      {"id": "website_community_publish_donate", "upstream": "官网、社区、发布与捐赠（Help）", "surface": "not_applicable", "notes": "不提供产品账号、商店或自动联网服务。"},
-      {"id": "check_for_updates", "upstream": "检查产品和插件更新（Check for Updates）", "surface": "not_applicable", "notes": "自动联网服务已禁用，当前版本不提供更新检查。"}
+      {"id": "website_community_publish_donate", "upstream": "官网、社区、发布与捐赠（Help）", "surface": "not_applicable", "notes": "不提供产品账号、商店或捐赠入口。"},
+      {"id": "check_for_updates", "upstream": "检查产品和插件更新（Check for Updates）", "surface": "new_ui", "notes": "自动检查产品新版本，在帮助与关于中也可手动检查；下载并校验更新组件后重启升级。插件更新由用户管理。"}
     ]
   },
   "knownLimitations": [

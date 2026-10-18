@@ -156,9 +156,6 @@ export function SettingsView() {
     <div className="settings-content">
       <header className="settings-heading">
         <div><h1>{uiText('设置', 'Settings')}</h1></div>
-        {window.__COPPERBENCH_WINDOW_HOST__?.updatesAvailable && <button type="button" className="settings-secondary" data-testid="settings-check-updates"
-          onClick={() => { void window.__COPPERBENCH_WINDOW_HOST__!.invoke('check_updates').catch(failure => setError(String(failure))); }}>
-          {uiText('检查更新', 'Check for updates')}</button>}
         {windowBridge.canOpenPreferences && <button className="settings-secondary" type="button" disabled={saving || dirty}
           onClick={() => { void openAdvanced(); }}>
           <ExternalLink size={14} />{uiText('高级设置', 'Advanced settings')}</button>}

@@ -36,6 +36,8 @@ public final class WindowChromeManualMain {
         PreferencesManager.init();
         PluginLoader.initInstance();
         ThemeManager.loadThemes();
+        net.mcreator.ui.init.UIRES.preloadImages();
+        ThemeManager.applySelectedTheme();
         L10N.initTranslations();
         UUID id = UUID.randomUUID();
         JsonObject generator = new JsonObject();
@@ -52,6 +54,7 @@ public final class WindowChromeManualMain {
                 new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
         SwingUtilities.invokeAndWait(() -> {
             JFrame window = new JFrame("Copperbench - window interaction verification");
+            window.setIconImages(net.mcreator.ui.init.AppIcon.getAppIcons());
             WindowsWindowChromeController chrome = WindowsWindowChromeController.prepare(window);
             if (chrome == null) throw new IllegalStateException("Windows custom chrome is required");
             WebView webView = new WebView(CopperbenchProductShell.UI_URL);

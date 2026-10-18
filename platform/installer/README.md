@@ -1,6 +1,6 @@
 # Copperbench unified graphical installer
 
-The independent Java 17-compatible wizard uses the runtime already present in the offline payload. It never starts the workbench, JCEF, Python or MCP during setup. Windows and Linux share its interface, language selection, license, copy/verification progress, cancellation and completion flow. The current application icon is unchanged.
+The independent Java 17-compatible wizard uses the runtime already present in the offline payload. It never starts the workbench, JCEF, Python or MCP during setup. Windows and Linux share its interface, language selection, license, copy/verification progress, cancellation and completion flow. The header, window icon and executable use the shared Copperbench workbench icon.
 
 ## Build
 
@@ -50,8 +50,8 @@ NSIS 3.12 is obtained from its [official SourceForge release](https://sourceforg
 
 Every generated installer receives a `.build.json` containing its SHA-256, byte size and payload-manifest SHA-256. Linux candidate metadata and CI artifact collection include the graphical installer. If signing is enabled in a future build, compute release hashes after signing; `.build.json` describes the unsigned packaging output.
 
-`assets/landscape.png` was generated for Copperbench on 2026-10-12 with the image-generation tool, following the approved copper/block-world installation direction. It is original generated scenery, not an extracted Minecraft game asset or an official Minecraft logo. It is distributed under the repository's GPL-3.0-only terms. Existing application icons remain governed by `compliance/branding-assets.lock.json` and were not changed.
+`assets/landscape.png` was generated for Copperbench on 2026-10-12 with the image-generation tool, following the approved copper/block-world installation direction. It is original generated scenery, not an extracted Minecraft game asset or an official Minecraft logo. It is distributed under the repository's GPL-3.0-only terms. The copper workbench icon supplied on 2026-10-18 is exported deterministically by `scripts/stage0/New-CopperbenchBrandAssets.py`; source and output hashes are recorded in `compliance/branding-assets.lock.json`.
 
 ## In-app component updates
 
-The startup window and Settings expose an explicit stable-release check. `buildWindowsUpdates` and `buildLinuxUpdates` publish a platform inventory plus independently hashed application, library, Java and Gradle ZIP components. The client reuses unchanged local components, verifies all downloaded files, and starts the replacement worker from the prepared runtime after normal application shutdown. Release workflows include these assets in source metadata, hashes and provenance; no full-installer download is used by this path. Existing settings and unmanaged files are retained. A release must publish the component assets before it can be installed through this entry point.
+Help & about exposes the manual stable-release check. A shared background check shows a versioned update button in the lower-left corner when a newer release is available. `buildWindowsUpdates` and `buildLinuxUpdates` publish a platform inventory plus independently hashed application, library, Java and Gradle ZIP components. The client reuses unchanged local components, verifies all downloaded files, and starts the replacement worker from the prepared runtime after normal application shutdown. Release workflows include these assets in source metadata, hashes and provenance; no full-installer download is used by this path. Existing settings and unmanaged files are retained. A release must publish the component assets before it can be installed through this entry point.

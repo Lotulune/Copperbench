@@ -174,7 +174,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await page.click('[data-testid="nav-help"]');
     await expect(page.locator('[data-testid="help-view"]')).toBeVisible();
     await expect(page.locator('[data-testid="about-panel"]')).toBeVisible();
-    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.6');
+    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.10');
 
     await page.click('[data-testid="nav-hub"]');
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
@@ -186,13 +186,13 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(helpView).toBeVisible();
 
     // Header and dev-build badge
-    await expect(helpView.getByRole('heading', { name: '帮助', exact: true })).toBeVisible();
+    await expect(helpView.getByRole('heading', { name: '帮助与关于', exact: true })).toBeVisible();
     await expect(helpView).toContainText('稳定版');
 
     // About panel facts
     const aboutPanel = page.locator('[data-testid="about-panel"]');
     await expect(aboutPanel).toBeVisible();
-    await expect(aboutPanel).toContainText('Copperbench 0.1.6');
+    await expect(aboutPanel).toContainText('Copperbench 0.1.10');
     await expect(aboutPanel).toContainText('GPL-3.0');
     await expect(aboutPanel).toContainText('MCreator 2026.2.33518');
     await expect(aboutPanel).toContainText('Fabric / NeoForge · 26.2 / 26.1.2 / 1.21.1 / 1.20.1');

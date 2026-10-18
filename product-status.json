@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,47 +35,32 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.9",
+      "tag": "v0.1.10",
       "linuxTag": "v0.1.9-linux-stable",
-      "status": "public-stable",
+      "status": "ready",
       "linuxStatus": "public-stable",
       "decision": "approved",
-      "decisionDate": "2026-10-16",
-      "scope": "Windows and Linux 0.1.9 are public stable. Published-package cloud acceptance passed on Windows Server 2025 and Ubuntu 24.04 for installer lifecycles, Native Core delivery and server GameTests. Full Windows 11/GNOME desktop and player-world acceptance are separate; historical gates retain their source/binary scope.",
+      "decisionDate": "2026-10-18",
+      "scope": "Requested Windows 0.1.10 release for component updates, localized startup/dialogs, desktop motion, native outer-window rounding and unified branding. Focused source checks and a complete-payload file lifecycle rehearsal passed; final-main CI and public release packaging are pending. Linux remains public at 0.1.9; historical installed-product and gameplay evidence retains its original source/binary scope.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.9.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.9.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-16/export-path-019/previous-release-state.json",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.10.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.10.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-18/display-brand-0110/previous-release-state.json",
       "sourceVerification": {
-        "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
         "requiredCi": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38894781423"
+          "status": "pending"
         },
         "documentation": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38894781518",
-          "scope": "Source A documentation build; later publication records are separate"
+          "status": "pending"
         },
-        "installedPackageAcceptance": "automated-cloud-passed",
+        "installedPackageAcceptance": "pending-final-public-package",
         "fullGameplayAcceptance": "not-repeated",
-        "cloudAcceptance": {
-          "status": "passed",
-          "run": "https://github.com/Lotulune/Copperbench/actions/runs/38903643192",
-          "report": "docs/testing/cloud-acceptance-0.1.9.md",
-          "platforms": [
-            "Windows Server 2025",
-            "Ubuntu 24.04"
-          ],
-          "scope": "Automated Setup/DEB lifecycle, installed Native SDK, server GameTests and exports; no Windows 11/GNOME/player-world certification"
+        "localCandidate": {
+          "sourceCommit": "4f6335e15875d5ba7b2dc5f67861b7a20352168f",
+          "verification": "evidence/maintenance/2026-10-18/display-brand-0110/verification.json",
+          "scope": "Focused source checks, final installer icon validation and complete-payload file lifecycle; no OS registration or application/game launch in that rehearsal"
         }
-      },
-      "releaseCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
-      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9",
-      "publishedAt": "2026-10-16T12:35:43Z",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38897217090",
-      "releaseWorkflowConclusion": "success",
-      "assetProof": "evidence/maintenance/2026-10-16/publication-0.1.9/windows/windows-public-verification.json"
+      }
     },
     "linuxMaintenanceRelease": {
       "tag": "v0.1.9-linux-stable",

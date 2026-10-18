@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { WorkbenchProvider, useWorkbench } from './context/WorkbenchContext';
 import { FramelessTitlebar } from './components/FramelessTitlebar';
 import { NavRail } from './components/NavRail';
@@ -31,11 +31,23 @@ import { DeliveryDialog } from './components/DeliveryDialog';
 import { OpenWorkspaceDialog } from './components/WorkspaceEntryActions';
 import './styles/global.css';
 import './styles/workbench.css';
+import './styles/motion.css';
 
 const ShellContent: React.FC = () => {
   const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();
   const [settingsOpened, setSettingsOpened] = useState(activeView === 'settings');
   const [newWorkspaceOpened, setNewWorkspaceOpened] = useState(activeView === 'new-workspace');
+  const contentRef = useRef<HTMLDivElement>(null);
+  const previousView = useRef(activeView);
+  useLayoutEffect(() => {
+    if (previousView.current === activeView) return;
+    previousView.current = activeView;
+    if (!contentRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Keep persistent editors mounted; only acknowledge the newly selected surface.
+    const transition = contentRef.current.animate([{ opacity: 0.55 }, { opacity: 1 }],
+      { duration: 150, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    return () => transition.cancel();
+  }, [activeView]);
   useEffect(() => { if (activeView === 'settings') setSettingsOpened(true); }, [activeView]);
   useEffect(() => { if (activeView === 'new-workspace') setNewWorkspaceOpened(true); }, [activeView]);
 
@@ -55,7 +67,7 @@ const ShellContent: React.FC = () => {
 
         <main className="app-content-canvas" data-active-view={activeView}>
           <WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} />
-          <div className="workbench-view-content">
+          <div className="workbench-view-content" ref={contentRef}>
           {activeView === 'hub' && <WorkspaceHub />}
           {activeView === 'elements' && <ModElementsWorkbench key={`elements-${state.workbench?.workspace.id}`} />}
           {activeView === 'relations' && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}

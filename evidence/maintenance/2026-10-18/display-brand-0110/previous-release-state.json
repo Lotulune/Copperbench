@@ -1,0 +1,67 @@
+{
+  "capturedAtUtc": "2026-10-18T06:35:11.7288960Z",
+  "stableRelease": {
+    "tag": "v0.1.9",
+    "linuxTag": "v0.1.9-linux-stable",
+    "status": "public-stable",
+    "linuxStatus": "public-stable",
+    "decision": "approved",
+    "decisionDate": "2026-10-16",
+    "scope": "Windows and Linux 0.1.9 are public stable. Published-package cloud acceptance passed on Windows Server 2025 and Ubuntu 24.04 for installer lifecycles, Native Core delivery and server GameTests. Full Windows 11/GNOME desktop and player-world acceptance are separate; historical gates retain their source/binary scope.",
+    "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+    "developmentEvidence": "docs/testing/maintenance-release-0.1.9.md",
+    "integrationReport": "docs/testing/maintenance-release-0.1.9.md",
+    "previousReleaseState": "evidence/maintenance/2026-10-16/export-path-019/previous-release-state.json",
+    "sourceVerification": {
+      "sourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+      "requiredCi": {
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/38894781423"
+      },
+      "documentation": {
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/38894781518",
+        "scope": "Source A documentation build; later publication records are separate"
+      },
+      "installedPackageAcceptance": "automated-cloud-passed",
+      "fullGameplayAcceptance": "not-repeated",
+      "cloudAcceptance": {
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/38903643192",
+        "report": "docs/testing/cloud-acceptance-0.1.9.md",
+        "platforms": [
+          "Windows Server 2025",
+          "Ubuntu 24.04"
+        ],
+        "scope": "Automated Setup/DEB lifecycle, installed Native SDK, server GameTests and exports; no Windows 11/GNOME/player-world certification"
+      }
+    },
+    "releaseCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+    "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9",
+    "publishedAt": "2026-10-16T12:35:43Z",
+    "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38897217090",
+    "releaseWorkflowConclusion": "success",
+    "assetProof": "evidence/maintenance/2026-10-16/publication-0.1.9/windows/windows-public-verification.json"
+  },
+  "linuxMaintenanceRelease": {
+    "tag": "v0.1.9-linux-stable",
+    "status": "public-stable",
+    "candidateSourceCommit": "9e8fcda24e58d165cb2b767f3a0cb3092a7f527c",
+    "candidateWorkflowRunId": "38894781422",
+    "acceptancePolicy": "maintenance-ci-0.1.9",
+    "formalSupportClaim": false,
+    "fullInstalledAcceptance": "not-repeated",
+    "integrationReport": "docs/testing/maintenance-release-0.1.9.md",
+    "releaseCommit": "474b2df4c52ecf52e1f3724448c2d12c8af85396",
+    "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9-linux-stable",
+    "publishedAt": "2026-10-16T12:49:41Z",
+    "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/38902713886",
+    "releaseWorkflowConclusion": "success",
+    "assetProof": "evidence/maintenance/2026-10-16/publication-0.1.9/linux/linux-public-verification.json",
+    "cloudAutomatedAcceptance": {
+      "status": "passed",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/38903643192",
+      "scope": "Ubuntu Setup and DEB automated lifecycle/Native checks; full GNOME desktop/player certification not repeated"
+    }
+  }
+}

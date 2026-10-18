@@ -74,7 +74,7 @@ public class MCreatorDialog extends JDialog {
 			}
 		});
 
-		super.getContentPane().setBackground(Theme.current().getBackgroundColor());
+		super.getContentPane().setBackground(UIManager.getColor("Panel.background"));
 	}
 
 	@Override public void setSize(int i, int i1) {

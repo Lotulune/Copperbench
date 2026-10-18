@@ -37,7 +37,7 @@ class UpstreamToolCatalogTest {
 		assertEquals("new_ui", surface(tools, "mod_elements_first_party"));
 		assertEquals("new_ui", surface(tools, "mod_elements_other"));
 		assertEquals("new_ui", surface(tools, "run_server_debug_client"));
-		assertEquals("not_applicable", surface(tools, "check_for_updates"));
+		assertEquals("new_ui", surface(tools, "check_for_updates"));
 	}
 
 	@Test void querySharesTheOfficialCatalog() {

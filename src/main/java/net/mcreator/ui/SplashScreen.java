@@ -19,6 +19,7 @@
 package net.mcreator.ui;
 
 import dev.copperbench.ProductIdentity;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 import net.mcreator.Launcher;
 import net.mcreator.io.OS;
 import net.mcreator.ui.component.ProgressBar;
@@ -40,7 +41,7 @@ public class SplashScreen extends JWindow {
 	private final static int EXTEND_BORDER = 3;
 
 	public SplashScreen() {
-		Font splashFont = new Font("Sans-Serif", Font.PLAIN, 13);
+		Font splashFont = new Font(Font.DIALOG, Font.PLAIN, 13);
 
 		SplashScreenPanel imagePanel = new SplashScreenPanel(getSplashImage(false), CORNER_RADIUS, SHADOW_RADIUS,
 				EXTEND_BORDER, (Launcher.version != null && Launcher.version.isSnapshot()), new Color(50, 50, 50));
@@ -48,13 +49,15 @@ public class SplashScreen extends JWindow {
 
 		imagePanel.setLayout(null);
 
-		JLabel label = new JLabel(
-				"<html><p>Copperbench is an independent GPL-3.0 derivative based on MCreator.</p>"
-						+ "<p style='margin-top:-2'>Minecraft is a registered trademark of Mojang. Copperbench is not an official Minecraft product.</p>"
-						+ "<p style='margin-top:-2'>It is not approved by or associated with Mojang or Microsoft.</p>");
+		JLabel label = new JLabel(text(
+				"<html>Copperbench 是基于 MCreator 的独立 GPL-3.0 衍生项目。<br>"
+						+ "Minecraft 是 Mojang 的注册商标。本产品并非 Minecraft 官方产品，<br>未经 Mojang 或 Microsoft 认可，也与其无关联。</html>",
+				"<html>Copperbench is an independent GPL-3.0 derivative of MCreator.<br>"
+						+ "Minecraft is a registered trademark of Mojang. This is not an official Minecraft product.<br>"
+						+ "Not approved by or associated with Mojang or Microsoft.</html>"));
 		label.setFont(splashFont.deriveFont(10f));
 		label.setForeground(Color.white);
-		label.setBounds(shadowPadding + 30 + 10 - 4, shadowPadding + 330 - 10 - 10, 500, 45);
+		label.setBounds(shadowPadding + 36, shadowPadding + 310, 570, 56);
 		imagePanel.add(label);
 
 		JLabel logo = new JLabel(UIRES.SVG.getBuiltIn("logo", 350, 63));
@@ -62,15 +65,15 @@ public class SplashScreen extends JWindow {
 		imagePanel.add(logo);
 
 		JLabel version = new JLabel(
-				"VERSION " + ProductIdentity.VERSION + "  |  MCREATOR CORE "
-						+ (Launcher.version != null ? Launcher.version.getMajorString() : "unknown"));
-		version.setFont(splashFont.deriveFont(18f));
+				text("版本 ", "Version ") + ProductIdentity.VERSION + "   /   " + text("MCreator 内核 ", "MCreator core ")
+						+ (Launcher.version != null ? Launcher.version.getMajorString() : text("未知", "unknown")));
+		version.setFont(splashFont.deriveFont(13f));
 		version.setForeground(Color.white);
-		version.setBounds(shadowPadding + 30 + 10 - 4, shadowPadding + 129, 500, 45);
+		version.setBounds(shadowPadding + 36, shadowPadding + 140, 375, 30);
 		imagePanel.add(version);
 
 		if (Launcher.version != null && Launcher.version.isSnapshot()) {
-			JLabel snapshot = new JLabel("Snapshot - not for production use!");
+			JLabel snapshot = new JLabel(text("开发快照", "Development snapshot"));
 			snapshot.setFont(splashFont.deriveFont(14f));
 			snapshot.setForeground(new Color(255, 92, 82));
 			snapshot.setBounds(shadowPadding + 30 + 10 - 4, shadowPadding + 165, 500, 45);

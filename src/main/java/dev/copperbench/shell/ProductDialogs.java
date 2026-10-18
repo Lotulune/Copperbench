@@ -10,16 +10,8 @@ public final class ProductDialogs {
     private ProductDialogs() {}
 
     public static JOptionPane pane(String message, int type, Object[] options, Object initial) {
-        JTextArea body = new JTextArea(message);
-        body.setEditable(false);
-        body.setOpaque(false);
-        body.setLineWrap(true);
-        body.setWrapStyleWord(true);
-        body.setFont(UIManager.getFont("Label.font"));
-        body.setColumns(0);
-        body.setBorder(new EmptyBorder(8, 4, 12, 4));
-        body.getAccessibleContext().setAccessibleName(message);
-        int width = Math.min(460, Math.max(240, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width - 180));
+        JTextArea body = body(message);
+        int width = Math.min(480, Math.max(240, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width - 160));
         body.setSize(width, Short.MAX_VALUE);
         JScrollPane scroll = new JScrollPane(body);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -28,13 +20,21 @@ public final class ProductDialogs {
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setPreferredSize(new Dimension(width, Math.min(body.getPreferredSize().height + 8,
                 Math.max(80, GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().height - 220))));
-        JOptionPane pane = new JOptionPane(scroll, type, JOptionPane.DEFAULT_OPTION, null, options, initial);
-        Color surface = UIManager.getColor("Panel.background");
-        boolean dark = surface != null && surface.getRed() + surface.getGreen() + surface.getBlue() < 384;
-        pane.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(3, 0, 0, 0, new Color(dark ? 0xe2aa7a : 0x985029)),
-                new EmptyBorder(16, 20, 12, 20)));
-        return pane;
+        return new JOptionPane(scroll, type, JOptionPane.DEFAULT_OPTION, null, options, initial);
+    }
+
+    public static JTextArea body(String message) {
+        JTextArea body = new JTextArea(message);
+        body.setEditable(false);
+        body.setOpaque(false);
+        body.setLineWrap(true);
+        body.setWrapStyleWord(true);
+        body.setFont(UIManager.getFont("Label.font"));
+        body.setForeground(UIManager.getColor("Label.foreground"));
+        body.setColumns(0);
+        body.setBorder(new EmptyBorder(8, 4, 12, 4));
+        body.getAccessibleContext().setAccessibleName(message);
+        return body;
     }
 
     public static int show(Component parent, String message, String title, int type, Object[] options, Object initial) {

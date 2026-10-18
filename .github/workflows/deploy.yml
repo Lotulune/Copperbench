@@ -91,6 +91,9 @@ jobs:
           $buildDate = Get-Date -Format 'yyyyMMddHHmm'
           .\gradlew.bat --no-daemon --no-build-cache exportWindowsZip buildInstallerWin64 buildMsixWin64 buildWindowsUpdates "-Pbuilddate=$buildDate"
           if ($LASTEXITCODE -ne 0) { throw 'Windows package build failed' }
+          $version = ((Get-Content src/main/resources/mcreator.conf | Select-String '^product\.version=').Line -split '=', 2)[1]
+          pwsh -NoProfile -File ./scripts/stage0/Test-DistributionBrand.ps1 -InstallerPath "build/export/Copperbench $version Windows 64bit.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Installer executable branding validation failed' }
       - name: Collect release binaries
         shell: pwsh
         run: |
