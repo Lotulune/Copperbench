@@ -1,0 +1,42 @@
+{
+  "result": "passed",
+  "version": "0.1.10",
+  "platform": "Windows 11 x64",
+  "offline": true,
+  "commit": "4f6335e15875d5ba7b2dc5f67861b7a20352168f",
+  "branch": "codex/display-brand-0.1.10",
+  "pushedCommitMatches": true,
+  "pushEvidence": "4f6335e15875d5ba7b2dc5f67861b7a20352168f update by push",
+  "finalRemoteRecheck": "Unavailable: network connection reset after the successful push; local push receipt and tracking ref match the source commit",
+  "sourceClean": true,
+  "installer": "Copperbench 0.1.10 Windows 64bit.exe",
+  "bytes": 826396485,
+  "sha256": "6711a5b639e231fee9819b7064b5e0c965a8da284f9b6265ff84666685af39fe",
+  "productVersion": "0.1.10",
+  "fileVersion": "0.1.10.0",
+  "payloadManifestSha256": "81a80cbfb2dc5bf806bdfa72684c826e07855b9370d408ce912f67360f2f5861",
+  "tests": {
+    "uiBrowser": 25,
+    "java": 60,
+    "uiUnit": 68
+  },
+  "branding": {
+    "product": "Copperbench",
+    "status": "passed",
+    "assetsChecked": 23,
+    "packageChecked": false,
+    "installerIconChecked": true,
+    "installerIconMaxDifference": 0,
+    "failures": []
+  },
+  "fileLifecycleRehearsal": {
+    "result": "passed",
+    "scope": "full-payload file install, upgrade, uninstall and data preservation",
+    "osRegistrationTested": false,
+    "applicationLaunched": false,
+    "durationSeconds": 383.566387
+  },
+  "installerIconRegression": "Generic MUI icon rejected; product icon accepted; final executable checked",
+  "installedApplicationModified": false,
+  "githubReleasePublished": false
+}
