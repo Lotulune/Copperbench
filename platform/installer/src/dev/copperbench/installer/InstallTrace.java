@@ -47,6 +47,16 @@ final class InstallTrace {
         event("failure", "operation", operation, "type", error.getClass().getName(), "message", error.getMessage());
     }
 
+    void executable(Path executable) {
+        if (file == null || unavailable) return;
+        try {
+            InstallEngine.ensureNoLinks(executable);
+            event("executable-identity", "path", executable.toString(), "sha256", UpdateManifest.sha256(executable));
+        } catch (IOException | SecurityException error) {
+            failure("executable-identity", error);
+        }
+    }
+
     void relayWorkerLog(Path workerLog) {
         if (file == null || !Files.exists(workerLog, LinkOption.NOFOLLOW_LINKS)) return;
         try {

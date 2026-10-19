@@ -55,6 +55,7 @@ public final class InstallerMain {
         Path ini = scratch.resolve("elevate.ini");
         PlatformInstall.writeIni(ini, Map.of("Java", plan.payload().resolve("jdk/bin/javaw.exe").toString(), "Jar", plan.installerJar().toString(), "Request", requestFile.toString()));
         try {
+            trace.executable(registrar);
             trace.event("helper-request", "mode", "/ELEVATE", "executable", registrar.toString());
             Process process = new ProcessBuilder(registrar.toString(), "/ELEVATE=" + ini).start();
             trace.event("helper-started", "mode", "/ELEVATE", "childPid", Long.toString(process.pid()));

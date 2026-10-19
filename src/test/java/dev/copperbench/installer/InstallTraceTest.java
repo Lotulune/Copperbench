@@ -19,6 +19,7 @@ class InstallTraceTest {
         assertTrue(text.contains("operation=probe"));
         assertTrue(text.matches("(?s).*childPid=[0-9]+.*"));
         assertTrue(text.contains("exitCode=0"));
+        assertTrue(text.contains("sha256=" + UpdateManifest.sha256(java)));
         assertFalse(text.contains("do-not-log-this"));
         assertFalse(text.contains("-Dprivate"));
     }

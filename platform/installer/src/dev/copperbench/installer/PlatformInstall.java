@@ -106,6 +106,7 @@ final class PlatformInstall {
         return command(arguments, InstallTrace.NONE, "command");
     }
     static Command command(List<String> arguments, InstallTrace trace, String operation) throws IOException {
+        trace.executable(Path.of(arguments.get(0)));
         trace.event("process-request", "operation", operation, "executable", arguments.get(0));
         Process process = new ProcessBuilder(arguments).redirectErrorStream(true).start();
         trace.event("process-started", "operation", operation, "childPid", Long.toString(process.pid()));
