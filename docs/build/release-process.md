@@ -37,13 +37,15 @@ Copperbench 发布未签名的 Windows 11 x64 安装包。稳定版使用 `vX.Y.
 Release 必须说明：对应提交、Windows 11 x64、未签名、SmartScreen 提示、支持矩阵、开发预览能力和已知限制。基础模板见 [预览版说明模板](../releases/preview-template.md)。下载后可按 `SHA256SUMS.txt` 校验：
 
 ```powershell
-Get-FileHash '.\Copperbench 0.1.0 Windows 64bit.zip' -Algorithm SHA256
+Get-FileHash '.\Copperbench.0.1.13.Windows.64bit.zip' -Algorithm SHA256
 ```
 
-GitHub 的 provenance 可使用 GitHub CLI 验证，具体命令以 Release 页面显示的 attestation 指引为准。
+上例使用 0.1.13 的公开文件名；其他版本应使用实际下载的文件名。GitHub 的 provenance 可使用 GitHub CLI 验证，具体命令以 Release 页面显示的 attestation 指引为准。
+
+发布完成后，同步中英文 README、当前下载页、文档首页、状态页、用户指南、两种语言的快速开始与 Linux 安装说明、图形安装指南和测试索引。核对下载链接、包名、解压目录、校验哈希及平台验证范围，再运行 Markdown 链接检查。历史发布记录、截图版本和绑定哈希的验收报告保留原身份。
 
 ## Stable release gate
 
-A stable Windows tag also requires `product.channel=stable`, an approved matching `delivery.stableRelease` with `status=ready`, and passed `stableBlocking` gates with tracked evidence. Pending gates cannot be bypassed by removing a preview suffix. The same production review, signature, latest-main, build, payload and uploaded-asset checks remain mandatory. Release notes: [0.1.1](../releases/v0.1.1.md).
+A stable Windows tag also requires `product.channel=stable`, an approved matching `delivery.stableRelease` with `status=ready`, and passed `stableBlocking` gates with tracked evidence. Pending gates cannot be bypassed by removing a preview suffix. The same production review, signature, latest-main, build, payload and uploaded-asset checks remain mandatory. Current platform releases and notes: [current downloads](../releases/current.md).
 
 Linux uses `vX.Y.Z-linux-stable` for a non-prerelease release. Its ten installed candidate gates, legacy migration evidence, exact SHA-256 binding, provenance and downloaded draft comparison remain required. A stable channel does not extend distribution, architecture, accessibility or offline claims beyond recorded evidence.
