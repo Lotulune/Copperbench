@@ -10,7 +10,7 @@ import './workspaceHub.css';
 
 export const WorkspaceHub = () => {
   const { state, workspaceHealth, setActiveView, setSelectedElementId, setIsCreateModalOpen,
-    buildWorkspace, cancelTask, setIsTaskDrawerOpen, runDiagnosticAction, openSource } = useWorkbench();
+    buildWorkspace, cancelTask, setActiveTaskId, setIsTaskDrawerOpen, runDiagnosticAction, openSource } = useWorkbench();
   const workspace = state.workbench?.workspace;
   const counts = state.workbench?.elementCounts;
   const recentElements = state.workbench?.recentElements ?? [];
@@ -67,7 +67,7 @@ export const WorkspaceHub = () => {
       {(topLevelDiagnostics.length > 0 || failedTask) && <section className="overview-alerts" role="alert" data-testid="global-diagnostics-banner">
         {failedTask && <div className="overview-alert-row" data-testid="task-failure"><AlertTriangle size={15} aria-hidden="true" />
           <span>{valueLabel(failedTask.kind)} {uiText('失败', 'failed')} · {t(failedTask.stage)}</span>
-          <button type="button" className="overview-link" data-testid="open-failed-task-logs-btn" onClick={() => setIsTaskDrawerOpen(true)}>{uiText('查看任务日志', 'View task logs')}<ArrowRight size={13} aria-hidden="true" /></button>
+          <button type="button" className="overview-link" data-testid="open-failed-task-logs-btn" onClick={() => { setActiveTaskId(failedTask.id); setIsTaskDrawerOpen(true); }}>{uiText('查看任务日志', 'View task logs')}<ArrowRight size={13} aria-hidden="true" /></button>
         </div>}
         {topLevelDiagnostics.map((diagnostic, index) => <div className="overview-alert-row" key={`${diagnostic.code}-${index}`}><AlertTriangle size={15} aria-hidden="true" />
           <span>{t(diagnostic.message, diagnostic.code)}</span><div className="overview-inline-actions">{diagnostic.actions.map(action => <button type="button" className="overview-link" key={action.id}
@@ -77,7 +77,7 @@ export const WorkspaceHub = () => {
       {activeTask && <div className="overview-task" data-task-id={activeTask.id}>
         <Hammer size={15} aria-hidden="true" /><span>{t(activeTask.stage)}</span>
         <progress max="1" value={activeTask.progress ?? 0} aria-label={uiText('任务进度', 'Task progress')} />
-        <button type="button" className="overview-link" onClick={() => setIsTaskDrawerOpen(true)}>{uiText('查看日志', 'View logs')}</button>
+        <button type="button" className="overview-link" onClick={() => { setActiveTaskId(activeTask.id); setIsTaskDrawerOpen(true); }}>{uiText('查看日志', 'View logs')}</button>
         {activeTask.cancellable && <button type="button" className="overview-task-cancel" onClick={() => cancelTask(activeTask.id)} aria-label={uiText('取消任务', 'Cancel task')}><X size={14} aria-hidden="true" /></button>}
       </div>}
 

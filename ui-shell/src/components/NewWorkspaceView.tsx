@@ -21,7 +21,7 @@ import {
   CommandResult,
   Diagnostic
 } from '../types/contract';
-import { renderUiMessage, t, uiMessage, uiText, type UiMessage } from '../i18n';
+import { renderUiMessage, t, uiMessage, uiText, useUiLocale, type UiMessage } from '../i18n';
 import { useFirstCreation } from '../onboarding/FirstCreationContext';
 import { FIRST_CREATION_GENERATOR } from '../onboarding/firstCreationModel';
 import './newWorkspace.css';
@@ -72,6 +72,7 @@ const operationLabel = (operation: string): string => ({
 
 export const NewWorkspaceView: React.FC = () => {
   const { listNewWorkspaceGenerators, createWorkspace, previewTargets } = useWorkbench();
+  const locale = useUiLocale();
   const { creationIntent, leaveCreation, bindCreatedWorkspace, openGuide, openWorkspaceOpen } = useFirstCreation();
   const nativeUnavailable = creationIntent && !isNativeHostPresent();
 
@@ -180,7 +181,7 @@ export const NewWorkspaceView: React.FC = () => {
         : `Minecraft ${minecraftVersion}`;
       return { id, label: id === 'advanced' ? tr("历史精确版本") : label, generators: group };
     });
-  }, [generators, showAdvanced]);
+  }, [generators, showAdvanced, locale]);
 
   // 建议的完整工作区文件夹路径（跟随 modId）
   const suggestedFolder = useMemo(() => {
@@ -597,7 +598,7 @@ export const NewWorkspaceView: React.FC = () => {
               aria-describedby={`new-workspace-mod-id-help${fieldError('modId') ? ' new-workspace-mod-id-error' : ''}`}
               style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('modId') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
             />
-            <span id="new-workspace-mod-id-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+            <span id="new-workspace-mod-id-help" style={{ fontSize: '12px', lineHeight: 1.5, color: 'var(--text-muted)' }}>
               {tr("2-32 位小写字母、数字或下划线，用作工作区文件名与 ")}{isResourcePack ? tr("资源包命名空间") : 'mod ID'}。
             </span>
             {fieldError('modId') && (
@@ -623,7 +624,7 @@ export const NewWorkspaceView: React.FC = () => {
                 aria-describedby={`new-workspace-package-help${fieldError('packageName') ? ' new-workspace-package-error' : ''}`}
                 style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('packageName') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
               />
-              <span id="new-workspace-package-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+              <span id="new-workspace-package-help" style={{ fontSize: '12px', lineHeight: 1.5, color: 'var(--text-muted)' }}>
                 {tr("留空时自动使用 net.mcreator.&lt;modid&gt;。")}</span>
               {fieldError('packageName') && (
                 <span id="new-workspace-package-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
@@ -657,7 +658,7 @@ export const NewWorkspaceView: React.FC = () => {
                 <FolderOpen size={12} />
                 {tr("浏览…")}</button>
             </div>
-            <span id="new-workspace-folder-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+            <span id="new-workspace-folder-help" style={{ fontSize: '12px', lineHeight: 1.5, color: 'var(--text-muted)' }}>
               {catalog ? (
                 <>{tr("必须位于建议根目录之下：")}<code>{catalog.suggestedWorkspaceFoldersRoot}</code>{suggestedFolder && <>{tr("（默认 ")}<code>{suggestedFolder}</code>）</>}</>
               ) : tr("必须位于建议的工作区根目录之下。")}

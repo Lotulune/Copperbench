@@ -57,14 +57,21 @@ export function useDialogA11y(open: boolean, onRequestClose: (() => void) | null
       );
       if (items.length === 0) {
         e.preventDefault();
+        dialog.focus();
         return;
       }
       const first = items[0];
       const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
+      const focused = document.activeElement;
+      // Opening focuses the card itself, which is outside the Tab sequence.
+      // Treat that initial position (or escaped focus) as an entry boundary.
+      if (focused === dialog || !dialog.contains(focused)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && focused === first) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (!e.shiftKey && focused === last) {
         e.preventDefault();
         first.focus();
       }

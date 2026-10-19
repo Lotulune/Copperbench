@@ -1,8 +1,8 @@
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Check, ChevronRight, Clipboard, KeyRound, LockKeyhole, ShieldAlert, ShieldCheck, X } from 'lucide-react';
-import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { Bot, Check, ChevronRight, Clipboard, KeyRound, LockKeyhole, RefreshCw, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { mcpRuntimeBridge, subscribeMcpRuntime } from '../bridge/mcpRuntimeBridge';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
@@ -25,20 +25,31 @@ export const AIControlView: React.FC = () => {
   const [status, setStatus] = useState('');
   const [token, setToken] = useState<string | null>(null);
   const tokenRequest = useRef(0);
-  const [changingPermission, setChangingPermission] = useState(false);
+  const [runtimeChange, setRuntimeChange] = useState<'permission' | 'pairing' | null>(null);
+  const runtimeActivity = useSyncExternalStore(subscribeMcpRuntime, () =>
+    mcpRuntimeBridge.changing ? 'changing' : mcpRuntimeBridge.revealingToken ? 'revealing' : 'idle');
+  const changingPermission = runtimeChange !== null || runtimeActivity === 'changing';
+  const revealingToken = runtimeActivity === 'revealing';
+  const runtimeBusy = changingPermission || revealingToken;
+  const [pairingOpen, setPairingOpen] = useState(false);
   const permissionPending = useRef(false);
   const [permissionStatus, setPermissionStatus] = useState('');
   const [permissionError, setPermissionError] = useState(false);
   const dialogRef = useDialogA11y(!!selected, () => setSelected(null));
+  const pairingDialogRef = useDialogA11y(pairingOpen, () => {
+    if (!permissionPending.current && !mcpRuntimeBridge.changing && !mcpRuntimeBridge.revealingToken) setPairingOpen(false);
+  });
 
   useEffect(() => { ++tokenRequest.current; setToken(null); }, [mcp?.url, mcp?.permissionProfile, mcp?.expiresAt]);
+  useEffect(() => () => { ++tokenRequest.current; }, []);
 
   const changePermission = async (next: PermissionProfile) => {
-    if (permissionPending.current || (mcp?.status === 'listening' && profile === next)) return;
+    if (permissionPending.current || mcpRuntimeBridge.changing || mcpRuntimeBridge.revealingToken || (mcp?.status === 'listening' && profile === next)) return;
     permissionPending.current = true;
-    setChangingPermission(true);
+    setRuntimeChange('permission');
     setPermissionError(false);
     setPermissionStatus('');
+    setStatus('');
     ++tokenRequest.current;
     setToken(null);
     try {
@@ -53,16 +64,43 @@ export const AIControlView: React.FC = () => {
     } finally {
       await refreshMcp();
       permissionPending.current = false;
-      setChangingPermission(false);
+      setRuntimeChange(null);
+    }
+  };
+
+  const resetPairing = async () => {
+    if (permissionPending.current || mcpRuntimeBridge.changing || mcpRuntimeBridge.revealingToken) return;
+    // An empty workspace ID belongs to the unavailable-state placeholder, whose
+    // default profile is not evidence of the host's current permission profile.
+    const expectedProfile = mcp?.workspaceId ? mcp.permissionProfile : null;
+    permissionPending.current = true;
+    setRuntimeChange('pairing');
+    setPermissionError(false);
+    setPermissionStatus('');
+    setStatus('');
+    ++tokenRequest.current;
+    setToken(null);
+    try {
+      const result = await mcpRuntimeBridge.resetPairing();
+      if (result.status !== 'listening' || (expectedProfile !== null && result.permissionProfile !== expectedProfile)) {
+        throw new Error(result.failure || uiText('重新配对失败，请重试。', 'Pairing reset failed. Please retry.'));
+      }
+      setPairingOpen(false);
+      setPermissionStatus(uiText('已重新配对，请显示新令牌并更新客户端配置。', 'Pairing reset. Reveal the new token and update your client configuration.'));
+    } catch (error) {
+      setPermissionError(true);
+      setPermissionStatus(error instanceof Error ? error.message : uiText('重新配对失败，请重试。', 'Pairing reset failed. Please retry.'));
+    } finally {
+      await refreshMcp();
+      permissionPending.current = false;
+      setRuntimeChange(null);
     }
   };
 
   const connectionLabel = mcp?.status === 'listening' ? tr("服务已启动") : tr("未启动");
   const configSnippet = useMemo(() => {
-    if (!mcp?.url) return '';
-    return token
-      ? `URL: ${mcp.url}\nAuthorization: Bearer ${token}\nworkspaceId: ${mcp.workspaceId}`
-      : `URL: ${mcp.url}\nworkspaceId: ${mcp.workspaceId}`;
+    if (!mcp?.url || !token) return '';
+    return `URL: ${mcp.url}\nAuthorization: Bearer ${token}\nworkspaceId: ${mcp.workspaceId}`;
   }, [mcp, token]);
 
   const copyText = async (text: string, message: string) => {
@@ -75,15 +113,16 @@ export const AIControlView: React.FC = () => {
   };
 
   const revealToken = async () => {
+    if (permissionPending.current || mcpRuntimeBridge.changing || mcpRuntimeBridge.revealingToken) return;
     const request = ++tokenRequest.current;
     try {
       const response = await mcpRuntimeBridge.revealTokenOnce();
       if (request !== tokenRequest.current) return;
       setToken(response.token);
       await refreshMcp();
-      setStatus(tr("令牌已显示一次；请勿粘贴到聊天或日志"));
+      if (request === tokenRequest.current) setStatus(tr("令牌已显示一次；请勿粘贴到聊天或日志"));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : tr("令牌不可用"));
+      if (request === tokenRequest.current) setStatus(error instanceof Error ? error.message : tr("令牌不可用"));
     }
   };
 
@@ -112,7 +151,7 @@ export const AIControlView: React.FC = () => {
 
       <details className="ai-integration-settings"><summary>{uiText('Blockbench', 'Blockbench')}</summary><BlockbenchSetupPanel /></details>
       <div className="ai-control-layout">
-        <section className="permission-panel" aria-labelledby="mcp-runtime-heading">
+        <section className="permission-panel" aria-labelledby="mcp-runtime-heading" aria-busy={runtimeBusy}>
           <div className="stage2-section-heading">
             <div>
               <h3 id="mcp-runtime-heading">{tr("本机 MCP 服务")}</h3>
@@ -131,17 +170,28 @@ export const AIControlView: React.FC = () => {
             <button className="btn-secondary" type="button" disabled={!mcp?.url}
               onClick={() => void copyText(mcp?.url ?? '', tr("已复制 MCP 地址"))}>
               <Clipboard size={15} aria-hidden="true" />{tr("复制 URL")}</button>
-            <button className="btn-secondary" type="button" disabled={changingPermission || !mcp?.tokenAvailable}
+            <button className="btn-secondary" type="button" disabled={runtimeBusy || !mcp?.tokenAvailable}
               onClick={() => void revealToken()}>
               <KeyRound size={15} aria-hidden="true" />{tr("显示一次令牌")}</button>
-            <button className="btn-secondary" type="button" disabled={changingPermission || !configSnippet}
+            <button className="btn-secondary" type="button" disabled={runtimeBusy || !configSnippet}
               onClick={() => void copyText(configSnippet, tr("已复制 MCP 配置信息"))}>
               <Clipboard size={15} aria-hidden="true" />{tr("复制配置")}</button>
+            <button className="btn-secondary" type="button"
+              disabled={runtimeBusy || !mcp || !mcpRuntimeBridge.canResetPairing}
+              onClick={() => { setPermissionError(false); setPermissionStatus(''); setPairingOpen(true); }}>
+              <RefreshCw size={15} aria-hidden="true" />{uiText('重新配对', 'Reset pairing')}</button>
           </div>
+          {!token && mcp?.url && <p className="stage2-status" data-testid="mcp-configuration-guidance">
+            {mcp.tokenAvailable
+              ? uiText('先显示一次令牌，再复制完整配置。', 'Reveal the one-time token before copying the complete configuration.')
+              : mcpRuntimeBridge.canResetPairing
+                ? uiText('令牌已显示过；如未保存，请重新配对后获取新令牌。', 'The token was already revealed. Reset pairing to obtain a new token if you did not save it.')
+                : uiText('当前桌面版本请重新打开工作区以获取新令牌。', 'Reopen this workspace to obtain a new token in this desktop version.')}
+          </p>}
           {token && <div className="stage2-status" role="status"><code>{token}</code></div>}
         </section>
 
-        <section className="permission-panel" aria-labelledby="permission-heading" aria-busy={changingPermission}>
+        <section className="permission-panel" aria-labelledby="permission-heading" aria-busy={runtimeBusy}>
           <div className="stage2-section-heading">
             <div>
               <h3 id="permission-heading">{tr("权限档位")}</h3>
@@ -158,7 +208,7 @@ export const AIControlView: React.FC = () => {
                   type="button"
                   className={`permission-option${active ? ' is-active' : ''}`}
                   aria-pressed={active}
-                  disabled={!mcpRuntimeBridge.available || !mcp || changingPermission}
+                  disabled={!mcpRuntimeBridge.available || !mcp || runtimeBusy}
                   onClick={() => void changePermission(item.id)}
                 >
                   <span>{item.title}</span>
@@ -169,7 +219,10 @@ export const AIControlView: React.FC = () => {
             })}
           </div>
           <div className="stage2-status" data-testid="permission-status" role={permissionError ? 'alert' : 'status'}>
-            {changingPermission ? tr("正在切换权限…") : permissionStatus}
+            {runtimeBusy
+              ? revealingToken ? uiText('正在显示 MCP 令牌…', 'Revealing the MCP token…')
+                : runtimeChange === 'permission' ? tr("正在切换权限…") : uiText('正在更新 MCP 连接…', 'Updating the MCP connection…')
+              : permissionStatus}
           </div>
         </section>
 
@@ -219,6 +272,34 @@ export const AIControlView: React.FC = () => {
       <div className="stage2-status" data-testid="approval-status" aria-live="polite">
         {status && <><Check size={14} aria-hidden="true" />{status}</>}
       </div>
+
+      {pairingOpen && (
+        <div className="modal-overlay">
+          <div className="modal-card stage2-dialog" role="dialog" aria-modal="true"
+            aria-labelledby="mcp-pairing-title" aria-describedby="mcp-pairing-impact"
+            aria-busy={runtimeBusy} data-testid="mcp-pairing-dialog" ref={pairingDialogRef}>
+            <div className="modal-header">
+              <h3 id="mcp-pairing-title">{uiText('重新配对 MCP', 'Reset MCP pairing')}</h3>
+              <button className="icon-button" type="button" aria-label={tr("关闭")} disabled={runtimeBusy}
+                onClick={() => setPairingOpen(false)}><X size={16} aria-hidden="true" /></button>
+            </div>
+            <div className="modal-body">
+              <p id="mcp-pairing-impact">{uiText(
+                '旧令牌和 MCP 连接将失效。权限档位保持不变，已启动的工作区任务不会被此操作取消。请用新令牌重新连接客户端。',
+                'Old tokens and MCP connections will stop working. Your permission profile stays the same, and this action does not cancel workspace tasks already started. Reconnect your client with the new token.')}</p>
+              {permissionError && <div className="stage2-status" role="alert">{permissionStatus}</div>}
+              {runtimeBusy && <div className="stage2-status" role="status">{revealingToken
+                ? uiText('正在显示 MCP 令牌…', 'Revealing the MCP token…')
+                : uiText('正在更新 MCP 连接…', 'Updating the MCP connection…')}</div>}
+            </div>
+            <div className="modal-footer approval-actions">
+              <button className="btn-secondary" type="button" disabled={runtimeBusy} onClick={() => setPairingOpen(false)}>{tr("取消")}</button>
+              <button className="btn-primary" type="button" disabled={runtimeBusy} onClick={() => void resetPairing()}>
+                {uiText('确认重新配对', 'Confirm pairing reset')}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selected && (
         <div className="modal-overlay">

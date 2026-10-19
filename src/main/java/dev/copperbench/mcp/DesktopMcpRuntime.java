@@ -51,6 +51,8 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 
 	private final UUID workspaceId;
 	private PermissionProfile permissionProfile = PermissionProfile.WORKSPACE;
+	// A failed settings read must not make recovery implicitly select the default permission profile.
+	private boolean permissionSelectionRequired = true;
 	private final Path connectionFile;
 	private final Path settingsFile;
 	private final Path workspaceRoot;
@@ -98,6 +100,7 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 					throw new IllegalArgumentException("Invalid stored MCP permission profile");
 				runtime.permissionProfile = parsePermissionProfile(settings.get("permissionProfile").getAsString());
 			}
+			runtime.permissionSelectionRequired = false;
 			runtime.startServer(0);
 		} catch (Exception exception) {
 			runtime.failClosed(exception);
@@ -123,6 +126,29 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 		return connectionFile;
 	}
 
+	/**
+	 * Desktop-only recovery after losing the one-time credential. Retires all old tokens and authenticated
+	 * sessions while keeping the workspace, task gateway and selected permission profile unchanged.
+	 * Invalid stored permission settings require an explicit valid selection before recovery can start a listener.
+	 *
+	 * @return the new listener state, or a stopped state describing a failure that can be retried explicitly
+	 */
+	public synchronized RuntimeState resetPairing() {
+		if (closed.get()) throw new IllegalStateException("Desktop MCP runtime is closed");
+		if (permissionSelectionRequired) return state();
+		int port = server == null ? 0 : server.address().getPort();
+		try {
+			stopServer();
+			startServer(port);
+			audit.append(new AuditRecord(clock.instant(), "desktop-ui", "reset_mcp_pairing",
+					wire(permissionProfile), "reset", -1, null));
+			failure = null;
+		} catch (Exception exception) {
+			failClosed(exception);
+		}
+		return state();
+	}
+
 	/** Desktop-only: retires the old authenticated sessions before changing the Core permission boundary. */
 	public synchronized RuntimeState setPermissionProfile(PermissionProfile profile) {
 		Objects.requireNonNull(profile, "Permission profile is required");
@@ -133,6 +159,7 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 		try {
 			stopServer();
 			permissionProfile = profile;
+			permissionSelectionRequired = false;
 			startServer(port);
 			JsonObject settings = new JsonObject();
 			settings.addProperty("schemaVersion", "1.0");

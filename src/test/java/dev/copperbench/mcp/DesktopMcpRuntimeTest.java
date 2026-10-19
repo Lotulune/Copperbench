@@ -15,6 +15,7 @@ import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.application.WorkspaceApplicationService;
 import dev.copperbench.core.contract.UiCore.PermissionProfile;
+import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.platform.PrivatePathPermissions;
@@ -228,6 +229,79 @@ class DesktopMcpRuntimeTest {
 		}
 	}
 
+	@Test void explicitPairingResetReplacesLostCredentialsWithoutChangingPermissionsOrTasks() throws Exception {
+		MutableClock clock = new MutableClock(CLOCK.instant());
+		var tasks = new InMemoryWorkspaceTaskGateway(CLOCK, UUID::randomUUID);
+		JsonObject runningTask = tasks.start(WORKSPACE_ID, Operation.BUILD_WORKSPACE, new JsonObject());
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, clock);
+				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history, tasks), clock)) {
+			assertEquals("listening", runtime.setPermissionProfile(PermissionProfile.READ_ONLY).status());
+			URI endpoint = URI.create(runtime.state().url());
+			String oldToken = runtime.revealTokenOnce().orElseThrow();
+			String oldSession = initialize(endpoint, oldToken);
+			clock.advance(Duration.ofHours(11).plusMinutes(56));
+			String renewedToken = runtime.revealTokenOnce().orElseThrow();
+			assertFalse(runtime.state().tokenAvailable());
+			String settingsBefore = Files.readString(workspace.resolve(".copperbench/mcp-settings.json"));
+
+			var reset = runtime.resetPairing();
+			assertEquals("listening", reset.status(), reset.failure());
+			assertEquals(endpoint.toString(), reset.url());
+			assertEquals(WORKSPACE_ID, reset.workspaceId());
+			assertEquals(PermissionProfile.READ_ONLY, reset.permissionProfile());
+			assertEquals(settingsBefore, Files.readString(workspace.resolve(".copperbench/mcp-settings.json")));
+			assertTrue(reset.tokenAvailable());
+			assertEquals(401, post(endpoint, initializeBody(), oldToken, null).statusCode());
+			assertEquals(401, post(endpoint, initializeBody(), renewedToken, null).statusCode());
+			String replacement = runtime.revealTokenOnce().orElseThrow();
+			assertTrue(runtime.revealTokenOnce().isEmpty());
+			assertFalse(runtime.state().tokenAvailable());
+			assertFalse(replacement.equals(oldToken));
+			String session = initialize(endpoint, replacement);
+			assertEquals(404, post(endpoint, "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"ping\"}",
+					replacement, oldSession).statusCode(), "reset must retire old authenticated sessions too");
+			JsonObject current = call(endpoint, replacement, session, "get_workspace", "{}");
+			assertEquals("read_only", current.getAsJsonObject("data").getAsJsonObject("permission").get("profile").getAsString());
+			assertEquals(7, current.get("revision").getAsLong());
+			assertEquals(runningTask, tasks.find(WORKSPACE_ID, UUID.fromString(runningTask.get("id").getAsString())).orElseThrow(),
+					"pairing recovery must not cancel, restart or replace an existing workspace task");
+			var listing = post(endpoint, "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/list\"}", replacement, session);
+			assertFalse(listing.body().contains("reset_pairing"), "pairing recovery remains a desktop-only action");
+			String audit = Files.readString(workspace.resolve(".copperbench/automation-audit.jsonl"));
+			assertTrue(audit.contains("reset_mcp_pairing"));
+			for (String credential : new String[] {oldToken, renewedToken, replacement}) {
+				assertFalse(audit.contains(credential));
+				assertFalse(Files.readString(runtime.connectionFile()).contains(credential));
+			}
+		}
+	}
+
+	@Test void failedPairingResetStopsServingCredentialsAndCanBeRetried() throws Exception {
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
+			runtime.revealTokenOnce().orElseThrow();
+			Path connection = runtime.connectionFile();
+			Files.delete(connection);
+			Files.createDirectory(connection);
+			Path blocker = Files.writeString(connection.resolve("blocker"), "owned test fixture");
+			var failed = runtime.resetPairing();
+			assertEquals("not_started", failed.status());
+			assertNull(failed.url());
+			assertFalse(failed.tokenAvailable());
+			assertTrue(runtime.revealTokenOnce().isEmpty());
+			assertFalse(failed.failure().isBlank());
+			Files.delete(blocker);
+			Files.delete(connection);
+			var retried = runtime.resetPairing();
+			assertEquals("listening", retried.status(), retried.failure());
+			assertEquals(PermissionProfile.WORKSPACE, retried.permissionProfile());
+			assertTrue(retried.tokenAvailable());
+			assertNull(retried.failure());
+			runtime.close();
+			assertThrows(IllegalStateException.class, runtime::resetPairing);
+		}
+	}
+
 	@Test void failedSettingsPublicationStopsTheServerAndAllowsExplicitRetry() throws Exception {
 		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
 				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
@@ -255,6 +329,12 @@ class DesktopMcpRuntimeTest {
 				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
 			assertEquals("not_started", runtime.state().status());
 			assertTrue(runtime.revealTokenOnce().isEmpty());
+			var reset = runtime.resetPairing();
+			assertEquals("not_started", reset.status());
+			assertNull(reset.url());
+			assertFalse(reset.tokenAvailable());
+			assertTrue(runtime.revealTokenOnce().isEmpty());
+			assertFalse(Files.exists(runtime.connectionFile()));
 			assertEquals("listening", runtime.setPermissionProfile(PermissionProfile.READ_ONLY).status());
 			runtime.close();
 			assertThrows(IllegalStateException.class, () -> runtime.setPermissionProfile(PermissionProfile.FULL_ACCESS));
@@ -300,6 +380,10 @@ class DesktopMcpRuntimeTest {
 	}
 
 	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history) {
+		return adapter(history, null);
+	}
+
+	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, InMemoryWorkspaceTaskGateway tasks) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-26.1.2");
@@ -313,7 +397,7 @@ class DesktopMcpRuntimeTest {
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
 		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
-				new InMemoryWorkspaceTaskGateway(CLOCK, ids),
+				tasks == null ? new InMemoryWorkspaceTaskGateway(CLOCK, ids) : tasks,
 				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
 				ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
 		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);

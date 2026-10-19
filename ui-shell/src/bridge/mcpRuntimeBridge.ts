@@ -1,4 +1,5 @@
 import { tr } from '../i18n/locale';
+import { uiText } from '../i18n';
 import type { PermissionProfile } from '../types/contract';
 
 const listeners = new Set<() => void>();
@@ -26,6 +27,7 @@ export interface NativeMcpRuntimeHost {
   readonly available: boolean;
   getState(): Promise<McpRuntimeState>;
   setPermissionProfile(profile: PermissionProfile): Promise<McpRuntimeState>;
+  resetPairing?(): Promise<McpRuntimeState>;
   revealTokenOnce(): Promise<McpTokenResponse>;
   copyText(text: string): Promise<void>;
 }
@@ -38,35 +40,72 @@ declare global {
 
 export interface McpRuntimeBridge {
   readonly available: boolean;
+  readonly canResetPairing: boolean;
+  readonly changing: boolean;
+  readonly revealingToken: boolean;
   getState(): Promise<McpRuntimeState>;
   setPermissionProfile(profile: PermissionProfile): Promise<McpRuntimeState>;
+  resetPairing(): Promise<McpRuntimeState>;
   revealTokenOnce(): Promise<McpTokenResponse>;
   copyText(text: string): Promise<void>;
 }
 
 class JcefMcpRuntimeBridge implements McpRuntimeBridge {
   public readonly available: boolean;
+  public readonly canResetPairing: boolean;
+  private pendingChange = false;
+  private pendingReveal = false;
 
   public constructor(private readonly host: NativeMcpRuntimeHost) {
     this.available = host.available;
+    this.canResetPairing = host.available && typeof host.resetPairing === 'function';
   }
+
+  public get changing(): boolean { return this.pendingChange; }
+  public get revealingToken(): boolean { return this.pendingReveal; }
 
   public getState(): Promise<McpRuntimeState> {
     return this.host.getState();
   }
 
   public async setPermissionProfile(profile: PermissionProfile): Promise<McpRuntimeState> {
+    return this.change(() => this.host.setPermissionProfile(profile));
+  }
+
+  public async resetPairing(): Promise<McpRuntimeState> {
+    if (!this.canResetPairing) throw new Error(uiText(
+      '当前桌面版本不支持重新配对，请重新打开工作区。',
+      'Reopen this workspace to obtain a new token in this desktop version.'));
+    return this.change(() => this.host.resetPairing!());
+  }
+
+  private async change(action: () => Promise<McpRuntimeState>): Promise<McpRuntimeState> {
+    this.assertIdle();
+    this.pendingChange = true;
+    notifyChanged();
     try {
-      return await this.host.setPermissionProfile(profile);
+      return await action();
     } finally {
+      this.pendingChange = false;
       notifyChanged();
     }
   }
 
+  private assertIdle(): void {
+    if (this.pendingChange || this.pendingReveal) throw new Error(uiText(
+      'MCP 操作正在进行，请稍候。', 'An MCP operation is in progress. Please wait.'));
+  }
+
   public async revealTokenOnce(): Promise<McpTokenResponse> {
-    const response = await this.host.revealTokenOnce();
+    this.assertIdle();
+    this.pendingReveal = true;
     notifyChanged();
-    return response;
+    try {
+      return await this.host.revealTokenOnce();
+    } finally {
+      this.pendingReveal = false;
+      notifyChanged();
+    }
   }
 
   public copyText(text: string): Promise<void> {
@@ -76,6 +115,9 @@ class JcefMcpRuntimeBridge implements McpRuntimeBridge {
 
 class UnavailableMcpRuntimeBridge implements McpRuntimeBridge {
   public readonly available = false;
+  public readonly canResetPairing = false;
+  public readonly changing = false;
+  public readonly revealingToken = false;
 
   public getState(): Promise<McpRuntimeState> {
     return Promise.resolve({
@@ -95,6 +137,10 @@ class UnavailableMcpRuntimeBridge implements McpRuntimeBridge {
 
   public setPermissionProfile(_profile: PermissionProfile): Promise<McpRuntimeState> {
     return Promise.reject(new Error(tr("MCP 权限仅可在桌面宿主中更改")));
+  }
+
+  public resetPairing(): Promise<McpRuntimeState> {
+    return Promise.reject(new Error(uiText('请在桌面应用中重新配对 MCP。', 'Reset MCP pairing in the desktop app.')));
   }
 
   public copyText(text: string): Promise<void> {
