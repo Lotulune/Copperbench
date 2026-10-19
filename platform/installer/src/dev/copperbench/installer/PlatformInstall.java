@@ -103,25 +103,31 @@ final class PlatformInstall {
     }
     record Command(int code, String output) { }
     static Command command(List<String> arguments) throws IOException {
+        return command(arguments, InstallTrace.NONE, "command");
+    }
+    static Command command(List<String> arguments, InstallTrace trace, String operation) throws IOException {
+        trace.executable(Path.of(arguments.get(0)));
+        trace.event("process-request", "operation", operation, "executable", arguments.get(0));
         Process process = new ProcessBuilder(arguments).redirectErrorStream(true).start();
+        trace.event("process-started", "operation", operation, "childPid", Long.toString(process.pid()));
         String output = new String(process.getInputStream().readAllBytes(), Charset.forName(System.getProperty("native.encoding", "UTF-8")));
-        try { return new Command(process.waitFor(), output); }
+        try {
+            int code = process.waitFor();
+            trace.event("process-exited", "operation", operation, "exitCode", Integer.toString(code));
+            return new Command(code, output);
+        }
         catch (InterruptedException exception) { Thread.currentThread().interrupt(); throw new IOException("Installation was interrupted", exception); }
     }
     static void register(InstallEngine.Plan plan, Path registrar, Path scratch) throws IOException {
+        register(plan, registrar, scratch, false, InstallTrace.NONE);
+    }
+    static void register(InstallEngine.Plan plan, Path registrar, Path scratch, boolean componentUpdate, InstallTrace trace) throws IOException {
+        trace.event("registration-start", "target", plan.target().toString(), "scope", plan.scope(),
+                "componentUpdate", Boolean.toString(componentUpdate));
         if (WINDOWS) {
             Path ini = scratch.resolve("register.ini");
             writeIni(ini, Map.of("Target", plan.target().toString(), "Scope", plan.scope(), "Desktop", Boolean.toString(plan.desktop()), "Version", plan.version()));
-            Command locations = command(List.of(registrar.toString(), "/LOCATIONS=" + ini));
-            if (locations.code != 0) throw new IOException("Windows could not resolve the application shortcuts.");
-            Properties paths = new Properties();
-            try (Reader reader = Files.newBufferedReader(ini, StandardCharsets.UTF_16LE)) {
-                // INI paths contain backslashes, which java.util.Properties treats as escapes.
-                for (String line : new BufferedReader(reader).lines().toList()) {
-                    int equals = line.indexOf('='); if (equals > 0) paths.setProperty(line.substring(0, equals), line.substring(equals + 1));
-                }
-            }
-            Map<Path, byte[]> before = snapshot(registrationShortcuts(paths, plan.desktop()));
+            Map<Path, byte[]> before = snapshot(registrationShortcuts(registrar, ini, plan.desktop(), componentUpdate, trace));
             String key = (plan.scope().equals("system") ? "HKLM" : "HKCU") + "\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Copperbench";
             List<String> views = plan.scope().equals("system") ? List.of("64", "32") : List.of("64");
             Map<String, Path> regBackups = new LinkedHashMap<>();
@@ -144,11 +150,14 @@ final class PlatformInstall {
                 if (!location.isBlank()) migrateLegacy = Path.of(location).toAbsolutePath().normalize().equals(plan.target());
             }
             try {
-                Command result = command(List.of(registrar.toString(), "/REGISTER=" + ini));
+                trace.event("registration-write", "uninstaller", plan.target().resolve("uninstall.exe").toString(), "registryKey", key);
+                Command result = command(List.of(registrar.toString(), "/REGISTER=" + ini), trace, "/REGISTER");
                 if (result.code != 0) throw new IOException("Windows could not register the installation (" + result.code + ").");
                 if (migrateLegacy && command(List.of("reg.exe", "delete", key, "/f", "/reg:32")).code != 0)
                     throw new IOException("Could not migrate the previous Windows registration.");
             } catch (IOException error) {
+                trace.failure("registration", error);
+                trace.event("registration-rollback", "registryKey", key);
                 for (String view : views) {
                     try {
                         Command removed = command(List.of("reg.exe", "delete", key, "/f", "/reg:" + view));
@@ -177,6 +186,25 @@ final class PlatformInstall {
                 throw error;
             }
         }
+        trace.event("registration-finished");
+    }
+    static List<Path> registrationShortcuts(Path registrar, Path ini, boolean desktop, boolean componentUpdate, InstallTrace trace) throws IOException {
+        // The component updater and its bundled registrar share the preserve contract.
+        // A full installer still resolves the actual shell folders before snapshotting them.
+        if (componentUpdate) {
+            trace.event("shortcuts-preserved", "locationsHelperStarted", "false");
+            return List.of();
+        }
+        Command locations = command(List.of(registrar.toString(), "/LOCATIONS=" + ini), trace, "/LOCATIONS");
+        if (locations.code != 0) throw new IOException("Windows could not resolve the application shortcuts.");
+        Properties paths = new Properties();
+        try (Reader reader = Files.newBufferedReader(ini, StandardCharsets.UTF_16LE)) {
+            // INI paths contain backslashes, which java.util.Properties treats as escapes.
+            for (String line : new BufferedReader(reader).lines().toList()) {
+                int equals = line.indexOf('='); if (equals > 0) paths.setProperty(line.substring(0, equals), line.substring(equals + 1));
+            }
+        }
+        return registrationShortcuts(paths, desktop);
     }
     static List<Path> registrationShortcuts(Properties locations, boolean desktop) throws IOException {
         // Old setup registrars omit this field and retain their original creation contract.

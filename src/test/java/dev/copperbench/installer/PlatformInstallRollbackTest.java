@@ -10,6 +10,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlatformInstallRollbackTest {
     @TempDir Path directory;
 
+    @Test void componentUpdateDoesNotStartTheLocationsHelper() throws Exception {
+        Path missingRegistrar = directory.resolve("missing-registrar.exe");
+        Path ini = directory.resolve("register.ini");
+        assertTrue(PlatformInstall.registrationShortcuts(missingRegistrar, ini, true, true, InstallTrace.NONE).isEmpty());
+        assertTrue(PlatformInstall.registrationShortcuts(missingRegistrar, ini, false, true, InstallTrace.NONE).isEmpty());
+        assertFalse(Files.exists(ini));
+        assertThrows(java.io.IOException.class,
+                () -> PlatformInstall.registrationShortcuts(missingRegistrar, ini, true, false, InstallTrace.NONE),
+                "Full setup must still invoke its registrar to resolve shell folders");
+    }
+
     @Test void updateRegistrationDoesNotIncludeAnyShortcutInItsRollback() throws Exception {
         Properties locations = new Properties();
         locations.setProperty("ShortcutPolicy", "preserve");
