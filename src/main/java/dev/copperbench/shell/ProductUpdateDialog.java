@@ -146,7 +146,10 @@ public final class ProductUpdateDialog {
                         + text("需要下载 ", "Download size: ") + size(available.downloadBytes()) + "\n"
                         + text("只下载变化的组件。安装成功后自动清理旧程序。", "Only changed components are downloaded. Previous application files are removed after installation.");
                 case PREPARING -> text("正在准备更新…", "Preparing update…");
-                case READY -> text("更新已下载并校验。保存工作后即可安装并重启。", "The update has been downloaded and verified. Save your work to install and restart.");
+                case READY -> ProductUpdates.platform().equals("windows-x64")
+                        ? text("更新已下载并校验。\nCopperbench 更新助手（copperbench-update-host.exe）将替换程序文件并更新卸载信息。系统安装可能请求管理员权限，请先保存工作。",
+                            "The update has been downloaded and verified.\nThe Copperbench update helper (copperbench-update-host.exe) will replace application files and update uninstall information. System installations may request administrator permission. Save your work first.")
+                        : text("更新已下载并校验。保存工作后即可安装并重启。", "The update has been downloaded and verified. Save your work to install and restart.");
                 case FAILED -> UpdateUiMessages.errorSummary(error, UiLocalePreferences.read());
             });
             action.setText(stage == Stage.FAILED

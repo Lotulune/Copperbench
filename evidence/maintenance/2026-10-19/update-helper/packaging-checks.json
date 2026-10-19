@@ -1,0 +1,9 @@
+{
+  "installerShortcutInstructions": 2,
+  "installerDescription": "Copperbench offline installer",
+  "fixtureOnly": true,
+  "helperDescription": "Copperbench update and uninstall helper",
+  "installerPolicy": "create",
+  "helperShortcutInstructions": 0,
+  "helperPolicy": "preserve"
+}

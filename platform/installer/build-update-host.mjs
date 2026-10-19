@@ -15,5 +15,10 @@ for (const [key, value] of Object.entries({ VERSION: version, YEAR: new Date().g
 }
 const source = resolve(output, 'update-host.nsi');
 writeFileSync(source, '\uFEFF' + script, 'utf8');
-const result = spawnSync(process.platform === 'win32' ? resolve(root, 'build/tools/nsis/makensis.exe') : 'makensis', ['/V2', source], { stdio: 'inherit', windowsHide: true });
+const compiler = process.platform === 'win32' ? resolve(root, 'build/tools/nsis/makensis.exe') : 'makensis';
+const expanded = spawnSync(compiler, ['/PPO', source], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, windowsHide: true });
+if (expanded.error || expanded.status !== 0) throw new Error(`Update host preprocessing failed: ${expanded.error?.message ?? (expanded.stderr || expanded.stdout || expanded.status)}`);
+// Check the actual UPDATE_HOST build, including expanded NSIS includes.
+if (/^\s*CreateShortCut\s/im.test(expanded.stdout)) throw new Error('The in-app update host must preserve existing shortcuts.');
+const result = spawnSync(compiler, ['/V2', source], { stdio: 'inherit', windowsHide: true });
 if (result.error || result.status !== 0) throw new Error(`Update host compilation failed: ${result.error?.message ?? result.status}`);
