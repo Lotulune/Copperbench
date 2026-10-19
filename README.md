@@ -18,8 +18,10 @@ Source identity, package hashes and verification scope are recorded separately f
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
+| Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · Portable ZIP · MSIX · In-app update components | [Quick start](docs/user/getting-started.en.md) |
 | Ubuntu 24.04 LTS x86_64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz · In-app update components | [Linux installation](docs/user/linux-installation.en.md) |
+
+Release notes: [Windows 0.1.13](docs/releases/v0.1.13.md) · [Linux 0.1.13](docs/releases/v0.1.13-linux.md). For later updates, choose **Check for updates** in **Help & about**.
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
