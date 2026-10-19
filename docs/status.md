@@ -1,14 +1,17 @@
 # 当前状态与发布能力
 
-当前稳定版为 **0.1.7**，各平台公开链接与实际核验见[当前下载](releases/current.md)。二进制来源为 A `db8d08336c274cc37239b48e837f0bf3727c5fdc`；Linux 晋级来源另记，后续文档提交不替换这两种身份。
+各平台当前稳定版、下载链接、二进制源提交和包级验证范围统一见[当前下载](releases/current.md)。Windows 与 Linux 独立发布，版本和验证范围可能不同。
+
+本页概述当前源码能力与验证分层。安装包包含哪些改动、完成了哪些安装或玩法检查，以对应发布记录为准；仓库中的后续改动不会改变已发布的包。
 
 | 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **0.1.7 已交付能力** | 数据包 ZIP 默认路径、自定义 Gradle 归档导出修复；首作入口和引导、普通／精确交付、草稿保护和外部修改恢复、编译诊断定位、SDK 增量恢复与计量、贡献者工具；保留 0.1.5 修复及双语离线安装器 | [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) |
-| **发布验证** | A 的主线 CI 和 Linux 冻结候选通过；Windows 十项下载字节／API 摘要、签名来源及四项 ZIP 内容核验通过；Linux 八项冻结候选与授权文件对应的九项公开资产核验通过 | [发布记录](testing/maintenance-release-0.1.7.md) |
+| **已发布产物** | 按平台查看当前版本、包格式、源码身份、资产摘要及验证范围 | [当前下载与发布记录](releases/current.md) |
+| **当前源码能力** | 首启与工作区创作引导、普通／精确交付、草稿保护和外部修改恢复、编译诊断定位、SDK 增量恢复与计量、双语离线安装器；贡献者可按改动层选择验证 | [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) · [贡献指南](../CONTRIBUTING.md) |
+| **源码检查** | 单元、契约、浏览器、CI 和候选检查分别绑定实际检出的源码；检查通过不自动构成公开包安装或玩法通过 | [测试与证据索引](testing/README.md) |
 | **历史验收** | VM r14/r12、C1–C4、Linux run3 和十三项补修保留原来源、失败和复验，不转作新包的完整安装／玩法通过 | [历史优化报告](testing/optimization-2026-10-15.md) |
 | **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
-| **未重复的验收** | 最终包完整安装、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开未重跑；旧性能和暖缓存结论保留原范围 | [具体边界](testing/maintenance-linux-0.1.7.md) |
+| **包级验收边界** | 最终包安装／升级／卸载、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开按各包记录确认；旧性能和缓存结论保留原范围 | [平台验证范围](releases/current.md) |
 
 ## 支持范围
 

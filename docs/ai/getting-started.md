@@ -2,9 +2,9 @@
 
 [English](getting-started.en.md) · [同一个步道方块](trail-block.md) · [SDK 兼容边界](../../sdk/compatibility.md)
 
-先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。启动窗口的「连接外部 Agent」只给接入帮助，不签发 token；这是 0.1.6 的接入帮助入口。没有该入口仍可直接打开工作区使用原页面。
+先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端打开工作区后，使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。该路径不依赖旧版本启动窗口中的「连接外部 Agent」帮助入口；帮助文本不会签发 token。
 
-三个[最小可执行示例](../../sdk/agent-workflows.md)说明 0.1.6 的入口、前提和退出方式；旧宿主仍须按实际能力发现，见[状态页](../status.md)。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0`；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。原有权限和计划边界继续适用。
+三个[最小可执行示例](../../sdk/agent-workflows.md)说明当前客户端的入口、前提和退出方式。各平台发布版本与包级验证见[当前下载](../releases/current.md)，实际接口以所连宿主的能力发现为准。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0`；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。原有权限和计划边界继续适用。
 
 只读发现先核对 ready operations／MCP `tools/list`，再取 `get_workspace_environment` 的生成器、工具链、应用身份与 `data.fieldContracts`。当前主线提供 `get_mod_element_field_contract` 和 `get_field_reference_options`；Native `discover_field_contract(...)` 区分 available／not_exposed／unsupported，不创建探针元素。Native 旧环境提取的缺类型诊断为 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，MCP／TypeScript 的旧环境便捷方法使用 `FIELD_CONTRACT_NOT_EXPOSED`；两者均保留 Core 诊断与格式错误。修改前重读适用 revision／hash，分页遍历到 `nextCursor=null`。从 [W1/W2/W3](../../sdk/agent-workflows.md)进入失败修复、原任务恢复与精确导出。
 
@@ -13,6 +13,14 @@
 本文面向本机 AI 客户端和自动化集成开发者。Copperbench MCP 当前为开发预览协议，版本、Schema 和工具字段仍可能在预览版间变化。
 
 对实际暴露[任务授权与自动验收](./task-authorization-and-acceptance.md)合同的宿主，本机用户可批准目录、操作和期限，Agent 携带该授权使用文件快照、GameTest 宿主和报告。先核对实际工具／环境能力，不将“源码可用”或当前下载版本号当作全部接口已暴露的证明。
+
+## 配对与丢失令牌后的恢复
+
+在「工具 → AI 与 MCP」先显示一次令牌，再复制完整配置。单独的「复制 URL」只复制地址，不包含鉴权信息。令牌只交给本机受信任客户端，不写入聊天、仓库或日志。
+
+当前源码新增「重新配对」入口，尚未因此发布新安装包。运行包含该入口的桌面版本时，如果显示令牌后离页且没有保存，可由用户确认重新配对；旧令牌及 MCP 连接会失效，权限档位不变，已启动的工作区任务不会被此操作取消。显示新令牌、更新客户端配置并重新连接后，继续查询原任务 ID，不要重新启动同一任务。配对失败可在对话框中重试；如果提示存储的权限配置无效，先关闭对话框并明确选择有效权限档位，服务恢复后再获取令牌。
+
+没有该入口或宿主不支持时，重新打开工作区后再获取令牌。新旧版本都不能通过反复选择当前权限档位来恢复令牌。各平台包含哪些改动仍以[当前下载](../releases/current.md)为准。
 
 ## 安全边界
 

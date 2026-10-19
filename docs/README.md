@@ -1,8 +1,8 @@
 # Documentation / 项目文档导航
 
-先看[当前状态与发布能力](./status.md)：Windows 与 Linux 0.1.7 的公开状态与资产证明统一列在[当前下载](./releases/current.md)。历史需求与验收保留各自日期、候选和验证范围。
+各平台当前发布版本、下载链接、源码身份和包级验证统一列在[当前下载](./releases/current.md)；源码能力与预览边界见[当前状态与发布能力](./status.md)。Windows 与 Linux 的发布进度分别记录。
 
-0.1.7 的二进制来源为 `db8d08336c274cc37239b48e837f0bf3727c5fdc`；[发布记录](./testing/maintenance-release-0.1.7.md)分别记录主线检查、冻结候选、Linux promotion 与公开资产结果。
+历史需求与验收保留各自日期、候选和验证范围。查阅某次发布时，使用该版本的记录核对来源和资产，不把后续源码检查转作旧包或新包的验收。
 
 ## 从这里开始
 
@@ -12,7 +12,7 @@
 4. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
 5. 只有遇到专项问题时，才从本页选择对应附件。
 
-Choose a route below. Each key guide links directly to the same topic in the other language. Published/source/preview limits are maintained only in [current status](./status.md); historical records keep their original scope.
+Choose a route below. Each key guide links directly to the same topic in the other language. [Current downloads](./releases/current.md) is the entry for published platform versions and package verification; [current status](./status.md) describes source capabilities and preview boundaries. Historical records keep their original scope.
 
 | Route / 路线 | 简体中文 | English |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Choose a route below. Each key guide links directly to the same topic in the oth
 - [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)、[zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
 - [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)、[阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)、[阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
 
-这些文档中的“待完成”“未发布”描述对应当时的状态。当前发布与支持范围以上方交付基线为准；历史证据原址保留，避免破坏链接和发布哈希绑定。已退役的展示截图和 U0 原型通过固定 Git 快照追溯，不作为当前界面素材。
+这些文档中的“待完成”“未发布”描述对应当时的状态。当前平台发布与包级支持范围以[当前下载](./releases/current.md)为准；历史证据原址保留，避免破坏链接和发布哈希绑定。已退役的展示截图和 U0 原型通过固定 Git 快照追溯，不作为当前界面素材。
 
 ## 开发与发布
 

@@ -14,6 +14,10 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Keep task entry points bound to their selected task, preserve log reading position, and contain the initial forward/reverse Tab inside product-shell dialogs.
+- Refresh authorization, history, function snippets and workspace group labels with the selected locale while retaining user drafts and selections.
+- Add explicit desktop MCP pairing recovery with old-credential/session invalidation, unchanged permissions and task ownership, and complete-configuration copying only after token reveal.
+- Route current user/developer documentation through the platform release index while keeping historical acceptance records and published identities intact.
 - Share themed, branded native prompts across the workbench, Java setup wizard and standalone updater; preserve locale/theme at update launch, keep long messages scrollable, and show measured progress only when available.
 - Open indexed JSON models in Blockbench with the existing recovery lifecycle, prepare launches off Chromium's callback thread, and show setup and launch feedback directly at their entry points.
 - Dispatch Core bridge requests in order off Chromium's message-router thread, prune non-asset directories from resource listing, and reject dependency snapshots with newer workspace inputs before hashing contents or loading unusable vanilla catalogs.
