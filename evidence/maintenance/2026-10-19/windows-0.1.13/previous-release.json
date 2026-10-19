@@ -1,0 +1,14 @@
+{
+  "tag": "v0.1.12",
+  "url": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.12",
+  "publishedAt": "2026-10-18T21:15:41Z",
+  "sourceCommit": "2508bc2eb4afa2f537ab68920aae1ea95b6df70c",
+  "sourceRecord": "docs/testing/maintenance-release-0.1.12.md",
+  "installer": {
+    "name": "Copperbench.0.1.12.Windows.64bit.exe",
+    "size": 503043619,
+    "digest": "sha256:dd6d50174353c100371a59d7929896c2b46c4953283ea59d5fc93d10db7b221f",
+    "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.12/Copperbench.0.1.12.Windows.64bit.exe"
+  },
+  "scope": "Previously published Windows release, recorded before preparing 0.1.13."
+}
