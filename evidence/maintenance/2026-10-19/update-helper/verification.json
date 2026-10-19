@@ -1,0 +1,93 @@
+{
+  "recordedUtc": "2026-10-19T12:55:20.785658Z",
+  "baseCommit": "1d46f115258f4c416c327fdb94acd72115e79190",
+  "sourceState": "uncommitted correction, not a published package",
+  "sourceSha256": {
+    "platform/installer/bootstrap.nsi": "e95a03ac116615b0ea1ce486a6912595ae66cb20e2dea73ab3dd1959a287e4c1",
+    "platform/installer/build-update-host.mjs": "4d8e28e8bfe437d196c73380d3820256c3ed182709b066ae4feb08ec72a8a964",
+    "platform/installer/src/dev/copperbench/installer/PlatformInstall.java": "7c4755d0991fda6d58ca9ee66e8bbc7e43576dbdf0de8646ab901db7359452b8",
+    "src/main/java/dev/copperbench/shell/ProductUpdateDialog.java": "e041be9a84e303ec051417d5dd6214d04d6dbf2bc47dc79593016a93ea295c0d",
+    "src/test/java/dev/copperbench/installer/PlatformInstallRollbackTest.java": "b80d4a79a174b56bf84b68b58f63504533509f4d7adea862c9a2a0525cc1725e",
+    "platform/installer/test/Test-ShortcutTargetPreservation.ps1": "ba4a56595bdbd3ba1364d2fe23fec4bb6f0241373ddc30cb5519fa7468a1718f"
+  },
+  "localArtifactsSha256": {
+    "build/installer/copperbench-setup.jar": "76bd2c8fb28ff46464b80db6555b1f7eab872f7de7bd68b643032e87632af042",
+    "build/installer/copperbench-update-host.exe": "5791abd8638177d1a267e6cb66559d7828d987564ececb2fb6adb08f16867a4a",
+    ".tmp/compact-update-dialog/UpdateLayoutPreview.java": "b6e0bc507c4e2323f9b2463281bc4d81315627031a313ace8598f59873d84e1a"
+  },
+  "evidenceSha256": {
+    "installed-helper.json": "869e0b12cb1847e58a6094cfb23faae86fe693973baae158848408896dfadbc7",
+    "java-checks.txt": "45830dac175d5949f6ec234081eea97c38f5098e9a52bb3ead28c7b6b7171303",
+    "packaging-checks.json": "f0751143c7a8086c93f51716643e0e24a8c5c397b75788ee47ef130c4e9c97ea",
+    "ready-en-dark-200.jpg": "125477f93ff4d3e957751d3f02d2c8f804e2a475e6f6a9031959ec2e8e33edef",
+    "ready-zh-light.jpg": "783184283e0fe8e221c9eb1022ffcb2309a56d3f8d63cc4595b04dd5b45f379d",
+    "shortcut-result.json": "fe420748ca24813cc3f8eeee461018384d0c0f57da1bee57d3356ca3d2ff91c8"
+  },
+  "javaChecks": [
+    {
+      "class": "dev.copperbench.installer.PlatformInstallRollbackTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.installer.InstallEngineTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.installer.NativeDialogPresentationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.release.ProductUpdatesTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "nativePreviews": [
+    {
+      "language": "zh",
+      "theme": "light",
+      "jvmScale": 1.25,
+      "logicalWindow": [
+        474,
+        237
+      ],
+      "textHeight": 55,
+      "preferredTextHeight": 55,
+      "closeObserved": true,
+      "processExited": true,
+      "screenshot": "ready-zh-light.jpg"
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "jvmScale": 2,
+      "logicalWindow": [
+        468,
+        251
+      ],
+      "textHeight": 72,
+      "preferredTextHeight": 72,
+      "closeObserved": true,
+      "processExited": true,
+      "screenshot": "ready-en-dark-200.jpg"
+    }
+  ],
+  "limits": [
+    "Production UI with simulated READY state; primary handlers disabled and no network.",
+    "No real installation, upgrade, uninstall, final-package rescan or vendor review.",
+    "Fixture installer compilation is not a distributable application package."
+  ],
+  "rawJavaLogSha256": "231ee4f1b46054becd818071327728cad8004da0e9d31534162f219fd878db2e",
+  "javaLogNormalization": "Trailing horizontal whitespace removed from the committed copy."
+}

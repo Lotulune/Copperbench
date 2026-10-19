@@ -17,9 +17,16 @@ VIAddVersionKey ProductName "Copperbench"
 VIAddVersionKey ProductVersion "%VERSION%"
 VIAddVersionKey FileVersion "%VERSION%.0"
 VIAddVersionKey CompanyName "Copperbench Contributors"
+!ifdef UPDATE_HOST
+; WriteUninstaller shares these resources, so the description covers both roles.
+VIAddVersionKey FileDescription "Copperbench update and uninstall helper"
+VIAddVersionKey InternalName "CopperbenchMaintenance"
+VIAddVersionKey OriginalFilename "copperbench-update-host.exe"
+!else
 VIAddVersionKey FileDescription "Copperbench offline installer"
 VIAddVersionKey InternalName "CopperbenchSetup"
 VIAddVersionKey OriginalFilename "CopperbenchSetup.exe"
+!endif
 VIAddVersionKey LegalCopyright "Copyright %YEAR% Copperbench Contributors"
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
@@ -68,9 +75,19 @@ Function .onInit
     ${Else}
       SetShellVarContext current
     ${EndIf}
+    ClearErrors
     WriteINIStr "$Request" "Install" "Programs" "$SMPROGRAMS"
     WriteINIStr "$Request" "Install" "DesktopPath" "$DESKTOP"
+!ifdef UPDATE_HOST
+    WriteINIStr "$Request" "Install" "ShortcutPolicy" "preserve"
+!else
+    WriteINIStr "$Request" "Install" "ShortcutPolicy" "create"
+!endif
+    IfErrors locations_failed
     SetErrorLevel 0
+    Quit
+locations_failed:
+    SetErrorLevel 1
     Quit
   ${EndIf}
   ${GetOptions} $Parameters "/REGISTER=" $Request
@@ -143,12 +160,16 @@ Function Register
   ${EndIf}
   ClearErrors
   WriteUninstaller "$INSTDIR\uninstall.exe"
+!ifndef UPDATE_HOST
+  ; In-app updates keep existing shortcuts and respect ones the user removed.
+  ; The full installer retains its explicit shortcut creation choice.
   CreateDirectory "$SMPROGRAMS\Copperbench"
   SetOutPath "$INSTDIR"
   CreateShortCut "$SMPROGRAMS\Copperbench\Copperbench.lnk" "$INSTDIR\copperbench.exe"
   ${If} $0 == "true"
     CreateShortCut "$DESKTOP\Copperbench.lnk" "$INSTDIR\copperbench.exe"
   ${EndIf}
+!endif
   ${If} $Scope == "system"
     WriteRegStr HKLM "${KEY}" "DisplayName" "Copperbench"
     WriteRegStr HKLM "${KEY}" "Publisher" "Copperbench Contributors"

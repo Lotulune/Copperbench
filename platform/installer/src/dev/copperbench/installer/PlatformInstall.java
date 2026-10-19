@@ -121,10 +121,7 @@ final class PlatformInstall {
                     int equals = line.indexOf('='); if (equals > 0) paths.setProperty(line.substring(0, equals), line.substring(equals + 1));
                 }
             }
-            Path programs = Path.of(paths.getProperty("Programs")), desktop = Path.of(paths.getProperty("DesktopPath"));
-            List<Path> shortcuts = new ArrayList<>(List.of(programs.resolve("Copperbench/Copperbench.lnk")));
-            if (plan.desktop()) shortcuts.add(desktop.resolve("Copperbench.lnk"));
-            Map<Path, byte[]> before = snapshot(shortcuts);
+            Map<Path, byte[]> before = snapshot(registrationShortcuts(paths, plan.desktop()));
             String key = (plan.scope().equals("system") ? "HKLM" : "HKCU") + "\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Copperbench";
             List<String> views = plan.scope().equals("system") ? List.of("64", "32") : List.of("64");
             Map<String, Path> regBackups = new LinkedHashMap<>();
@@ -181,6 +178,17 @@ final class PlatformInstall {
             }
         }
     }
+    static List<Path> registrationShortcuts(Properties locations, boolean desktop) throws IOException {
+        // Old setup registrars omit this field and retain their original creation contract.
+        String policy = locations.getProperty("ShortcutPolicy", "create");
+        if (policy.equals("preserve")) return List.of();
+        if (!policy.equals("create")) throw new IOException("Invalid Windows shortcut registration policy.");
+        if (locations.getProperty("Programs") == null || desktop && locations.getProperty("DesktopPath") == null)
+            throw new IOException("Windows could not resolve the application shortcuts.");
+        List<Path> shortcuts = new ArrayList<>(List.of(Path.of(locations.getProperty("Programs")).resolve("Copperbench/Copperbench.lnk")));
+        if (desktop) shortcuts.add(Path.of(locations.getProperty("DesktopPath")).resolve("Copperbench.lnk"));
+        return List.copyOf(shortcuts);
+    }
     private static Map<Path, byte[]> snapshot(List<Path> paths) throws IOException {
         Map<Path, byte[]> files = new LinkedHashMap<>();
         for (Path path : paths) {
@@ -189,10 +197,19 @@ final class PlatformInstall {
         }
         return files;
     }
-    private static void restore(Map<Path, byte[]> files) throws IOException {
+    static void restore(Map<Path, byte[]> files) throws IOException {
         IOException failure = null;
         for (var file : files.entrySet()) {
-            try { if (file.getValue() == null) Files.deleteIfExists(file.getKey()); else Files.write(file.getKey(), file.getValue()); }
+            try {
+                if (file.getValue() == null) Files.deleteIfExists(file.getKey());
+                else {
+                    byte[] current = null;
+                    try { current = Files.readAllBytes(file.getKey()); }
+                    catch (NoSuchFileException ignored) { }
+                    // Failed registration can leave a shortcut untouched; preserve its bytes and metadata.
+                    if (!Arrays.equals(current, file.getValue())) Files.write(file.getKey(), file.getValue());
+                }
+            }
             catch (IOException error) { if (failure == null) failure = error; else failure.addSuppressed(error); }
         }
         if (failure != null) throw failure;

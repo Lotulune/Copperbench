@@ -1,0 +1,9 @@
+{
+  "version": "0.1.12",
+  "file": "C:\\Program Files\\Copperbench\\copperbench-update-host.exe",
+  "expectedSha256": "cf3a00e602ce7fc4805f934f3abd0d57c07cf00d22d4babeb4926158410aa210",
+  "actualSha256": "cf3a00e602ce7fc4805f934f3abd0d57c07cf00d22d4babeb4926158410aa210",
+  "matches": true,
+  "bytes": 330769,
+  "authenticodeStatus": "NotSigned"
+}
