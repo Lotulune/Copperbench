@@ -2,7 +2,7 @@
 
 In-app updates in Windows 0.1.12 recreated desktop and Start menu shortcuts. The corrected update host preserves existing links, including user customization or removal; the full installer retains its Start menu entry and optional desktop shortcut. Registration failure also leaves unchanged integration files untouched. The helper's executable description now identifies its update/uninstall role, and the Chinese/English ready-to-install dialog explains its file replacement and authorization behavior.
 
-This is an unreleased source correction based on `1d46f115258f4c416c327fdb94acd72115e79190`. It is not included in the public 0.1.12 packages. The [receipt](../../evidence/maintenance/2026-10-19/update-helper/verification.json) records source, built helper/setup JAR and evidence hashes. Preview/build version labels remain 0.1.12 and do not identify a new distribution.
+This source correction was prepared against `1d46f115258f4c416c327fdb94acd72115e79190` and is now included in [Windows 0.1.13](maintenance-release-0.1.13.md). It is not included in the public 0.1.12 packages. The [receipt](../../evidence/maintenance/2026-10-19/update-helper/verification.json) records source, built helper/setup JAR and evidence hashes. Preview/build version labels remain 0.1.12 and do not identify a new distribution.
 
 ## Verification
 
