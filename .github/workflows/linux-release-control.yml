@@ -8,6 +8,9 @@ on:
       - .github/workflows/deploy.yml
       - scripts/verify-linux-release-authorization.mjs
       - scripts/tests/linux-release-authorization.tests.mjs
+      - .github/workflows/linux-candidate-verification.yml
+      - scripts/cloud-acceptance/verify-candidate-package.py
+      - scripts/tests/test_candidate_package.py
       - release-control/linux-candidate-authorization.json
   workflow_dispatch:
     inputs:
@@ -38,6 +41,10 @@ jobs:
         with:
           node-version: 22
       - run: node --test scripts/tests/linux-release-authorization.tests.mjs
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s scripts/tests -p test_candidate_package.py
 
   promote:
     if: github.event_name == 'workflow_dispatch'
