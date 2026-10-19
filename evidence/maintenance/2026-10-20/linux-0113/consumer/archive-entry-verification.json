@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "archive": "Copperbench 0.1.13 Linux x86_64.tar.gz",
+  "sourceCommit": "464b75a39c34252f61c7d859b8d267dfabba205c",
+  "productVersion": "0.1.13",
+  "entries": {
+    "docs/build/development-setup.md": {
+      "entry": "Copperbench0113/docs/build/development-setup.md",
+      "size": 6283,
+      "sha256": "dc4e8ad6c616d4bf4a81b2504c3df0867aaaca8cb86e0724c715aee14e403cdb"
+    },
+    "docs/releases/current.md": {
+      "entry": "Copperbench0113/docs/releases/current.md",
+      "size": 2762,
+      "sha256": "937aff887b52eef6d44b0b6834e469c31c083f16606f25e22bf5116f167c7a8a"
+    },
+    "docs/user/linux-installation.md": {
+      "entry": "Copperbench0113/docs/user/linux-installation.md",
+      "size": 3209,
+      "sha256": "d20e1bded1f12a18280ffb2c852de7b2cf3d15b3c77b6e3807e7eb047f67795e"
+    },
+    "lib/copperbench.jar": {
+      "entry": "Copperbench0113/lib/copperbench.jar",
+      "size": 8297186,
+      "sha256": "f309f06da0a4c52c6987067742044fff14e89905f5c365948c70ca7595950b98",
+      "productVersion": "0.1.13",
+      "archiveRequestClassSha256": "04024d0c1363a3a9422148f6a3af9c442c234189bc2a90fcccf0758180a03e65",
+      "dataPackGatewayClassSha256": "13125e8172c5d61af0b08803a4f5fcbd2a5bdd1070b5b6f0d65afdc4ad534d26"
+    },
+    "plugins/generator-1.20.1.zip": {
+      "entry": "Copperbench0113/plugins/generator-1.20.1.zip",
+      "size": 1076574,
+      "sha256": "e36787de48e1d510fcc1fadf3c491652f9f174084f56b89ba85f517f787cfc5b",
+      "sourceEntries": {
+        "datapack-1.20.1/generator.yaml": "525fff7a7b1bb6503a479e68e364ee1f4232bcb54e18334645d0c17cc6397200",
+        "datapack-1.20.1/workspacebase/gradle/wrapper/gradle-wrapper.properties": "fe7efbcfecf51c6f046eeb53d5543e103215db4c160babfc98d6bafef0662e02"
+      }
+    }
+  },
+  "scope": "Selected source-bound documents, packaged application version, legacy fix markers and template bytes; no installed or gameplay acceptance."
+}
