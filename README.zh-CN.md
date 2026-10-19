@@ -8,9 +8,9 @@
 
 Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 
-**当前稳定版：Windows 0.1.12、Linux 0.1.9。** Windows 0.1.12 收紧更新窗口间距，按实际内容调整高度；安装包和验证记录见[当前下载](docs/releases/current.md)。
+**当前稳定版：Windows 0.1.13、Linux 0.1.9。** Windows 0.1.13 保留应用内更新时的现有快捷方式，并完善更新助手身份和安装提示；安装包和验证记录见[当前下载](docs/releases/current.md)。
 
-源码身份、安装包哈希和验证范围分别记录在 [Windows 0.1.12 发布记录](docs/testing/maintenance-release-0.1.12.md)和 [Linux 0.1.9 发布记录](docs/testing/maintenance-release-0.1.9.md)中。
+源码身份、安装包哈希和验证范围分别记录在 [Windows 0.1.13 发布记录](docs/testing/maintenance-release-0.1.13.md)和 [Linux 0.1.9 发布记录](docs/testing/maintenance-release-0.1.9.md)中。
 
 <a id="getting-started"></a>
 
@@ -18,7 +18,7 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.12](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.12) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
+| Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
 | Ubuntu 24.04 LTS x86_64 | [0.1.9](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
