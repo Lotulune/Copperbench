@@ -20,12 +20,27 @@ maintenance-required steps passed. The optional NeoForge 26.3 dependency-graph
 job and opt-in 26.3 acceptance/upload steps were skipped and are not newly qualified.
 
 The candidate artifact is still available (artifact ID `12193438857`, archive
-size 4,370,901,122 bytes). Its download currently redirects to
-`productionresultssa14.blob.core.windows.net`, which the environment proxy rejects.
-The domain addition has been saved to the environment configuration draft.
-Candidate asset bytes and signed provenance have not yet been independently
-retrieved; no package digest, candidate identity or completed installed acceptance
-is inferred from successful CI receipts.
+size 4,370,901,122 bytes). The independent cloud consumer
+[39320163547](https://github.com/Lotulune/Copperbench/actions/runs/39320163547)
+completed successfully using harness commit
+`ce27327d61f43d0cc050b37e272bd2124f98a60f`. Its
+[run receipt](../../evidence/maintenance/2026-10-20/linux-0113/candidate-consumer-run.json)
+and [jobs receipt](../../evidence/maintenance/2026-10-20/linux-0113/candidate-consumer-jobs.json)
+record the passed download, metadata, signed provenance and package-inspection
+step. This is independent cloud verification of the frozen bytes, not a local
+package execution or installed/player acceptance.
+
+The small output artifact `linux-candidate-verification-39264954357` contains the
+exact metadata, manifest, checksums, verified provenance and per-entry results.
+Downloading it into this checkout currently redirects to
+`productionresultssa5.blob.core.windows.net` and is denied by the environment
+proxy; the large original artifact uses `productionresultssa14.blob.core.windows.net`.
+Both destinations have been saved to the environment network draft. The exact
+candidate identity and package digests will be recorded from that output rather
+than invented or copied from a previous release. The original consumer's
+human-readable scope string inherited the words "All eight" from 0.1.9; its
+provenance verifier actually iterates every downloaded file. The current workflow
+removes that fixed count and retains the complete per-file results as evidence.
 
 ## Preparation changes
 
@@ -52,9 +67,9 @@ and unrelated acceptance drivers remain rejected.
 
 ## Completion steps
 
-1. Enable access to the observed GitHub artifact storage destination and retrieve
-   the candidate artifact. Verify every asset against metadata and signed source/run/workflow
-   provenance using the updated cloud consumer. The existing M1 dispatch inputs
+1. Enable access to the observed GitHub artifact storage destinations and retrieve
+   the successful consumer output. Preserve its actual metadata, digests and signed
+   provenance, and verify the output evidence-hash manifest. The existing M1 dispatch inputs
    are `linux_candidate_run=39264954357` and
    `linux_candidate_source=464b75a39c34252f61c7d859b8d267dfabba205c`.
 2. Record the resulting candidate identity, checksums and verification scope.

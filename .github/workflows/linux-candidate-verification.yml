@@ -79,7 +79,7 @@ jobs:
                   'productVersion':os.environ['PRODUCT_VERSION'],
                   'candidateRun':os.environ['CANDIDATE_RUN'],'candidateId':metadata['candidateId'],
                   'verificationRun':os.environ['GITHUB_RUN_ID'],'harnessCommit':os.environ['GITHUB_SHA'],
-                  'scope':'All eight downloaded candidate files match the verified signed statement; packaged docs, application version, three fixes and legacy template checked; no installed/player acceptance'}
+                  'scope':'All downloaded candidate files match the verified signed statement; packaged docs, application version, three fixes and legacy template checked; no installed/player acceptance'}
           (root/'result.json').write_text(json.dumps(result,indent=2)+'\n')
           hashes={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
           (root/'evidence-hashes.json').write_text(json.dumps(hashes,indent=2)+'\n')
