@@ -28,20 +28,16 @@ public final class InstallerMain {
     }
     static InstallEngine.Result execute(InstallEngine.Plan plan, Path registrar, boolean deb, AtomicBoolean cancel,
                                         Consumer<InstallEngine.Progress> progress) throws IOException {
-        return execute(plan, registrar, deb, cancel, progress, false, InstallTrace.NONE);
-    }
-    static InstallEngine.Result execute(InstallEngine.Plan plan, Path registrar, boolean deb, AtomicBoolean cancel,
-                                        Consumer<InstallEngine.Progress> progress, boolean componentUpdate, InstallTrace trace) throws IOException {
         PlatformInstall.checkPlatform();
         PlatformInstall.ensureStopped(plan.target());
-        if (PlatformInstall.WINDOWS && plan.scope().equals("system")) return elevated(plan, registrar, cancel, progress, componentUpdate, trace);
+        if (PlatformInstall.WINDOWS && plan.scope().equals("system")) return elevated(plan, registrar, cancel, progress);
         if (deb) return updateDeb(plan, cancel, progress);
         Path scratch = Files.createTempDirectory("copperbench-setup-");
-        try { return new InstallEngine().install(plan, cancel::get, progress, installed -> PlatformInstall.register(installed, registrar, scratch, componentUpdate, trace)); }
+        try { return new InstallEngine().install(plan, cancel::get, progress, installed -> PlatformInstall.register(installed, registrar, scratch)); }
         finally { deleteScratch(scratch); }
     }
     private static InstallEngine.Result elevated(InstallEngine.Plan plan, Path registrar, AtomicBoolean cancel,
-                                                 Consumer<InstallEngine.Progress> progress, boolean componentUpdate, InstallTrace trace) throws IOException {
+                                                 Consumer<InstallEngine.Progress> progress) throws IOException {
         Path scratch = Files.createTempDirectory("copperbench-upgrade-");
         Properties request = new Properties();
         request.setProperty("payload", plan.payload().toString()); request.setProperty("manifest", plan.manifest().toString());
@@ -49,16 +45,12 @@ public final class InstallerMain {
         request.setProperty("version", plan.version()); request.setProperty("language", plan.language()); request.setProperty("theme", plan.theme());
         request.setProperty("desktop", Boolean.toString(plan.desktop())); request.setProperty("legacy", Boolean.toString(plan.legacy()));
         request.setProperty("registrar", registrar.toString());
-        request.setProperty("componentUpdate", Boolean.toString(componentUpdate));
         Path requestFile = scratch.resolve("request.properties");
         saveProperties(requestFile, request);
         Path ini = scratch.resolve("elevate.ini");
         PlatformInstall.writeIni(ini, Map.of("Java", plan.payload().resolve("jdk/bin/javaw.exe").toString(), "Jar", plan.installerJar().toString(), "Request", requestFile.toString()));
         try {
-            trace.executable(registrar);
-            trace.event("helper-request", "mode", "/ELEVATE", "executable", registrar.toString());
             Process process = new ProcessBuilder(registrar.toString(), "/ELEVATE=" + ini).start();
-            trace.event("helper-started", "mode", "/ELEVATE", "childPid", Long.toString(process.pid()));
             while (process.isAlive()) {
                 if (cancel.get()) Files.writeString(scratch.resolve("cancel"), "cancel");
                 Path stateFile = scratch.resolve("progress.properties");
@@ -70,20 +62,16 @@ public final class InstallerMain {
                 }
                 try { Thread.sleep(150); } catch (InterruptedException error) { Thread.currentThread().interrupt(); throw new IOException("Installation was interrupted", error); }
             }
-            trace.event("helper-exited", "mode", "/ELEVATE", "exitCode", Integer.toString(process.exitValue()));
             Path resultFile = scratch.resolve("result.properties");
             if (!Files.exists(resultFile)) throw new IOException("System authorization was cancelled or the upgrade worker could not start.");
             Properties result = loadProperties(resultFile);
             if (!result.getProperty("status", "error").equals("success")) throw new IOException(result.getProperty("message", "System installation failed."));
             return new InstallEngine.Result(plan.target(), result.containsKey("backup") ? Path.of(result.getProperty("backup")) : null);
-        } finally { trace.relayWorkerLog(scratch.resolve("worker-steps.log")); deleteScratch(scratch); }
+        } finally { deleteScratch(scratch); }
     }
     private static void worker(Path requestFile) throws IOException {
         Properties p = loadProperties(requestFile);
         Path scratch = requestFile.toAbsolutePath().getParent();
-        boolean componentUpdate = Boolean.parseBoolean(p.getProperty("componentUpdate", "false"));
-        InstallTrace trace = componentUpdate ? new InstallTrace(scratch.resolve("worker-steps.log")) : InstallTrace.NONE;
-        trace.event("elevated-worker-start");
         Properties result = new Properties();
         try {
             InstallEngine.Plan plan = new InstallEngine.Plan(Path.of(p.getProperty("payload")), Path.of(p.getProperty("manifest")), Path.of(p.getProperty("jar")),
@@ -94,18 +82,15 @@ public final class InstallerMain {
             PlatformInstall.ensureStopped(plan.target());
             long[] last = {0};
             InstallEngine.Result installed = new InstallEngine().install(plan, () -> Files.exists(scratch.resolve("cancel")), state -> {
-                trace.phase(state);
                 if (System.nanoTime() - last[0] < 150_000_000 && state.phase().equals("copy")) return;
                 last[0] = System.nanoTime();
                 Properties progress = new Properties();
                 progress.setProperty("phase", state.phase()); progress.setProperty("done", Long.toString(state.completed())); progress.setProperty("total", Long.toString(state.total()));
                 try { saveProperties(scratch.resolve("progress.properties"), progress); } catch (IOException error) { throw new UncheckedIOException(error); }
-            }, installedPlan -> PlatformInstall.register(installedPlan, Path.of(p.getProperty("registrar")), scratch, componentUpdate, trace));
+            }, installedPlan -> PlatformInstall.register(installedPlan, Path.of(p.getProperty("registrar")), scratch));
             result.setProperty("status", "success");
-            trace.event("elevated-worker-finished", "status", "success");
             if (installed.previousVersion() != null) result.setProperty("backup", installed.previousVersion().toString());
         } catch (Exception error) {
-            trace.failure("elevated-worker", error);
             result.setProperty("status", "error"); result.setProperty("message", error.toString());
         }
         saveProperties(scratch.resolve("result.properties"), result);
