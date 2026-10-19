@@ -16,7 +16,17 @@ commit/tree and the workflow commit. It does not publish packages or certify a d
 
 `linux_candidate_run` with `linux_candidate_source` independently downloads and
 verifies the frozen Linux candidate in a cloud consumer, then uploads its small
-evidence bundle. `windows_release_source` similarly checks every public 0.1.9
+evidence bundle. Its product version comes from `mcreator.conf` in the exact
+source commit, and must match both candidate metadata and the packaged JAR.
+The shipped download index, Linux installation guide and development guide are
+compared byte-for-byte with that source. The original 0.1.9 document checks still
+apply to 0.1.9 packages. Version-specific 0.1.13 notes are not shipped by its
+frozen export configuration, so they are not required inside that archive. The
+legacy fix and template checks remain required. This supports the 0.1.13 candidate without rebuilding it or
+substituting current-checkout documentation. See the
+[Linux 0.1.13 preparation record](../../docs/testing/maintenance-linux-0.1.13.md).
+
+`windows_release_source` similarly checks every public 0.1.9
 Windows asset against API digests, checksums and signed provenance and inspects
 the packaged fix classes/templates. These read-only byte checks do not replace
 installed-product acceptance.

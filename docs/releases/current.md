@@ -1,6 +1,6 @@
 # Current downloads / 当前下载
 
-Copperbench Windows **0.1.13** 保留应用内更新时的现有快捷方式，减少不必要的文件写入，并完善更新助手的身份说明和中英文提示。正式安装包已发布。
+Copperbench Windows **0.1.13** 保留应用内更新时的现有快捷方式，减少不必要的文件写入，并完善更新助手的身份说明和中英文提示。正式安装包已发布。Linux 0.1.13 已完成候选核验并获发布授权，正在[执行签名发布流程](../testing/maintenance-linux-0.1.13.md)，当前下载仍为下表中的 0.1.9。
 
 | Platform / 平台 | Stable release / 稳定版 | Packages / 格式 | Installation / 安装 |
 | --- | --- | --- | --- |
