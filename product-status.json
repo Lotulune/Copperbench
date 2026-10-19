@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.12",
+    "version": "0.1.13",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,17 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.12",
+      "tag": "v0.1.13",
       "linuxTag": "v0.1.9-linux-stable",
       "status": "ready",
       "linuxStatus": "public-stable",
       "decision": "approved",
       "decisionDate": "2026-10-19",
-      "scope": "Corrective Windows release for the application update dialog: content-sized status text and tighter spacing between the heading, progress meter and actions. Final source CI and release packaging are pending. Linux remains public at 0.1.9; historical installed-product and gameplay evidence keeps its original scope.",
+      "scope": "Windows maintenance release preserving existing shortcuts during in-app updates, avoiding unchanged rollback writes, and clarifying the update helper identity and localized installation guidance. Final source CI and release packaging are pending. No 360 rescan or new install/upgrade/uninstall acceptance is claimed. Linux remains public at 0.1.9.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/compact-update-dialog-2026-10-19.md",
-      "integrationReport": "docs/testing/compact-update-dialog-2026-10-19.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-19/compact-update-dialog/previous-release.json",
+      "developmentEvidence": "docs/testing/update-helper-2026-10-19.md",
+      "integrationReport": "docs/testing/update-helper-2026-10-19.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-19/windows-0.1.13/previous-release.json",
       "sourceVerification": {
         "requiredCi": {
           "status": "pending"
@@ -55,7 +55,7 @@
         },
         "installedPackageAcceptance": "not-repeated",
         "fullGameplayAcceptance": "not-repeated",
-        "nativeUiEvidence": "docs/testing/compact-update-dialog-2026-10-19.md"
+        "nativeUiEvidence": "docs/testing/update-helper-2026-10-19.md"
       }
     },
     "linuxMaintenanceRelease": {
