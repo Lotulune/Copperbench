@@ -8,9 +8,9 @@
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable releases: Windows 0.1.13 and Linux 0.1.9.** Windows 0.1.13 preserves existing shortcuts during in-app updates and clarifies the update helper identity and installation guidance. See [current downloads](docs/releases/current.md) for packages and verification records.
+**Current stable releases: Windows 0.1.13 and Linux 0.1.13.** Linux now includes the shared desktop, native-window and in-app update improvements. Windows 0.1.13 preserves existing shortcuts during in-app updates and clarifies the update helper identity and installation guidance. See [current downloads](docs/releases/current.md) for packages and verification records.
 
-Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.13](docs/testing/maintenance-release-0.1.13.md) and [Linux 0.1.9](docs/testing/maintenance-release-0.1.9.md).
+Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.13](docs/testing/maintenance-release-0.1.13.md) and [Linux 0.1.13](docs/testing/linux-publication-0.1.13.md).
 
 <a id="getting-started"></a>
 
@@ -19,7 +19,7 @@ Source identity, package hashes and verification scope are recorded separately f
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
 | Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.en.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.9](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.9-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz · In-app update components | [Linux installation](docs/user/linux-installation.en.md) |
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
