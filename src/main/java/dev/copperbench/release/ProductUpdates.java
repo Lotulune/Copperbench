@@ -112,21 +112,9 @@ public final class ProductUpdates {
     private static Path cache() { return UserFolderManager.getFileFromUserFolder("updates").toPath().toAbsolutePath().normalize(); }
     public static void discard(Path request) throws IOException { removeScratch(request.toAbsolutePath().normalize().getParent()); }
     private static void removeScratch(Path path) throws IOException {
-        removeScratch(path, cache());
-    }
-    private static void removeScratch(Path path, Path root) throws IOException {
-        if (!path.getParent().equals(root) || !path.getFileName().toString().startsWith("update-")) throw new IOException("Invalid update scratch location");
+        if (!path.getParent().equals(cache()) || !path.getFileName().toString().startsWith("update-")) throw new IOException("Invalid update scratch location");
         InstallEngine.ensureNoLinks(path);
         try (var paths = Files.walk(path)) { for (Path file : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(file); }
-    }
-    static void archiveAndRemoveCompleted(Path root, Path prepared, Properties result) throws IOException {
-        root = root.toAbsolutePath().normalize();
-        prepared = prepared.toAbsolutePath().normalize();
-        UpdateLogArchive.write(root, prepared, result);
-        Path latest = root.resolve("last-result.properties");
-        InstallEngine.ensureNoLinks(latest);
-        Files.copy(prepared.resolve("finished.properties"), latest, StandardCopyOption.REPLACE_EXISTING);
-        removeScratch(prepared, root);
     }
     public static void cleanupFinished() {
         Thread.ofVirtual().name("update-cleanup").start(() -> {
@@ -139,7 +127,8 @@ public final class ProductUpdates {
                         Properties result = new Properties(); try (Reader reader = Files.newBufferedReader(receipt)) { result.load(reader); }
                         Optional<ProcessHandle> worker = ProcessHandle.of(Long.parseLong(result.getProperty("pid")));
                         if (worker.isPresent()) worker.get().onExit().get(2, java.util.concurrent.TimeUnit.MINUTES);
-                        archiveAndRemoveCompleted(cache(), path, result);
+                        Files.copy(receipt, cache().resolve("last-result.properties"), StandardCopyOption.REPLACE_EXISTING);
+                        removeScratch(path);
                     }
                 }
             } catch (Exception error) { org.apache.logging.log4j.LogManager.getLogger(ProductUpdates.class).warn("Could not clean completed update files", error); }

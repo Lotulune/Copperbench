@@ -4,7 +4,6 @@ package dev.copperbench.installer;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,14 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Independent process, running from the prepared runtime so Windows can replace the installed runtime. */
 public final class UpdateInstaller {
     public static void main(String[] args) throws Exception {
-        // This process writes update.log, which the application later reads as UTF-8.
-        System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
-        System.setErr(new PrintStream(System.err, true, StandardCharsets.UTF_8));
         Path request = Path.of(args[0]).toAbsolutePath().normalize();
         Properties p = InstallerMain.loadProperties(request); Path scratch = request.getParent();
-        InstallTrace trace = new InstallTrace(scratch.resolve("update-steps.log"));
-        trace.event("update-worker-start", "version", p.getProperty("version"), "scope", p.getProperty("scope"),
-                "target", p.getProperty("target"), "parentPid", p.getProperty("parentPid"));
         Path target = Path.of(p.getProperty("target")); String language = p.getProperty("language");
         AtomicBoolean cancel = new AtomicBoolean();
         var view = new java.util.concurrent.atomic.AtomicReference<UpdateInstallerWindow>();
@@ -37,7 +30,6 @@ public final class UpdateInstaller {
                 if (System.nanoTime() > deadline) throw new IOException("The application is still running. Update stopped.");
                 Thread.sleep(200);
             }
-            trace.event("application-stopped");
             if (cancel.get()) throw new java.util.concurrent.CancellationException();
             SwingUtilities.invokeAndWait(frame::committing);
             Path payload = scratch.resolve("payload");
@@ -45,18 +37,15 @@ public final class UpdateInstaller {
                     p.getProperty("version"), p.getProperty("language"), p.getProperty("theme"), p.getProperty("scope"),
                     Boolean.parseBoolean(p.getProperty("desktop", "true")), Boolean.parseBoolean(p.getProperty("legacy")));
             var installed = InstallerMain.execute(plan, payload.resolve("copperbench-update-host.exe"), Boolean.parseBoolean(p.getProperty("deb")), cancel,
-                    progress -> { trace.phase(progress); SwingUtilities.invokeLater(() -> frame.progress(progress)); }, true, trace);
+                    progress -> SwingUtilities.invokeLater(() -> frame.progress(progress)));
             result.setProperty("status", "success");
             if (installed.previousVersion() != null) {
                 result.setProperty("cleanupPending", installed.previousVersion().toString());
                 SwingUtilities.invokeAndWait(() -> frame.cleanupWarning(installed.previousVersion()));
             }
             InstallerMain.saveProperties(scratch.resolve("finished.properties"), result);
-            trace.event("application-relaunch", "target", target.toString());
             PlatformInstall.launchApplication(target);
-            trace.event("update-finished", "status", "success");
         } catch (Exception error) {
-            trace.failure("update", error);
             result.setProperty("status", error instanceof java.util.concurrent.CancellationException ? "cancelled" : "failed");
             result.setProperty("message", error.toString()); InstallerMain.saveProperties(scratch.resolve("finished.properties"), result);
             if (!(error instanceof java.util.concurrent.CancellationException)) SwingUtilities.invokeAndWait(() -> frame.failure(error));
