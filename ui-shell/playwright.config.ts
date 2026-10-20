@@ -17,6 +17,10 @@ export default defineConfig({
   use: {
     locale: 'zh-CN',
     baseURL: testUrl,
+    // Existing workbench scenarios model returning professional users. Simple-mode tests override this state.
+    storageState: { cookies: [], origins: [{ origin: testUrl, localStorage: [
+      { name: 'copperbench.workbench.mode', value: 'professional' }
+    ] }] },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'
   },

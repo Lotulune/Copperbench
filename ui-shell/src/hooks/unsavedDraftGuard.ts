@@ -10,7 +10,10 @@ function beforeUnload(event: BeforeUnloadEvent) {
 }
 
 /** Includes inactive workspace sessions; closing the shell discards all of them. */
-export function hasUnsavedDrafts(): boolean { return draftCount > 0; }
+export function hasUnsavedDrafts(excludedOwners: readonly string[] = []): boolean {
+  return excludedOwners.length === 0 ? draftCount > 0
+    : [...counts.entries()].some(([owner, count]) => count > 0 && !excludedOwners.includes(owner));
+}
 
 export function setUnsavedDraftCount(owner: string, count: number): void {
   counts.set(owner, count);

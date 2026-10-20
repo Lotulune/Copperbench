@@ -29,12 +29,18 @@ import { FirstCreationProvider } from './onboarding/FirstCreationContext';
 import { FirstCreationGuide } from './components/FirstCreationGuide';
 import { DeliveryDialog } from './components/DeliveryDialog';
 import { OpenWorkspaceDialog } from './components/WorkspaceEntryActions';
+import { FeedbackHost } from './components/FeedbackHost';
+import { WorkbenchModeProvider, useWorkbenchMode } from './context/WorkbenchModeContext';
+import { SimpleCreationView } from './components/SimpleCreationView';
 import './styles/global.css';
 import './styles/workbench.css';
 import './styles/motion.css';
+import './components/simpleCreation.css';
 
 const ShellContent: React.FC = () => {
   const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();
+  const { mode } = useWorkbenchMode();
+  const simple = mode === 'simple';
   const [settingsOpened, setSettingsOpened] = useState(activeView === 'settings');
   const [newWorkspaceOpened, setNewWorkspaceOpened] = useState(activeView === 'new-workspace');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -52,7 +58,7 @@ const ShellContent: React.FC = () => {
   useEffect(() => { if (activeView === 'new-workspace') setNewWorkspaceOpened(true); }, [activeView]);
 
   return (
-    <div className="app-shell" data-testid="app-shell">
+    <div className="app-shell" data-testid="app-shell" data-workbench-mode={mode}>
       {/* Scenario / state announcements for assistive technology */}
       <div data-testid="global-announcer" aria-live="polite" className="sr-only">
         {announcement ?? ''}
@@ -63,17 +69,18 @@ const ShellContent: React.FC = () => {
 
       {/* Main Layout Area */}
       <div className="app-main-layout">
-        <NavRail />
+        {!simple && <NavRail />}
 
         <main className="app-content-canvas" data-active-view={activeView}>
-          <WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} />
+          {!simple && <WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} />}
+          <SimpleCreationView active={simple}>
           <div className="workbench-view-content" ref={contentRef}>
           {activeView === 'hub' && <WorkspaceHub />}
           {activeView === 'elements' && <ModElementsWorkbench key={`elements-${state.workbench?.workspace.id}`} />}
           {activeView === 'relations' && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}
           {activeView === 'data' && <CreatorDataView />}
           {activeView === 'tracks' && <TracksAndMigrationView />}
-          {(newWorkspaceOpened || activeView === 'new-workspace') && <div className="workbench-persistent-view" hidden={activeView !== 'new-workspace'}><NewWorkspaceView /></div>}
+          {(newWorkspaceOpened || activeView === 'new-workspace') && <div className="workbench-persistent-view" hidden={activeView !== 'new-workspace'}><NewWorkspaceView active={activeView === 'new-workspace'} /></div>}
           {activeView === 'assets' && <AssetsView />}
           {activeView === 'history' && <HistoryView />}
           {activeView === 'ai' && <AIControlView />}
@@ -84,6 +91,7 @@ const ShellContent: React.FC = () => {
             focusRequest={sourceFocusRequest?.workspaceId === state.workbench.workspace.id ? sourceFocusRequest : null} />}
           {state.workbench && <PythonWorkbench key={`python-${state.workbench.workspace.id}`} visible={activeView === 'python'} />}
           </div>
+          </SimpleCreationView>
 
           <TaskDrawer />
         </main>
@@ -101,6 +109,7 @@ const ShellContent: React.FC = () => {
       <FirstCreationGuide />
       <DeliveryDialog />
       <OpenWorkspaceDialog />
+      <FeedbackHost />
 
       {/* Multi-scenario testing switcher */}
       <ScenarioSwitcher />
@@ -112,7 +121,7 @@ const ShellContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <WorkbenchProvider>
-      <FirstCreationProvider><ShellContent /></FirstCreationProvider>
+      <WorkbenchModeProvider><FirstCreationProvider><ShellContent /></FirstCreationProvider></WorkbenchModeProvider>
     </WorkbenchProvider>
   );
 };

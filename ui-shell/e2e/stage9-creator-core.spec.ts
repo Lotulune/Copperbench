@@ -147,7 +147,7 @@ test.describe('Stage 9 creator core', () => {
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {
     await page.getByTestId('compact-run-menu').click();
     await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
-    await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('task-drawer').getByText('任务完成', { exact: true })).toBeVisible({ timeout: 5000 });
     await page.getByRole('button', { name: '查看暂存差异' }).click();
     await expect(page.locator('[data-testid="datagen-preview"]')).toContainText('暂存差异 1 项');
     await expect(page.locator('[data-testid="datagen-preview"]')).toContainText('src/generated/resources');
@@ -485,12 +485,13 @@ test.describe('Stage 9 creator core', () => {
 
     // Type filter: filter blocks only (14 items)
     await page.click('[data-testid="filter-type-block"]');
-    await expect(page.getByText('Copper Block 0').first()).toBeVisible();
-    await expect(page.getByText('Copper Item 1')).toHaveCount(0);
+    const elements = page.getByTestId('elements-workbench');
+    await expect(elements.getByText('Copper Block 0', { exact: true })).toBeVisible();
+    await expect(elements.getByText('Copper Item 1', { exact: true })).toHaveCount(0);
 
     // Search query filter
     await page.fill('[data-testid="elements-search-input"]', 'copper_block_12');
-    await expect(page.getByText('Copper Block 12').first()).toBeVisible();
-    await expect(page.getByText('Copper Block 0')).toHaveCount(0);
+    await expect(elements.getByText('Copper Block 12', { exact: true })).toBeVisible();
+    await expect(elements.getByText('Copper Block 0', { exact: true })).toHaveCount(0);
   });
 });

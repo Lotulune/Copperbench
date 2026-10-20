@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-20T17:00:38.673Z",
+  "title": "Design System: Copperbench",
+  "extensions": {
+    "colorMeta": {
+      "accent-copper": {
+        "role": "primary",
+        "displayName": "Copper accent (dark)"
+      },
+      "light-accent-copper": {
+        "role": "primary",
+        "displayName": "Copper accent (light)"
+      },
+      "bg-base": {
+        "role": "neutral",
+        "displayName": "Window canvas (dark)"
+      },
+      "light-bg-base": {
+        "role": "neutral",
+        "displayName": "Window canvas (light)"
+      },
+      "bg-surface": {
+        "role": "neutral",
+        "displayName": "Content surface (dark)"
+      },
+      "light-bg-surface": {
+        "role": "neutral",
+        "displayName": "Content surface (light)"
+      },
+      "bg-panel": {
+        "role": "neutral",
+        "displayName": "Supporting panel (dark)"
+      },
+      "light-bg-panel": {
+        "role": "neutral",
+        "displayName": "Supporting panel (light)"
+      }
+    },
+    "typographyMeta": {
+      "headline-workbench": {
+        "displayName": "Workbench headline",
+        "purpose": "Workspace overview heading after the final workbench override."
+      },
+      "headline-creation": {
+        "displayName": "Creation headline",
+        "purpose": "Current work name; 18px at or below 990px."
+      },
+      "title-creation": {
+        "displayName": "Conversation heading",
+        "purpose": "Conversation section; 15px at or below 650px."
+      },
+      "title-preview": {
+        "displayName": "Preview heading",
+        "purpose": "Current asset or preview title."
+      },
+      "body": {
+        "displayName": "Interface body",
+        "purpose": "Shared desktop text and controls."
+      },
+      "body-conversation": {
+        "displayName": "Conversation body",
+        "purpose": "Wrapped message text with preserved line breaks."
+      },
+      "label": {
+        "displayName": "Compact label",
+        "purpose": "Fields and compact interface labels."
+      },
+      "label-badge": {
+        "displayName": "Badge label",
+        "purpose": "Status pills."
+      },
+      "mono-detail": {
+        "displayName": "Tool output",
+        "purpose": "Disclosed action details."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.12)",
+        "purpose": "Dark theme. Composer and small raised surfaces."
+      },
+      {
+        "name": "light-shadow-sm",
+        "value": "0 1px 3px rgba(0, 0, 0, 0.08)",
+        "purpose": "Light theme. Composer and small raised surfaces."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 6px 20px rgba(0, 0, 0, 0.2)",
+        "purpose": "Dark theme. Expanded compact navigation and medium overlays."
+      },
+      {
+        "name": "light-shadow-md",
+        "value": "0 4px 16px rgba(0, 0, 0, 0.1)",
+        "purpose": "Light theme. Expanded compact navigation and medium overlays."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 20px 64px rgba(0, 0, 0, 0.4)",
+        "purpose": "Dark theme. Modal cards and the command palette."
+      },
+      {
+        "name": "light-shadow-lg",
+        "value": "0 12px 32px rgba(0, 0, 0, 0.15)",
+        "purpose": "Light theme. Modal cards and the command palette."
+      }
+    ],
+    "motion": [
+      {
+        "name": "motion-reveal",
+        "value": "240ms",
+        "purpose": "Navigation disclosure expansion."
+      },
+      {
+        "name": "motion-dismiss",
+        "value": "180ms",
+        "purpose": "Navigation disclosure collapse."
+      },
+      {
+        "name": "motion-ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Existing navigation, dialog, and menu easing."
+      },
+      {
+        "name": "workbench-button",
+        "value": "background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
+        "purpose": "Shared button state transition."
+      },
+      {
+        "name": "creation-button",
+        "value": "background 140ms ease, color 140ms ease",
+        "purpose": "Simple creation button states; disabled under reduced motion."
+      },
+      {
+        "name": "input",
+        "value": "border-color 0.15s ease, box-shadow 0.15s ease",
+        "purpose": "Shared field focus transition."
+      },
+      {
+        "name": "overlay-reveal",
+        "value": "160ms ease-out",
+        "purpose": "Modal overlay reveal."
+      },
+      {
+        "name": "dialog-reveal",
+        "value": "200ms var(--motion-ease)",
+        "purpose": "Modal card reveal from opacity 0 and scale(0.985)."
+      },
+      {
+        "name": "menu-reveal",
+        "value": "160ms var(--motion-ease)",
+        "purpose": "Workspace actions menu reveal from opacity 0 and translateY(-4px)."
+      },
+      {
+        "name": "creation-spin",
+        "value": "1s linear infinite",
+        "purpose": "Activity rotation; disabled under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "creation-three-column-compact-max",
+        "value": "1250px"
+      },
+      {
+        "name": "creation-stacked-max",
+        "value": "990px"
+      },
+      {
+        "name": "creation-disclosure-navigation-max",
+        "value": "650px"
+      },
+      {
+        "name": "shared-titlebar-compact-max",
+        "value": "1100px"
+      },
+      {
+        "name": "shared-titlebar-and-inspector-narrow-max",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Simple primary action",
+      "kind": "button",
+      "refersTo": "creation-primary",
+      "description": "Copper primary action from the simple creation surface.",
+      "html": "<button class=\"ds-creation-primary\">在游戏中试玩</button>",
+      "css": ".ds-creation-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background 140ms ease,color 140ms ease;min-height:38px;padding:8px 15px;border:1px solid var(--accent-copper-fill);background:var(--accent-copper-fill);color:var(--text-on-accent);font-weight:600}.ds-creation-primary:hover:not(:disabled){background:var(--accent-copper-fill-hover)}.ds-creation-primary:focus-visible{outline:2px solid var(--border-focus);outline-offset:3px;}.ds-creation-primary:disabled{opacity:.48;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-creation-primary{transition:none}}"
+    },
+    {
+      "name": "Simple secondary action",
+      "kind": "button",
+      "refersTo": "creation-secondary",
+      "description": "Surface-filled, bordered action from the simple creation surface.",
+      "html": "<button class=\"ds-creation-secondary\">导出模组</button>",
+      "css": ".ds-creation-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background 140ms ease,color 140ms ease;min-height:38px;padding:8px 14px;border:1px solid var(--border-active);background:var(--bg-surface);color:var(--text-main);font-weight:500}.ds-creation-secondary:hover:not(:disabled){background:var(--bg-hover)}.ds-creation-secondary:focus-visible{outline:2px solid var(--border-focus);outline-offset:3px;}.ds-creation-secondary:disabled{opacity:.48;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-creation-secondary{transition:none}}"
+    },
+    {
+      "name": "Professional primary action",
+      "kind": "button",
+      "refersTo": "workbench-primary",
+      "description": "General workbench variant after the final workbench stylesheet overrides.",
+      "html": "<button class=\"ds-workbench-primary\">创建</button>",
+      "css": ".ds-workbench-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease,box-shadow 160ms ease;min-width:32px;min-height:36px;padding:6px 14px;border:0;background:var(--text-main);color:var(--bg-surface);font-weight:600;box-shadow:none}.ds-workbench-primary:hover:not(:disabled){background:var(--text-muted);box-shadow:none}.ds-workbench-primary:active:not(:disabled){background:var(--text-main)}.ds-workbench-primary:focus-visible{outline:2px solid var(--border-focus);outline-offset:1px;}.ds-workbench-primary:disabled,.ds-workbench-primary:disabled:hover,.ds-workbench-primary:disabled:active{opacity:.5;cursor:not-allowed;box-shadow:none;background:var(--accent-copper-fill)}@media(pointer:coarse),(hover:none){.ds-workbench-primary{min-width:44px}}"
+    },
+    {
+      "name": "Professional secondary action",
+      "kind": "button",
+      "refersTo": "workbench-secondary",
+      "description": "Shared secondary action with a neutral panel background.",
+      "html": "<button class=\"ds-workbench-secondary\">取消</button>",
+      "css": ".ds-workbench-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease,box-shadow 160ms ease;min-width:32px;min-height:36px;padding:6px 12px;border:1px solid var(--border-subtle);background:var(--bg-panel);color:var(--text-main);font-weight:500}.ds-workbench-secondary:hover:not(:disabled){background:var(--bg-card-hover);border-color:var(--border-active)}.ds-workbench-secondary:focus-visible{outline:2px solid var(--border-focus);outline-offset:1px;}.ds-workbench-secondary:disabled{opacity:.45;cursor:not-allowed}@media(pointer:coarse),(hover:none){.ds-workbench-secondary{min-width:44px}}"
+    },
+    {
+      "name": "Danger action",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Existing shared destructive-action treatment.",
+      "html": "<button class=\"ds-button-danger\">删除</button>",
+      "css": ".ds-button-danger{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease,box-shadow 160ms ease;min-width:32px;min-height:36px;padding:6px 12px;border:1px solid rgba(248,81,73,.3);background:var(--badge-red-bg);color:var(--badge-red);font-weight:500}.ds-button-danger:hover{background:rgba(248,81,73,.2)}.ds-button-danger:focus-visible{outline:2px solid var(--border-focus);outline-offset:1px;}.ds-button-danger:disabled{opacity:.45;cursor:not-allowed}@media(pointer:coarse),(hover:none){.ds-button-danger{min-width:44px}}"
+    },
+    {
+      "name": "Text field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Shared labeled field with the existing input focus ring.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-work-name\">模组名称</label><input class=\"ds-input\" id=\"ds-work-name\" type=\"text\" placeholder=\"模组名称\">",
+      "css": ".ds-field-label{display:block;margin-bottom:6px;color:var(--text-sub);font:12px/1.5 var(--font-sans)}.ds-input{font:13px/1.5 var(--font-sans);color:var(--text-main);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);min-height:32px;padding:6px 10px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}.ds-input::placeholder{color:var(--text-sub);opacity:1}.ds-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 2px var(--accent-copper-dim)}.ds-input:focus-visible{outline:2px solid var(--border-focus);outline-offset:3px}.ds-input:disabled{opacity:.6;cursor:not-allowed;background:var(--bg-hover)}"
+    },
+    {
+      "name": "Professional navigation item",
+      "kind": "nav",
+      "refersTo": "navigation-item",
+      "description": "Neutral selected-row treatment from the final workbench navigation rules.",
+      "html": "<nav aria-label=\"工作区导航\"><button class=\"ds-nav-item\" aria-current=\"page\">工作区</button><button class=\"ds-nav-item\">素材</button></nav>",
+      "css": ".ds-nav-item{display:flex;align-items:center;width:100%;min-height:35px;gap:10px;padding:7px 10px;border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);font:12px/1.5 var(--font-sans);text-align:left;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease,box-shadow 160ms ease;}.ds-nav-item+.ds-nav-item{margin-top:3px}.ds-nav-item:hover:not(:disabled){background:var(--bg-hover);color:var(--text-main)}.ds-nav-item[aria-current=\"page\"]{background:var(--bg-active);color:var(--text-main);font-weight:500}.ds-nav-item:focus-visible{outline:2px solid var(--border-focus);outline-offset:1px;}.ds-nav-item:disabled{opacity:.45;cursor:not-allowed}@media(pointer:coarse),(hover:none){.ds-nav-item{min-height:44px}}"
+    },
+    {
+      "name": "Status badge",
+      "kind": "chip",
+      "refersTo": "badge-green",
+      "description": "Non-interactive status pill with tabular numerals and the existing semantic pair.",
+      "html": "<span class=\"ds-badge-green\">已检测到</span>",
+      "css": ".ds-badge-green{display:inline-flex;align-items:center;gap:4px;font:500 11px/1.2 var(--font-sans);padding:2px 8px;border-radius:var(--radius-full);white-space:nowrap;font-variant-numeric:tabular-nums;user-select:none;background:var(--badge-green-bg);color:var(--badge-green);border:1px solid rgba(63,185,80,.2)}"
+    },
+    {
+      "name": "Approval card",
+      "kind": "card",
+      "refersTo": "approval-card",
+      "description": "Simple creation approval panel, above the composer, with wrapping choices.",
+      "html": "<section class=\"ds-approval\" aria-labelledby=\"ds-approval-title\"><h3 id=\"ds-approval-title\">运行构建</h3><p>Build the current workspace</p><div><button class=\"ds-approval-choice\">允许一次</button><button class=\"ds-approval-choice\">拒绝</button></div></section>",
+      "css": ".ds-approval{padding:14px;margin-bottom:12px;border:1px solid var(--border-focus);border-radius:var(--radius-md);background:var(--bg-surface);color:var(--text-main);font:13px/1.5 var(--font-sans)}.ds-approval h3{margin:0;font-size:13px;font-weight:600}.ds-approval p{margin:6px 0 0;color:var(--text-sub);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.ds-approval>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.ds-approval-choice{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background 140ms ease,color 140ms ease;border:1px solid var(--border-active);padding:6px 12px;background:transparent;color:inherit}.ds-approval-choice:hover:not(:disabled){background:var(--bg-hover)}.ds-approval-choice:focus-visible{outline:2px solid var(--border-focus);outline-offset:3px;}.ds-approval-choice:disabled{opacity:.48;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-approval-choice{transition:none}}"
+    },
+    {
+      "name": "Conversation composer",
+      "kind": "custom",
+      "refersTo": "composer",
+      "description": "Simple creation text entry with the existing provider selector and send control; this snippet demonstrates appearance.",
+      "html": "<form class=\"ds-composer\"><label class=\"ds-sr-only\" for=\"ds-creation-prompt\">描述想添加或修改的内容</label><textarea id=\"ds-creation-prompt\" rows=\"3\" placeholder=\"描述你想添加或修改的内容…\"></textarea><div class=\"ds-composer-tools\"><label class=\"ds-provider-label\" for=\"ds-creation-provider\">创作助手</label><select id=\"ds-creation-provider\"><option>Codex CLI</option><option>Claude Code</option><option>Grok Build</option><option>Antigravity CLI</option><option>DeepSeek Harness</option></select><button class=\"ds-send\" type=\"button\" aria-label=\"发送\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/></svg></button></div></form>",
+      "css": ".ds-composer{border:1px solid var(--border-active);border-radius:12px;background:var(--bg-input);box-shadow:var(--shadow-sm);color:var(--text-main);font:13px/1.5 var(--font-sans)}.ds-composer:focus-within{border-color:var(--border-focus)}.ds-composer textarea{display:block;width:100%;resize:vertical;min-height:76px;max-height:220px;border:0;outline:none;background:transparent;color:inherit;padding:13px 15px 6px;font:14px/1.6 var(--font-sans);border-radius:12px 12px 0 0;caret-color:var(--accent-copper);transition:border-color .15s ease,box-shadow .15s ease}.ds-composer textarea::placeholder{color:var(--text-sub);opacity:1}.ds-composer textarea:focus{border-color:var(--border-focus);box-shadow:0 0 0 2px var(--accent-copper-dim)}.ds-composer textarea:focus-visible,.ds-composer select:focus-visible{outline:2px solid var(--border-focus);outline-offset:3px;}.ds-composer-tools{display:flex;align-items:center;gap:8px;padding:8px 10px 10px 12px}.ds-provider-label{font-size:11px;color:var(--text-sub);white-space:nowrap}.ds-composer select{font:12px/1.5 var(--font-sans);min-height:32px;padding:5px 2px;max-width:170px;border:0;border-radius:var(--radius-sm);background:transparent;color:inherit}.ds-composer select:focus{border-color:var(--border-focus);box-shadow:0 0 0 2px var(--accent-copper-dim)}.ds-send{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:13px/1.5 var(--font-sans);border-radius:var(--radius-sm);white-space:nowrap;transition:background 140ms ease,color 140ms ease;margin-left:auto;flex-shrink:0;width:36px;height:36px;border:1px solid transparent;border-radius:9px;background:var(--accent-copper-fill);color:var(--text-on-accent)}.ds-send:hover:not(:disabled){background:var(--accent-copper-fill-hover)}.ds-send:focus-visible{outline:2px solid var(--border-focus);outline-offset:3px;}.ds-send:disabled{opacity:.48;cursor:not-allowed}.ds-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:1250px){.ds-provider-label{display:none}}@media(max-width:650px){.ds-composer textarea{min-height:62px;height:62px;max-height:110px}.ds-composer-tools{padding-top:4px;padding-bottom:7px}}@media(prefers-reduced-motion:reduce){.ds-send{transition:none}}"
+    }
+  ],
+  "narrative": {
+    "overview": "Copperbench uses neutral desktop panels, thin dividers, a copper accent, system sans-serif text, and Lucide icons. Density serves workspace editing: compact navigation and toolbars frame the current work, while task content receives the available space.\n\nThe simple creation surface extends this existing system with a conversation, composer, and actual asset preview. The professional workbench keeps its established component variants. Product scope and the selected conversational composition remain in PRODUCT.md and the simple-creation surface brief.",
+    "keyCharacteristics": [
+      "Neutral surfaces and thin borders separate navigation, content, and supporting panels.",
+      "Copper marks focused controls, selected simple-mode controls, and simple-mode primary actions.",
+      "Readable Chinese and English labels use the existing system font stack.",
+      "Real workspace assets supply preview imagery; existing icons remain functional cues."
+    ],
+    "rules": [
+      {
+        "name": "The Variant Rule",
+        "body": "Keep the implemented action hierarchy: simple-mode primary actions and dialog primary actions use copper; the general professional-workbench primary uses `text-main` over `bg-surface`. The title-bar primary has its own transparent treatment.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do reuse the theme tokens and preserve the light/dark/system preference.",
+      "Do preserve the simple, professional, title-bar, and dialog button variants documented here.",
+      "Do keep focus visible, associate field labels, and retain Chinese IME composition handling.",
+      "Do show current state, actionable errors, actual assets, and the existing recovery-point entry.",
+      "Do let messages wrap and keep the reader's scroll position when they leave the bottom."
+    ],
+    "donts": [
+      "Don't replace the established copper, neutral panels, typography, or icon system during a surface extension.",
+      "Don't present generated game scenes, fixture messages, or sample success as actual workspace results.",
+      "Don't remove keyboard navigation or force every running output update to focus or scroll the conversation.",
+      "Don't invent a global spacing scale, tonal ramp, or display typeface from isolated component values."
+    ]
+  }
+}
