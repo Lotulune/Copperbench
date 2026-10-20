@@ -67,6 +67,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#attach(net.mcreator.ui.chromium.WebView,java.util.function.Consumer,java.nio.file.Path,java.util.UUID)" tabindex="0">attach(WebView, Consumer, Path, UUID)</a></li>
 <li><a href="#onQuery(org.cef.browser.CefBrowser,org.cef.browser.CefFrame,long,java.lang.String,boolean,org.cef.callback.CefQueryCallback)" tabindex="0">onQuery(CefBrowser, CefFrame, long, String, boolean, CefQueryCallback)</a></li>
 <li><a href="#onQueryCanceled(org.cef.browser.CefBrowser,org.cef.browser.CefFrame,long)" tabindex="0">onQueryCanceled(CefBrowser, CefFrame, long)</a></li>
+<li><a href="#trustedUrl(java.lang.String)" tabindex="0">trustedUrl(String)</a></li>
 <li><a href="#generateBootstrapScript()" tabindex="0">generateBootstrapScript()</a></li>
 <li><a href="#close()" tabindex="0">close()</a></li>
 <li><a href="#isClosed()" tabindex="0">isClosed()</a></li>
@@ -167,6 +168,9 @@ re-implements workspace loading or domain validation.</div>
  org.cef.browser.CefFrame&nbsp;frame,
  long&nbsp;queryId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#trustedUrl(java.lang.String)" class="member-name-link">trustedUrl</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;url)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -276,6 +280,14 @@ re-implements workspace loading or domain validation.</div>
 <dt>Overrides:</dt>
 <dd><code>onQueryCanceled</code>&nbsp;in class&nbsp;<code>org.cef.handler.CefMessageRouterHandlerAdapter</code></dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="trustedUrl(java.lang.String)">
+<h3>trustedUrl</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">trustedUrl</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;url)</span></div>
 </div>
 </section>
 </li>
