@@ -61,6 +61,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#state()" tabindex="0">state()</a></li>
 <li><a href="#revealTokenOnce()" tabindex="0">revealTokenOnce()</a></li>
 <li><a href="#connectionFile()" tabindex="0">connectionFile()</a></li>
+<li><a href="#resetPairing()" tabindex="0">resetPairing()</a></li>
 <li><a href="#setPermissionProfile(dev.copperbench.core.contract.UiCore.PermissionProfile)" tabindex="0">setPermissionProfile(UiCore.PermissionProfile)</a></li>
 <li><a href="#parsePermissionProfile(java.lang.String)" tabindex="0">parsePermissionProfile(String)</a></li>
 <li><a href="#close()" tabindex="0">close()</a></li>
@@ -126,23 +127,28 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../core/contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#parsePermissionProfile(java.lang.String)" class="member-name-link">parsePermissionProfile</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#revealTokenOnce()" class="member-name-link">revealTokenOnce</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="DesktopMcpRuntime.RuntimeState.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime.RuntimeState</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setPermissionProfile(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">setPermissionProfile</a><wbr>(<a href="../core/contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;profile)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="DesktopMcpRuntime.RuntimeState.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime.RuntimeState</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resetPairing()" class="member-name-link">resetPairing</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Desktop-only recovery after losing the one-time credential.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#revealTokenOnce()" class="member-name-link">revealTokenOnce</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="DesktopMcpRuntime.RuntimeState.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime.RuntimeState</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setPermissionProfile(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">setPermissionProfile</a><wbr>(<a href="../core/contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;profile)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Desktop-only: retires the old authenticated sessions before changing the Core permission boundary.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="DesktopMcpRuntime.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#start(java.nio.file.Path,java.util.UUID,dev.copperbench.core.application.McpWorkspaceEntryAdapter,java.time.Clock)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;workspaceRoot,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="DesktopMcpRuntime.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#start(java.nio.file.Path,java.util.UUID,dev.copperbench.core.application.McpWorkspaceEntryAdapter,java.time.Clock)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;workspaceRoot,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="../core/application/McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a>&nbsp;adapter,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html" title="class or interface in java.time" class="external-link">Clock</a>&nbsp;clock)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="DesktopMcpRuntime.RuntimeState.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime.RuntimeState</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#state()" class="member-name-link">state</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="DesktopMcpRuntime.RuntimeState.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime.RuntimeState</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#state()" class="member-name-link">state</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -192,6 +198,21 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>connectionFile</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">connectionFile</span>()</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="resetPairing()">
+<h3>resetPairing</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="DesktopMcpRuntime.RuntimeState.html" title="class in dev.copperbench.mcp">DesktopMcpRuntime.RuntimeState</a></span>&nbsp;<span class="element-name">resetPairing</span>()</div>
+<div class="block">Desktop-only recovery after losing the one-time credential. Retires all old tokens and authenticated
+sessions while keeping the workspace, task gateway and selected permission profile unchanged.
+Invalid stored permission settings require an explicit valid selection before recovery can start a listener.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the new listener state, or a stopped state describing a failure that can be retried explicitly</dd>
+</dl>
 </div>
 </section>
 </li>
