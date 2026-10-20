@@ -249,7 +249,7 @@ public class ProgressDialog extends MCreatorDialog {
 				bar.setStringPainted(ma.percent > 0);
 				if (ma.percent > 0)
 					bar.setString(ma.percent + "%");
-				bar.setPreferredSize(new Dimension(120, 14));
+				bar.setPreferredSize(new Dimension(120, Math.max(bar.getPreferredSize().height, bar.getFontMetrics(bar.getFont()).getHeight() + 4)));
 				stap.add("West", PanelUtils.totalCenterInPanel(bar));
 			}
 			case COMPLETE -> stap.add("East", PanelUtils.centerInPanel(new JLabel(complete)));

@@ -9,8 +9,10 @@
 
 package dev.copperbench.shell;
 
+import dev.copperbench.agent.AgentChatService;
 import dev.copperbench.assets.AssetWorkspaceService;
 import dev.copperbench.assets.BlockbenchProcessService;
+import dev.copperbench.bridge.JcefAgentBridgeTransport;
 import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
 import dev.copperbench.bridge.JcefAssetImportBridgeTransport;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
@@ -52,6 +54,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private final DesktopMcpRuntime mcpRuntime;
 	private final dev.copperbench.headless.DesktopPythonRuntime pythonRuntime;
 	private final dev.copperbench.headless.PythonConsoleService pythonConsole;
+	private final AgentChatService agentChat;
 	private final RecoverableBrowserHost browserHost;
 	private final KeyEventDispatcher keyboardShortcutDispatcher;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -85,12 +88,17 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot.resolve("sdk/python"),
 				createdPythonRuntime.context());
 		RecoverableBrowserHost createdBrowserHost;
+		AgentChatService createdAgentChat = null;
 		try {
+			createdAgentChat = new AgentChatService(workspaceRoot,
+					workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot.resolve("sdk/python"));
+			AgentChatService workspaceAgentChat = createdAgentChat;
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
 							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime, createdPythonConsole,
-							unsavedSourceCount::set, workspace.getFileManager().getWorkspaceFile().toPath()), closeAction);
+							workspaceAgentChat, unsavedSourceCount::set, workspace.getFileManager().getWorkspaceFile().toPath()), closeAction);
 		} catch (RuntimeException exception) {
+			if (createdAgentChat != null) createdAgentChat.close();
 			if (createdPythonConsole != null) createdPythonConsole.close();
 			if (createdPythonRuntime != null) createdPythonRuntime.close();
 			createdMcpRuntime.close();
@@ -101,6 +109,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		this.mcpRuntime = createdMcpRuntime;
 		this.pythonRuntime = createdPythonRuntime;
 		this.pythonConsole = createdPythonConsole;
+		this.agentChat = createdAgentChat;
 		this.browserHost = createdBrowserHost;
 		this.keyboardShortcutDispatcher = event -> dispatchDesktopShortcut(owner, event);
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyboardShortcutDispatcher);
@@ -127,16 +136,31 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	public int unsavedSourceCount() { return unsavedSourceCount.get(); }
 
 	/**
-	 * Confirms discarding unsaved editor drafts before the native host closes.
+	 * Confirms stopping an Agent task and discarding unsaved drafts before the native host closes.
 	 * @return whether the window may close
 	 */
 	public boolean confirmClose() {
-		return confirmClose(this, unsavedSourceCount.get());
+		return confirmClose(this, unsavedSourceCount.get(), agentChat.isBusy());
 	}
 
 	static boolean confirmClose(Component owner, int count) {
-		if (count == 0) return true;
+		return confirmClose(owner, count, false);
+	}
+
+	static boolean confirmClose(Component owner, int count, boolean agentBusy) {
+		if (count == 0 && !agentBusy) return true;
 		boolean english = "en".equals(UiLocalePreferences.read());
+		if (agentBusy) {
+			String message = english
+					? "An Agent task is still running. " + (count > 0
+							? "Close to stop it and discard " + count + (count == 1 ? " unsaved draft?" : " unsaved drafts?")
+							: "Close to stop it?") + " Chat history and saved file changes are kept."
+					: "Agent 仍在创作。" + (count > 0 ? "关闭后将停止任务，并放弃 " + count + " 份未保存的草稿。"
+							: "关闭后将停止任务。") + "聊天记录和已保存的文件修改会保留。";
+			Object[] options = english ? new Object[]{"Keep working", "Stop and close"} : new Object[]{"继续创作", "停止并关闭"};
+			return ProductDialogs.show(owner, message, english ? "Task still running" : "任务仍在运行",
+					JOptionPane.WARNING_MESSAGE, options, options[0]) == 1;
+		}
 		String message = english
 				? "There are " + count + (count == 1 ? " unsaved draft" : " unsaved drafts") + ". Close and discard these drafts?"
 				: "还有 " + count + " 份修改尚未保存。关闭并放弃这些草稿？";
@@ -154,6 +178,12 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			browserHost.close();
 		} catch (RuntimeException exception) {
 			failure = exception;
+		}
+		try {
+			agentChat.close();
+		} catch (RuntimeException exception) {
+			if (failure == null) failure = exception;
+			else failure.addSuppressed(exception);
 		}
 		try {
 			mcpRuntime.close();
@@ -200,7 +230,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
 			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime,
-			dev.copperbench.headless.PythonConsoleService pythonConsole, Consumer<Integer> unsavedSourceConsumer, Path workspaceFile) {
+			dev.copperbench.headless.PythonConsoleService pythonConsole, AgentChatService agentChat,
+			Consumer<Integer> unsavedSourceConsumer, Path workspaceFile) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
@@ -212,6 +243,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
 		JcefMcpBridgeTransport mcpTransport = null;
 		dev.copperbench.bridge.JcefPythonBridgeTransport pythonTransport = null;
+		JcefAgentBridgeTransport agentTransport = null;
 		try {
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
@@ -229,6 +261,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
 			mcpTransport = JcefMcpBridgeTransport.attach(webView, mcpRuntime);
 			if (pythonConsole != null) pythonTransport = dev.copperbench.bridge.JcefPythonBridgeTransport.attach(webView, pythonConsole);
+			agentTransport = JcefAgentBridgeTransport.attach(webView, agentChat);
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					BlockbenchProcessService.autoDetected(new AssetWorkspaceService(workspaceRoot),
 							session.service().blockbenchEditLifecycle(session.workspaceId())));
@@ -243,6 +276,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
 			JcefMcpBridgeTransport attachedMcp = mcpTransport;
 			var attachedPython = pythonTransport;
+			JcefAgentBridgeTransport attachedAgent = agentTransport;
 			return new RecoverableBrowserHost.BrowserHandle() {
 				@Override public Component component() {
 					return webView;
@@ -277,6 +311,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 
 				@Override public void close() {
+					attachedAgent.close();
 					attachedFirstCreation.close();
 					if (attachedPython != null) attachedPython.close();
 					attachedAssetImport.close();
@@ -292,6 +327,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 			};
 		} catch (RuntimeException exception) {
+			if (agentTransport != null) agentTransport.close();
 			if (firstCreationTransport != null) firstCreationTransport.close();
 			if (pythonTransport != null) pythonTransport.close();
 			if (assetImportTransport != null)

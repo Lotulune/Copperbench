@@ -60,11 +60,14 @@ public final class NativeDialogTheme {
         for (String key : new String[]{"Component.focusColor", "Component.focusedBorderColor", "Button.focusedBorderColor",
                 "Button.default.focusColor", "Button.default.focusedBorderColor", "CheckBox.icon.selectedBackground", "RadioButton.icon.selectedBackground"})
             UIManager.put(key, accent);
-        UIManager.put("Button.default.background", accent);
+        // FlatLaf can prefer gradient and state-specific keys over the base background.
+        for (String key : new String[]{"background", "startBackground", "endBackground"})
+            UIManager.put("Button.default." + key, accent);
         UIManager.put("Button.default.focusedBackground", accent);
         UIManager.put("Button.default.hoverBackground", color(dark ? 0xf2bd90 : 0x833e11));
         UIManager.put("Button.default.pressedBackground", color(dark ? 0xd49a68 : 0x6e330d));
-        UIManager.put("Button.default.foreground", onAccent);
+        for (String key : new String[]{"foreground", "focusedForeground", "hoverForeground", "pressedForeground"})
+            UIManager.put("Button.default." + key, onAccent);
         for (String control : new String[]{"CheckBox", "RadioButton"}) {
             UIManager.put(control + ".icon.checkmarkColor", onAccent);
             UIManager.put(control + ".icon.selectedBorderColor", accent);

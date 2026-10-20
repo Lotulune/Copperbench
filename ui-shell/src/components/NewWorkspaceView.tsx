@@ -1,5 +1,5 @@
 import { tr } from '../i18n/locale';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Layers,
   ShieldCheck,
@@ -24,6 +24,8 @@ import {
 import { renderUiMessage, t, uiMessage, uiText, useUiLocale, type UiMessage } from '../i18n';
 import { useFirstCreation } from '../onboarding/FirstCreationContext';
 import { FIRST_CREATION_GENERATOR } from '../onboarding/firstCreationModel';
+import { useWorkbenchMode } from '../context/WorkbenchModeContext';
+import { creationModId } from '../onboarding/simpleCreationDefaults';
 import './newWorkspace.css';
 
 type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath';
@@ -70,9 +72,30 @@ const operationLabel = (operation: string): string => ({
   prepare_game_tests: tr("准备验收"), export_workspace: tr("导出模组")
 }[operation] ?? operation);
 
-export const NewWorkspaceView: React.FC = () => {
+export const NewWorkspaceView: React.FC<{ active?: boolean }> = ({ active = true }) => {
+  const [formId, setFormId] = useState(0);
+  const completed = useRef(false);
+  const wasActive = useRef(active);
+  const { leaveCreation } = useFirstCreation();
+  const startAnother = useCallback(() => {
+    completed.current = false;
+    leaveCreation();
+    setFormId(value => value + 1);
+  }, [leaveCreation]);
+  useEffect(() => {
+    if (active && !wasActive.current && completed.current) startAnother();
+    wasActive.current = active;
+  }, [active, startAnother]);
+  return <NewWorkspaceForm key={formId} onCreated={() => { completed.current = true; }} onStartAnother={startAnother} />;
+};
+
+const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => void }> = ({ onCreated, onStartAnother }) => {
   const { listNewWorkspaceGenerators, createWorkspace, previewTargets } = useWorkbench();
   const locale = useUiLocale();
+  const { mode } = useWorkbenchMode();
+  const simpleMode = mode === 'simple';
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
   const { creationIntent, leaveCreation, bindCreatedWorkspace, openGuide, openWorkspaceOpen } = useFirstCreation();
   const nativeUnavailable = creationIntent && !isNativeHostPresent();
 
@@ -89,6 +112,11 @@ export const NewWorkspaceView: React.FC = () => {
   const [generatorId, setGeneratorId] = useState<string>('');
   const [modName, setModName] = useState('');
   const [modId, setModId] = useState('');
+  const [modIdTouched, setModIdTouched] = useState(false);
+  const defaultNamespace = useRef(`work_${Date.now().toString(36)}`);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [folderPicking, setFolderPicking] = useState(false);
+  const [folderPickerError, setFolderPickerError] = useState<string | null>(null);
   const [packageName, setPackageName] = useState('');
   const [packageTouched, setPackageTouched] = useState(false);
   const [workspaceFolder, setWorkspaceFolder] = useState('');
@@ -110,6 +138,10 @@ export const NewWorkspaceView: React.FC = () => {
     setPackageName('com.example.firstcreation'); setPackageTouched(true);
   }, [creationIntent]);
 
+  useEffect(() => {
+    if (simpleMode && !creationIntent && !modIdTouched) setModId(creationModId(modName, defaultNamespace.current));
+  }, [simpleMode, creationIntent, modName, modIdTouched]);
+
   // 读取生成器目录（挂载时）
   useEffect(() => {
     let cancelled = false;
@@ -124,8 +156,9 @@ export const NewWorkspaceView: React.FC = () => {
         }
         setCatalog(data);
         if (data && data.generators.length > 0) {
-          const preferred = creationIntent ? data.generators.find(g => g.generatorId === FIRST_CREATION_GENERATOR && g.available)
-            : data.generators.find((g) => g.available) ?? data.generators[0];
+          const recommended = data.generators.find(g => g.generatorId === FIRST_CREATION_GENERATOR && g.available);
+          const preferred = creationIntent ? recommended
+            : (modeRef.current === 'simple' ? recommended : undefined) ?? data.generators.find((g) => g.available) ?? data.generators[0];
           setGeneratorId(preferred?.generatorId ?? '');
         }
       })
@@ -245,6 +278,7 @@ export const NewWorkspaceView: React.FC = () => {
       }
       const res = extension?.core ?? await createWorkspace(form);
       setResult(res);
+      if (res.status === 'committed') onCreated();
       if (creationIntent) bindCreatedWorkspace(res);
       // 创建成功后请求宿主在新窗口打开该工作区（仅桌面宿主可用；浏览器预览环境跳过）。
       if (res.status === 'committed' && res.data?.workspaceFile) {
@@ -291,6 +325,7 @@ export const NewWorkspaceView: React.FC = () => {
 
   useEffect(() => {
     if (!rejected) return;
+    if (result?.diagnostics.some(d => ['modId', 'packageName', 'workspaceFolderPath'].includes(diagnosticField(d) ?? ''))) setAdvancedOpen(true);
     const animationFrame = window.requestAnimationFrame(() => errorSummaryRef.current?.focus());
     return () => window.cancelAnimationFrame(animationFrame);
   }, [rejected, result]);
@@ -313,7 +348,7 @@ export const NewWorkspaceView: React.FC = () => {
           <Layers size={24} />
         </div>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{tr("新建工作区")}</h2>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{simpleMode ? uiText('新建作品', 'New work') : tr("新建工作区")}</h2>
         </div>
       </div>
 
@@ -334,7 +369,7 @@ export const NewWorkspaceView: React.FC = () => {
         <div
           data-testid="workspace-created-banner"
           role="status"
-          style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}
+          style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}
         >
           <CheckCircle2 size={20} color="var(--badge-green)" />
           <div>
@@ -347,6 +382,7 @@ export const NewWorkspaceView: React.FC = () => {
             </div>
           </div>
           {creationIntent && <button type="button" className="btn-secondary" data-testid="first-creation-open-created-guide" onClick={() => openGuide(result.data!.workspaceFile)}>{uiText('查看首作指引', 'View first-creation guide')}</button>}
+          <button type="button" className="btn-secondary" data-testid="create-another-workspace" onClick={onStartAnother}>{uiText('新建另一件作品', 'Create another project')}</button>
         </div>
       )}
 
@@ -456,7 +492,8 @@ export const NewWorkspaceView: React.FC = () => {
           aria-describedby={fieldError('generatorId') ? 'new-workspace-generator-error' : undefined}
           style={{ background: 'var(--bg-panel)', border: fieldError('generatorId') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}
         >
-          <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("选择生成器")}</h3>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{simpleMode ? uiText('游戏版本与加载器', 'Game version and loader') : tr("选择生成器")}</h3>
+          {simpleMode && <p className="new-workspace-simple-hint">{uiText('可以使用推荐组合开始创作。要加入已有整合包，请选择与它相同的版本和加载器。', 'Start with the recommended combination, or match the game version and loader of an existing modpack.')}</p>}
 
           {!catalog && !catalogError && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-sub)', fontSize: '12px' }}>
@@ -501,7 +538,7 @@ export const NewWorkspaceView: React.FC = () => {
                         {g.loader === 'resource_pack' ? tr("资源包") : g.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {g.minecraftVersion}
                       </span>
                       <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                        {g.available ? g.generatorId : tr("{0} · 未安装", [g.generatorId])}
+                        {g.available ? (simpleMode && g.generatorId === FIRST_CREATION_GENERATOR ? uiText('推荐', 'Recommended') : g.generatorId) : tr("{0} · 未安装", [g.generatorId])}
                       </span>
                     </button>
                   );
@@ -584,6 +621,11 @@ export const NewWorkspaceView: React.FC = () => {
             )}
           </label>
 
+          {simpleMode && <>
+            <p className="new-workspace-simple-hint">{uiText('保存位置', 'Save location')}<br /><code>{effectiveFolder}</code></p>
+            <button type="button" className="btn-secondary new-workspace-advanced-toggle" aria-expanded={advancedOpen} aria-controls="new-workspace-advanced" onClick={() => setAdvancedOpen(value => !value)}>{uiText('更多设置', 'More settings')}</button>
+          </>}
+          <div id="new-workspace-advanced" className="new-workspace-advanced" hidden={simpleMode && !advancedOpen}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
             {isResourcePack ? tr("资源包 ID（命名空间）") : tr("模组 ID（modid）")}
             <input
@@ -591,7 +633,7 @@ export const NewWorkspaceView: React.FC = () => {
               type="text"
               data-testid="new-workspace-mod-id-input"
               value={modId}
-              onChange={(e) => setModId(e.target.value.toLowerCase())}
+              onChange={(e) => { setModIdTouched(true); setModId(e.target.value.toLowerCase()); }}
               placeholder={tr("例如 copper_trails")}
               maxLength={32}
               aria-invalid={fieldError('modId') ? true : undefined}
@@ -651,13 +693,21 @@ export const NewWorkspaceView: React.FC = () => {
                 type="button"
                 className="btn-secondary"
                 data-testid="new-workspace-browse-btn"
-                disabled
-                title={tr("当前无法浏览文件夹，请手动输入路径")}
-                style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '6px' }}
+                disabled={!workspaceOpenBridge.workspaceFolderPickerAvailable || folderPicking}
+                title={workspaceOpenBridge.workspaceFolderPickerAvailable ? uiText('选择作品文件夹', 'Choose a work folder') : tr("当前无法浏览文件夹，请手动输入路径")}
+                onClick={() => {
+                  setFolderPicking(true); setFolderPickerError(null);
+                  void workspaceOpenBridge.chooseWorkspaceFolder(effectiveFolder).then(selection => {
+                    if (!selection.cancelled && selection.path) setWorkspaceFolder(selection.path);
+                  }).catch(error => setFolderPickerError(error instanceof Error ? error.message : uiText('无法选择文件夹，请手动输入路径。', 'Could not select a folder. Enter its path.')))
+                    .finally(() => setFolderPicking(false));
+                }}
+                style={{ fontSize: '12px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 <FolderOpen size={12} />
                 {tr("浏览…")}</button>
             </div>
+            {folderPickerError && <span role="alert">{folderPickerError}</span>}
             <span id="new-workspace-folder-help" style={{ fontSize: '12px', lineHeight: 1.5, color: 'var(--text-muted)' }}>
               {catalog ? (
                 <>{tr("必须位于建议根目录之下：")}<code>{catalog.suggestedWorkspaceFoldersRoot}</code>{suggestedFolder && <>{tr("（默认 ")}<code>{suggestedFolder}</code>）</>}</>
@@ -680,6 +730,7 @@ export const NewWorkspaceView: React.FC = () => {
               style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px', width: '140px' }}
             />
           </label>
+          </div>
         </div>
       </div>
 

@@ -9,6 +9,7 @@
 
 package dev.copperbench.bridge;
 
+import com.formdev.flatlaf.util.SystemFileChooser;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -24,12 +25,17 @@ import org.cef.handler.CefMessageRouterHandlerAdapter;
 import javax.swing.*;
 import java.io.Closeable;
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+
+import static dev.copperbench.shell.UiLocalePreferences.text;
 
 /**
  * Scoped transport for opening a newly created workspace in a new host window.
@@ -42,6 +48,7 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 	private static final Logger LOG = LogManager.getLogger(JcefWorkspaceOpenBridgeTransport.class);
 	private static final Gson JSON = new Gson();
 	public static final String QUERY_PREFIX = "copperbench:workspace-open:";
+	static final int MAX_REQUEST_CHARS = 128 * 1024;
 
 	private final WebView webView;
 	private final Consumer<File> openAction;
@@ -52,6 +59,8 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	private final AtomicBoolean pickerOpen = new AtomicBoolean(false);
+	private final Set<Long> pendingPickers = ConcurrentHashMap.newKeySet();
 
 	private JcefWorkspaceOpenBridgeTransport(WebView webView, Consumer<File> openAction, Path workspaceRoot, UUID workspaceId) {
 		this.webView = Objects.requireNonNull(webView, "webView must not be null");
@@ -95,18 +104,30 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 			callback.failure(503, "Workspace open bridge is closed");
 			return true;
 		}
-		if (browser != expectedBrowser)
-			return false;
-		if (frame != null && !frame.isMain()) {
-			callback.failure(403, "Workspace open bridge is only available to the main frame");
+		if (browser != expectedBrowser || frame == null || !frame.isMain()
+				|| !trustedUrl(browser.getURL()) || !trustedUrl(frame.getURL())) {
+			callback.failure(403, "Workspace access is only available to the trusted workbench main frame");
+			return true;
+		}
+		if (persistent) {
+			callback.failure(400, "Workspace requests must not be persistent");
 			return true;
 		}
 
 		File workspaceFile;
 		try {
-			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
+			JsonObject payload = parseRequest(request);
 			if (payload.has("operation")) {
 				String operation = requiredString(payload, "operation");
+				if ("choose_workspace".equals(operation)) {
+					if (payload.size() != 1) throw new IllegalArgumentException("Unknown workspace picker property");
+					choosePath(false, null, queryId, callback);
+					return true;
+				}
+				if ("choose_workspace_folder".equals(operation)) {
+					choosePath(true, pickerInitialPath(payload), queryId, callback);
+					return true;
+				}
 				if ("open_verified_export_folder".equals(operation) && payload.size() == 2) {
 					String taskId = requiredString(payload, "taskId");
 					UUID id = UUID.fromString(taskId);
@@ -146,6 +167,91 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 	}
 
 	@Override public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
+		if (browser == expectedBrowser) pendingPickers.remove(queryId);
+	}
+
+	public static boolean trustedUrl(String url) {
+		try {
+			URI uri = URI.create(url);
+			return "http".equals(uri.getScheme()) && "mcreator".equals(uri.getHost())
+					&& uri.getPort() == -1 && uri.getUserInfo() == null
+					&& "/copperbench/ui/index.html".equals(uri.getRawPath());
+		} catch (RuntimeException ignored) { return false; }
+	}
+
+	static JsonObject parseRequest(String request) {
+		if (request == null || !request.startsWith(QUERY_PREFIX) || request.length() > MAX_REQUEST_CHARS)
+			throw new IllegalArgumentException("Invalid workspace request size or prefix");
+		var parsed = JsonParser.parseString(request.substring(QUERY_PREFIX.length()));
+		if (!parsed.isJsonObject()) throw new IllegalArgumentException("Workspace request must be an object");
+		return parsed.getAsJsonObject();
+	}
+
+	static String pickerInitialPath(JsonObject payload) {
+		if (payload.keySet().stream().anyMatch(key -> !Set.of("operation", "initialPath").contains(key)))
+			throw new IllegalArgumentException("Unknown workspace folder picker property");
+		if (!payload.has("initialPath")) return null;
+		String path = requiredString(payload, "initialPath");
+		if (path.length() > 32768 || path.indexOf('\0') >= 0)
+			throw new IllegalArgumentException("Invalid initial folder path");
+		return path.isBlank() ? null : path;
+	}
+
+	private void choosePath(boolean folder, String initialPath, long queryId, CefQueryCallback callback) {
+		if (!pickerOpen.compareAndSet(false, true)) {
+			callback.failure(409, "A workspace picker is already open");
+			return;
+		}
+		pendingPickers.add(queryId);
+		SwingUtilities.invokeLater(() -> {
+			try {
+				if (closed.get() || !pendingPickers.contains(queryId)) return;
+				SystemFileChooser chooser = new SystemFileChooser();
+				chooser.setMultiSelectionEnabled(false);
+				chooser.setAcceptAllFileFilterUsed(false);
+				chooser.setDialogTitle(folder ? text("选择工作区文件夹", "Choose workspace folder")
+						: text("打开工作区", "Open workspace"));
+				if (folder) {
+					chooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
+				} else {
+					chooser.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
+					chooser.addChoosableFileFilter(new SystemFileChooser.FileNameExtensionFilter(
+							text("Copperbench 工作区 (*.mcreator)", "Copperbench workspace (*.mcreator)"), "mcreator"));
+				}
+				File initialDirectory = pickerInitialDirectory(initialPath, workspaceRoot);
+				if (initialDirectory != null) chooser.setCurrentDirectory(initialDirectory);
+				var owner = SwingUtilities.getWindowAncestor(webView.getBrowser().getUIComponent());
+				File selected = chooser.showOpenDialog(owner) == SystemFileChooser.APPROVE_OPTION
+						? chooser.getSelectedFile() : null;
+				JsonObject result = pickerResult(selected, folder);
+				if (!closed.get() && pendingPickers.contains(queryId)) callback.success(result.toString());
+			} catch (RuntimeException exception) {
+				LOG.warn("Could not choose a workspace {}", folder ? "folder" : "file", exception);
+				if (!closed.get() && pendingPickers.contains(queryId))
+					callback.failure(400, exception.getMessage() == null ? "Could not open workspace picker" : exception.getMessage());
+			} finally {
+				pendingPickers.remove(queryId);
+				pickerOpen.set(false);
+			}
+		});
+	}
+
+	static File pickerInitialDirectory(String initialPath, Path workspaceRoot) {
+		File directory = initialPath != null ? Path.of(initialPath).toAbsolutePath().normalize().toFile()
+				: workspaceRoot == null ? null : workspaceRoot.toFile();
+		while (directory != null && !directory.isDirectory()) directory = directory.getParentFile();
+		return directory;
+	}
+
+	static JsonObject pickerResult(File selected, boolean folder) {
+		JsonObject result = new JsonObject();
+		result.addProperty("cancelled", selected == null);
+		if (selected != null) {
+			if (folder ? !selected.isDirectory() : !selected.isFile() || !selected.getName().endsWith(".mcreator"))
+				throw new IllegalArgumentException(folder ? "Select an existing folder" : "Select an existing .mcreator workspace file");
+			result.addProperty(folder ? "path" : "workspaceFile", selected.toPath().toAbsolutePath().normalize().toString());
+		}
+		return result;
 	}
 
 	private void openBuildFolder(CefQueryCallback callback) {
@@ -199,6 +305,24 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 				        available: %s,
 				        buildFolderAvailable: %s,
 				        verifiedExportFolderAvailable: %s,
+				        workspacePickerAvailable: true,
+				        workspaceFolderPickerAvailable: true,
+				        chooseWorkspace: function() {
+				            return new Promise(function(resolve, reject) {
+				                if (typeof window.cefQuery !== 'function') { reject(new Error('JCEF workspace picker is not available')); return; }
+				                window.cefQuery({ request: %s + JSON.stringify({ operation: 'choose_workspace' }), persistent: false,
+				                    onSuccess: function(result) { try { resolve(JSON.parse(result)); } catch (error) { reject(error); } },
+				                    onFailure: function(code, message) { var error = new Error(message); error.code = code; reject(error); } });
+				            });
+				        },
+				        chooseWorkspaceFolder: function(initialPath) {
+				            return new Promise(function(resolve, reject) {
+				                if (typeof window.cefQuery !== 'function') { reject(new Error('JCEF workspace folder picker is not available')); return; }
+				                window.cefQuery({ request: %s + JSON.stringify({ operation: 'choose_workspace_folder', initialPath: initialPath }), persistent: false,
+				                    onSuccess: function(result) { try { resolve(JSON.parse(result)); } catch (error) { reject(error); } },
+				                    onFailure: function(code, message) { var error = new Error(message); error.code = code; reject(error); } });
+				            });
+				        },
 				        openVerifiedExportFolder: function(taskId) {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') { reject(new Error('JCEF workspace open transport is not available')); return; }
@@ -242,11 +366,12 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 				        }
 				    };
 				})();
-				""".formatted(available, buildFolderAvailable, verifiedExportFolderAvailable, JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
+				""".formatted(available, buildFolderAvailable, verifiedExportFolderAvailable, JSON.toJson(QUERY_PREFIX),
+				JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
 	}
 
 	private static String requiredString(JsonObject payload, String name) {
-		if (!payload.has(name) || !payload.get(name).isJsonPrimitive())
+		if (!payload.has(name) || !payload.get(name).isJsonPrimitive() || !payload.getAsJsonPrimitive(name).isString())
 			throw new IllegalArgumentException("Missing workspace open property: " + name);
 		return payload.get(name).getAsString();
 	}
@@ -256,6 +381,7 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 			return;
 		webView.removeLoadStartListener(loadStartListener);
 		webView.removeCloseListener(closeListener);
+		pendingPickers.clear();
 		try {
 			router.removeHandler(this);
 		} catch (Exception ignored) {

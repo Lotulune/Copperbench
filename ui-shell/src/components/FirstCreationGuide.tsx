@@ -59,7 +59,7 @@ export function FirstCreationGuide() {
   const exported = firstCreationTask(binding?.export, state.tasks, workspace?.revision ?? 0, inputObservation);
   const saved = hasSavedFirstCreationFields(editor, element);
   const draft = !!(workspace && element && getElementEditorDraft(elementEditorDraftKey(workspace.id, element.id)));
-  const pendingInput = draft || hasUnsavedDrafts();
+  const pendingInput = draft || hasUnsavedDrafts(['simple-chat']);
   const clientRunning = Object.values(state.tasks).some(task => task.kind === 'run_client' && ['queued', 'running'].includes(task.state));
   const buildRunning = Object.values(state.tasks).some(task => task.kind === 'build' && ['queued', 'running'].includes(task.state));
   const confirmationKey = workspace && element && binding ? firstCreationConfirmationKey(workspace, element, binding, inputObservation) : '';

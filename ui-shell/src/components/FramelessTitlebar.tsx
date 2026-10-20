@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { LanguageSelector } from './LanguageSelector';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -16,6 +17,7 @@ import { OPEN_WORKBENCH_SEARCH_EVENT } from './workbenchNavigation';
 import { uiText, useUiLocale } from '../i18n';
 import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
 import { hasUnsavedDrafts } from '../hooks/unsavedDraftGuard';
+import { useWorkbenchMode } from '../context/WorkbenchModeContext';
 import {
   WINDOW_CHROME_SCHEMA_VERSION,
   WindowChromeRegion,
@@ -33,6 +35,7 @@ const toBounds = (rect: DOMRect): WindowChromeRegion['bounds'] => ({
 
 export const FramelessTitlebar: React.FC = () => {
   const locale = useUiLocale();
+  const { mode, setMode } = useWorkbenchMode();
   const titlebarRef = useRef<HTMLElement>(null);
   const reportSequence = useRef(0);
   const {
@@ -202,7 +205,7 @@ export const FramelessTitlebar: React.FC = () => {
       if (cleanupDpr) cleanupDpr();
       window.cancelAnimationFrame(animationFrame);
     };
-  }, [systemFrameFallback, locale]);
+  }, [systemFrameFallback, locale, mode]);
 
   return (
     <header
@@ -220,15 +223,21 @@ export const FramelessTitlebar: React.FC = () => {
         </div>
 
       </div>
-      <button type="button" className="workbench-command-trigger" data-testid="workbench-command-trigger"
-        data-window-chrome-kind="client" data-window-chrome-id="command-search"
-        onClick={() => window.dispatchEvent(new Event(OPEN_WORKBENCH_SEARCH_EVENT))}
-        aria-keyshortcuts="Control+K Meta+K" aria-label={uiText('搜索元素与工具', 'Search elements and tools')}>
-        <Search size={14} aria-hidden="true" /><span>{uiText('搜索元素与工具', 'Search elements and tools')}</span><kbd>{uiText('Ctrl K', 'Ctrl K')}</kbd>
-      </button>
+      <div className="workbench-mode-switch" role="group" aria-label={uiText('工作模式', 'Workbench mode')}
+        data-window-chrome-kind="client" data-window-chrome-id="workbench-mode">
+        <button type="button" data-testid="mode-simple" aria-pressed={mode === 'simple'} onClick={() => setMode('simple')}>{uiText('简洁创作', 'Simple creation')}</button>
+        <button type="button" data-testid="mode-professional" aria-pressed={mode === 'professional'} onClick={() => setMode('professional')}>{uiText('专业工作台', 'Professional')}</button>
+      </div>
 
       {/* Right: Tools & Window Controls */}
       <div className="titlebar-tools">
+        {mode === 'professional' && <button type="button" className="workbench-command-trigger creation-search-trigger" data-testid="workbench-command-trigger"
+          data-window-chrome-kind="client" data-window-chrome-id="command-search"
+          onClick={() => window.dispatchEvent(new Event(OPEN_WORKBENCH_SEARCH_EVENT))}
+          title={uiText('搜索元素与工具', 'Search elements and tools')}
+          aria-keyshortcuts="Control+K Meta+K" aria-label={uiText('搜索元素与工具', 'Search elements and tools')}>
+          <Search size={14} aria-hidden="true" />
+        </button>}
         <LanguageSelector />
         <button
           type="button"
@@ -290,8 +299,12 @@ export const FramelessTitlebar: React.FC = () => {
             <button
               type="button"
               className="titlebar-window-button titlebar-close-button"
-              onClick={() => {
-                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedDrafts() || window.confirm(uiText('有未保存的修改。关闭窗口并放弃这些草稿？', 'There are unsaved changes. Close the window and discard these drafts?'))) windowBridge.close();
+              onClick={async () => {
+                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedDrafts() || await confirmAction({
+                  title: { zh: '关闭窗口', en: 'Close window' }, danger: true,
+                  message: { zh: '有未保存的修改。关闭窗口并放弃这些草稿？', en: 'There are unsaved changes. Close the window and discard these drafts?' },
+                  confirmLabel: { zh: '放弃并关闭', en: 'Discard and close' }
+                })) windowBridge.close();
               }}
               title={uiText('关闭', 'Close')}
               aria-label={uiText('关闭', 'Close')}
