@@ -309,18 +309,37 @@ test('desktop and compact layouts keep actions reachable with both themes', asyn
   await installAgentFixture(page,{theme:'light'});
   await page.goto('/');
   await expect(page.getByTestId('simple-prompt')).toBeVisible();
+  const expectModeTargets = async () => {
+    for (const id of ['mode-simple', 'mode-professional']) {
+      const button = page.getByTestId(id);
+      await expect(button).toBeInViewport({ratio:1});
+      const bounds = await button.boundingBox();
+      expect(bounds?.width).toBeGreaterThanOrEqual(32);
+      expect(bounds?.height).toBeGreaterThanOrEqual(32);
+    }
+  };
   await page.setViewportSize({width:1600,height:1000});
+  await expectModeTargets();
   await page.screenshot({path:'../output/simple-creation-validation/ui-light-1600.png',fullPage:true});
   await page.getByTestId('theme-toggle-btn').click();
   await page.setViewportSize({width:1366,height:768});
+  await expectModeTargets();
   await page.screenshot({path:'../output/simple-creation-validation/ui-dark-1366.png',fullPage:true,animations:'disabled'});
   await page.setViewportSize({width:500,height:600});
   await expect(page.getByTestId('simple-prompt')).toBeInViewport();
-  await expect(page.getByTestId('mode-professional')).toBeVisible();
+  await expectModeTargets();
   await expect(page.getByTestId('simple-send')).toBeInViewport();
   const dimensions = await page.evaluate(() => ({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
   expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.width);
   await page.screenshot({path:`../output/simple-creation-validation/ui-compact-500-${testInfo.project.name}.png`,fullPage:true});
+  await page.getByTestId('mode-professional').click();
+  const search = page.getByTestId('workbench-command-trigger');
+  await expect(search).toBeInViewport({ratio:1});
+  const bounds = await search.boundingBox();
+  expect(bounds?.width).toBeGreaterThanOrEqual(32);
+  expect(bounds?.height).toBeGreaterThanOrEqual(32);
+  await search.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
 });
 
 test('provider icons identify choices and conversations with keyboard access and unclipped menus', async ({ page }) => {

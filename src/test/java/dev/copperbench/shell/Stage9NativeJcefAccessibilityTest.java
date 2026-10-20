@@ -122,6 +122,13 @@ class Stage9NativeJcefAccessibilityTest {
 					NATIVE_WORKSPACE_READY)), 30,
 					"Production shell did not bind the native JCEF UI-Core host");
 
+			// This acceptance slice audits the professional workbench, while first visits default to simple creation.
+			webView.executeScriptAsync("document.querySelector('[data-testid=mode-professional]')?.click()");
+			await(() -> "true".equals(js(webView, """
+					document.querySelector('[data-testid=mode-professional]')?.getAttribute('aria-pressed') === 'true'
+					    && document.querySelector('[data-testid=empty-primary-action]')?.getBoundingClientRect().height > 0
+					""")), 10, "Professional workbench did not become visible in native JCEF");
+
 			AxTreeMetrics axTree = captureDevToolsAxTree(webView);
 			assertTrue(axTree.nodeCount >= 20,
 					"Renderer accessibility tree is unexpectedly small: " + axTree);
@@ -141,6 +148,14 @@ class Stage9NativeJcefAccessibilityTest {
 			await(() -> "true".equals(js(webView,
 					"document.querySelector('[data-testid=create-element-modal]') !== null")), 10,
 					"Create-element dialog did not open in the native production shell");
+			await(() -> "true".equals(js(webView, """
+					(function() {
+					    var modal = document.querySelector('[data-testid=create-element-modal]');
+					    return modal !== null && modal.getAnimations({ subtree: true }).every(function(animation) {
+					        return animation.playState === 'finished' || animation.playState === 'idle';
+					    });
+					})()
+					""")), 10, "Dialog opening animation did not finish before measuring native JCEF targets");
 
 			assertEquals("true", js(webView, """
 					(function() {

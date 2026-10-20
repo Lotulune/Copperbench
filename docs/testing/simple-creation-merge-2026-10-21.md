@@ -18,3 +18,9 @@
 本地证据位于独立工作树的 `output/simple-creation-merge/`。此前 [CLI 实机连接](simple-creation-fixes-2026-10-21.md) 的源和模型结果按当时记录保留；本轮不重复把 fixture 称作实机工具执行。未启动 Minecraft，也未发布安装包。
 
 提交后的完整主线必需检查由 PR 上的 GitHub Actions 记录。
+
+## CI 原生可访问性修复
+
+PR #140 的 Windows 检查发现模式切换按钮只有 26px 高。现已把模式切换和搜索按钮的点击区域统一到至少 32×32 CSS 像素，窄窗口也保留该尺寸。原生专业工作台测试显式选择专业模式，并等待弹窗打开动画完成后测量，保留原有尺寸、焦点、键盘和可访问性断言。
+
+补充验证：73 项 UI 单元测试、22 项简洁模式 Playwright 场景（Chromium 与 compact-1366）通过；真实 Windows JCEF 测试在 125% 缩放下通过，审计 61 个工作台控件和 31 个程序编辑器控件，两组最小尺寸均为 32×32 CSS 像素。TypeScript、Vite、JAR 和中英文检查通过。浅色桌面及深色 500px 窄窗口截图已检查。日志保存在 `output/simple-creation-merge/`，原生记录为 `build/nightly-results/stage9-native-jcef-accessibility.json`。

@@ -153,11 +153,11 @@
 .creation-shell.is-simple .creation-more-settings { justify-content: flex-start; color: var(--text-sub); padding: 8px 0; font-size: 12px; }
 .creation-shell.is-simple .creation-recovery-link { border-radius: 0; border-top-color: var(--border-subtle); justify-content: flex-start; min-height: 44px; margin-top: 16px; padding: 12px 0 0; flex-shrink: 0; color: var(--text-sub); font-size: 12px; }
 
-.titlebar .workbench-mode-switch { justify-self: center; display: inline-flex; min-width: 0; align-items: center; padding: 2px; border: 1px solid var(--border-active); border-radius: 7px; height: 32px; -webkit-app-region: no-drag; }
-.workbench-mode-switch button { height: 26px; border: 0; background: transparent; color: var(--text-sub); border-radius: 4px; padding: 0 16px; font: 500 12px var(--font-sans); white-space: nowrap; cursor: pointer; }
+.titlebar .workbench-mode-switch { justify-self: center; display: inline-flex; min-width: 0; align-items: center; padding: 2px; border: 1px solid var(--border-active); border-radius: 7px; height: 38px; -webkit-app-region: no-drag; }
+.workbench-mode-switch button { min-width: 32px; height: 32px; border: 0; background: transparent; color: var(--text-sub); border-radius: 4px; padding: 0 16px; font: 500 12px var(--font-sans); white-space: nowrap; cursor: pointer; }
 .workbench-mode-switch button[aria-pressed="true"] { background: var(--accent-copper-fill); color: var(--text-on-accent); }
 .workbench-mode-switch button:not([aria-pressed="true"]):hover { background: var(--bg-hover); }
-.titlebar .creation-search-trigger { width: 30px; height: 30px; flex-shrink: 0; margin: 0; padding: 0; border: 0; justify-content: center; }
+.titlebar .creation-search-trigger { width: 32px; height: 32px; flex-shrink: 0; margin: 0; padding: 0; border: 0; justify-content: center; }
 
 @media (max-width: 1250px) {
   .creation-shell.is-simple { grid-template-columns: 180px minmax(0, 1fr); }
@@ -214,7 +214,6 @@
   .creation-shell.is-simple .creation-composer textarea { min-height: 62px; height: 62px; max-height: 110px; }
   .creation-composer-tools { padding-top: 4px; padding-bottom: 7px; }
   .creation-preview { padding: 20px 18px 16px; }
-  .titlebar .workbench-mode-switch { height: 30px; }
   .workbench-mode-switch button { padding: 0 8px; font-size: 10px; }
   .creation-composer-footnote span { display: none; }
 }
