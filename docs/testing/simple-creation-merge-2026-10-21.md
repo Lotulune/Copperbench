@@ -24,3 +24,5 @@
 PR #140 的 Windows 检查发现模式切换按钮只有 26px 高。现已把模式切换和搜索按钮的点击区域统一到至少 32×32 CSS 像素，窄窗口也保留该尺寸。原生专业工作台测试显式选择专业模式，并等待弹窗打开动画完成后测量，保留原有尺寸、焦点、键盘和可访问性断言。
 
 补充验证：73 项 UI 单元测试、22 项简洁模式 Playwright 场景（Chromium 与 compact-1366）通过；真实 Windows JCEF 测试在 125% 缩放下通过，审计 61 个工作台控件和 31 个程序编辑器控件，两组最小尺寸均为 32×32 CSS 像素。TypeScript、Vite、JAR 和中英文检查通过。浅色桌面及深色 500px 窄窗口截图已检查。日志保存在 `output/simple-creation-merge/`，原生记录为 `build/nightly-results/stage9-native-jcef-accessibility.json`。
+
+首轮完整 Chromium 检查为 454 通过、12 失败。除上述尺寸问题外，失败来自旧测试匹配了保持挂载的简洁界面中的隐藏同名内容，或仍等待已替换的浏览器关闭确认框。专业模式断言现限定到工作台、元素列表、失败提示和任务抽屉；关闭测试验证产品确认框、取消后的焦点恢复及宿主调用次数。12 个失败场景均已通过本地针对性重跑，另外复核的编译诊断导航场景通过，未移除可见性、过滤、草稿保护或宿主调用断言。日志为 `professional-mode-regressions.log` 和 `professional-mode-scenarios.log`。

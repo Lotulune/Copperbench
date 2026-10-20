@@ -60,7 +60,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     // Verify Element counts
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
     await expect(page.locator('.overview-counts > span').filter({ hasText: '模组元素' })).toHaveText('模组元素 2');
-    await expect(page.getByText('Copper Lamp').first()).toBeVisible();
+    await expect(page.getByTestId('workbench-main').getByText('Copper Lamp', { exact: true })).toBeVisible();
   });
 
   test('scenario: empty-workspace displays primary call to action', async ({ page }) => {
@@ -176,13 +176,13 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
 
     await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
     await expect(page.getByTestId('task-failure')).toContainText('测试客户端 失败');
-    await expect(page.getByText('意外退出').first()).toBeVisible();
+    await expect(page.getByTestId('task-failure').getByText('意外退出')).toBeVisible();
 
     // The task-level entry point opens the drawer and the payload taskId keeps the runtime diagnostic attached
     // even though open_logs.target remains the native application-log failureId.
     await page.click('[data-testid="open-failed-task-logs-btn"]');
     await expect(page.locator('[data-testid="task-drawer"]')).toBeVisible();
-    await expect(page.getByText('测试客户端').first()).toBeVisible();
+    await expect(page.getByTestId('task-drawer').getByText('测试客户端', { exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="task-diagnostic-FABRIC_RUN_CLIENT_EXITED"]')).toBeVisible();
     await expect(page.locator('[data-testid="task-diag-action-open_client_logs"]')).toBeVisible();
   });

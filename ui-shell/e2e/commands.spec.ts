@@ -293,7 +293,7 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
 
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
-    await page.getByText('Copper Trade').first().click();
+    await page.getByTestId('elements-workbench').getByText('Copper Trade', { exact: true }).click();
     await expect(page.locator('[data-testid="field-trades-0-price1"]')).toHaveValue('CUSTOM:copper_marker');
     await expect(page.locator('[data-testid="field-trades-0-countPrice1"]')).toHaveValue('4');
     await expect(page.locator('[data-testid="field-trades-0-offer"]')).toHaveValue('CUSTOM:copper_block');
@@ -322,7 +322,7 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.getByText('Initiating build workflow for Fabric 1.21.1...')).toBeVisible();
 
     // Wait for completion
-    await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('task-drawer').getByText('任务完成', { exact: true })).toBeVisible({ timeout: 5000 });
   });
 
   test('generate_workspace triggers task progress and completes', async ({ page }) => {
@@ -331,7 +331,7 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
 
     await expect(page.locator('[data-testid="task-drawer"]')).toBeVisible();
     await expect(page.locator('[data-testid="task-log-stream"]')).toBeVisible();
-    await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('task-drawer').getByText('任务完成', { exact: true })).toBeVisible({ timeout: 5000 });
   });
 
   test('MCP permission status does not fake elevation when the desktop runtime is unavailable', async ({ page }) => {

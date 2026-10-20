@@ -399,7 +399,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     // Should display the native workspace name and generator received from native host
     await expect(page.getByText('Native JCEF Workspace').first()).toBeVisible();
     await expect(page.getByText('Fabric 1.21.1').first()).toBeVisible();
-    await expect(page.getByText('Native Compass').first()).toBeVisible();
+    await expect(page.getByTestId('workbench-main').getByText('Native Compass', { exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="scenario-switcher-trigger"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="window-minimize-btn"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="system-fallback-toggle-btn"]')).toBeDisabled();
@@ -578,7 +578,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
       window.__COPPERBENCH_EMIT_EVENT__?.(eventJson);
     });
 
-    await expect(page.getByText('Event Lantern').first()).toBeVisible();
+    await expect(page.getByTestId('workbench-main').getByText('Event Lantern', { exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="nav-elements"]')).toContainText('1');
   });
 
