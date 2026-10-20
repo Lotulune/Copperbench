@@ -4,6 +4,10 @@
 
 This page describes Copperbench's bilingual offline graphical installer. Choose your platform's version and check its package-specific verification in [current downloads](../releases/current.md).
 
+0.1.13 安装包的发布与验证见 [Windows 记录](../testing/maintenance-release-0.1.13.md)和 [Linux 记录](../testing/linux-publication-0.1.13.md)。
+
+For the 0.1.13 installers, see the [Windows publication](../testing/maintenance-release-0.1.13.md) and [Linux publication](../testing/linux-publication-0.1.13.md) records.
+
 ## 简体中文
 
 目标平台为 Windows 11 x64 和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；完整桌面与安装验收范围按各包记录确认。安装主程序无需联网，运行环境随包提供；创建工作区、构建模组时需要的依赖下载另算。

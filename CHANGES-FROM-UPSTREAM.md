@@ -14,7 +14,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
-- Keep task entry points bound to their selected task, preserve log reading position, and contain the initial forward/reverse Tab inside product-shell dialogs.
+- Keep task entry points bound to their selected task, preserve log reading position with readable follow-status text, and confine keyboard navigation to the topmost product-shell dialog with focus restored after pairing completes.
 - Refresh authorization, history, function snippets and workspace group labels with the selected locale while retaining user drafts and selections.
 - Add explicit desktop MCP pairing recovery with old-credential/session invalidation, unchanged permissions and task ownership, and complete-configuration copying only after token reveal.
 - Route current user/developer documentation through the platform release index while keeping historical acceptance records and published identities intact.

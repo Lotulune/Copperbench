@@ -9,6 +9,12 @@ Published platform versions, source identities and package-specific acceptance a
 - Broader Linux distributions, architectures and installed game-version tracks need their own evidence before support expands. Windows and Linux publication and formal-support claims remain separate in [current downloads](./releases/current.md).
 - External-agent and unfamiliar-user studies were terminated by the user. They are not pending work or release gates; the completed results retain their recorded limits.
 
+## 0.1.13 publication snapshot
+
+The 0.1.13 release snapshot covers Windows `v0.1.13` and Linux `v0.1.13-linux-stable`. Both include shared desktop and in-app update improvements, alongside the existing first-creation, export and bilingual installer features. See [current downloads](./releases/current.md) for platform-specific verification.
+
+Desktop targets are Windows 11 x64 and Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg. The historical [0.1.2 installed acceptance](./testing/maintenance-012-linux-installed-2026-09-28.md) covers Fabric/NeoForge 1.21.1 on those package bytes. Linux 0.1.13 uses the owner-approved [candidate CI acceptance scope](./testing/maintenance-linux-0.1.13.md) and [verified publication](./testing/linux-publication-0.1.13.md), with `formalSupportClaim=false`; it does not claim a fresh full installed replay or certify additional distributions, architectures or cold-cache/default-network builds.
+
 ## Completed stage baselines (historical)
 
 These closures describe the source, packages and environments in their linked records. They do not establish a new acceptance run for the current checkout or a newly published package.

@@ -73,6 +73,7 @@ export const AIControlView: React.FC = () => {
     // An empty workspace ID belongs to the unavailable-state placeholder, whose
     // default profile is not evidence of the host's current permission profile.
     const expectedProfile = mcp?.workspaceId ? mcp.permissionProfile : null;
+    let paired = false;
     permissionPending.current = true;
     setRuntimeChange('pairing');
     setPermissionError(false);
@@ -85,7 +86,7 @@ export const AIControlView: React.FC = () => {
       if (result.status !== 'listening' || (expectedProfile !== null && result.permissionProfile !== expectedProfile)) {
         throw new Error(result.failure || uiText('重新配对失败，请重试。', 'Pairing reset failed. Please retry.'));
       }
-      setPairingOpen(false);
+      paired = true;
       setPermissionStatus(uiText('已重新配对，请显示新令牌并更新客户端配置。', 'Pairing reset. Reveal the new token and update your client configuration.'));
     } catch (error) {
       setPermissionError(true);
@@ -94,6 +95,8 @@ export const AIControlView: React.FC = () => {
       await refreshMcp();
       permissionPending.current = false;
       setRuntimeChange(null);
+      // Restore focus only after the invoker is enabled in the same commit.
+      if (paired) setPairingOpen(false);
     }
   };
 

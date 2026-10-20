@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { openToolView } from './navigation';
 
 // Exercises the real UI with a controlled desktop host, not an external MCP connection.
-const installPairingHost = async (page: Page, mode: 'normal' | 'pending' | 'reject' | 'legacy' | 'reveal-pending' | 'state-unavailable' = 'normal') => {
+const installPairingHost = async (page: Page, mode: 'normal' | 'pending' | 'reject' | 'legacy' | 'reveal-pending' | 'state-unavailable' | 'refresh-pending' = 'normal') => {
   await page.addInitScript((mode) => {
     const state = {
       status: 'listening', url: 'http://127.0.0.1:43123/mcp',
@@ -11,6 +11,7 @@ const installPairingHost = async (page: Page, mode: 'normal' | 'pending' | 'reje
       failure: null as string | null
     };
     let generation = 0;
+    const stateRefreshes: Array<() => void> = [];
     const hostWindow = window as unknown as {
       __COPPERBENCH_MCP_HOST__: unknown;
       __PAIRING_CALLS__: number;
@@ -19,6 +20,7 @@ const installPairingHost = async (page: Page, mode: 'normal' | 'pending' | 'reje
       __PAIRING_CLIPBOARD__: string;
       __FINISH_PAIRING__?: () => void;
       __FINISH_REVEAL__?: () => void;
+      __FINISH_STATE_REFRESH__?: () => void;
     };
     hostWindow.__PAIRING_CALLS__ = 0;
     hostWindow.__PAIRING_PROFILE_CALLS__ = 0;
@@ -30,6 +32,10 @@ const installPairingHost = async (page: Page, mode: 'normal' | 'pending' | 'reje
         // All refreshes keep failing until reset actually succeeds, including
         // the refresh emitted when the bridge starts changing the runtime.
         if (mode === 'state-unavailable' && generation === 0) throw new Error('MCP state temporarily unavailable');
+        if (mode === 'refresh-pending' && generation > 0) await new Promise<void>(resolve => {
+          stateRefreshes.push(resolve);
+          hostWindow.__FINISH_STATE_REFRESH__ = () => stateRefreshes.splice(0).forEach(finish => finish());
+        });
         return { ...state };
       },
       setPermissionProfile: async (profile: string) => {
@@ -141,6 +147,48 @@ test('pending pairing reset blocks duplicate requests and old-token copying', as
   await page.evaluate(() => (window as unknown as { __FINISH_PAIRING__: () => void }).__FINISH_PAIRING__());
   await expect(page.getByTestId('mcp-pairing-dialog')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '显示一次令牌', exact: true })).toBeEnabled();
+});
+
+test('successful pairing waits for refresh before closing and restoring keyboard focus', async ({ page }) => {
+  await installPairingHost(page, 'refresh-pending');
+  const reset = await openPairing(page);
+  await reset.click();
+  const dialog = page.getByTestId('mcp-pairing-dialog');
+  const confirm = dialog.getByRole('button', { name: '确认重新配对', exact: true });
+  await page.keyboard.press('Shift+Tab');
+  await expect(confirm).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect.poll(() => page.evaluate(() => typeof (window as unknown as { __FINISH_STATE_REFRESH__?: unknown }).__FINISH_STATE_REFRESH__)).toBe('function');
+  await expect(dialog).toBeVisible();
+  await expect(confirm).toBeDisabled();
+  await page.evaluate(() => (window as unknown as { __FINISH_STATE_REFRESH__: () => void }).__FINISH_STATE_REFRESH__());
+  await expect(dialog).toHaveCount(0);
+  await expect(reset).toBeEnabled();
+  await expect(reset).toBeFocused();
+  await expect(page.getByRole('button', { name: '显示一次令牌', exact: true })).toBeEnabled();
+});
+
+test('search above pairing owns Tab and Escape, then returns focus to the remaining dialog', async ({ page }) => {
+  await installPairingHost(page);
+  const reset = await openPairing(page);
+  await reset.click();
+  const pairing = page.getByTestId('mcp-pairing-dialog');
+  await page.getByTestId('workbench-command-trigger').click();
+  const search = page.getByTestId('workbench-command-palette');
+  await expect(search.getByRole('combobox')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(search.getByRole('button', { name: '关闭搜索', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(search.getByRole('option').first()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(search).toHaveCount(0);
+  await expect(pairing).toBeVisible();
+  await expect(pairing).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(pairing.getByRole('button', { name: '确认重新配对', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(pairing).toHaveCount(0);
+  await expect(reset).toBeFocused();
 });
 
 test('a rejected pairing reset is explained inside the dialog and can be retried', async ({ page }) => {

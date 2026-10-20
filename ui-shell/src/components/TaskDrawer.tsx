@@ -666,7 +666,7 @@ export const TaskDrawer: React.FC = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         flexShrink: 0, padding: '4px 16px', background: 'var(--bg-panel)', fontSize: 12
       }}>
-        <span role="status" data-testid="task-new-log-count" style={{ color: 'var(--text-sub)' }}>
+        <span role="status" data-testid="task-new-log-count" style={{ color: 'var(--text-muted)' }}>
           {unreadLogCount > 0
             ? uiText(`${unreadLogCount} 条新日志`, englishCount(unreadLogCount, 'new log entry', 'new log entries'))
             : uiText('已暂停自动滚动', 'Auto-scroll paused')}

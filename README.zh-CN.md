@@ -18,8 +18,10 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
+| Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · 便携 ZIP · MSIX · 应用内更新组件 | [快速开始](docs/user/getting-started.md) |
 | Ubuntu 24.04 LTS x86_64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz · 应用内更新组件 | [Linux 安装](docs/user/linux-installation.md) |
+
+版本说明：[Windows 0.1.13](docs/releases/v0.1.13.md) · [Linux 0.1.13](docs/releases/v0.1.13-linux.md)。后续更新可在「帮助与关于」中选择「检查更新」。
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 新建工作区，选择加载器和 Minecraft 版本。

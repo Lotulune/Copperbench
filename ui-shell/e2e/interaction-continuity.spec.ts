@@ -58,6 +58,7 @@ async function appendLogs(page: Page, entries: TaskLogEntry[]) {
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('copperbench.theme', 'light'));
   await page.goto('/');
   await expect(page.getByTestId('workbench-main')).toBeVisible();
 });
@@ -130,7 +131,41 @@ test('initial reverse Tab stays in the dialog, with boundary cycling and focus r
   await expect(trigger).toBeFocused();
 });
 
-test('streaming logs preserve the reading position and resume following only on request', async ({ page }) => {
+test('a revision conflict owns keyboard navigation without closing the underlying creation draft', async ({ page }) => {
+  const trigger = page.getByTestId('empty-primary-action');
+  await trigger.click();
+  await page.getByTestId('create-element-name-input').fill('conflicting_draft');
+  // An intervening writer makes this command stale; use the real rejection path.
+  await page.evaluate(async () => {
+    const modulePath = '/src/bridge/index.ts';
+    const { coreBridge } = await import(modulePath);
+    const original = coreBridge.sendCommand.bind(coreBridge);
+    coreBridge.sendCommand = (command: { operation: string; expectedRevision: number }) => original(
+      command.operation === 'create_mod_element' ? { ...command, expectedRevision: command.expectedRevision - 1 } : command);
+  });
+  const submit = page.getByTestId('create-element-submit-btn');
+  await submit.click();
+  const conflict = page.getByTestId('revision-conflict-dialog');
+  await expect(conflict).toBeVisible();
+  await expect(page.getByTestId('create-element-modal')).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(conflict.getByRole('button', { name: '关闭', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(conflict.getByRole('button', { name: '继续编辑', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByTestId('conflict-refresh-btn')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(conflict.getByRole('button', { name: '关闭', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(conflict).toBeHidden();
+  await expect(page.getByTestId('create-element-name-input')).toHaveValue('conflicting_draft');
+  expect(await page.evaluate(() => !!document.activeElement?.closest('[data-testid="create-element-modal"]'))).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('create-element-modal')).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test('streaming logs preserve the reading position and resume following only on request', async ({ page }, testInfo) => {
   await installTasks(page, { running: true, longLogs: true });
   await page.getByTestId('open-failed-task-logs-btn').click();
   const selector = page.getByTestId('task-drawer').getByRole('combobox');
@@ -152,6 +187,18 @@ test('streaming logs preserve the reading position and resume following only on 
   const jump = page.getByRole('button', { name: '回到最新', exact: true });
   await expect(newLogs).toHaveText('1 条新日志');
   await expect(jump).toBeVisible();
+  const contrast = await newLogs.evaluate(element => {
+    const luminance = (rgb: string) => rgb.match(/[\d.]+/g)!.slice(0, 3)
+      .map(value => Number(value) / 255)
+      .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+      .reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+    const values = [luminance(getComputedStyle(element).color),
+      luminance(getComputedStyle(element.parentElement!).backgroundColor)].sort((a, b) => b - a);
+    return (values[0] + 0.05) / (values[1] + 0.05);
+  });
+  expect(contrast).toBeGreaterThanOrEqual(4.5);
+  await testInfo.attach('paused-log-contrast', { body: JSON.stringify({ contrast }), contentType: 'application/json' });
+  await page.screenshot({ path: testInfo.outputPath('paused-log-light.png') });
   await appendLogs(page, []);
   await expect(newLogs).toHaveText('1 条新日志');
   await expect.poll(scrollTop).toBeCloseTo(readingTop, 0);

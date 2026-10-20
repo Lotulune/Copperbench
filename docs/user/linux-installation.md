@@ -8,23 +8,28 @@
 
 核对同一 Release 附带的 `linux-candidate-sha256.txt`、`LINUX-RELEASE-AUTHORIZATION.json` 及 GitHub 来源证明。使用所下载版本的校验清单；本页末尾的旧版哈希只用于对应的历史包。
 
+[Linux 0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13-linux-stable) 的公开文件哈希如下，仅适用于该版本：
+
+- `copperbench_0.1.13_amd64.deb`：`ae4839c26d372e76e56bf55396993021cf0670b94ffdff639c9d63a4533a9b26`。
+- `Copperbench.0.1.13.Linux.x86_64.tar.gz`：`a142f745943778dd541b2b522749942da138ff03090e8d9949be9f381cb171c6`。
+- `Copperbench.0.1.13.Linux.x86_64.Setup.tar.gz`：`d7103fa1267c6e791a7deba8397fc764d45e997dcd41f8db01dd2fa3ea5f464d`。
+
 图形安装：解压 Setup 包，运行 `Install Copperbench`，按[双语向导说明](graphical-installation.md)完成安装。
 
-Debian 安装：在下载文件所在目录执行，将 `PACKAGE.deb` 替换为实际下载的文件名：
+下面以 0.1.13 为例；安装其他版本时使用对应 Release 的文件名与解压目录。在下载文件所在目录执行：
 
 ```sh
-sudo apt install './PACKAGE.deb'
+sudo apt install ./copperbench_0.1.13_amd64.deb
 ```
 
-然后从应用菜单启动 Copperbench，或运行 `copperbench`。便携版使用下面的命令，将 `PACKAGE.tar.gz` 替换为下载的便携包文件名，`EXTRACTED_DIRECTORY` 替换为解压得到的应用目录：
+然后从应用菜单启动 Copperbench，或运行 `copperbench`。0.1.13 便携版解压后运行：
 
 ```sh
-tar -xzf './PACKAGE.tar.gz'
-cd './EXTRACTED_DIRECTORY'
-./copperbench.sh
+tar -xzf Copperbench.0.1.13.Linux.x86_64.tar.gz
+./Copperbench0113/copperbench.sh
 ```
 
-发布资产和候选清单的文件名可能采用不同的空格／点分隔形式。核验时按该 Release 的来源记录对应文件名与摘要。
+GitHub 将候选包文件名中的空格规范化为点；原候选清单仍使用 `Copperbench 0.1.13 Linux x86_64.tar.gz`。两者字节和 SHA-256 相同；使用原候选校验器时，将下载文件保存为清单中的原名。
 
 ## 设置与使用
 
@@ -33,6 +38,12 @@ Linux 偏好设置默认位于 `~/.config/copperbench`；设置绝对路径 `XDG
 GNOME 自动登录会话可能需要通过系统提示正常解锁密钥环，JCEF 才能继续初始化。首次构建可能需要下载依赖，Blockbench 需要另外安装。网络、缓存、桌面与游戏验收范围按所下载包的[发布记录](../releases/current.md)确认。
 
 Debian 包可用 `sudo apt remove copperbench` 卸载；用户设置和自行选择的工作区保留。继续按[第一件作品](first-creation.md)创作；若该安装版本没有首启引导，可按教程手动新建 Fabric 1.21.1 工作区。
+
+## 0.1.13 发布与验证
+
+0.1.13 包含共享桌面、原生窗口及应用内更新改进，并保留双语离线安装器、首作与导出功能。13 项候选门禁、独立消费者核验、来源证明和草稿下载字节比对通过，18 项公开资产的大小与 SHA-256 已核对；未重复完整 GNOME 安装、升级、卸载或玩家操作验收，详见[发布记录](../testing/linux-publication-0.1.13.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)仅适用于当时的包；[0.1.4 记录](../testing/product-shell-linux-publication-0.1.4.md)同样保留原范围。
+
+该版本变更见 [0.1.13 Linux 说明](../releases/v0.1.13-linux.md)；各平台当前版本见[当前下载](../releases/current.md)。
 
 ## 历史 0.1.7 包的核验记录
 

@@ -17,3 +17,5 @@ Each workspace has one active generator. Available fields and generation depend 
 If startup is blank, use the package's bundled runtime and fully extract `jdk/` and `lib/` into a writable directory. If downloads/builds fail, retain the task's first diagnostic and log, then use [recovery steps](build-and-export.en.md#recover-a-failed-build). Warm-cache checks do not establish a first offline build. Exact published-package limits remain on the status/release pages.
 
 Version changes, known issues and verification scope are linked from [current downloads](../releases/current.md). Each package retains the features of its release; when reading newer source-branch documentation, check your installed version and available controls.
+
+For later updates, choose **Check for updates** in **Help & about** and follow the prompts. The [Windows 0.1.13 notes](../releases/v0.1.13.md) and [Linux 0.1.13 notes](../releases/v0.1.13-linux.md) record that release's platform changes and verification scope.

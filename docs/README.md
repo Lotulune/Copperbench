@@ -4,6 +4,8 @@
 
 历史需求与验收保留各自日期、候选和验证范围。查阅某次发布时，使用该版本的记录核对来源和资产，不把后续源码检查转作旧包或新包的验收。
 
+0.1.13 的两平台二进制均来自源码 `464b75a39c34252f61c7d859b8d267dfabba205c`；[Windows 发布记录](./testing/maintenance-release-0.1.13.md)和 [Linux 发布记录](./testing/linux-publication-0.1.13.md)分别记录构建、候选晋级与公开资产结果。版本变更见 [Windows 说明](./releases/v0.1.13.md)和 [Linux 说明](./releases/v0.1.13-linux.md)。
+
 ## 从这里开始
 
 1. 使用产品：[第一件作品](./user/first-creation.md)、[用户指南](./user/README.md)、[当前下载](./releases/current.md)。

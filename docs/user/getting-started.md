@@ -6,6 +6,8 @@
 
 从[当前下载](../releases/current.md)选择对应平台的稳定包，并查看该版本的验证范围。Windows 与 Linux 的版本分别列出。目标平台为 Windows 11 x64（build 22000 及以上）与 Ubuntu 24.04 LTS x86_64；其他 Linux 发行版与架构未验证。
 
+0.1.13 提供应用内检查更新，并保留首作、交付、恢复与导出修复；Windows 更新保留已有快捷方式。具体平台变更见 [Windows 版本说明](../releases/v0.1.13.md)、[Linux 版本说明](../releases/v0.1.13-linux.md)和[状态页](../status.md)。
+
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 
 应用运行环境随包提供。建议预留至少 8 GB 内存和足够的磁盘空间；首次创建或构建工作区需要下载 Gradle、加载器和 Minecraft 依赖。
@@ -27,3 +29,5 @@ datagen 输出先进入隔离暂存区，查看差异并明确确认后才发布
 详细能力和验证边界见[稳定版使用说明](./README.md)。遇到启动、网络或构建问题时查阅[故障排查](./troubleshooting.md)。首次构建需要联网，暖缓存验证不代表冷缓存或离线构建认证。
 
 具体版本的改动、已知问题和验证范围见[当前下载中的平台发布说明](../releases/current.md)。安装包的功能随该版本固定；阅读源码分支中的新说明时，请核对所安装的版本和实际入口。
+
+后续更新可从「帮助与关于」选择「检查更新」，按提示操作。安装包和当前验证范围见[当前下载](../releases/current.md)。

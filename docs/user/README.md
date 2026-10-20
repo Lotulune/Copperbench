@@ -2,6 +2,8 @@
 
 本指南介绍工作区、创作与交付流程；各平台当前发布版本、下载链接、资产证明与验证范围统一见[当前下载](../releases/current.md)。不同平台和版本的入口可能不同，请结合实际安装版本操作。
 
+0.1.13 包含桌面与原生窗口改进、应用内更新，并保留首作、交付、恢复与导出修复；Windows 更新保留已有快捷方式。旧安装包保留原功能与验收范围。
+
 第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。源码能力、26.3 预览和支持边界见[当前状态](../status.md)。
 
 关键路线：[安装](getting-started.md) → [首作](first-creation.md) → [构建失败与导出](build-and-export.md)；完整英文路线从 [Quick start](getting-started.en.md) 开始。有首启引导时选择「开始创作」；没有该入口或已跳过时，可从「新建工作区」手动创建 Fabric 1.21.1 工程。
@@ -25,7 +27,7 @@
 
 八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.2 Linux 安装包的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/maintenance-012-linux-installed-2026-09-28.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部 Agent 与陌生用户研究已按用户要求终止；内部回归不替代陌生用户可用性验证。
 
-资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入。
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.13 的记录见 [Windows 说明](../releases/v0.1.13.md)和 [Linux 说明](../releases/v0.1.13-linux.md)。
 
 ## 模组元素
 
@@ -78,6 +80,10 @@ Java 插件默认关闭，启用即完全本机信任。兼容中心列出已安
 首次启动会询问你是否在中国大陆。选“是”后，Copperbench 会把 Gradle 发行版改到华为云镜像，把 Maven Central / Plugin Portal 改到阿里云镜像，并把 Minecraft 库（`libraries.minecraft.net`）改到 BMCLAPI。这些文件写在 `%USERPROFILE%\.copperbench\gradle`，不是系统全局 `\.gradle`。该目录是所有工作区共用的 Gradle 用户主目录：发行包和 Maven 缓存只下一次。若官方源和国内镜像 URL 不同，产品会把已解压的同一份 Gradle 复制到对应哈希目录，避免重下。安装包若带了 `gradle-dists`，启动时会预填到这个目录。
 
 Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设置的 Gradle 页开关「使用中国大陆软件源」。若创建工作区时卡在 `services.gradle.org`，失败对话框也可以直接配置国内源并重试。
+
+## 检查更新
+
+在「帮助与关于」中选择「检查更新」，按提示更新。完整安装包和应用内更新组件均来自对应平台的正式 Release，入口见[当前下载](../releases/current.md)。
 
 ## 安装与卸载
 
