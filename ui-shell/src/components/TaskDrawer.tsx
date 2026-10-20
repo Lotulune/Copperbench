@@ -1,5 +1,5 @@
 import { valueLabel } from '../i18n/labels';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Terminal,
   X,
@@ -67,6 +67,11 @@ export const TaskDrawer: React.FC = () => {
   const logs = activeTask ? state.taskLogs[activeTask.id] || [] : [];
   const diagnostics = activeTask ? state.taskDiagnostics[activeTask.id] || [] : [];
   const scopeKey = JSON.stringify([state.workbench?.workspace.id, activeTask?.id]);
+  const logScopeRef = useRef(scopeKey);
+  const seenLogSequencesRef = useRef(new Set<number>());
+  const followingLogsRef = useRef(true);
+  const [followingLogs, setFollowingLogs] = useState(true);
+  const [unreadLogCount, setUnreadLogCount] = useState(0);
   const scope = useRef(scopeKey);
   scope.current = scopeKey;
   const alive = useRef(true);
@@ -84,11 +89,42 @@ export const TaskDrawer: React.FC = () => {
   const taskRunning = activeTask?.state === 'queued' || activeTask?.state === 'running';
   const readError = activeTask ? state.taskReadErrors?.[activeTask.id] : undefined;
 
-  useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+  useLayoutEffect(() => {
+    const newScope = logScopeRef.current !== scopeKey;
+    const sequences = new Set(logs.map(entry => entry.sequence));
+    // Native reads can replace the array without adding output. Count new
+    // sequences only, including lines recovered from a gap in the stream.
+    const added = newScope ? 0 : [...sequences].filter(sequence => !seenLogSequencesRef.current.has(sequence)).length;
+    logScopeRef.current = scopeKey;
+    seenLogSequencesRef.current = sequences;
+    if (!isTaskDrawerOpen || newScope) {
+      followingLogsRef.current = true;
+      setFollowingLogs(true);
+      setUnreadLogCount(0);
     }
-  }, [logs]);
+    const container = logContainerRef.current;
+    if (!container) return;
+    if (followingLogsRef.current) {
+      container.scrollTop = container.scrollHeight;
+      setUnreadLogCount(0);
+    } else if (added > 0) {
+      setUnreadLogCount(count => count + added);
+    }
+  }, [logs, logs.length, scopeKey, isTaskDrawerOpen, followingLogs]);
+
+  const handleLogScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const container = event.currentTarget;
+    const atLatest = container.scrollHeight - container.clientHeight - container.scrollTop <= 24;
+    followingLogsRef.current = atLatest;
+    setFollowingLogs(atLatest);
+    if (atLatest) setUnreadLogCount(0);
+  };
+
+  const resumeLogFollowing = () => {
+    followingLogsRef.current = true;
+    setFollowingLogs(true);
+    setUnreadLogCount(0);
+  };
 
   useEffect(() => {
     setDatagenPreview(null);
@@ -626,8 +662,23 @@ export const TaskDrawer: React.FC = () => {
         </section>
       )}
       {/* Log Stream Output */}
+      {!followingLogs && <div data-testid="task-log-follow-controls" style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        flexShrink: 0, padding: '4px 16px', background: 'var(--bg-panel)', fontSize: 12
+      }}>
+        <span role="status" data-testid="task-new-log-count" style={{ color: 'var(--text-muted)' }}>
+          {unreadLogCount > 0
+            ? uiText(`${unreadLogCount} 条新日志`, englishCount(unreadLogCount, 'new log entry', 'new log entries'))
+            : uiText('已暂停自动滚动', 'Auto-scroll paused')}
+        </span>
+        <button type="button" className="btn-secondary" data-testid="task-log-jump-latest"
+          onClick={resumeLogFollowing} style={{ minHeight: 32, padding: '2px 8px' }}>
+          {uiText('回到最新', 'Jump to latest')}
+        </button>
+      </div>}
       <div
         ref={logContainerRef}
+        onScroll={handleLogScroll}
         data-testid="task-log-stream"
         role="log"
         aria-live="polite"

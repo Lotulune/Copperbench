@@ -1,20 +1,21 @@
 # 测试与验收证据索引
 
-## 当前交付基线
+## 发布与验收入口
 
-当前稳定版为 Windows 0.1.13 与 Linux 0.1.13，公开状态和资产证明见[当前下载](../releases/current.md)、[Windows 发布记录](maintenance-release-0.1.13.md)及 [Linux 发布记录](linux-publication-0.1.13.md)。下方旧版本记录保留原来源与验收范围。
+各平台当前发布版本、资产证明和包级验收记录统一从[当前下载](../releases/current.md)进入。本页索引源码检查和历史验收；下方带版本、日期的记录保留原来源与范围。
 
 | 内容 | 入口 |
 | --- | --- |
+| 当前平台发布与包级验证 | [当前下载与发布记录](../releases/current.md) |
 | Windows／Linux 0.1.13 发布与验证 | [Windows 发布记录](maintenance-release-0.1.13.md) · [Linux 发布记录](linux-publication-0.1.13.md) · [Linux 候选授权](maintenance-linux-0.1.13.md) |
-| 0.1.6 优化整合与发布 | [准备记录](maintenance-release-0.1.6.md) · [历史优化候选与 13 项补修](optimization-2026-10-15.md) |
-| Windows／Linux 0.1.5 发布与验证 | [公开发布记录](maintenance-release-0.1.5.md) · [Linux 固定候选范围](maintenance-linux-0.1.5.md) |
-| 首次成功、输入诊断与依赖告警（源码） | [原始检查](first-success-2026-10-14.md) · [最新主线整合](first-success-integration-2026-10-14.md) |
+| 历史 0.1.6 优化整合与发布 | [准备记录](maintenance-release-0.1.6.md) · [历史优化候选与 13 项补修](optimization-2026-10-15.md) |
+| 历史 Windows／Linux 0.1.5 发布与验证 | [公开发布记录](maintenance-release-0.1.5.md) · [Linux 固定候选范围](maintenance-linux-0.1.5.md) |
+| 2026-10-14 首次成功、输入诊断与依赖告警（源码） | [原始检查](first-success-2026-10-14.md) · [整合复验](first-success-integration-2026-10-14.md) |
 | Windows 0.1.4 发布与验证 | [发布记录](product-shell-release-0.1.4.md) |
 | Linux 0.1.4 发布与验证 | [发布记录](product-shell-linux-publication-0.1.4.md)、[本次验收范围](product-shell-linux-release-0.1.4.md) |
 | 历史 0.1.2 维护修复与 Windows 原生回归 | [维护验收](maintenance-2026-09-27.md) |
 | 历史 0.1.2 Linux 安装验收 | [0.1.2 Linux 安装验收](maintenance-012-linux-installed-2026-09-28.md) |
-| 当前机器可读状态 | [product-status.json](../../product-status.json) |
+| 源码构建时的机器可读状态 | [product-status.json](../../product-status.json)，公开发布进度另见当前下载 |
 | 门禁规则 | [发布门禁](release-gates.md) |
 | 新工作台的源码、设置、资产和真实 Core 预览 | [Product Shell 工作流验收](product-shell-workflows.md) |
 | 待跟进与未验证范围 | [持续维护清单](../remaining-work.md) |
@@ -23,7 +24,7 @@
 
 宣传片、封面和产品介绍使用[当前展示素材](../../assets/screenshots/README.md)。本目录引用的历史验收截图按原日期和候选保留，不能代表当前产品界面。
 
-本地待发布改动：[安装与双语体验验收记录](installer-ux-2026-10-12.md)，包含新图形安装器的构建结果、定向回归和待完成的系统验收。
+历史安装器改进：[2026-10-12 安装与双语体验验收记录](installer-ux-2026-10-12.md)，包含当时的构建结果、定向回归和待完成的系统验收；后续发布不改写这份记录。
 
 后续[云端验收记录](installer-cloud-2026-10-13.md)包含源码摘要核对、有效复验结果和当时的环境阻碍；实际 Windows 11 与 Ubuntu GNOME 结果见[本地联合虚拟机验收](installer-joint-vm-2026-10-13.md)。
 

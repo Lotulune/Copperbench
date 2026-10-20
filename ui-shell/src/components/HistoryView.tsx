@@ -1,4 +1,4 @@
-import { tr, UI_LOCALE, uiText } from '../i18n/locale';
+import { tr, UI_LOCALE, uiText, useUiLocale } from '../i18n/locale';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Check,
@@ -15,47 +15,47 @@ import { useDialogA11y } from '../hooks/useDialogA11y';
 import type { HistoryComparison, RecoveryPoint, RecoveryRestorePreview, WorkspaceChange } from '../types/contract';
 
 const actorLabels: Record<RecoveryPoint['actor'], string> = {
-  ui: tr("界面"),
+  ui: '界面',
   mcp: 'MCP',
   headless: 'Headless',
-  legacy_ui: tr("旧版界面"),
-  system: tr("系统")
+  legacy_ui: '旧版界面',
+  system: '系统'
 };
 
 const sourceLabels: Record<NonNullable<RecoveryPoint['source']>, string> = {
-  manual: tr("手动"),
-  automation: tr("自动操作"),
-  workspace_plan: tr("工作区计划"),
+  manual: '手动',
+  automation: '自动操作',
+  workspace_plan: '工作区计划',
   procedure: 'Procedure',
-  asset: tr("资产"),
+  asset: '资产',
   datagen: 'Datagen',
-  registry: tr("注册表"),
+  registry: '注册表',
   blockbench: 'Blockbench',
-  restore_safety: tr("还原保护")
+  restore_safety: '还原保护'
 };
 
 const changeLabels: Record<WorkspaceChange['type'], string> = {
-  add: tr("新增"),
-  modify: tr("修改"),
-  delete: tr("删除"),
-  rename: tr("重命名"),
-  copy: tr("复制")
+  add: '新增',
+  modify: '修改',
+  delete: '删除',
+  rename: '重命名',
+  copy: '复制'
 };
 
 const objectKindLabels: Record<NonNullable<WorkspaceChange['objectKind']>, string> = {
-  workspace: tr("工作区"),
+  workspace: '工作区',
   mod_element: 'Mod Element',
-  asset: tr("资产")
+  asset: '资产'
 };
 
 function changeText(change: WorkspaceChange): string {
   const semantic = change.objectKind && change.objectName
-    ? `${objectKindLabels[change.objectKind]} ${change.objectName} · `
+    ? `${tr(objectKindLabels[change.objectKind])} ${change.objectName} · `
     : '';
   const fields = change.fieldChanges?.length
-    ? tr(" · 字段 {0}{1}", [change.fieldChanges.slice(0, 4).map((field) => field.pointer).join('、'), change.fieldChanges.length > 4 ? ` 等 ${change.fieldChanges.length} 项` : ''])
+    ? tr(" · 字段 {0}{1}", [change.fieldChanges.slice(0, 4).map((field) => field.pointer).join(uiText('、', ', ')), change.fieldChanges.length > 4 ? uiText(` 等 ${change.fieldChanges.length} 项`, ` (${change.fieldChanges.length} total)`) : ''])
     : '';
-  return `${semantic}${changeLabels[change.type]}${fields} · ${change.path}`;
+  return `${semantic}${tr(changeLabels[change.type])}${fields} · ${change.path}`;
 }
 
 function formatTime(value: string) {
@@ -69,6 +69,7 @@ function formatTime(value: string) {
 }
 
 export const HistoryView: React.FC = () => {
+  useUiLocale();
   const {
     state,
     createRecoveryPoint,
@@ -233,7 +234,7 @@ export const HistoryView: React.FC = () => {
               >
                 <option value="">{tr("全部来源")}</option>
                 {Object.entries(sourceLabels).map(([value, text]) => (
-                  <option value={value} key={value}>{text}</option>
+                  <option value={value} key={value}>{tr(text)}</option>
                 ))}
               </select>
               <select
@@ -244,7 +245,7 @@ export const HistoryView: React.FC = () => {
               >
                 <option value="">{tr("全部操作者")}</option>
                 {Object.entries(actorLabels).map(([value, text]) => (
-                  <option value={value} key={value}>{text}</option>
+                  <option value={value} key={value}>{tr(text)}</option>
                 ))}
               </select>
             </div>
@@ -270,7 +271,7 @@ export const HistoryView: React.FC = () => {
                       {current && <span className="history-current">{tr("当前")}</span>}
                     </span>
                     <span className="history-point-meta">
-                      {sourceLabels[point.source ?? 'manual']} · {actorLabels[point.actor]} · {formatTime(point.createdAt)}
+                      {tr(sourceLabels[point.source ?? 'manual'])} · {tr(actorLabels[point.actor])} · {formatTime(point.createdAt)}
                     </span>
                   </span>
                   <ChevronRight size={14} aria-hidden="true" />
@@ -288,7 +289,7 @@ export const HistoryView: React.FC = () => {
                 <div>
                   <span className="history-section-label">{tr("所选恢复点")}</span>
                   <h3>{selected.label}</h3>
-                  <p title={selected.id}>{actorLabels[selected.actor]} · {formatTime(selected.createdAt)}</p>
+                  <p title={selected.id}>{tr(actorLabels[selected.actor])} · {formatTime(selected.createdAt)}</p>
                 </div>
                 <button
                   className="btn-secondary"
@@ -314,7 +315,7 @@ export const HistoryView: React.FC = () => {
                 )}
                 {changes.map((change) => (
                   <div className="history-change" data-testid="history-change" key={`${change.type}:${change.path}`}>
-                    <span className={`change-badge change-${change.type}`}>{changeLabels[change.type]}</span>
+                    <span className={`change-badge change-${change.type}`}>{tr(changeLabels[change.type])}</span>
                     <code>{changeText(change)}</code>
                   </div>
                 ))}

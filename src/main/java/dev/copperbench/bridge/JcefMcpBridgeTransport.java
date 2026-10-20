@@ -82,6 +82,19 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
 			requireOperation(payload);
 			String operation = payload.get("operation").getAsString();
+			if (operation.equals("reset_pairing")) {
+				requireOnly(payload, Set.of("operation"));
+				requests.execute(() -> {
+					if (closed.get()) return;
+					try {
+						var state = runtime.resetPairing();
+						if (!closed.get()) callback.success(JSON.toJson(state.toJson()));
+					} catch (RuntimeException exception) {
+						if (!closed.get()) callback.failure(503, "MCP pairing reset failed");
+					}
+				});
+				return true;
+			}
 			if (operation.equals("set_permission_profile")) {
 				PermissionProfile profile = requestedPermissionProfile(payload);
 				requests.execute(() -> {
@@ -138,6 +151,22 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 				(function() {
 				    window.__COPPERBENCH_MCP_HOST__ = {
 				        available: true,
+				        resetPairing: function() {
+				            return new Promise(function(resolve, reject) {
+				                if (typeof window.cefQuery !== 'function') {
+				                    reject(new Error('JCEF MCP runtime transport is not available'));
+				                    return;
+				                }
+				                window.cefQuery({
+				                    request: %s + JSON.stringify({ operation: 'reset_pairing' }),
+				                    persistent: false,
+				                    onSuccess: function(response) { resolve(JSON.parse(response)); },
+				                    onFailure: function(code, message) {
+				                        reject(new Error('MCP pairing reset failed [' + code + ']: ' + message));
+				                    }
+				                });
+				            });
+				        },
 				        setPermissionProfile: function(profile) {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') {
@@ -205,7 +234,7 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 				    };
 				})();
 				""".formatted(JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX),
-				JSON.toJson(QUERY_PREFIX));
+				JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
 	}
 
 	static PermissionProfile requestedPermissionProfile(JsonObject payload) {

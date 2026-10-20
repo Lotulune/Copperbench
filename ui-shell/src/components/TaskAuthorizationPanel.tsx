@@ -1,4 +1,4 @@
-import { tr } from '../i18n/locale';
+import { tr, uiText, useUiLocale } from '../i18n/locale';
 import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck, X } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -9,14 +9,15 @@ import type { TaskAuthorization, TaskAuthorizationRequest, TaskCapability } from
 import './taskAuthorization.css';
 
 const capabilities: { id: TaskCapability; label: string }[] = [
-  { id: 'create', label: tr("创建工作区") }, { id: 'edit', label: tr("修改内容") }, { id: 'build', label: tr("生成与构建") },
-  { id: 'test', label: tr("校验与测试") }, { id: 'run_client', label: tr("运行客户端") },
-  { id: 'run_server', label: tr("运行专用服务器") }, { id: 'restore', label: tr("恢复历史版本") }
+  { id: 'create', label: '创建工作区' }, { id: 'edit', label: '修改内容' }, { id: 'build', label: '生成与构建' },
+  { id: 'test', label: '校验与测试' }, { id: 'run_client', label: '运行客户端' },
+  { id: 'run_server', label: '运行专用服务器' }, { id: 'restore', label: '恢复历史版本' }
 ];
-const names = (items: TaskCapability[]) => capabilities.filter(item => items.includes(item.id)).map(item => item.label).join('、');
+const names = (items: TaskCapability[]) => capabilities.filter(item => items.includes(item.id)).map(item => tr(item.label)).join(uiText('、', ', '));
 
 export const TaskAuthorizationPanel: React.FC = () => {
   const { listTaskAuthorizations, getWorkspaceRoot, createTaskAuthorization, revokeTaskAuthorization } = useWorkbench();
+  const locale = useUiLocale();
   const [grants, setGrants] = useState<TaskAuthorization[]>([]);
   const [label, setLabel] = useState(tr("模组开发与验收"));
   const [root, setRoot] = useState('');
@@ -85,7 +86,7 @@ export const TaskAuthorizationPanel: React.FC = () => {
       </select>
       <fieldset disabled={busy}><legend>{tr("允许的操作")}</legend><div className="task-authority-capabilities">
         {capabilities.map(item => <label key={item.id}><input type="checkbox" checked={selected.includes(item.id)}
-          onChange={event => setSelected(items => event.target.checked ? [...items, item.id] : items.filter(id => id !== item.id))} />{item.label}</label>)}
+          onChange={event => setSelected(items => event.target.checked ? [...items, item.id] : items.filter(id => id !== item.id))} />{tr(item.label)}</label>)}
       </div></fieldset>
       {selected.includes('run_server') && <label className="task-authority-eula"><input type="checkbox" required checked={eula}
         onChange={event => setEula(event.target.checked)} />{tr("我已阅读并接受 ")}<a href="https://www.minecraft.net/eula" target="_blank" rel="noreferrer">{tr("Minecraft 最终用户许可协议（EULA）")}</a>{tr("，允许此任务运行专用测试服务器。")}</label>}
@@ -99,7 +100,7 @@ export const TaskAuthorizationPanel: React.FC = () => {
         const active = !grant.revoked && Date.parse(grant.expiresAt) > now;
         return <li key={grant.id}><strong>{grant.label}</strong><span>{grant.revoked ? tr("已撤销") : active ? tr("有效") : tr("已到期")}</span>
           <code>{grant.root}</code><small>{names(grant.capabilities)}</small>
-          <small>{tr("到期：")}<time dateTime={grant.expiresAt}>{new Date(grant.expiresAt).toLocaleString()}</time></small>
+          <small>{tr("到期：")}<time dateTime={grant.expiresAt}>{new Date(grant.expiresAt).toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN')}</time></small>
           <code aria-label={tr("授权 ID")}>{grant.id}</code>
           <div className="approval-actions"><button type="button" className="btn-secondary" disabled={!active} onClick={() => {
             void mcpRuntimeBridge.copyText(grant.id).then(() => setStatus(tr("已复制授权 ID"))).catch(() => setError(tr("复制失败，请手动选择授权 ID。")));

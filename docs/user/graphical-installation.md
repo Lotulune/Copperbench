@@ -1,12 +1,16 @@
 # Copperbench 图形安装指南
 
-适用于 Copperbench 0.1.13 双语离线安装包；实际公开链接与验证范围见[当前下载](../releases/current.md)。
+本页说明 Copperbench 双语离线图形安装器的操作；请从[当前下载](../releases/current.md)选择平台版本，并查看该包的验证范围。
 
-These instructions apply to the 0.1.13 bilingual offline installers. [Current downloads](../releases/current.md) records actual publication and verification scope.
+This page describes Copperbench's bilingual offline graphical installer. Choose your platform's version and check its package-specific verification in [current downloads](../releases/current.md).
+
+0.1.13 安装包的发布与验证见 [Windows 记录](../testing/maintenance-release-0.1.13.md)和 [Linux 记录](../testing/linux-publication-0.1.13.md)。
+
+For the 0.1.13 installers, see the [Windows publication](../testing/maintenance-release-0.1.13.md) and [Linux publication](../testing/linux-publication-0.1.13.md) records.
 
 ## 简体中文
 
-支持范围为 Windows 11 x64 和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。安装主程序无需联网，运行环境随包提供；创建工作区、构建模组时需要的依赖下载另算。
+目标平台为 Windows 11 x64 和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；完整桌面与安装验收范围按各包记录确认。安装主程序无需联网，运行环境随包提供；创建工作区、构建模组时需要的依赖下载另算。
 
 ### Windows
 
@@ -41,7 +45,7 @@ Windows 从系统“已安装的应用”卸载；Ubuntu 当前用户安装从�
 
 ## English
 
-The supported target is Windows 11 x64 or Ubuntu 24.04 LTS x86_64 with GNOME Wayland / Xorg. The complete package includes the application runtime and installs without a download. Creating workspaces and building mods can require additional downloads.
+The target platform is Windows 11 x64 or Ubuntu 24.04 LTS x86_64 with GNOME Wayland / Xorg; full desktop and installation acceptance remain specific to each package's record. The complete package includes the application runtime and installs without a download. Creating workspaces and building mods can require additional downloads.
 
 ### Windows
 

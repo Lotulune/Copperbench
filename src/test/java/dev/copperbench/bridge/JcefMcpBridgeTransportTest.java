@@ -32,6 +32,8 @@ class JcefMcpBridgeTransportTest {
 		assertTrue(script.contains("copy_text"));
 		assertTrue(script.contains("setPermissionProfile"));
 		assertTrue(script.contains("set_permission_profile"));
+		assertTrue(script.contains("resetPairing"));
+		assertTrue(script.contains("reset_pairing"));
 	}
 
 	@Test void permissionRequestsAcceptOnlyKnownProfilesAndProperties() {

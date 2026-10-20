@@ -34,39 +34,39 @@ type FunctionTab = 'editor' | 'tags' | 'preview';
 
 const SNIPPETS: Array<{ label: string; snippet: string; description: string }> = [
   {
-    label: tr("execute 以所有玩家身份执行"),
+    label: 'execute 以所有玩家身份执行',
     snippet: 'execute as @a at @s run ',
-    description: tr("针对所有在线玩家执行后续命令")
+    description: '针对所有在线玩家执行后续命令'
   },
   {
-    label: tr("title 显示标题"),
+    label: 'title 显示标题',
     snippet: 'title @a title {"text":"欢迎来到冒险世界！","color":"gold","bold":true}',
-    description: tr("在屏幕中央向玩家显示全屏大标题")
+    description: '在屏幕中央向玩家显示全屏大标题'
   },
   {
-    label: tr("give 给予物品"),
+    label: 'give 给予物品',
     snippet: 'give @p minecraft:diamond 1',
-    description: tr("向最近的玩家发放指定数量的物品")
+    description: '向最近的玩家发放指定数量的物品'
   },
   {
-    label: tr("particle 生成粒子"),
+    label: 'particle 生成粒子',
     snippet: 'particle minecraft:happy_villager ~ ~1 ~ 0.5 0.5 0.5 0.1 20',
-    description: tr("在当前坐标周围生成粒子视觉效果")
+    description: '在当前坐标周围生成粒子视觉效果'
   },
   {
-    label: tr("scoreboard 计分板"),
+    label: 'scoreboard 计分板',
     snippet: 'scoreboard players add @s points 1',
-    description: tr("为当前实体的计分项增加数值")
+    description: '为当前实体的计分项增加数值'
   },
   {
-    label: tr("tag 标签操作"),
+    label: 'tag 标签操作',
     snippet: 'tag @s add quest_completed',
-    description: tr("为实体添加自定义标识标签")
+    description: '为实体添加自定义标识标签'
   },
   {
-    label: tr("# 注释说明"),
+    label: '# 注释说明',
     snippet: '# 这是函数逻辑的注释说明',
-    description: tr("添加说明注释（以 # 开头）")
+    description: '添加说明注释（以 # 开头）'
   }
 ];
 
@@ -521,7 +521,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
                   type="button"
                   onClick={() => handleInsertSnippet(snip.snippet)}
                   disabled={!canEditCode}
-                  title={snip.description}
+                  title={tr(snip.description)}
                   data-testid={`snippet-${snip.label.split(' ')[0]}`}
                   style={{
                     padding: '3px 8px',
@@ -534,7 +534,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {snip.label}
+                  {tr(snip.label)}
                 </button>
               ))}
             </div>

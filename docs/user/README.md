@@ -1,12 +1,12 @@
 # Copperbench 使用说明（稳定版）
 
-本指南对应 Copperbench 0.1.13；实际 Windows／Linux 公开链接、资产证明与验证范围见[当前下载](../releases/current.md)。
+本指南介绍工作区、创作与交付流程；各平台当前发布版本、下载链接、资产证明与验证范围统一见[当前下载](../releases/current.md)。不同平台和版本的入口可能不同，请结合实际安装版本操作。
 
 0.1.13 包含桌面与原生窗口改进、应用内更新，并保留首作、交付、恢复与导出修复；Windows 更新保留已有快捷方式。旧安装包保留原功能与验收范围。
 
-第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。下载版、源码新增、26.3 预览和未验证范围统一见[当前状态](../status.md)。
+第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。源码能力、26.3 预览和支持边界见[当前状态](../status.md)。
 
-关键路线：[安装](getting-started.md) → [首作](first-creation.md) → [构建失败与导出](build-and-export.md)；完整英文路线从 [Quick start](getting-started.en.md) 开始。首作快捷入口与交付控件从 0.1.6 起提供；旧包按实际入口操作。
+关键路线：[安装](getting-started.md) → [首作](first-creation.md) → [构建失败与导出](build-and-export.md)；完整英文路线从 [Quick start](getting-started.en.md) 开始。有首启引导时选择「开始创作」；没有该入口或已跳过时，可从「新建工作区」手动创建 Fabric 1.21.1 工程。
 
 ## 工作区
 
@@ -27,7 +27,7 @@
 
 八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.2 Linux 安装包的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/maintenance-012-linux-installed-2026-09-28.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部 Agent 与陌生用户研究已按用户要求终止；内部回归不替代陌生用户可用性验证。
 
-资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。当前状态见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。当前版本的变更与验证范围见[Windows 0.1.13](../releases/v0.1.13.md)和[Linux 0.1.13](../releases/v0.1.13-linux.md)。
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.13 的记录见 [Windows 说明](../releases/v0.1.13.md)和 [Linux 说明](../releases/v0.1.13-linux.md)。
 
 ## 模组元素
 
@@ -87,9 +87,9 @@ Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设
 
 ## 安装与卸载
 
-统一图形安装器的中英步骤见[图形安装指南](./graphical-installation.md)，360 等安全软件的具体检测见[安全告警处理](./security-alerts.md)。0.1.13 保留统一的双语离线安装向导。
+统一图形安装器的中英步骤见[图形安装指南](./graphical-installation.md)，360 等安全软件的具体检测见[安全告警处理](./security-alerts.md)。
 
-0.1.13 的目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
+目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；各平台包的实际验证范围见[当前下载](../releases/current.md)。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
 
 安装后默认打开新产品外壳（无边框 JCEF 工作台）。若要旧版 Swing 工作区，启动时加 `-Dcopperbench.productShell=false`。
 

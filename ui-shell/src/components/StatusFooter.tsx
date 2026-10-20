@@ -15,7 +15,7 @@ import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
 import { t, uiText, englishCount } from '../i18n';
 
 export const StatusFooter: React.FC = () => {
-  const { state, workspaceHealth, setActiveView, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
+  const { state, workspaceHealth, setActiveView, activeTaskId, setActiveTaskId, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
   const { mcp } = useMcpRuntimeState();
 
   const connection = state.workbench?.connection ?? {
@@ -99,7 +99,11 @@ export const StatusFooter: React.FC = () => {
         {/* Active Task progress pill */}
         {runningTask && (
           <button
-            onClick={() => setIsTaskDrawerOpen(!isTaskDrawerOpen)}
+            onClick={() => {
+              const isCurrentTask = (activeTaskId ?? Object.keys(state.tasks)[0]) === runningTask.id;
+              setActiveTaskId(runningTask.id);
+              setIsTaskDrawerOpen(!isTaskDrawerOpen || !isCurrentTask);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',

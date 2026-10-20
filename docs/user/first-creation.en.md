@@ -4,11 +4,11 @@
 
 The goal is to obtain 16 **Trail Blocks**, place one, quit Minecraft normally and find it in the same world from a **new client process**, then export a JAR. Use **Fabric 1.21.1** and the built-in stone texture; no image, Blockbench or Java is needed.
 
-Version 0.1.6 provides the native First creation entry, closable workspace guide and Delivery & export controls. Earlier packages can use the ordinary workspace, block, build and client entries. [Current status](../status.md) records capability and acceptance scope. The [Agent example](../ai/trail-block.en.md) is a separate public API route.
+This tutorial provides both the creation-tour and manual routes. If your installed version lacks a guide control, use the ordinary workspace, block, build and client entries. [Current downloads](../releases/current.md) records platform versions and package acceptance; [current status](../status.md) describes source capabilities. The [Agent example](../ai/trail-block.en.md) is a separate public API route.
 
 ## Create an isolated workspace
 
-New users see an animated spotlight tour on their first launch. Choose **Start creating**, check the preset, choose a new empty directory and confirm creation. After skipping, you can use **New workspace** manually:
+If an animated spotlight tour appears on first launch, choose **Start creating**, check the preset, choose a new empty directory and confirm creation. If your installed version has no tour, or you have skipped/ended it, use **New workspace** manually:
 
 | Input | Value |
 | --- | --- |
@@ -18,7 +18,7 @@ New users see an animated spotlight tour on their first launch. Choose **Start c
 | Java package | `com.example.firstcreation` |
 | Directory | A new empty directory, such as `D:\CopperbenchWorkspaces\first_creation` or `/home/yourname/CopperbenchWorkspaces/first_creation` |
 
-The new workspace should open with Fabric 1.21.1 active. If that generator is absent, check the installed package/plugins instead of substituting a resource-pack generator. The first-creation workspace continues that tour. A temporary **Continue tour** control returns from editing or task details. Closing or skipping ends the tour; later launches do not reopen it. Ordinary workspace overviews have no first-creation or open-workspace cards. Deleted elements are never recreated automatically.
+The new workspace should open with Fabric 1.21.1 active. If that generator is absent, check the installed package/plugins instead of substituting a resource-pack generator. A workspace created through the first-launch tour continues that tour. A temporary **Continue tour** control returns from editing or task details. Closing or skipping ends the tour; later launches do not reopen it. This tour does not add first-creation or open-workspace cards to ordinary workspace overviews or navigation. Deleted elements are never recreated automatically.
 
 ## Create and save the block
 
@@ -48,7 +48,7 @@ Use **Build** and wait for the task's successful terminal state. A first run can
 6. Launch the client again from Copperbench to start a **new process**. Open the **same saved world**, not a new world, and verify the placed block remains.
 7. Save, quit Minecraft again and wait for the second client task to succeed. If the guide offers a player confirmation, confirm obtaining/placing the block and finding it after reopening that world in the new client.
 
-Saving, compiling, starting a client, player behavior and persistence are separate observations. The guide's player confirmation is scoped to this session, element and input/build reference. After editing files externally, use **Refresh inputs and original tasks**: a task can remain successful while changed inputs require a new build or run. Older tasks without an input record remain unconfirmed. Inputs that changed during a task also require checking again. Player confirmation is not an automated acceptance report.
+Saving, compiling, starting a client, player behavior and persistence are separate observations. The guide's player confirmation is scoped to this session, element and input/build reference. After editing files externally, use the guide's **Check task status** control: a task can remain successful while changed inputs require a new build or run. Older tasks without an input record remain unconfirmed. Inputs that changed during a task also require checking again. Player confirmation is not an automated acceptance report.
 
 ## Export and continue
 
@@ -66,4 +66,4 @@ An ordinary export proves a build/copy; player confirmation records observed beh
 | Missing texture | Restore `minecraft:stone`, save, build and start a new client. |
 | Exit not successful | Inspect final client logs/state before marking the route complete. |
 
-The [2026-10-14 input-check record](../testing/first-success-2026-10-14.md) is historical evidence, not acceptance of the new guide or this run. The status page identifies the applicable package/source scope.
+The [2026-10-14 input-check record](../testing/first-success-2026-10-14.md) is historical evidence, not acceptance of the new guide or this run. Package-specific evidence is linked from [current downloads](../releases/current.md).

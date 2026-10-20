@@ -1,11 +1,15 @@
 # Public client compatibility / 公共客户端兼容边界
 
 The Python package version (`0.1.0`), product version and wire versions are
-independent. This source prepares product `0.1.6`; new helpers here do not imply
-that earlier published packages contain them. Historical
-results retain their original source and artifact identities.
+independent. This page documents the client contracts in the current source.
+Published platform versions and package-specific verification are listed in
+[current downloads](../docs/releases/current.md). Discover the installed host's
+actual contracts before using a helper; historical results retain their original
+source and artifact identities.
 
-Python 包、产品和协议版本独立；本页以当前源码为准，不把历史验收移用于新字节。
+Python 包、产品和协议版本独立；本页说明当前源码中的客户端合同。各平台发布版本与
+包级验证统一见[当前下载](../docs/releases/current.md)。使用便捷方法前先发现实际宿主
+能力；历史验收保留原源码与产物身份。
 
 | Common route / 常用路线 | Contract floor / 最低合同 | Discovery and incompatibility / 发现与不兼容 |
 | --- | --- | --- |

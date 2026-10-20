@@ -3,11 +3,14 @@ import { useEffect, useRef } from 'react';
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
+// A conflict or search dialog can open while another dialog keeps its draft.
+const activeDialogs: HTMLDivElement[] = [];
+
 /**
  * Dialog accessibility behaviour (NFR-UI-08):
  * - moves focus into the dialog when it opens and restores the previously
  *   focused element when it closes;
- * - traps Tab navigation inside the dialog;
+ * - lets only the most recently opened dialog trap Tab and handle Escape;
  * - closes the dialog on Escape when `onRequestClose` is provided (blocking
  *   dialogs such as bridge recovery pass null and require an explicit action).
  *
@@ -41,12 +44,14 @@ export function useDialogA11y(open: boolean, onRequestClose: (() => void) | null
     if (!dialog.hasAttribute('tabindex')) {
       dialog.setAttribute('tabindex', '-1');
     }
+    activeDialogs.push(dialog);
     dialog.focus();
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (activeDialogs.at(-1) !== dialog || e.defaultPrevented) return;
       if (e.key === 'Escape' && closeRef.current) {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         closeRef.current();
         return;
       }
@@ -57,14 +62,21 @@ export function useDialogA11y(open: boolean, onRequestClose: (() => void) | null
       );
       if (items.length === 0) {
         e.preventDefault();
+        dialog.focus();
         return;
       }
       const first = items[0];
       const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
+      const focused = document.activeElement;
+      // Opening focuses the card itself, which is outside the Tab sequence.
+      // Treat that initial position (or escaped focus) as an entry boundary.
+      if (focused === dialog || !dialog.contains(focused)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && focused === first) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (!e.shiftKey && focused === last) {
         e.preventDefault();
         first.focus();
       }
@@ -73,7 +85,14 @@ export function useDialogA11y(open: boolean, onRequestClose: (() => void) | null
     document.addEventListener('keydown', onKeyDown, true);
     return () => {
       document.removeEventListener('keydown', onKeyDown, true);
-      previouslyFocused?.focus?.();
+      const wasTopmost = activeDialogs.at(-1) === dialog;
+      activeDialogs.splice(activeDialogs.indexOf(dialog), 1);
+      if (!wasTopmost) return;
+      const underlyingDialog = activeDialogs.at(-1);
+      // A titlebar invoker can sit outside the still-open underlying dialog.
+      if (underlyingDialog && !underlyingDialog.contains(previouslyFocused)) underlyingDialog.focus();
+      else if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      else underlyingDialog?.focus();
     };
   }, [open]);
 
