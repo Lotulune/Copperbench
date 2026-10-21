@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.14-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:3e91492eae5ec053137b443715b3f73a0e77550ab9b7662f0200af1495fd8e42",
+  "candidateSourceCommit": "095874a66d9d347a6a5fd46befc1a621dd35e9d3",
+  "candidateWorkflowRunId": "39558371689",
+  "debSha256": "27a2e79beffcdd3717243b801d764f9dc26ed615965786dcb3ce77f9b5999856",
+  "portableSha256": "067121af119532670a92ac02e21c8d6584790efb54c5206f434b211331e2f705",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.14.md",
+  "validationReportSha256": "eed3aed0378f19737092a8654a66d22d8e89f61f48206adf13039b19ed2ea2ba",
+  "acceptancePolicy": "maintenance-ci-0.1.14",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.14-linux-stable",
+    "date": "2026-10-21",
+    "scope": "The user requested publication and explicitly selected Windows and Linux 0.1.14. Authorize only this exact main candidate after consumer run 39560706171 verified all 17 files, signed source/run/workflow provenance and package contents. Full installed/player acceptance was not repeated; no formal certification is claimed. Preserve signed latest-main tags, production review, source-delta restrictions and exact downloaded-draft comparison."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-10-21/linux-0114/candidate-run.json",
+      "sha256": "50ac4129c8f2bb77ab8df942751822f53fca03c86a858ca4dc785b22ac2aa720"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-10-21/linux-0114/candidate-jobs.json",
+      "sha256": "47da2ad36bec25d94809b3ca5514b9022c8b3765312e9b08a23094b73c0b79e3"
+    }
+  }
+}

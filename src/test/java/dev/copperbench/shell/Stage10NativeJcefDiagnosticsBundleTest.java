@@ -107,6 +107,9 @@ class Stage10NativeJcefDiagnosticsBundleTest {
 				webView.forceLoad();
 				assertTrue(loaded.await(30, TimeUnit.SECONDS), "Native diagnostics shell did not load");
 				await(webView, "document.querySelector('[data-testid=app-shell]') !== null", 30);
+				// This flow uses professional navigation; a fresh profile defaults to simple creation.
+				webView.executeScriptAsync("document.querySelector('[data-testid=mode-professional]')?.click()");
+				await(webView, "document.querySelector('[data-testid=nav-help]') !== null", 15);
 				webView.executeScriptAsync("document.querySelector('[data-testid=nav-help]')?.click()");
 				await(webView, "document.querySelector('[data-testid=diagnostic-support-panel]') !== null", 15);
 				webView.executeScriptAsync("""

@@ -1,5 +1,7 @@
 # Copperbench 0.1.14 release preparation
 
+**Not published.** The signed Windows source build failed one native diagnostics test before packaging. No Windows or Linux 0.1.14 binary release was created. The immutable `v0.1.14` tag is retained; the corrected release preparation proceeds as [0.1.15](maintenance-release-0.1.15.md).
+
 The user requested a new public release after merging [PR #140](https://github.com/Lotulune/Copperbench/pull/140), and explicitly selected both Windows and Linux for 0.1.14. Preparation starts from main commit `12a3cb5ad5c9381c1e62e155d977cdc206d79b46`. The original development checkout and its unrelated changes remain preserved.
 
 ## Scope and existing evidence
@@ -20,3 +22,11 @@ The public download index remains at 0.1.13 until the respective release is obse
 ## Preparation validation
 
 The 0.1.14 version preparation passed 5 focused Java identity/manifest/guide tests, 50 UI-Core tests, 73 UI unit tests and 6 Chromium help/update/viewport cases. The Java and production UI build, localization checks, 3 release-history tests, product-status validation and repository Markdown links passed. Logs are retained under the independent worktree's `output/release-0.1.14/`. Required branch/main CI and each publication workflow must still pass on their respective exact commits before publication.
+
+## Failed Windows source build and retained Linux candidate
+
+The final preparation merged as `095874a66d9d347a6a5fd46befc1a621dd35e9d3`. Its [main checks](https://github.com/Lotulune/Copperbench/actions/runs/39558371665), [documentation](https://github.com/Lotulune/Copperbench/actions/runs/39558524719) and [Linux candidate](https://github.com/Lotulune/Copperbench/actions/runs/39558371689) passed.
+
+[Windows release run 39560703629](https://github.com/Lotulune/Copperbench/actions/runs/39560703629) stopped during full release tests: 1,519 tests, one failure and 64 skips. `Stage10NativeJcefDiagnosticsBundleTest` clicked the professional `nav-help` entry without selecting professional mode in the new default-simple profile, then timed out waiting for the diagnostics panel. Packaging and publication did not run. The [run](../../evidence/maintenance/2026-10-21/release-0.1.14/windows-failed-run.json) and [job](../../evidence/maintenance/2026-10-21/release-0.1.14/windows-failed-jobs.json) receipts retain the failure identity.
+
+The Linux [independent consumer](https://github.com/Lotulune/Copperbench/actions/runs/39560706171) verified all 17 candidate files, but promotion was not dispatched. Its [frozen report](maintenance-linux-0.1.14.md), [unpublished authorization](../../evidence/maintenance/2026-10-21/linux-0114/authorization-not-published.json) and original evidence remain unchanged. The active Linux release authorization remains the already published 0.1.13 candidate until a new 0.1.15 candidate is verified.

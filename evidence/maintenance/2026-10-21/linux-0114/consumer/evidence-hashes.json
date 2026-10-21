@@ -1,0 +1,12 @@
+{
+  "LINUX-CANDIDATE-METADATA.json": "dab91847dc8f48ca130753407a8a2b19807e124e85ba11b3aa257703949ba326",
+  "linux-candidate-manifest.json": "ebd09b43465ff1b9837f920d8551ecb444895dcb3e04a7f1c4f084c7c5037f45",
+  "linux-candidate-sha256.txt": "a90ead942921f636547973bdcac4d6e8c97ed965a7db4a77ca9daa9c3b1fd53f",
+  "candidate-jobs.json": "b9d51f8349a11acaa21119627a24eab0a0fb4bcc9a20aeadd6d7f22830d25dc1",
+  "result.json": "946e1ec2c3a2a2d1bfc8c18678d7e19938212f1cb98e4ff09a5537332b1f239e",
+  "candidate-run.json": "f50426508de4cd129161c6edae69309ec4206270bbafcc9324a699561280ebea",
+  "archive-entry-verification.json": "69f30f8edaadf95188118669d88d7e2b536ce6ca0c61f8ffd371e059cb14327b",
+  "provenance/verification.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "provenance/provenance-verification.json": "331475f14640c8eea647543d31b7ca094262665098e1b843b2a8a069c5125454",
+  "provenance/verified-bundle.json": "479661c9cc07533f9ce360db0870ba48362a3be203f02349228b0de9ef0de2d0"
+}
