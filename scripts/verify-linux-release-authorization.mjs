@@ -50,8 +50,12 @@ export function validateHeader(auth, tag) {
       && tag === 'v0.1.13-linux-stable'
       && auth.candidateSourceCommit === '464b75a39c34252f61c7d859b8d267dfabba205c'
       && auth.candidateWorkflowRunId === '39264954357';
-    requireValue(approved013 || approved014 || approved015 || approved016 || approved017 || approved019 || approved0113,
-      'Maintenance authorization is limited to the approved 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.9 and 0.1.13 candidates');
+    const approved0115 = auth.acceptancePolicy === 'maintenance-ci-0.1.15'
+      && tag === 'v0.1.15-linux-stable'
+      && auth.candidateSourceCommit === 'd99aa3f4af171954a575f82de3afd1ee5b34c9a6'
+      && auth.candidateWorkflowRunId === '39570341571';
+    requireValue(approved013 || approved014 || approved015 || approved016 || approved017 || approved019 || approved0113 || approved0115,
+      'Maintenance authorization is limited to the approved 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.9, 0.1.13 and 0.1.15 candidates');
     requireValue(auth.formalSupportClaim === false && auth.fullInstalledAcceptance === 'not-repeated'
       && auth.maintenanceApproval?.approved === true && auth.maintenanceApproval?.releaseTag === tag,
       'Maintenance publication requires explicit approval and an honest installed-acceptance classification');
@@ -127,7 +131,7 @@ function validateMaintenanceCi(auth, root, tag) {
     'Verify deb candidate layout', 'Freeze Linux candidate metadata',
     'Attest Linux candidate provenance', 'Upload Linux candidate artifacts'
   ];
-  if (['maintenance-ci-0.1.5', 'maintenance-ci-0.1.6', 'maintenance-ci-0.1.7', 'maintenance-ci-0.1.9', 'maintenance-ci-0.1.13'].includes(auth.acceptancePolicy))
+  if (['maintenance-ci-0.1.5', 'maintenance-ci-0.1.6', 'maintenance-ci-0.1.7', 'maintenance-ci-0.1.9', 'maintenance-ci-0.1.13', 'maintenance-ci-0.1.15'].includes(auth.acceptancePolicy))
     requiredSteps.push('Verify graphical installer package and render its bilingual wizard');
   for (const name of requiredSteps) requireValue(job.steps?.some(step => step.name === name
     && step.status === 'completed' && step.conclusion === 'success'), `Maintenance candidate CI step did not pass: ${name}`);
