@@ -508,39 +508,6 @@ test('0.1.13 rejects non-main or failed CI receipts and skipped installer checks
   assert.throws(check, /step did not pass/);
 });
 
-test('0.1.14 exact candidate requires thirteen successful CI steps and explicit approval', (t) => {
-  const { auth, check } = maintenanceUnitFixture(t, '0.1.14', '095874a66d9d347a6a5fd46befc1a621dd35e9d3', '39558371689');
-  assert.equal(check().ciStepsVerified, 13);
-  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
-  auth.maintenanceApproval.approved = false;
-  assert.throws(check, /explicit approval/);
-});
-
-test('0.1.14 rejects substituted source, run, tag, package digest and installed certification', (t) => {
-  const { auth, check } = maintenanceUnitFixture(t, '0.1.14', '095874a66d9d347a6a5fd46befc1a621dd35e9d3', '39558371689');
-  for (const [key, invalid] of [['releaseTag', 'v0.1.15-linux-stable'],
-    ['candidateSourceCommit', 'a'.repeat(40)], ['candidateWorkflowRunId', '39555855267'],
-    ['acceptancePolicy', 'maintenance-ci-0.1.13'], ['portableSha256', 'f'.repeat(64)],
-    ['formalSupportClaim', true], ['fullInstalledAcceptance', 'passed']]) {
-    const original = auth[key]; auth[key] = invalid;
-    assert.throws(check); auth[key] = original;
-  }
-});
-
-test('0.1.14 rejects non-main or failed CI receipts and skipped installer checks', (t) => {
-  const { check, mutate } = maintenanceUnitFixture(t, '0.1.14', '095874a66d9d347a6a5fd46befc1a621dd35e9d3', '39558371689');
-  for (const [key, value, restore] of [['head_branch', 'other', 'main'],
-    ['event', 'pull_request', 'push'], ['conclusion', 'failure', 'success']]) {
-    mutate('run', run => { run[key] = value; });
-    assert.throws(check, /CI identity or result mismatch/);
-    mutate('run', run => { run[key] = restore; });
-  }
-  mutate('jobs', receipt => {
-    receipt.jobs[0].steps.find(step => step.name === 'Verify graphical installer package and render its bilingual wizard').conclusion = 'skipped';
-  });
-  assert.throws(check, /step did not pass/);
-});
-
 test('candidate consumer updates allow only named non-product harness files after freezing', () => {
   assert.doesNotThrow(() => validateSourceDelta(['README.zh-CN.md',
     '.github/workflows/linux-candidate-verification.yml',

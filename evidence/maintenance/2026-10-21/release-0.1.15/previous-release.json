@@ -1,0 +1,14 @@
+{
+  "tag": "v0.1.13",
+  "url": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13",
+  "publishedAt": "2026-10-19T15:05:14Z",
+  "sourceCommit": "464b75a39c34252f61c7d859b8d267dfabba205c",
+  "sourceRecord": "docs/testing/maintenance-release-0.1.13.md",
+  "installer": {
+    "name": "Copperbench.0.1.13.Windows.64bit.exe",
+    "size": 503045963,
+    "digest": "sha256:bbd4eed0995aac8ac723bee89234709c957980e7b85e90fed94f276be2e08da2",
+    "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.13/Copperbench.0.1.13.Windows.64bit.exe"
+  },
+  "scope": "Previously published Windows release, recorded before preparing 0.1.15. Version 0.1.14 has a failed signed source build and no public binary release. Linux 0.1.13 remains separately recorded in docs/testing/linux-publication-0.1.13.md."
+}
