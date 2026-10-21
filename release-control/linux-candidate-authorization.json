@@ -2,32 +2,32 @@
   "schemaVersion": "1.0",
   "kind": "linux-release-authorization",
   "status": "approved",
-  "releaseTag": "v0.1.13-linux-stable",
+  "releaseTag": "v0.1.14-linux-stable",
   "releaseEligible": true,
   "formalSupportClaim": false,
-  "candidateId": "sha256:d2ab0118a34031866c7660eb37070e2d619ff6f314ac2d80b6fb6c3989a6bfac",
-  "candidateSourceCommit": "464b75a39c34252f61c7d859b8d267dfabba205c",
-  "candidateWorkflowRunId": "39264954357",
-  "debSha256": "ae4839c26d372e76e56bf55396993021cf0670b94ffdff639c9d63a4533a9b26",
-  "portableSha256": "a142f745943778dd541b2b522749942da138ff03090e8d9949be9f381cb171c6",
-  "validationReportPath": "docs/testing/maintenance-linux-0.1.13.md",
-  "validationReportSha256": "e66c1735773a45650991c7c824acaeeb6ed1031393d83d20a731c0a9b94e5de5",
-  "acceptancePolicy": "maintenance-ci-0.1.13",
+  "candidateId": "sha256:3e91492eae5ec053137b443715b3f73a0e77550ab9b7662f0200af1495fd8e42",
+  "candidateSourceCommit": "095874a66d9d347a6a5fd46befc1a621dd35e9d3",
+  "candidateWorkflowRunId": "39558371689",
+  "debSha256": "27a2e79beffcdd3717243b801d764f9dc26ed615965786dcb3ce77f9b5999856",
+  "portableSha256": "067121af119532670a92ac02e21c8d6584790efb54c5206f434b211331e2f705",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.14.md",
+  "validationReportSha256": "eed3aed0378f19737092a8654a66d22d8e89f61f48206adf13039b19ed2ea2ba",
+  "acceptancePolicy": "maintenance-ci-0.1.14",
   "fullInstalledAcceptance": "not-repeated",
   "maintenanceApproval": {
     "approved": true,
-    "releaseTag": "v0.1.13-linux-stable",
-    "date": "2026-10-20",
-    "scope": "The user explicitly requested formal publication after the Linux 0.1.13 preparation and independent cloud verification report. Approve only this exact main candidate after consumer run 39320163547 verified all 17 files, signed source/run/workflow provenance and package contents. Full installed/player acceptance was not repeated; no formal certification is claimed. Preserve allowed-signer tags, latest-main protection, production review, source-delta restrictions and exact draft comparison."
+    "releaseTag": "v0.1.14-linux-stable",
+    "date": "2026-10-21",
+    "scope": "The user requested publication and explicitly selected Windows and Linux 0.1.14. Authorize only this exact main candidate after consumer run 39560706171 verified all 17 files, signed source/run/workflow provenance and package contents. Full installed/player acceptance was not repeated; no formal certification is claimed. Preserve signed latest-main tags, production review, source-delta restrictions and exact downloaded-draft comparison."
   },
   "candidateCi": {
     "run": {
-      "path": "evidence/maintenance/2026-10-20/linux-0113/candidate-run.json",
-      "sha256": "17a8390e2b8dcce4af27f75c6518ba2f1bfaac32095db1de46248219785080ae"
+      "path": "evidence/maintenance/2026-10-21/linux-0114/candidate-run.json",
+      "sha256": "50ac4129c8f2bb77ab8df942751822f53fca03c86a858ca4dc785b22ac2aa720"
     },
     "jobs": {
-      "path": "evidence/maintenance/2026-10-20/linux-0113/candidate-jobs.json",
-      "sha256": "b1189c78cb174030a49dfc38d37e57cf5ceef7378af365fd5e5fe93c3052428d"
+      "path": "evidence/maintenance/2026-10-21/linux-0114/candidate-jobs.json",
+      "sha256": "47da2ad36bec25d94809b3ca5514b9022c8b3765312e9b08a23094b73c0b79e3"
     }
   }
 }
