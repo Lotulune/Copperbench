@@ -255,6 +255,7 @@ def make_plan(paths, environment, allow_downloads=False, windows=None):
                                        "--tests", "dev.copperbench.core.application.PreviewAccessTest",
                                        "--tests", "dev.copperbench.core.workspace.mcreator.VersionCopyExecutionTest",
                                        "--tests", "dev.copperbench.shell.Stage9NativeJcefAccessibilityTest",
+                                       "--tests", "dev.copperbench.shell.Stage10NativeJcefDiagnosticsBundleTest",
                                        "--tests", "dev.copperbench.history.LegacyHistoryRuntimeFilesTest",
                                        "--tests", "dev.copperbench.assets.ResourcePackExportServiceTest",
                                        "--tests", "dev.copperbench.migration.LoaderMigrationServiceTest",
