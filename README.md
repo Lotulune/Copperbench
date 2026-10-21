@@ -8,9 +8,9 @@
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable releases: Windows 0.1.13 and Linux 0.1.13.** Linux now includes the shared desktop, native-window and in-app update improvements. Windows 0.1.13 preserves existing shortcuts during in-app updates and clarifies the update helper identity and installation guidance. See [current downloads](docs/releases/current.md) for packages and verification records.
+**Current stable releases: Windows 0.1.15 and Linux 0.1.15.** Switch between Simple creation with five host-installed CLI agents and the professional workbench. Draft protection, task/log navigation, dialog focus and native progress displays are improved. See [current downloads](docs/releases/current.md) for packages and verification records.
 
-Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.13](docs/testing/maintenance-release-0.1.13.md) and [Linux 0.1.13](docs/testing/linux-publication-0.1.13.md).
+Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.15](docs/testing/maintenance-release-0.1.15.md) and [Linux 0.1.15](docs/testing/linux-publication-0.1.15.md).
 
 <a id="getting-started"></a>
 
@@ -18,13 +18,13 @@ Source identity, package hashes and verification scope are recorded separately f
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13) | EXE · Portable ZIP · MSIX · In-app update components | [Quick start](docs/user/getting-started.en.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.13](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.13-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz · In-app update components | [Linux installation](docs/user/linux-installation.en.md) |
+| Windows 11 x64 | [0.1.15](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.15) | EXE · Portable ZIP · MSIX · In-app update components | [Quick start](docs/user/getting-started.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.15](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.15-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz · In-app update components | [Linux installation](docs/user/linux-installation.en.md) |
 
-Release notes: [Windows 0.1.13](docs/releases/v0.1.13.md) · [Linux 0.1.13](docs/releases/v0.1.13-linux.md). For later updates, choose **Check for updates** in **Help & about**.
+Release notes: [Windows 0.1.15](docs/releases/v0.1.15.md) · [Linux 0.1.15](docs/releases/v0.1.15-linux.md). For later updates, choose **Check for updates** in **Help & about**.
 
 1. Download your platform's package and verify it against the attached checksum manifest.
-2. Create a workspace and choose a loader and Minecraft version.
+2. Choose **New creation** in **Simple creation**, or switch to **Professional** for the manual editing tutorial. Choose a loader, Minecraft version and a new workspace directory.
 3. Follow [your first creation](docs/user/first-creation.en.md), then [build recovery and export](docs/user/build-and-export.en.md). Confirm persistence by quitting Minecraft normally and starting a new client process to reopen the same world.
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.

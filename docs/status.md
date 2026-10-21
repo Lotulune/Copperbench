@@ -13,15 +13,15 @@
 | **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
 | **包级验收边界** | 最终包安装／升级／卸载、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开按各包记录确认；旧性能和缓存结论保留原范围 | [平台验证范围](releases/current.md) |
 
-## 0.1.13 发布快照
+## 0.1.15 发布快照
 
-本页保留的 Windows 与 Linux 发布快照为 **0.1.13**，各平台公开链接与实际核验见[当前下载](releases/current.md)。两平台二进制源码为 `464b75a39c34252f61c7d859b8d267dfabba205c`；Linux 签名发布标签指向 `4110b253f5d3f99218caf817759154ff3e2d2613`，晋级过程未重建候选包。后续文档提交不替换这些身份。
+本页保留的 Windows 与 Linux 发布快照为 **0.1.15**，各平台公开链接与实际核验见[当前下载](releases/current.md)。两平台二进制源码为 `d99aa3f4af171954a575f82de3afd1ee5b34c9a6`；Linux 签名发布标签指向 `3c6be89bbfaafc01e39dac81c924a60fbcfdc46c`，晋级过程未重建候选包。后续文档提交不替换这些身份。
 
 | 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **0.1.13 已交付能力** | 共享桌面、原生窗口、图标与应用内更新改进；Windows 更新保留已有快捷方式。保留首作引导、交付与恢复、Gradle 配置缓存导出、归档路径修复及双语离线安装器 | [Windows 变更](releases/v0.1.13.md) · [Linux 变更](releases/v0.1.13-linux.md) · [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) |
-| **发布验证** | Windows 15 项公开资产摘要核验、正式 EXE 下载核验及 4 个更新组件校验通过；Linux 13 项候选门禁、独立消费者核验、签名来源、草稿下载字节比对及 18 项公开资产核验通过 | [Windows 发布记录](testing/maintenance-release-0.1.13.md) · [Linux 发布记录](testing/linux-publication-0.1.13.md) |
-| **未重复的验收** | 0.1.13 最终包完整安装、升级、卸载及玩家操作验收未重复；Linux 完整 GNOME 会话未重复，保持 `formalSupportClaim=false`。旧性能、安装与暖缓存证据保留原范围 | [Windows 范围](testing/maintenance-release-0.1.13.md) · [Linux 范围](testing/maintenance-linux-0.1.13.md) |
+| **0.1.15 已交付能力** | 简洁创作与专业工作台切换、五种本机 CLI 聊天与图标、原生文件选择、草稿保护、任务日志与弹窗焦点改进；保留首作、交付、恢复和应用内更新流程 | [Windows 变更](releases/v0.1.15.md) · [Linux 变更](releases/v0.1.15-linux.md) · [首作](user/first-creation.md) · [构建与导出](user/build-and-export.md) |
+| **发布验证** | Windows 15 项公开资产摘要核验、正式 EXE 下载核验及 4 个更新组件校验通过；Linux 13 项候选门禁、独立消费者核验、签名来源、草稿下载字节比对及 18 项公开资产核验通过 | [Windows 发布记录](testing/maintenance-release-0.1.15.md) · [Linux 发布记录](testing/linux-publication-0.1.15.md) |
+| **未重复的验收** | 0.1.15 最终包完整安装、升级、卸载及玩家操作验收未重复；Linux 完整 GNOME 会话未重复，保持 `formalSupportClaim=false`。旧性能、安装与暖缓存证据保留原范围 | [Windows 范围](testing/maintenance-release-0.1.15.md) · [Linux 范围](testing/maintenance-linux-0.1.15.md) |
 
 ## 支持范围
 

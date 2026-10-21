@@ -1,0 +1,129 @@
+{
+  "status": "passed",
+  "platform": "windows",
+  "releaseTag": "v0.1.15",
+  "releaseId": 419382255,
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.15",
+  "publishedAt": "2026-10-21T09:42:08Z",
+  "verifiedAt": "2026-10-21T09:54:24.030689+00:00",
+  "assetCount": 15,
+  "assets": [
+    {
+      "name": "Copperbench.0.1.15.Windows.64bit.exe",
+      "size": 503162564,
+      "sha256": "2b66e3c6e56a33f40569d19410be7580563086296aee5a73c1b9215ede7b9085",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/Copperbench.0.1.15.Windows.64bit.exe"
+    },
+    {
+      "name": "Copperbench.0.1.15.Windows.64bit.msix",
+      "size": 627035625,
+      "sha256": "f7a101621896af3a3517b7a8369842944d74b2ad2b0f11d8a30243ef6f48f80e",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/Copperbench.0.1.15.Windows.64bit.msix"
+    },
+    {
+      "name": "Copperbench.0.1.15.Windows.64bit.zip",
+      "size": 606345470,
+      "sha256": "ae421448788405cb4f42a45a23048afc3aba6d9febfb46e4e437a36a324b4ec7",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/Copperbench.0.1.15.Windows.64bit.zip"
+    },
+    {
+      "name": "LICENSE-ADDITIONAL-TERMS.md",
+      "size": 2484,
+      "sha256": "8d1a71caa1e2829c91d3a6b4b41ec7eea5525a63a796eca37f3d917818a9936e",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/LICENSE-ADDITIONAL-TERMS.md"
+    },
+    {
+      "name": "LICENSE.txt",
+      "size": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/LICENSE.txt"
+    },
+    {
+      "name": "RELEASE-METADATA.json",
+      "size": 417,
+      "sha256": "b3494f3ac2ac3765de3f82b9384337ad52f1b1ef3a9831ff50d4754f950d24f6",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/RELEASE-METADATA.json"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 1391,
+      "sha256": "9984aa6eefda52745df47fe46190fb8d2862c1ddc5fd1e1453715d7b0bdcbcb9",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/SHA256SUMS.txt"
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.md",
+      "size": 3463,
+      "sha256": "1705c3fc3238ea5a583cf19a27a4c9f2d784429eb1b968c719d4645dc164902c",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "name": "copperbench-update-windows-x64-application.zip",
+      "size": 24600772,
+      "sha256": "82edf56edd1a3b91afc149821c4fb30d29cb169c4b1cafd4a1c6aafcb4699639",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/copperbench-update-windows-x64-application.zip"
+    },
+    {
+      "name": "copperbench-update-windows-x64-jdk.zip",
+      "size": 391878285,
+      "sha256": "ddc90c429ce4ae4a827e0c9d1191978d87d956c3ebf77a301548b24caf970350",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/copperbench-update-windows-x64-jdk.zip"
+    },
+    {
+      "name": "copperbench-update-windows-x64-jdk21.zip",
+      "size": 144373542,
+      "sha256": "e8707db896fe6c3659f9f31264058702033515bbc97a830f89d85c32affaf7d7",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/copperbench-update-windows-x64-jdk21.zip"
+    },
+    {
+      "name": "copperbench-update-windows-x64-libraries.zip",
+      "size": 45440157,
+      "sha256": "98949f2dd51988c646a1386fb70d51e6bbde8549079fa15f226a33adb38ccd91",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/copperbench-update-windows-x64-libraries.zip"
+    },
+    {
+      "name": "copperbench-update-windows-x64.properties",
+      "size": 276156,
+      "sha256": "82f60c09a6ac4f411db87eac22cafeb30097fc32b275a0d60ea8f7f0d49875d1",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/copperbench-update-windows-x64.properties"
+    },
+    {
+      "name": "copperbench.spdx.json",
+      "size": 740660,
+      "sha256": "ac8996e6f8adc5054f239ed2687fd93cc434490db87faaea8f75c3cbdb58e695",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/copperbench.spdx.json"
+    },
+    {
+      "name": "product-status.json",
+      "size": 29609,
+      "sha256": "f2bea65b2bfd2471f43de270db06b427ba54c8e2724fd2b9d9789d249da3610b",
+      "url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.15/product-status.json"
+    }
+  ],
+  "localFilesVerified": [
+    {
+      "name": "copperbench-update-windows-x64.properties",
+      "size": 276156,
+      "sha256": "82f60c09a6ac4f411db87eac22cafeb30097fc32b275a0d60ea8f7f0d49875d1"
+    },
+    {
+      "name": "Copperbench.0.1.15.Windows.64bit.exe",
+      "size": 503162564,
+      "sha256": "2b66e3c6e56a33f40569d19410be7580563086296aee5a73c1b9215ede7b9085"
+    },
+    {
+      "name": "RELEASE-METADATA.json",
+      "size": 417,
+      "sha256": "b3494f3ac2ac3765de3f82b9384337ad52f1b1ef3a9831ff50d4754f950d24f6"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 1391,
+      "sha256": "9984aa6eefda52745df47fe46190fb8d2862c1ddc5fd1e1453715d7b0bdcbcb9"
+    }
+  ],
+  "updateDescriptorVerified": true,
+  "updateComponentCount": 4,
+  "scope": "Every uploaded asset digest matches the public checksum manifest; listed local files, including the public installer, were downloaded and byte-hashed. Full local installation was not performed.",
+  "sourceCommit": "d99aa3f4af171954a575f82de3afd1ee5b34c9a6",
+  "workflowRunId": "39573527054"
+}
