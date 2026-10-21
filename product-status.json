@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.13",
+    "version": "0.1.14",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,17 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.13",
-      "linuxTag": "v0.1.9-linux-stable",
+      "tag": "v0.1.14",
+      "linuxTag": "v0.1.13-linux-stable",
       "status": "ready",
       "linuxStatus": "public-stable",
       "decision": "approved",
-      "decisionDate": "2026-10-19",
-      "scope": "Windows maintenance release preserving existing shortcuts during in-app updates, avoiding unchanged rollback writes, and clarifying the update helper identity and localized installation guidance. Final source CI and release packaging are pending. No 360 rescan or new install/upgrade/uninstall acceptance is claimed. Linux remains public at 0.1.9.",
+      "decisionDate": "2026-10-21",
+      "scope": "Windows and Linux release preparation for simple creation mode with five host-installed CLI agents, draft protection, native pickers, task/log continuity, localization and dialog accessibility fixes. Final 0.1.14 source CI and packaging are pending. Current public Windows and Linux packages remain 0.1.13 until publication is verified. No new full installed or player acceptance is claimed.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/update-helper-2026-10-19.md",
-      "integrationReport": "docs/testing/update-helper-2026-10-19.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-19/windows-0.1.13/previous-release.json",
+      "developmentEvidence": "docs/testing/simple-creation-fixes-2026-10-21.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.14.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-21/release-0.1.14/previous-release.json",
       "sourceVerification": {
         "requiredCi": {
           "status": "pending"
@@ -55,7 +55,7 @@
         },
         "installedPackageAcceptance": "not-repeated",
         "fullGameplayAcceptance": "not-repeated",
-        "nativeUiEvidence": "docs/testing/update-helper-2026-10-19.md"
+        "nativeUiEvidence": "docs/testing/simple-creation-merge-2026-10-21.md"
       }
     },
     "linuxMaintenanceRelease": {
