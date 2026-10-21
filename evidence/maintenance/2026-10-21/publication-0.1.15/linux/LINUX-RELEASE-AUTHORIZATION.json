@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.15-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:034b7a5ec9ed25b55b35957f8f0dfd72e302857842c04a13f617bee33a460a81",
+  "candidateSourceCommit": "d99aa3f4af171954a575f82de3afd1ee5b34c9a6",
+  "candidateWorkflowRunId": "39570341571",
+  "debSha256": "ece4b83e12132307c82c51a875ae0eccfdc36458b5f1b7671b94b62e0c39ef3d",
+  "portableSha256": "bcf013b9e9661d2d6ef4de58e73c77419cd08ac70c7cab35c10b887c6a55f98f",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.15.md",
+  "validationReportSha256": "ece8752489d70de439d705031b807103117c7da77878919151b5918ba4c506c5",
+  "acceptancePolicy": "maintenance-ci-0.1.15",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.15-linux-stable",
+    "date": "2026-10-21",
+    "scope": "The user requested publication for both Windows and Linux. The corrected 0.1.15 release replaces the unpublished 0.1.14 attempt. Authorize only this exact main candidate after consumer run 39572937254 verified all 17 files, signed source/run/workflow provenance and package contents. Full installed/player acceptance was not repeated; no formal certification is claimed. Preserve signed latest-main tags, production review, source-delta restrictions and exact downloaded-draft comparison."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-10-21/linux-0115/candidate-run.json",
+      "sha256": "3701a96369a06d8edb2de5a82556e707cc37dc5675d21e6ae2242e182f1bef06"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-10-21/linux-0115/candidate-jobs.json",
+      "sha256": "abdac2923f6e2dcb9333e489d9d4428fe376710e403358ed7fe68772d8880ca6"
+    }
+  }
+}

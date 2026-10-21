@@ -6,6 +6,8 @@ The goal is to obtain 16 **Trail Blocks**, place one, quit Minecraft normally an
 
 This tutorial provides both the creation-tour and manual routes. If your installed version lacks a guide control, use the ordinary workspace, block, build and client entries. [Current downloads](../releases/current.md) records platform versions and package acceptance; [current status](../status.md) describes source capabilities. The [Agent example](../ai/trail-block.en.md) is a separate public API route.
 
+New 0.1.15 users start in **Simple creation**. This manual tutorial uses the visual editors, so first switch to **Professional** at the top. Simple creation also supports conversational work through your configured host CLI.
+
 ## Create an isolated workspace
 
 If an animated spotlight tour appears on first launch, choose **Start creating**, check the preset, choose a new empty directory and confirm creation. If your installed version has no tour, or you have skipped/ended it, use **New workspace** manually:

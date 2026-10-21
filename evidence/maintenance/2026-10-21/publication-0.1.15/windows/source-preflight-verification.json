@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "source": {
+    "sourceCommit": "4a1cd1aae6a6a52a7af10a288a512e126c6e949f",
+    "sourceTree": "e24085c033c4b8d17470f7bfb016dd690bc1745a",
+    "workflowCommit": "4a1cd1aae6a6a52a7af10a288a512e126c6e949f",
+    "workflowRun": "39568762239",
+    "scope": "Full Windows source tests before tagging; no package publication or desktop acceptance"
+  },
+  "mergedSourceCommit": "d99aa3f4af171954a575f82de3afd1ee5b34c9a6",
+  "sourceTreeMatchesMergedMain": true,
+  "nativeDiagnosticsExecuted": true,
+  "junitXmlTotals": {
+    "tests": 1528,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 73
+  },
+  "scope": "Full Windows source test workflow; XML totals include skipped suites. No package installation or player acceptance."
+}

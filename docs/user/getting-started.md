@@ -6,7 +6,7 @@
 
 从[当前下载](../releases/current.md)选择对应平台的稳定包，并查看该版本的验证范围。Windows 与 Linux 的版本分别列出。目标平台为 Windows 11 x64（build 22000 及以上）与 Ubuntu 24.04 LTS x86_64；其他 Linux 发行版与架构未验证。
 
-0.1.13 提供应用内检查更新，并保留首作、交付、恢复与导出修复；Windows 更新保留已有快捷方式。具体平台变更见 [Windows 版本说明](../releases/v0.1.13.md)、[Linux 版本说明](../releases/v0.1.13-linux.md)和[状态页](../status.md)。
+0.1.15 新增简洁创作与专业工作台切换，以及五种本机 CLI 创作助手。具体平台变更见 [Windows 版本说明](../releases/v0.1.15.md)、[Linux 版本说明](../releases/v0.1.15-linux.md)和[状态页](../status.md)。
 
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 
@@ -16,8 +16,8 @@
 
 1. Windows：运行 EXE 安装包，或解压 Portable ZIP 后启动 `copperbench.exe`。Ubuntu：使用 [图形安装向导](./graphical-installation.md)，或按 [Linux 安装说明](./linux-installation.md)安装 `.deb`、使用便携版 `.tar.gz`。
 2. 选择是否使用中国大陆镜像。Windows 偏好设置默认位于 `%USERPROFILE%\.copperbench`；Linux 默认位于 `~/.config/copperbench`，并遵循 `XDG_CONFIG_HOME`。显式用户目录覆盖和旧设置迁移见 [Linux 安装说明](./linux-installation.md)。
-3. 若首次启动出现引导，选择「开始创作」，使用 Fabric 1.21.1 预设。若安装版本没有该引导，或已经跳过／结束引导，在「新建工作区」中手动选择 Fabric 1.21.1。其他工程仍可选择所需 Fabric/NeoForge 轨道或资源包。
-4. 核对名称、ID、Java 包名，选择一个新的空工作区目录，确认后创建。
+3. 新用户首次打开默认进入「简洁创作」，点击「新建作品」选择 Fabric 1.21.1。按手动编辑教程操作时，先在顶部切换「专业工作台」，再使用「新建工作区」或首作引导。其他工程仍可选择所需 Fabric/NeoForge 轨道或资源包。
+4. 填写名称并选择新的空工作区目录。简洁模式会生成默认 ID 和 Java 包名；ID 可直接修改，Java 包名可在「更多设置」中修改。核对后确认创建。
 5. 按[第一件作品：步道方块](./first-creation.md)保存、构建，在游戏中取得／放置，再正常退出客户端并启动新进程重开同一个世界。最后按[构建失败与导出](build-and-export.md)交付 JAR。
 
 ## 当前可编辑范围

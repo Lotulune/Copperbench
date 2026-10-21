@@ -2,7 +2,7 @@
 
 本指南介绍工作区、创作与交付流程；各平台当前发布版本、下载链接、资产证明与验证范围统一见[当前下载](../releases/current.md)。不同平台和版本的入口可能不同，请结合实际安装版本操作。
 
-0.1.13 包含桌面与原生窗口改进、应用内更新，并保留首作、交付、恢复与导出修复；Windows 更新保留已有快捷方式。旧安装包保留原功能与验收范围。
+0.1.15 新增简洁创作与专业工作台切换，提供五种本机 CLI 聊天入口，并改善草稿保护、任务日志、弹窗焦点和原生进度显示。新用户可在简洁模式描述想法；手动编辑教程使用顶部的专业工作台。聊天使用主机上已安装并配置的 CLI。旧安装包保留原功能与验收范围。
 
 第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。源码能力、26.3 预览和支持边界见[当前状态](../status.md)。
 
@@ -27,7 +27,7 @@
 
 八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.2 Linux 安装包的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/maintenance-012-linux-installed-2026-09-28.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部 Agent 与陌生用户研究已按用户要求终止；内部回归不替代陌生用户可用性验证。
 
-资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.13 的记录见 [Windows 说明](../releases/v0.1.13.md)和 [Linux 说明](../releases/v0.1.13-linux.md)。
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.15 的记录见 [Windows 说明](../releases/v0.1.15.md)和 [Linux 说明](../releases/v0.1.15-linux.md)。
 
 ## 模组元素
 

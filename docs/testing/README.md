@@ -7,6 +7,8 @@
 | 内容 | 入口 |
 | --- | --- |
 | 当前平台发布与包级验证 | [当前下载与发布记录](../releases/current.md) |
+| Windows／Linux 0.1.15 发布与验证 | [Windows 发布记录](maintenance-release-0.1.15.md) · [Linux 发布记录](linux-publication-0.1.15.md) · [Linux 候选授权](maintenance-linux-0.1.15.md) |
+| 0.1.14 未发布构建 | [失败原因与保留记录](maintenance-release-0.1.14.md) |
 | Windows／Linux 0.1.13 发布与验证 | [Windows 发布记录](maintenance-release-0.1.13.md) · [Linux 发布记录](linux-publication-0.1.13.md) · [Linux 候选授权](maintenance-linux-0.1.13.md) |
 | 历史 0.1.6 优化整合与发布 | [准备记录](maintenance-release-0.1.6.md) · [历史优化候选与 13 项补修](optimization-2026-10-15.md) |
 | 历史 Windows／Linux 0.1.5 发布与验证 | [公开发布记录](maintenance-release-0.1.5.md) · [Linux 固定候选范围](maintenance-linux-0.1.5.md) |
