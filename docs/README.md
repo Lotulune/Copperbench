@@ -4,7 +4,7 @@
 
 历史需求与验收保留各自日期、候选和验证范围。查阅某次发布时，使用该版本的记录核对来源和资产，不把后续源码检查转作旧包或新包的验收。
 
-0.1.15 的两平台二进制均来自源码 `d99aa3f4af171954a575f82de3afd1ee5b34c9a6`；[Windows 发布记录](./testing/maintenance-release-0.1.15.md)和 [Linux 发布记录](./testing/linux-publication-0.1.15.md)分别记录构建、候选晋级与公开资产结果。版本变更见 [Windows 说明](./releases/v0.1.15.md)和 [Linux 说明](./releases/v0.1.15-linux.md)。
+0.1.16 的两平台二进制均来自源码 `c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0`；[Windows 发布记录](./testing/maintenance-release-0.1.16.md)和 [Linux 发布记录](./testing/linux-publication-0.1.16.md)分别记录构建、候选晋级与公开资产结果。版本变更见 [Windows 说明](./releases/v0.1.16.md)和 [Linux 说明](./releases/v0.1.16-linux.md)。
 
 ## 从这里开始
 
