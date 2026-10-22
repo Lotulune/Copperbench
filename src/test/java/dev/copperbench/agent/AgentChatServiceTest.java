@@ -18,6 +18,61 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgentChatServiceTest {
     @TempDir Path workspace;
 
+    @Test void legacy015HistoryResumesTheSameNativeSessionWithoutAModelOverrideAfterReopen() throws Exception {
+        String key = "copperbench.agent.codex", old = System.getProperty(key);
+        System.setProperty(key, wrapper("codex").toString());
+        Path history = workspace.resolve(".copperbench/agent-chat/history.json"); Files.createDirectories(history.getParent());
+        try (var input = getClass().getResourceAsStream("/dev/copperbench/agent/history-0.1.15.json")) {
+            assertNotNull(input); Files.copy(input, history);
+        }
+        String original = Files.readString(history), conversation = "70d6cf9c-d27b-4b51-89c6-599ba8a9db08";
+        Path work = workspace.resolve("existing-work.txt"); Files.writeString(work, "Keep the original workspace");
+        try {
+            try (AgentChatService service = service()) {
+                JsonObject loaded = service.handle(new JsonObject());
+                assertTrue(AgentJson.bool(loaded, "usesSessionModel"));
+                assertEquals(conversation, AgentJson.string(loaded, "conversationId"));
+                assertTrue(loaded.get("model").isJsonNull());
+                assertEquals(original, Files.readString(history), "Reading old history must not migrate it implicitly");
+                assertFalse(Files.exists(workspace.resolve("fixture-frames.jsonl")));
+            }
+            for (int reopen = 0; reopen < 2; reopen++) {
+                try (AgentChatService service = service()) {
+                    assertTrue(AgentJson.bool(service.handle(new JsonObject()), "usesSessionModel"));
+                    service.handle(AgentJson.object("operation", "send", "provider", "codex", "conversationId", conversation, "text", "Continue the original block " + reopen));
+                    JsonObject waiting = await(service, snapshot -> AgentJson.string(snapshot, "state").equals("waiting_approval"));
+                    assertEquals(conversation, AgentJson.string(waiting, "conversationId"));
+                    assertEquals(1, waiting.getAsJsonArray("sessions").size());
+                    assertTrue(waiting.get("messages").toString().contains("Created the original blue block"));
+                    String approval = AgentJson.string(waiting.getAsJsonArray("approvals").get(0).getAsJsonObject(), "id");
+                    service.handle(AgentJson.object("operation", "approve", "id", approval, "choice", "choice-0"));
+                    await(service, snapshot -> AgentJson.string(snapshot, "state").equals("idle"));
+                }
+                AgentChatStore saved = new AgentChatStore(workspace); saved.load();
+                assertNull(saved.sessions.get(conversation).model);
+                assertEquals("codex-fixture", saved.sessions.get(conversation).remoteId);
+            }
+            var frames = Files.readAllLines(workspace.resolve("fixture-frames.jsonl")).stream()
+                    .map(JsonParser::parseString).map(JsonElement::getAsJsonObject).toList();
+            assertEquals(2, frames.stream().filter(frame -> AgentJson.string(frame, "method").equals("thread/resume")).count());
+            assertFalse(frames.stream().anyMatch(frame -> AgentJson.string(frame, "method").equals("thread/start")));
+            for (JsonObject frame : frames) if (Set.of("thread/resume", "turn/start").contains(AgentJson.string(frame, "method"))) {
+                JsonObject params = AgentJson.child(frame, "params");
+                assertEquals("codex-fixture", AgentJson.string(params, "threadId"));
+                assertFalse(params.has("model"), "Resume must not substitute the catalog or configured default model");
+                if (params.has("cwd")) assertEquals(workspace.toString(), AgentJson.string(params, "cwd"));
+            }
+            assertEquals("Keep the original workspace", Files.readString(work));
+            try (AgentChatService service = service()) {
+                JsonObject changed = service.handle(AgentJson.object("operation", "new", "provider", "codex", "model", "chosen-model"));
+                assertNotEquals(conversation, AgentJson.string(changed, "conversationId"));
+                assertFalse(AgentJson.bool(changed, "usesSessionModel"));
+                JsonObject empty = service.handle(AgentJson.object("operation", "new", "provider", "codex"));
+                assertFalse(AgentJson.bool(empty, "usesSessionModel"), "An empty new conversation has no native model to inherit");
+            }
+        } finally { restore(key, old); }
+    }
+
     @Test void attachmentsAndTurnSettingsPersistAndDeletionReclaimsOnlyUnreferencedCopies() throws Exception {
         String key = "copperbench.agent.codex", old = System.getProperty(key);
         System.setProperty(key, wrapper("codex").toString());

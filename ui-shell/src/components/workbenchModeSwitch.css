@@ -74,7 +74,7 @@
   .titlebar .workbench-mode-switch button { font-size: 11px; }
 }
 @media (max-width: 650px) {
-  .workbench-mode-slot { --mode-slot-width: 186px; }
+  .titlebar:has(.workbench-mode-slot) { column-gap: 4px; }
   .titlebar .workbench-mode-switch button { padding: 0 4px; }
 }
 @media (prefers-reduced-motion: reduce) {

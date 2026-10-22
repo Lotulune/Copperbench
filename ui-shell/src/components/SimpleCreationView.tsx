@@ -10,7 +10,7 @@ import { useFirstCreation } from '../onboarding/FirstCreationContext';
 import { assetRecordsFromProjection, type AssetRecord } from '../types/assets';
 import type { EditorField, FieldChange, ModElementEditorProjection } from '../types/contract';
 import { elementShortLabel } from '../i18n/labels';
-import { t, uiMessage, uiText, useUiLocale } from '../i18n';
+import { renderUiMessage, t, uiMessage, uiText, useUiLocale } from '../i18n';
 import { confirmAction } from '../feedback/feedback';
 import { AssetPreview } from './AssetPreview';
 import { workbenchNavigation } from './workbenchNavigation';
@@ -127,7 +127,8 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const providerInfo = snapshot?.providers.find(item => item.id === effectiveProvider);
   const modelCatalog = providerInfo?.modelCatalog;
   const effectiveModel = snapshot?.conversationId ? snapshot.model ?? '' : modelPreferences[effectiveProvider] ?? modelCatalog?.defaultModel ?? '';
-  const needsModel = !effectiveModel;
+  const usesSessionModel = Boolean(snapshot?.usesSessionModel);
+  const needsModel = !effectiveModel && !usesSessionModel;
   const visibleAssets = assets.filter(asset => asset.category === 'texture' || asset.category === 'model');
   const previewAsset = visibleAssets.find(asset => asset.id === assetId);
   const recentTask = newestTasks(Object.values(state.tasks))[0];
@@ -241,7 +242,8 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
     submission.current = submitted;
     following.current = true;
     const result = await agent.invoke({ operation: 'send', provider: effectiveProvider,
-      ...(snapshot?.conversationId ? { conversationId: snapshot.conversationId } : {}), model: effectiveModel, effort, permission, attachments: attachmentIds, text });
+      ...(snapshot?.conversationId ? { conversationId: snapshot.conversationId } : {}),
+      ...(effectiveModel ? { model: effectiveModel } : {}), effort, permission, attachments: attachmentIds, text });
     if (!snapshot?.conversationId && result?.conversationId && !submitted.accepted) {
       const nextKey = `${workspaceId}:${result.conversationId}`;
       submitted.key = nextKey;
@@ -456,7 +458,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
             </div>}
             {hasParameterDrafts && <p className="creation-compose-hint" role="status">{uiText('先应用或放弃作品设置中的输入，再继续对话或试玩。', 'Apply or discard the settings draft before chatting or playtesting.')}</p>}
             <div className="creation-assistant-entry">{providerInfo?.installed && providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'login', provider: effectiveProvider })}>{uiText('登录', 'Sign in')}</button>}{providerInfo?.installed && !providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}>{uiText('配置指南', 'Setup guide')}</button>}<button type="button" data-testid="simple-agent-setup" onClick={() => setSetupOpen(true)}><Settings size={14} aria-hidden="true" />{uiText('安装与连接助手', 'Install and connect assistants')}</button></div>
-            {attached.error && <p className="creation-chat-error" role="alert">{attached.error}</p>}
+            {attached.error && <p className="creation-chat-error" role="alert">{renderUiMessage(attached.error)}</p>}
             <form className={`creation-composer${dragging ? ' is-dragging' : ''}`} onSubmit={event => { event.preventDefault(); void send(); }}
               onDragOver={event => { if (event.dataTransfer.types.includes('Files')) { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; setDragging(true); } }}
               onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false); }}
@@ -480,7 +482,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                   onChange={next => void newConversation(next)} />
                 {providerInfo?.installed && <Check size={13} className="creation-provider-ready" aria-label={uiText('已检测到安装', 'Installation detected')} />}
               </div>
-                <div className="creation-model-settings"><AgentModelSelect value={effectiveModel} catalog={modelCatalog} active={active && home}
+                <div className="creation-model-settings"><AgentModelSelect value={effectiveModel} usesSessionModel={usesSessionModel} catalog={modelCatalog} active={active && home}
                   disabled={busy || attached.uploading || Boolean(agent.pending && agent.pending !== 'models') || agent.loading || !agent.available || !workspaceId}
                   onChange={model => void chooseModel(model)} onRefresh={() => void agent.invoke({ operation: 'models', provider: effectiveProvider })} />
                   <label className="creation-turn-choice"><Brain size={14} aria-hidden="true" /><select data-testid="simple-effort" aria-label={uiText('思考强度', 'Reasoning effort')}

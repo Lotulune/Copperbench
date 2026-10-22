@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FileText, ImageIcon, LoaderCircle, X } from 'lucide-react';
 import { attachmentRequest, type AgentAttachment } from '../bridge/agentBridge';
 import type { DraftAttachment } from '../hooks/useAgentAttachments';
-import { uiText } from '../i18n';
+import { renderUiMessage, uiText } from '../i18n';
 import './agentAttachments.css';
 
 function Thumbnail({ item }: { item: AgentAttachment }) {
@@ -36,7 +36,7 @@ export function AgentAttachments({ files, onRemove }: { files: (DraftAttachment 
         {draft?.state === 'uploading' ? <LoaderCircle size={20} className="creation-spinner" aria-hidden="true" />
           : item?.mediaType.startsWith('image/') ? <Thumbnail item={item} /> : <FileText size={21} aria-hidden="true" />}
         <span className="creation-attachment-label"><strong title={file.name}>{file.name}</strong><small>{draft?.state === 'uploading'
-          ? uiText('正在添加…', 'Adding…') : draft?.error ?? `${Math.max(1, Math.ceil(file.size / 1024))} KiB`}</small></span>
+          ? uiText('正在添加…', 'Adding…') : draft?.error ? renderUiMessage(draft.error) : `${Math.max(1, Math.ceil(file.size / 1024))} KiB`}</small></span>
         {onRemove && <button type="button" onClick={() => onRemove(key)} aria-label={uiText(`移除 ${file.name}`, `Remove ${file.name}`)}><X size={14} aria-hidden="true" /></button>}
       </li>;
     })}

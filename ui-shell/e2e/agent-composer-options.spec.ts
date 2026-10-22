@@ -3,7 +3,8 @@ import { test, expect, type Page } from '@playwright/test';
 test.use({ storageState: { cookies: [], origins: [] } });
 const pixel = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a7ioAAAAASUVORK5CYII=';
 
-async function fixture(page: Page, options: { dark?: boolean; english?: boolean; failure?: boolean; nativeSelection?: boolean } = {}) {
+async function fixture(page: Page, options: { dark?: boolean; english?: boolean; failure?: boolean; nativeSelection?: boolean;
+  uploadFailure?: 'begin' | 'chunk' | 'commit' | 'backend' | 'cleanup' | 'select' } = {}) {
   await page.addInitScript(({ options, pixel }) => {
     localStorage.setItem('copperbench.workbench.mode', 'simple');
     localStorage.setItem('copperbench.ui.locale', options.english ? 'en' : 'zh');
@@ -26,6 +27,13 @@ async function fixture(page: Page, options: { dark?: boolean; english?: boolean;
       unsupported: () => { snapshot.state = 'failed'; snapshot.error = 'Unsupported effort'; snapshot.messages.at(-1).delivery = 'failed'; snapshot.sequence++; } };
     window.__COPPERBENCH_AGENT_HOST__ = { nativeFileSelection: options.nativeSelection, async invoke(request: any) {
       calls.push(request);
+      if (request.operation === 'attachmentBegin' && options.uploadFailure === 'begin') return { ok: true };
+      if (request.operation === 'attachmentChunk' && options.uploadFailure === 'chunk') return { ok: true, offset: 0 };
+      if (request.operation === 'attachmentCommit' && options.uploadFailure === 'commit') return { ok: true };
+      if (request.operation === 'attachmentChunk' && options.uploadFailure === 'backend'
+        || request.operation === 'attachmentDiscard' && options.uploadFailure === 'cleanup'
+        || request.operation === 'attachmentSelect' && options.uploadFailure === 'select') return { ok: false, error: '附件操作失败：fixture.txt',
+          errorText: { key: 'attachment.fixture', zh: '附件操作失败：{name}', en: 'Attachment operation failed: {name}', args: { name: 'fixture.txt' } } };
       if (request.operation === 'attachmentTarget') { target = request.target; return { ok: true }; }
       if (request.operation === 'attachmentSelect') { const item = { id: crypto.randomUUID(), name: 'native-selected.txt', size: 10, mediaType: 'application/octet-stream' };
         uploads.set(item.id, item); return { ok: true, attachments: [item] }; }
@@ -81,6 +89,49 @@ async function fixture(page: Page, options: { dark?: boolean; english?: boolean;
   }, { options, pixel });
   await page.goto('/'); await expect(page.getByTestId('simple-prompt')).toBeVisible();
 }
+
+async function expectErrorInBothLocales(page: Page, error: string, translated: string) {
+  const surface = page.getByTestId('creation-shell');
+  // Error chips and batch errors both remain in the same mounted creation surface.
+  await expect(surface).toContainText(error);
+  await page.getByTestId('ui-language-select').selectOption('zh');
+  await expect(surface).toContainText(translated);
+  await expect(surface).not.toContainText(error);
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await expect(surface).toContainText(error);
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Keep the attachment draft');
+}
+
+for (const kind of ['empty', 'oversized', 'count', 'total'] as const) test(`attachment ${kind} validation follows language changes`, async ({ page }) => {
+  await fixture(page, { english: true });
+  await page.getByTestId('simple-prompt').fill('Keep the attachment draft');
+  const file = (size: number, index = 0) => ({ name: `notes-${index}.txt`, mimeType: 'text/plain', buffer: Buffer.alloc(size, 65) });
+  await page.getByTestId('agent-file-input').setInputFiles(kind === 'empty' ? file(0) : kind === 'oversized' ? file(10 * 1024 * 1024 + 1)
+    : kind === 'count' ? Array.from({ length: 9 }, (_, i) => file(1, i)) : Array.from({ length: 3 }, (_, i) => file(7 * 1024 * 1024, i)));
+  const copy = kind === 'count' ? ['Attach up to 8 files per message.', '每条消息最多 8 个附件。']
+    : kind === 'total' ? ['Attachments must total 20 MiB or less.', '附件总大小不能超过 20 MiB。']
+    : ['Each file must be non-empty and no larger than 10 MiB.', '附件须非空且不超过 10 MiB。'];
+  await expectErrorInBothLocales(page, copy[0], copy[1]);
+});
+
+for (const uploadFailure of ['begin', 'chunk', 'commit', 'backend', 'cleanup', 'select'] as const)
+  test(`attachment ${uploadFailure} failure follows language changes without losing drafts`, async ({ page }, info) => {
+    await fixture(page, { english: true, uploadFailure, nativeSelection: uploadFailure === 'select' });
+    await page.getByTestId('simple-prompt').fill('Keep the attachment draft');
+    if (uploadFailure === 'select') await page.getByRole('button', { name: 'Add files and images', exact: true }).click();
+    else await page.getByTestId('agent-file-input').setInputFiles({ name: 'fixture.txt', mimeType: 'text/plain', buffer: Buffer.from('fixture') });
+    if (uploadFailure === 'cleanup') {
+      await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+      await page.getByRole('button', { name: 'Remove fixture.txt', exact: true }).click();
+    }
+    const copy = uploadFailure === 'begin' ? ['The attachment upload did not start.', '附件上传未能开始。']
+      : uploadFailure === 'chunk' ? ['The attachment chunk was not acknowledged.', '附件分块未被确认。']
+      : uploadFailure === 'commit' ? ['The attachment was not saved completely.', '附件未保存完整。']
+      : ['Attachment operation failed: fixture.txt', '附件操作失败：fixture.txt'];
+    await expectErrorInBothLocales(page, copy[0], copy[1]);
+    if (uploadFailure === 'backend') await page.screenshot({ path: info.outputPath('attachment-error-english.png') });
+    expect(await page.evaluate(() => (window as any).composerFixture.calls.filter((call: any) => call.operation === 'send'))).toHaveLength(0);
+  });
 
 async function hasDrafts(page: Page) {
   return page.evaluate(async () => {

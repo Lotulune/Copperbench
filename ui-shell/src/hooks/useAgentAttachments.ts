@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { attachmentRequest, parseAttachmentReply, type AgentAttachment } from '../bridge/agentBridge';
-import { uiText } from '../i18n';
+import { AgentAttachmentError, attachmentErrorMessage, attachmentRequest, parseAttachmentReply, type AgentAttachment } from '../bridge/agentBridge';
+import { uiMessage, type UiMessage } from '../i18n';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 
-export interface DraftAttachment { key: string; name: string; size: number; state: 'uploading' | 'ready' | 'failed'; item?: AgentAttachment; error?: string }
+export interface DraftAttachment { key: string; name: string; size: number; state: 'uploading' | 'ready' | 'failed'; item?: AgentAttachment; error?: UiMessage }
 const MAX_COUNT = 8, MAX_FILE = 10 * 1024 * 1024, MAX_TOTAL = 20 * 1024 * 1024, CHUNK = 256 * 1024;
-const message = (error: unknown) => error instanceof Error ? error.message : String(error);
+const message = attachmentErrorMessage;
 
 /** Draft ownership survives conversation changes; uploads never submit a model request. */
 export function useAgentAttachments(workspaceId: string | undefined, draftKey: string, active: boolean) {
   const [drafts, setDrafts] = useState<Record<string, DraftAttachment[]>>({});
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UiMessage | null>(null);
   const [selecting, setSelecting] = useState(false);
   const current = useRef(drafts); current.current = drafts;
   const generation = useRef(0);
@@ -43,9 +43,9 @@ export function useAgentAttachments(workspaceId: string | undefined, draftKey: s
     const host = window.__COPPERBENCH_AGENT_HOST__;
     if (!workspaceId || !host || !files.length) return;
     setError(null);
-    if (existing.length + files.length > MAX_COUNT) { setError(uiText('每条消息最多 8 个附件。', 'Attach up to 8 files per message.')); return; }
-    if (files.some(file => file.size <= 0 || file.size > MAX_FILE)) { setError(uiText('附件须非空且不超过 10 MiB。', 'Each file must be non-empty and no larger than 10 MiB.')); return; }
-    if ([...existing, ...files].reduce((total, file) => total + file.size, 0) > MAX_TOTAL) { setError(uiText('附件总大小不能超过 20 MiB。', 'Attachments must total 20 MiB or less.')); return; }
+    if (existing.length + files.length > MAX_COUNT) { setError(uiMessage('每条消息最多 8 个附件。', 'Attach up to 8 files per message.')); return; }
+    if (files.some(file => file.size <= 0 || file.size > MAX_FILE)) { setError(uiMessage('附件须非空且不超过 10 MiB。', 'Each file must be non-empty and no larger than 10 MiB.')); return; }
+    if ([...existing, ...files].reduce((total, file) => total + file.size, 0) > MAX_TOTAL) { setError(uiMessage('附件总大小不能超过 20 MiB。', 'Attachments must total 20 MiB or less.')); return; }
     const additions = files.map(file => ({ key: safeRandomUUID(), name: file.name, size: file.size, state: 'uploading' as const }));
     // Reserve the entire batch synchronously so a second paste cannot evade count/size limits.
     current.current = { ...current.current, [key]: [...existing, ...additions] };
@@ -58,18 +58,18 @@ export function useAgentAttachments(workspaceId: string | undefined, draftKey: s
       try {
         if (generation.current !== ownGeneration || !current.current[key]?.some(row => row.key === entry.key)) { transfer.cancelled = true; continue; }
         const begun = await attachmentRequest({ operation: 'attachmentBegin', name: file.name, size: file.size }, host);
-        if (!begun.id || begun.offset !== 0) throw new Error(uiText('附件上传未能开始。', 'The attachment upload did not start.'));
+        if (!begun.id || begun.offset !== 0) throw new AgentAttachmentError(uiMessage('附件上传未能开始。', 'The attachment upload did not start.'));
         transfer.id = begun.id;
         for (let offset = 0; offset < file.size; offset += CHUNK) {
           if (transfer.cancelled || generation.current !== ownGeneration) throw new Error('cancelled');
           const bytes = new Uint8Array(await file.slice(offset, offset + CHUNK).arrayBuffer());
           let binary = ''; for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
           const result = await attachmentRequest({ operation: 'attachmentChunk', id: begun.id, offset, data: btoa(binary) }, host);
-          if (result.offset !== offset + bytes.length) throw new Error(uiText('附件分块未被确认。', 'The attachment chunk was not acknowledged.'));
+          if (result.offset !== offset + bytes.length) throw new AgentAttachmentError(uiMessage('附件分块未被确认。', 'The attachment chunk was not acknowledged.'));
         }
         if (transfer.cancelled || generation.current !== ownGeneration) throw new Error('cancelled');
         const result = await attachmentRequest({ operation: 'attachmentCommit', id: begun.id }, host);
-        if (!result.attachment) throw new Error(uiText('附件未保存完整。', 'The attachment was not saved completely.'));
+        if (!result.attachment) throw new AgentAttachmentError(uiMessage('附件未保存完整。', 'The attachment was not saved completely.'));
         patch({ state: 'ready', item: result.attachment });
         if (transfer.cancelled || generation.current !== ownGeneration) await attachmentRequest({ operation: 'attachmentDiscard', id: begun.id }, host);
       } catch (failure) {
@@ -83,7 +83,7 @@ export function useAgentAttachments(workspaceId: string | undefined, draftKey: s
     const files = current.current[key] ?? [];
     if (files.length + additions.length > MAX_COUNT || [...files, ...additions].reduce((n, item) => n + item.size, 0) > MAX_TOTAL) {
       for (const item of additions) void attachmentRequest({ operation: 'attachmentDiscard', id: item.id }).catch(() => {});
-      throw new Error(uiText('每条消息最多 8 个附件，总计不超过 20 MiB。', 'Attach up to 8 files totaling 20 MiB per message.'));
+      throw new AgentAttachmentError(uiMessage('每条消息最多 8 个附件，总计不超过 20 MiB。', 'Attach up to 8 files totaling 20 MiB per message.'));
     }
     update(key, previous => [...previous, ...additions.map(item => ({ key: item.id, name: item.name, size: item.size, state: 'ready' as const, item }))]);
     setError(null);

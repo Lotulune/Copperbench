@@ -5,8 +5,8 @@ import { agentText, validModelId, type AgentModelCatalog } from '../bridge/agent
 import { uiText } from '../i18n';
 import './agentModels.css';
 
-export function AgentModelSelect({ value, catalog, disabled, active, onChange, onRefresh }: {
-  value: string; catalog?: AgentModelCatalog; disabled: boolean; active: boolean;
+export function AgentModelSelect({ value, usesSessionModel = false, catalog, disabled, active, onChange, onRefresh }: {
+  value: string; usesSessionModel?: boolean; catalog?: AgentModelCatalog; disabled: boolean; active: boolean;
   onChange: (model: string) => void; onRefresh: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -19,6 +19,7 @@ export function AgentModelSelect({ value, catalog, disabled, active, onChange, o
   const id = useId();
   const choices = catalog?.models.filter(model => `${model.label} ${model.id}`.toLowerCase().includes(query.toLowerCase())) ?? [];
   const chosen = catalog?.models.find(model => model.id === value);
+  const emptyLabel = usesSessionModel ? uiText('沿用会话模型', 'Keep session model') : uiText('选择或输入模型', 'Choose or enter a model');
   const choose = (model: string) => { setOpen(false); trigger.current?.focus(); if (model !== value) onChange(model); };
   const expand = () => { setQuery(''); setManualId(value); setManual(false); setHighlight(0); setOpen(true); };
   useEffect(() => { if (disabled || !active) setOpen(false); }, [disabled, active]);
@@ -56,9 +57,9 @@ export function AgentModelSelect({ value, catalog, disabled, active, onChange, o
   useEffect(() => { if (open) document.getElementById(`${id}-option-${highlight}`)?.scrollIntoView({ block: 'nearest' }); }, [open, highlight, id]);
   return <>
     <button type="button" ref={trigger} className="creation-model-trigger" data-testid="simple-model" data-model-value={value}
-      aria-label={`${uiText('模型', 'Model')}: ${value || uiText('选择或输入模型', 'Choose or enter a model')}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined}
+      aria-label={`${uiText('模型', 'Model')}: ${value || emptyLabel}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined}
       title={value || undefined} disabled={disabled} onClick={() => open ? setOpen(false) : expand()}>
-      <span>{chosen?.label || value || uiText('选择或输入模型', 'Choose or enter a model')}</span><ChevronDown size={13} aria-hidden="true" />
+      <span>{chosen?.label || value || emptyLabel}</span><ChevronDown size={13} aria-hidden="true" />
     </button>
     {open && createPortal(<div ref={menu} id={id} role="dialog" aria-label={uiText('选择模型', 'Choose a model')} className="creation-model-menu" style={position}
       onKeyDown={keyDown} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null) && event.relatedTarget !== trigger.current) setOpen(false); }}>
@@ -83,7 +84,8 @@ export function AgentModelSelect({ value, catalog, disabled, active, onChange, o
       {!choices.length && catalog?.state !== 'loading' && <p>{uiText('没有匹配的模型，可输入服务提供的模型 ID。', 'No matching models. Enter a model ID from your service.')}</p>}
       {validModelId(query.trim()) && !choices.some(model => model.id === query.trim()) && <button type="button" className="creation-model-manual" onClick={() => choose(query.trim())}>{uiText('使用此模型 ID', 'Use this model ID')}: <code>{query.trim()}</code></button>}
       <p className="creation-model-scope">{catalog?.source === 'service' ? uiText('当前服务的模型列表', 'Configured service models') : uiText('CLI 模型列表', 'CLI models')}
-        {value && <span>{uiText('切换模型会新建对话', 'Changing models starts a new conversation')}</span>}</p>
+        {usesSessionModel && <span>{uiText('继续使用原 CLI 会话的模型', 'Continue with the original CLI session model')}</span>}
+        {(value || usesSessionModel) && <span>{uiText('切换模型会新建对话', 'Changing models starts a new conversation')}</span>}</p>
     </div>, document.body)}
   </>;
 }

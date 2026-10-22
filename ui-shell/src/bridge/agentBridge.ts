@@ -1,4 +1,4 @@
-import { formatTemplate, uiText } from '../i18n';
+import { formatTemplate, renderUiMessage, uiMessage, uiText, type UiMessage } from '../i18n';
 
 export interface AgentText { key: string; zh: string; en: string; args: Record<string, string> }
 export const agentText = (fallback: string | undefined, text?: AgentText) => text
@@ -47,6 +47,7 @@ export interface AgentSnapshot extends AgentTurnOptions {
   conversationId: string | null;
   provider: AgentProviderId | null;
   model?: string | null;
+  usesSessionModel?: boolean;
   sessions: AgentConversation[];
   messages: AgentMessage[];
   approvals: AgentApproval[];
@@ -104,19 +105,32 @@ const attachment = (value: unknown): value is AgentAttachment => record(value) &
   && ['application/octet-stream', 'image/png', 'image/jpeg', 'image/gif'].includes(String(value.mediaType));
 const attachmentList = (value: unknown) => value === undefined || Array.isArray(value) && value.length <= 8 && value.every(attachment);
 
+/** Preserve authored translations across asynchronous failures and later locale changes. */
+export class AgentAttachmentError extends Error {
+  readonly localizedMessage: UiMessage;
+  constructor(message: UiMessage) {
+    super(renderUiMessage(message));
+    this.localizedMessage = message;
+  }
+}
+export const attachmentErrorMessage = (error: unknown): UiMessage => error instanceof AgentAttachmentError
+  ? error.localizedMessage : error instanceof Error ? error.message : String(error);
+
 export function parseAttachmentReply(value: unknown): AgentAttachmentReply {
-  if (record(value) && value.ok === false && typeof value.error === 'string' && localized(value.errorText))
-    throw new Error(agentText(value.error, value.errorText as AgentText | undefined));
+  if (record(value) && value.ok === false && typeof value.error === 'string' && localized(value.errorText)) {
+    const text = value.errorText as AgentText | undefined;
+    throw new AgentAttachmentError(text ? uiMessage(formatTemplate(text.zh, text.args), formatTemplate(text.en, text.args)) : value.error);
+  }
   if (!record(value) || value.ok !== true || value.attachment !== undefined && !attachment(value.attachment)
     || !attachmentList(value.attachments) || !optionalString(value.id) || !optionalString(value.target)
     || value.offset !== undefined && (!Number.isSafeInteger(value.offset) || Number(value.offset) < 0)
     || value.dataUrl !== undefined && (typeof value.dataUrl !== 'string' || value.dataUrl.length > 400000 || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(value.dataUrl)))
-    throw new Error(uiText('附件响应无效，请重新添加。', 'Invalid attachment response. Add the file again.'));
+    throw new AgentAttachmentError(uiMessage('附件响应无效，请重新添加。', 'Invalid attachment response. Add the file again.'));
   return value as unknown as AgentAttachmentReply;
 }
 
 export async function attachmentRequest(request: AgentAttachmentRequest, host = window.__COPPERBENCH_AGENT_HOST__): Promise<AgentAttachmentReply> {
-  if (!host) throw new Error(uiText('附件需要桌面助手连接。', 'Attachments require the desktop assistant connection.'));
+  if (!host) throw new AgentAttachmentError(uiMessage('附件需要桌面助手连接。', 'Attachments require the desktop assistant connection.'));
   return parseAttachmentReply(await host.invoke(request));
 }
 const catalog = (value: unknown) => value === undefined || record(value)
@@ -132,6 +146,8 @@ export function parseAgentSnapshot(value: unknown): AgentSnapshot {
   if (record(value) && (!localized(value.errorText)
     || !turnOptions(value)
     || !modelId(value.model)
+    || (value.usesSessionModel !== undefined && (typeof value.usesSessionModel !== 'boolean'
+      || value.usesSessionModel && (typeof value.conversationId !== 'string' || !value.conversationId || value.model != null)))
     || (value.checking !== undefined && typeof value.checking !== 'boolean')
     || (value.linkOpened !== undefined && typeof value.linkOpened !== 'boolean')
     || (value.storageBlocked !== undefined && typeof value.storageBlocked !== 'boolean')
