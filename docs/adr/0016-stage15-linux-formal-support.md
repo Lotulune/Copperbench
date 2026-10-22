@@ -12,7 +12,7 @@ ADR-0014 将 Copperbench 首期正式平台收缩为 Windows 11 x64，并明确 
 
 ## 决策
 
-1. **Linux 正式支持进入 Stage 15。** `PRD-NEXT.md` 11.5 是 Stage 15 的功能范围与 Definition of Done；Linux 不再属于无限期 deferred 项。
+1. **Linux 正式支持进入 Stage 15。** [PRD-NEXT.md](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/PRD-NEXT.md) 11.5 是 Stage 15 的功能范围与 Definition of Done；Linux 不再属于无限期 deferred 项。
 2. **Stage 15 完成前，当前正式支持平台仍仅为 Windows 11 x64。** 不因为路线已确定就提前在 README、Release Notes、`product-status.json` 或 Release 页面宣称 Linux 已受支持。
 3. **首个正式 Linux 目标为 x86_64 桌面 Linux。** Stage 15 开工时必须冻结至少一个主流 LTS/稳定发行版及最低版本作为 clean-VM 认证基线；其它发行版只有在取得独立证据后才能提升为正式支持。
 4. **Linux 必须走完整产品而非“Java 核心能运行”口径。** 正式支持至少覆盖发行打包、bundled JDK/JCEF、桌面集成、Blockbench/外部工具、Gradle generate/build、真实 `runClient`、Desktop MCP/headless/external-Agent、clean Linux VM 与发布资产/provenance。
@@ -22,7 +22,7 @@ ADR-0014 将 Copperbench 首期正式平台收缩为 Windows 11 x64，并明确 
 
 ## 完成与支持声明
 
-Stage 15 只有在 `PRD-NEXT.md` 11.5.2 全部满足后才能把 Linux 标记为正式支持，至少包括：
+Stage 15 只有在 [PRD-NEXT.md](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/PRD-NEXT.md) 11.5.2 全部满足后才能把 Linux 标记为正式支持，至少包括：
 
 - clean Linux x86_64 候选在无系统 Java 环境启动并完成工作区 create/open/save/reopen；
 - bundled JDK/JCEF、真实 Gradle build 与图形化 `runClient` 有安装候选证据；

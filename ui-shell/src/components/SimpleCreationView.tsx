@@ -18,6 +18,7 @@ import { newestTasks } from './taskPresentation';
 import { AgentProviderIcon, AGENT_PROVIDER_NAMES as providerNames } from './AgentProviderIcon';
 import { AgentProviderSelect } from './AgentProviderSelect';
 import { AgentModelSelect } from './AgentModelSelect';
+import { AgentOptionSelect } from './AgentOptionSelect';
 import { AgentAttachments } from './AgentAttachments';
 import { AgentApprovalPrompt } from './AgentApprovalPrompt';
 import { AgentMessageBody } from './AgentMessageBody';
@@ -485,17 +486,17 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                 <div className="creation-model-settings"><AgentModelSelect value={effectiveModel} usesSessionModel={usesSessionModel} catalog={modelCatalog} active={active && home}
                   disabled={busy || attached.uploading || Boolean(agent.pending && agent.pending !== 'models') || agent.loading || !agent.available || !workspaceId}
                   onChange={model => void chooseModel(model)} onRefresh={() => void agent.invoke({ operation: 'models', provider: effectiveProvider })} />
-                  <label className="creation-turn-choice"><Brain size={14} aria-hidden="true" /><select data-testid="simple-effort" aria-label={uiText('思考强度', 'Reasoning effort')}
-                    aria-describedby="creation-effort-hint" value={effort} disabled={busy || Boolean(agent.pending)}
-                    onChange={event => setTurnPreferences(current => ({ ...current, [draftKey]: { effort: event.target.value as AgentEffort, permission } }))}>
-                    {AGENT_EFFORTS.map(level => <option key={level} value={level}>{level}</option>)}
-                  </select></label>
+                  <AgentOptionSelect<AgentEffort> value={effort} options={AGENT_EFFORTS.map(level => ({ value: level, label: level }))}
+                    icon={<Brain size={14} aria-hidden="true" />} label={uiText('思考强度', 'Reasoning effort')} testId="simple-effort"
+                    describedBy="creation-effort-hint" active={active && home} disabled={busy || Boolean(agent.pending)}
+                    onChange={next => setTurnPreferences(current => ({ ...current, [draftKey]: { effort: next, permission } }))} />
                 </div>
-                <label className="creation-turn-choice"><ShieldCheck size={14} aria-hidden="true" /><select data-testid="simple-permission" aria-label={uiText('执行权限', 'Execution permissions')}
+                <AgentOptionSelect<AgentPermission> value={permission} options={[
+                  { value: 'default', label: uiText('默认权限', 'Default permissions') },
+                  { value: 'auto-approve', label: uiText('自动批准', 'Automatic approval') }
+                ]} icon={<ShieldCheck size={14} aria-hidden="true" />} label={uiText('执行权限', 'Execution permissions')} testId="simple-permission"
                   title={uiText('默认权限沿用 CLI 的审批规则，需要批准时在对话中确认。', 'Default permissions follow CLI rules. Confirm requests in the conversation when approval is needed.')}
-                  value={permission} disabled={busy || Boolean(agent.pending)} onChange={event => void choosePermission(event.target.value as AgentPermission)}>
-                  <option value="default">{uiText('默认权限', 'Default permissions')}</option><option value="auto-approve">{uiText('自动批准', 'Automatic approval')}</option>
-                </select></label>
+                  active={active && home} disabled={busy || Boolean(agent.pending)} onChange={next => void choosePermission(next)} />
                 {/* A fast stop reply can reuse this node as Submit before the click default action. */}
                 {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={event => { event.preventDefault(); void agent.invoke({ operation: 'stop' }); }}><Square size={15} fill="currentColor" /></button>
                   : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={(!draft.trim() && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || busy || needsModel || Boolean(snapshot?.storageBlocked) || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}

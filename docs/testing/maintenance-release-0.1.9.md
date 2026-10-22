@@ -17,7 +17,7 @@ rejected. Real Gradle regressions cover both ordinary and forced Windows short
 paths, repeated exports and changed payload bytes; boundary regressions cover
 outside and linked archives.
 
-The configuration-cache and legacy data-pack fixes from [0.1.8](maintenance-release-0.1.8.md)
+The configuration-cache and legacy data-pack fixes from [0.1.8](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/maintenance-release-0.1.8.md)
 are retained. Its signed source tag and failed Windows run remain unchanged;
 the independently verified Linux 0.1.8 candidate was not promoted. The corrective 0.1.9 packages are now public on both platforms.
 

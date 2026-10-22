@@ -1,66 +1,43 @@
-# 仓库内容与本地空间维护
+# 仓库与文档维护
 
-## 项目内容
+## 项目目录
 
-| 目录 / 文件 | 用途 |
+| 目录 | 内容 |
 | --- | --- |
-| `src/`、`plugins/`、`vendor/`、`lib/`、`gradle/` | Java 产品、生成器、上游资源和构建输入 |
-| `ui-shell/`、`ui-core/` | 产品界面和 UI/Core 契约 |
-| `sdk/`、`scripts/`、`tools/` | SDK、构建/验收脚本和 Minecraft 控制桥 |
-| `docs/user/`、`docs/build/`、`docs/ai/` | 使用、开发和 AI 接入说明 |
-| `docs/research/` | 按原始日期保留的调研与项目评估 |
-| `assets/screenshots/` | 当前 README 与宣传用界面图；按产品版本分目录，入口列明可用图片与截图来源 |
-| `PRD*.md`、`docs/roadmap/`、`docs/handoffs/` | 需求演进、历史路线和交接上下文 |
-| `docs/testing/`、`evidence/` | 按日期、候选和验证层级保存的验收记录 |
-| `product-status.json`、`release-control/` | 交付状态、固定候选和发布授权 |
-| `.tmp/`、`build/`、`output/` | 本地中间文件混合区，包含工作树、测试工程、证据和构建产物 |
+| `src/`、`plugins/`、`vendor/`、`lib/`、`gradle/` | Java 产品、生成器、上游资源与构建输入 |
+| `ui-shell/`、`ui-core/` | 产品界面与 UI/Core 契约 |
+| `sdk/`、`scripts/`、`tools/` | SDK、构建与验证工具 |
+| `docs/user/`、`docs/ai/`、`docs/build/` | 用户、Agent 与开发指南 |
+| `docs/architecture/`、`docs/adr/`、`docs/security/` | 架构、决策与权限边界 |
+| `docs/releases/`、`docs/testing/`、`evidence/` | 发布说明、必要验收记录与原始证据 |
+| `product-status.json`、`release-control/` | 构建时状态、固定候选与发布授权 |
+| `assets/`、`compliance/`、`license/` | 展示素材、来源与许可 |
+| `output/`、`build/`、`.tmp/` | Git 忽略的本地产物和工作记录 |
 
-当前文档入口为 [文档导航](../README.md)和 [测试索引](../testing/README.md)。验收证据保留原路径和原始字节；退役展示素材与原型通过固定 Git 快照追溯，避免被误作当前产品界面。
+## 文档保留规则
 
-## 2026-10-11 过期展示素材清理
+- 常用入口集中在[文档导航](../README.md)。同一主题优先更新现有指南；中英文指南成对维护。
+- 当前版本与下载维护在[当前下载](../releases/current.md)，功能边界维护在[当前状态](../status.md)，待办只写入[维护清单](../remaining-work.md)。
+- 阶段计划、Agent 交接稿、逐次调试日志和本机清理记录放在 `output/`；进入项目的结论写入对应指南、PR 或发布说明。
+- 长期保留会影响使用、开发、兼容性或发布追溯的内容。新增独立文档时，在所属主题入口添加链接。
+- 发布授权绑定的文件保留原路径与字节。整理历史文档前检查状态清单、脚本和证据引用，再把历史链接改为固定提交，避免悬空引用。
 
-- 移除 `assets/screenshots/en/`、`assets/screenshots/zh-CN/` 下共 10 张 2026-09-14 的旧原生界面图；这些无版本路径中的图片早于 UI 改版，已被 0.1.4 展示图替代。
-- 移除 `prototypes/` 下 4 个 U0 HTML 页面及其 `mock-core.js`。该设计阶段已关闭，当前产品、构建和测试没有引用这些原型；三处历史文档入口改为[固定 Git 快照](https://github.com/Lotulune/Copperbench/tree/70261a71ce0403e00f8c118026f80c3579d554b7/prototypes)。
-- [当前宣传素材索引](../../assets/screenshots/README.md)列出 6 张中英文 0.1.4 图片与品牌图标，并注明浏览器示例来源；中英文 README、文档导航和 `AGENTS.md` 均指向该入口。
-- `evidence/` 中的发布验收图片、日志和哈希绑定文件保持不变；新增[证据目录说明](../../evidence/README.md)，明确按日期和候选读取，不用作当前宣传素材。未把旧图替换成新图或改写历史验收结果。
+<a id="history"></a>
 
-## 2026-10-06 文档整理
+## 历史文档快照
 
-- 中英文 README、快速开始、用户指南和当前待办统一到已发布的 Windows / Linux 0.1.4；下载地址与验证范围以[当前下载](../releases/current.md)为准。
-- 根目录的 2026-08-25 项目评估移入 [docs/research](../research/project-assessment-2026-08-25.md)，正文不变。PRD 和路线图保留历史内容，并在入口标明其历史状态。
-- 0.1.4 截图放在 `assets/screenshots/v0.1.4/`，当时保留了旧截图；旧展示图随后在 2026-10-11 退役，来源仍可从[截图说明](../../assets/screenshots/README.md)追溯。
-- 文档链接检查按 Git 文件清单扫描，包括尚未暂存的新文档。忽略构建输出和第三方依赖中的 Markdown；已跟踪文件即使位于忽略目录中也继续检查。
-- 本机旧工作台原型的 126 个文件已完整归档到 Git 忽略的 `output/workbench-next-archive/`，逐文件 SHA-256 不变；不把本地示例工程发布到 GitHub。
-- 本轮不改发布授权或历史验收证据，不把未提交的 Minecraft 控制桥工作带入文档发布。
+清理前的完整文档保留在提交 [`07924ba11a00`](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506)。旧内容仍可追溯，当前目录不再存放完整的阶段规划和过程日志。
 
-## 2026-09-28 清理范围
+- [旧 PRD](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/PRD.md) · [后续阶段需求](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/PRD-NEXT.md)
+- [阶段路线](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/roadmap) · [交接稿](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/handoffs) · [调研](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/research)
+- [历史测试记录](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing) · [旧维护记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/maintenance/repository-maintenance.md)
 
-用户要求整理旧文档、过程测试文件和空间，并明确选择正常关机后删除 `Copperbench-Stage17-Linux`，不保留其机内测试工作区。
+本地查看原文：
 
-清理后 D 盘可用空间由约 **2.12 GiB** 增至 **251.97 GiB**，净增加约 **249.85 GiB**。文件清单记录的删除量为虚拟磁盘 **104.82 GiB**，另有 **144.53 GiB** 的旧生成物，共 **304 个清理目标、277,142 个生成文件**。文件逻辑大小与磁盘可用空间变化是不同口径；盘符统计也受并行进程影响。
+```sh
+git show 07924ba11a00a8bab9ac1b720bbc01867f27a506:PRD-NEXT.md
+```
 
-- 该 VM 已正常关机。`Remove-VM` 报空引用错误后，通过 Hyper-V 的 CIM 管理接口移除同一 UUID 的注册，确认不存在后删除其约 104.82 GiB 的 VHDX。
-- 清理清单针对宿主 `D:/Hyper-V/Stage17-Linux/source-candidate*` 下旧候选的导出包、编译输出与 Gradle 本地状态，以及过期的 `candidate-root*.tar` 部署包；保留源快照、测试报告与宿主证据。
-- 项目内清理旧 0.1.1 下载副本、可重新生成的导出/文档/临时构建目录、测试运行输出和旧 JBR 探测副本。
-- 19 个附加 Git 工作树均保留，包括嵌套在 `.tmp/` 和 `build/` 内的工作树。保留现有未提交改动、控制桥虚拟环境与 `output/minecraft-validation`、当前 0.1.2 发布资料、源码测试、游戏工程和归档证据。
-- 不清理全局依赖缓存，不改 CI、系统配置、Git 历史或发布授权，不提交或推送。
+## 本地产物
 
-本机详细清单、前置文件哈希、移除回执和统计保存于 `output/cleanup-2026-09-28/`（Git 忽略）。清理后的旧本机产物路径不再承诺可用；重验需要重新生成产物，Linux 安装验收需要重新准备测试环境。清理不增加任何产品或游戏验收结论。
-
-## 清理后核对
-
-- 304 个清理目标均已不存在，每项均有成功回执；指定虚拟机的注册和磁盘均已不存在。
-- 21 个原有未提交文件的 SHA-256 保持不变，19 个附加 Git 工作树仍保留；本地 JBR/JDK 与控制桥 Python 环境存在。
-- `node scripts/verify-product-status.mjs` 通过：8 条生成器轨道、27 项门禁引用完整；`git diff --check` 通过。
-- 本次修改的 7 份文档没有断链；用现有 Markdown 检查器的相同链接规则校验 Git 管理及未忽略的新文档，全部通过。
-- 原始 `node scripts/verify-markdown-links.mjs` 会额外扫描 Git 忽略目录，仍报告 `output/` 草稿/下载文档中的 41 处断链及控制桥 `.venv` 第三方 NOTICE 的 1 处断链。这些位于保留的本地产物和依赖内；未为通过检查修改第三方文件、控制桥证据或检查器源码。
-- 清单压缩前后 SHA-256 一致；原约 453 MiB 的 CSV 已替换为约 37 MiB 的 gzip 存档。未运行编译或游戏验收：本次仅修改文档并清理本地产物。
-
-## 后续清理边界
-
-1. 先读 `git status` 和 `git worktree list`，检查目标是否被进程使用；不能按目录名或修改日期判断可删。
-2. 源码测试和夹具按实际引用与覆盖价值决定是否淘汰，不能只因名称含旧阶段而删除。
-3. 删除旧候选前保留所需日志、失败记录、哈希和来源。发布授权引用的文件保持字节不变。
-4. 删除时使用明确路径清单，校验解析后的路径、工作树边界与链接；避免 `git clean -fdx` 或整目录清空。
-5. 需要退役工作树时先检查其中独有改动和进行中的任务；Codex 管理的工作树使用归档工具。
-6. 清理完成后核对移除回执、磁盘剩余空间、原有改动哈希和产品状态引用。
+`output/`、`build/` 和 `.tmp/` 可能包含测试工程、工作树及尚未入库的证据。清理时逐项确认用途，保留用户工作区、进行中的任务与必要证据；源码测试不会因名称含旧阶段而自动退役。

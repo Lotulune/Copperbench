@@ -16,6 +16,6 @@ Copperbench Windows 与 Linux **0.1.17** 均已正式发布。修复旧会话原
 - Linux 候选的 13 项门禁、独立消费者和完整草稿下载比对通过；18 项公开资产及 8 个更新组件与固定候选及授权一致，见[Linux 发布记录](../testing/linux-publication-0.1.17.md)。
 - [本轮修复回归](../testing/assessment-0.1.16-fixes.md)覆盖旧格式会话、可控 CLI 子进程、附件生命周期及浏览器交互。真实账号的完整安装升级、Minecraft 玩家流程及 Linux GNOME/Wayland 完整认证未重新执行；Linux 保持 `formalSupportClaim=false`。
 
-[Windows 0.1.16](../testing/maintenance-release-0.1.16.md)、[Linux 0.1.16](../testing/linux-publication-0.1.16.md)及[当时的本地 Windows + Codex 首作](../testing/simple-mode-final-package-2026-10-22.md)保留各自源码、包哈希和范围，不转用于新包。
+[Windows 0.1.16](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/maintenance-release-0.1.16.md)、[Linux 0.1.16](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/linux-publication-0.1.16.md)及[当时的本地 Windows + Codex 首作](../testing/simple-mode-final-package-2026-10-22.md)保留各自源码、包哈希和范围，不转用于新包。
 
 随包文档与状态声明保留对应源码构建时的文本；后续发布记录不改变已发布字节。

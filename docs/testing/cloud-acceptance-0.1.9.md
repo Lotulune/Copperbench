@@ -51,6 +51,6 @@ The installer screenshots are offscreen renders. Workspace persistence is not
 player-world persistence. No removed Minecraft control bridge was started.
 
 The [0.1.7 failed acceptance](../../evidence/maintenance/2026-10-16/cloud-acceptance-0.1.7/README.md)
-and the [0.1.8 stopped release](maintenance-release-0.1.8.md) retain their original
+and the [0.1.8 stopped release](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/maintenance-release-0.1.8.md) retain their original
 results. The corrective publication and source checks are recorded in
 [the 0.1.9 release report](maintenance-release-0.1.9.md).

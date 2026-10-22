@@ -32,4 +32,4 @@ MCP 对外暴露领域操作，例如 `create_mod_element`、`update_mod_element
 
 - [OpenAI Codex 权限模式](https://learn.chatgpt.com/docs/permission-modes)
 - [OpenAI Codex 权限配置文件](https://learn.chatgpt.com/docs/permissions)
-- [MCP 调研](../research/mcp-landscape.md)
+- [MCP 调研](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/research/mcp-landscape.md)

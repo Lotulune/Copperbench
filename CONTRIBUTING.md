@@ -78,6 +78,12 @@ For ordinary UI code changes covered by smoke-only routing, run the affected Pla
 - For a reproduced bug, add a focused regression where it can verify the failure. Use existing tests and fixtures where they cover the behavior.
 - Keep JDKs, dependency caches, build outputs, credentials and user workspaces out of commits.
 
+## Maintain documentation
+
+Update the existing user, development or API guide for the affected topic, including its paired translation where present. Use the [documentation index](docs/README.md) for navigation and keep published versions in [current downloads](docs/releases/current.md).
+
+Keep one-off plans, agent handoffs and debugging logs in ignored `output/`. Commit durable guidance and required release evidence; summarize implementation work in the pull request. Historical plans and reports remain accessible through the [fixed Git snapshot](docs/maintenance/repository-maintenance.md#history). Preserve paths and bytes for hash-bound release evidence.
+
 ## Upstream and release records
 
 Preserve existing copyright headers, third-party notices and the [project license](LICENSE.txt). Follow [UPSTREAM.md](UPSTREAM.md) for imported or changed upstream code and record the change in [CHANGES-FROM-UPSTREAM.md](CHANGES-FROM-UPSTREAM.md).

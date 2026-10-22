@@ -218,11 +218,12 @@ test('manual input works without a catalog and effort stays immediately to the m
   await page.getByRole('button', { name: 'Use model', exact: true }).click();
   await expect(page.getByTestId('simple-prompt')).toHaveValue('Keep this draft');
   await expect(page.getByTestId('simple-model')).toHaveAttribute('data-model-value', 'deepseek-ai/custom');
-  await expect(page.getByTestId('simple-effort').locator('option')).toHaveText(['low', 'medium', 'high', 'xhigh', 'max']);
+  await page.getByTestId('simple-effort').click();
+  await expect(page.getByRole('listbox', { name: 'Reasoning effort' }).getByRole('option')).toHaveText(['low', 'medium', 'high', 'xhigh', 'max']);
   const model = await page.getByTestId('simple-model').boundingBox(), effort = await page.getByTestId('simple-effort').boundingBox();
   expect(effort!.x).toBeGreaterThanOrEqual(model!.x + model!.width);
   await expect(page.locator('#creation-effort-hint')).toContainText('Not all models support every level');
-  await page.getByTestId('simple-effort').selectOption('max'); await page.getByTestId('simple-send').click();
+  await page.getByRole('option', { name: 'max', exact: true }).click(); await page.getByTestId('simple-send').click();
   expect(await page.evaluate(() => (window as any).composerFixture.calls.findLast((call: any) => call.operation === 'send')))
     .toMatchObject({ model: 'deepseek-ai/custom', effort: 'max', permission: 'default' });
 });
@@ -259,23 +260,118 @@ test('file selection, pasted images, browser drops and native drops stay in the 
 
 test('automatic approval requires confirmation and rejected preflight retains draft and attachment', async ({ page }) => {
   await fixture(page);
-  await page.getByTestId('simple-permission').selectOption('auto-approve');
+  await page.getByTestId('simple-permission').click();
+  await page.getByRole('option', { name: '自动批准', exact: true }).click();
   await page.getByRole('button', { name: '取消', exact: true }).click();
-  await expect(page.getByTestId('simple-permission')).toHaveValue('default');
-  await page.getByTestId('simple-permission').selectOption('auto-approve');
+  await expect(page.getByTestId('simple-permission')).toHaveAttribute('data-option-value', 'default');
+  await expect(page.getByTestId('simple-permission')).toBeFocused();
+  await page.getByTestId('simple-permission').click();
+  await page.getByRole('option', { name: '自动批准', exact: true }).click();
   await page.getByRole('button', { name: '启用自动批准', exact: true }).click();
-  await expect(page.getByTestId('simple-permission')).toHaveValue('auto-approve');
+  await expect(page.getByTestId('simple-permission')).toHaveAttribute('data-option-value', 'auto-approve');
+  await page.getByTestId('simple-permission').click();
+  await expect(page.getByRole('option', { name: '自动批准', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.getByTestId('simple-permission').press('Escape');
   await page.getByTestId('agent-file-input').setInputFiles({ name: 'keep.txt', mimeType: 'text/plain', buffer: Buffer.from('keep') });
   await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
   await page.getByTestId('simple-prompt').fill('Do not lose this draft');
   await page.evaluate(() => (window as any).composerFixture.reject(true));
   await page.getByTestId('simple-send').click();
   await expect(page.getByTestId('simple-effort')).toBeDisabled();
+  await expect(page.getByTestId('simple-permission')).toBeDisabled();
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.findLast((call: any) => call.operation === 'send')))
+    .toMatchObject({ permission: 'auto-approve' });
   await page.evaluate(() => (window as any).composerFixture.unsupported());
   await expect(page.getByTestId('simple-agent-error')).toContainText('Unsupported effort');
   await expect(page.getByTestId('simple-prompt')).toHaveValue('Do not lose this draft');
   await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
 });
+
+test('turn menus support keyboard selection and dismiss without changing the draft', async ({ page }) => {
+  await fixture(page, { english: true });
+  const effort = page.getByTestId('simple-effort'), permission = page.getByTestId('simple-permission');
+  const menu = page.getByRole('listbox', { name: 'Reasoning effort' });
+  await page.getByTestId('simple-prompt').fill('Keep this draft');
+  await expect(effort).toHaveRole('combobox');
+  await expect(effort).toHaveAccessibleDescription(/Choose an effort supported by your model/);
+  await effort.focus(); await effort.press('ArrowUp');
+  await expect(menu.getByRole('option', { name: 'medium', exact: true })).toHaveAttribute('data-highlighted', 'true');
+  await effort.press('ArrowDown');
+  await expect(menu.getByRole('option', { name: 'high', exact: true })).toHaveAttribute('data-highlighted', 'true');
+  await effort.press('Home');
+  await expect(menu.getByRole('option', { name: 'low', exact: true })).toHaveAttribute('data-highlighted', 'true');
+  await effort.press('End');
+  await expect(menu.getByRole('option', { name: 'max', exact: true })).toHaveAttribute('data-highlighted', 'true');
+  await effort.press('Escape');
+  await expect(menu).toHaveCount(0); await expect(effort).toBeFocused();
+  await expect(effort).toHaveAttribute('data-option-value', 'medium');
+  await effort.press('Space'); await effort.press('h'); await effort.press('Enter');
+  await expect(effort).toHaveAttribute('data-option-value', 'high');
+  await expect(menu).toHaveCount(0); await expect(effort).toBeFocused();
+  await effort.click(); await effort.press('Home'); await effort.press('Space');
+  await expect(effort).toHaveAttribute('data-option-value', 'low');
+  await effort.click(); await effort.press('Tab');
+  await expect(menu).toHaveCount(0); await expect(permission).toBeFocused();
+  await effort.click(); await permission.click();
+  await expect(menu).toHaveCount(0);
+  await expect(page.getByRole('listbox', { name: 'Execution permissions' })).toBeVisible();
+  await permission.press('Escape'); await expect(permission).toBeFocused();
+  await effort.click(); await page.getByTestId('simple-model').click();
+  await expect(menu).toHaveCount(0);
+  await expect(page.getByRole('dialog', { name: 'Choose a model' })).toBeVisible();
+  await page.keyboard.press('Escape'); await effort.click();
+  // The upward menu covers the textarea center; click its exposed leading edge.
+  await page.getByTestId('simple-prompt').click({ position: { x: 16, y: 16 } }); await expect(menu).toHaveCount(0);
+  await effort.click();
+  await page.evaluate(() => { const snapshot = (window as any).composerFixture.snapshot; snapshot.state = 'running'; snapshot.sequence++; });
+  await expect(effort).toBeDisabled(); await expect(permission).toBeDisabled(); await expect(menu).toHaveCount(0);
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Keep this draft');
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.filter((call: any) => call.operation === 'send'))).toHaveLength(0);
+});
+
+for (const dark of [false, true]) for (const compact of [false, true])
+  test(`turn menus match the model picker and open upward (${dark ? 'dark' : 'light'}, ${compact ? 'compact' : 'desktop'})`, async ({ page }, info) => {
+    if (compact) await page.setViewportSize({ width: 500, height: 600 });
+    await fixture(page, { dark, english: compact });
+    const triggerStyle = (element: HTMLElement | SVGElement) => {
+      const style = getComputedStyle(element);
+      return [style.fontSize, style.color, style.padding, style.borderRadius, style.minHeight];
+    };
+    const menuStyle = (element: HTMLElement | SVGElement) => {
+      const style = getComputedStyle(element);
+      return [style.backgroundColor, style.color, style.borderColor, style.borderRadius, style.boxShadow, style.padding, style.font];
+    };
+    const model = page.getByTestId('simple-model');
+    const expectedTriggerStyle = await model.evaluate(triggerStyle);
+    await model.click();
+    const modelMenu = page.getByRole('dialog', { name: compact ? 'Choose a model' : '选择模型' });
+    const expectedMenuStyle = await modelMenu.evaluate(menuStyle);
+    const selectedBackground = await modelMenu.getByRole('option', { selected: true }).evaluate(element => getComputedStyle(element).backgroundColor);
+    await page.keyboard.press('Escape');
+    for (const [testId, label, selection] of [
+      ['simple-effort', compact ? 'Reasoning effort' : '思考强度', 'medium'],
+      ['simple-permission', compact ? 'Execution permissions' : '执行权限', compact ? 'Default permissions' : '默认权限']
+    ]) {
+      const trigger = page.getByTestId(testId);
+      await expect(trigger).toHaveRole('combobox');
+      expect(await trigger.evaluate(triggerStyle)).toEqual(expectedTriggerStyle);
+      await trigger.click();
+      const menu = page.getByRole('listbox', { name: label, exact: true });
+      await expect(menu).toBeVisible(); await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      const selected = menu.getByRole('option', { name: selection, exact: true });
+      await expect(selected).toHaveAttribute('aria-selected', 'true');
+      expect(await selected.evaluate(element => getComputedStyle(element).backgroundColor)).toBe(selectedBackground);
+      expect(await menu.evaluate(menuStyle)).toEqual(expectedMenuStyle);
+      const bounds = (await menu.boundingBox())!, anchor = (await trigger.boundingBox())!, viewport = page.viewportSize()!;
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(anchor.y - 5);
+      expect(bounds.y).toBeGreaterThanOrEqual(12); expect(bounds.x).toBeGreaterThanOrEqual(12);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width - 12);
+      for (const option of await menu.getByRole('option').all()) await expect(option).toBeInViewport();
+      await page.screenshot({ path: info.outputPath(`${testId}-menu.png`), animations: 'disabled' });
+      await trigger.press('Escape'); await expect(trigger).toBeFocused();
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
 
 test('desktop file button uses the native selector and keeps attachments before send', async ({ page }) => {
   await fixture(page, { nativeSelection: true });

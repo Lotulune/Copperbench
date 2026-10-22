@@ -1,93 +1,27 @@
-# Documentation / 项目文档导航
+# Documentation / 项目文档
 
-各平台当前发布版本、下载链接、源码身份和包级验证统一列在[当前下载](./releases/current.md)；源码能力与预览边界见[当前状态与发布能力](./status.md)。Windows 与 Linux 的发布进度分别记录。
+[当前下载 / Downloads](releases/current.md) · [功能与支持范围 / Status](status.md) · [用户指南 / User guide](user/README.md)
 
-历史需求与验收保留各自日期、候选和验证范围。查阅某次发布时，使用该版本的记录核对来源和资产，不把后续源码检查转作旧包或新包的验收。
+## 开始使用 / Get started
 
-0.1.17 的两平台二进制均来自源码 `81563c9bc6ae4371b662a65b1b0bbf5ce9e5e4cb`；[Windows 发布记录](./testing/maintenance-release-0.1.17.md)和 [Linux 发布记录](./testing/linux-publication-0.1.17.md)分别记录构建、候选晋级与公开资产结果。版本变更见 [Windows 说明](./releases/v0.1.17.md)和 [Linux 说明](./releases/v0.1.17-linux.md)。
-
-## 从这里开始
-
-1. 使用产品：[第一件作品](./user/first-creation.md)、[用户指南](./user/README.md)、[当前下载](./releases/current.md)。
-2. 开发与维护：[开发环境](./build/development-setup.md)、[剩余完善清单](./remaining-work.md)、[测试与证据索引](./testing/README.md)。
-3. 制作宣传片、封面或产品介绍：[当前宣传素材与截图来源](../assets/screenshots/README.md)。
-4. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
-5. 只有遇到专项问题时，才从本页选择对应附件。
-
-Choose a route below. Each key guide links directly to the same topic in the other language. [Current downloads](./releases/current.md) is the entry for published platform versions and package verification; [current status](./status.md) describes source capabilities and preview boundaries. Historical records keep their original scope.
-
-| Route / 路线 | 简体中文 | English |
+| 路线 / Route | 简体中文 | English |
 | --- | --- | --- |
-| Install / 安装 | [快速开始](./user/getting-started.md) · [Ubuntu](./user/linux-installation.md) | [Quick start](./user/getting-started.en.md) · [Ubuntu](./user/linux-installation.en.md) |
-| First creation / 首作 | [步道方块](./user/first-creation.md) | [Trail Block](./user/first-creation.en.md) |
-| Simple creation / 简洁首作 | [对话创作](./user/simple-creation.md) | [Conversational creation](./user/simple-creation.en.md) |
-| Build failure → export / 失败到导出 | [修复与交付](./user/build-and-export.md) | [Recovery and delivery](./user/build-and-export.en.md) |
-| Agent / 自动化 | [选择接入](./ai/getting-started.md) · [同一作品](./ai/trail-block.md) | [Choose an entry](./ai/getting-started.en.md) · [The same creation](./ai/trail-block.en.md) |
-| Contribute / 源码贡献 | [开发环境](./build/development-setup.md) | [Development setup](./build/development-setup.en.md) · [Contributing](../CONTRIBUTING.md) |
+| 安装 / Install | [Windows](user/getting-started.md) · [Ubuntu](user/linux-installation.md) | [Windows](user/getting-started.en.md) · [Ubuntu](user/linux-installation.en.md) |
+| 第一件作品 / First creation | [步道方块](user/first-creation.md) · [对话创作](user/simple-creation.md) | [Trail Block](user/first-creation.en.md) · [Conversational creation](user/simple-creation.en.md) |
+| 构建与导出 / Build and export | [修复与交付](user/build-and-export.md) | [Recovery and delivery](user/build-and-export.en.md) |
+| Agent 接入 / Automation | [接入指南](ai/getting-started.md) · [API 示例](ai/trail-block.md) | [Setup](ai/getting-started.en.md) · [API example](ai/trail-block.en.md) |
+| 源码贡献 / Contribute | [开发环境](build/development-setup.md) | [Development setup](build/development-setup.en.md) · [Contributing](../CONTRIBUTING.md) |
 
-## 决策记录
+## 按需查阅 / Reference
 
-- [ADR 0001：以 MCreator 为产品基础](./adr/0001-fork-mcreator-as-the-product-base.md)
-- [ADR 0002：Fabric 为主、NeoForge 为辅](./adr/0002-support-fabric-and-neoforge-with-fabric-first.md)
-- [ADR 0003：单活动生成器与复制式迁移](./adr/0003-use-one-active-generator-per-workspace.md)
-- [ADR 0004：四条 Minecraft 版本轨道](./adr/0004-maintain-four-minecraft-version-tracks.md)
-- [ADR 0005：第一方 MCP 控制面](./adr/0005-ship-a-first-party-mcp-control-plane.md)
-- [ADR 0006：上游工作区与插件兼容](./adr/0006-preserve-upstream-workspace-and-plugin-compatibility.md)
-- [ADR 0007：继承资源包工具并集成 Blockbench](./adr/0007-reuse-resource-pack-tools-and-integrate-blockbench.md)
-- [ADR 0008：本地 Git 工作区历史](./adr/0008-use-local-git-for-workspace-history.md)
-- [ADR 0009：手写源码作为高级出口](./adr/0009-support-manual-source-as-an-advanced-exit.md)
-- [ADR 0010：Java 核心与 TypeScript 边界](./adr/0010-use-java-for-core-and-typescript-for-blockbench.md)
-- [ADR 0011：重写自适应无边框产品外壳](./adr/0011-replace-the-upstream-user-interface.md)
-- [ADR 0012：内置并维护 Fabric 生成器](./adr/0012-bundle-and-own-the-fabric-generator.md)
-- [ADR 0013：基于 MCreator 稳定标签发布](./adr/0013-release-from-upstream-stable-tags.md)
-- [ADR 0014：Windows 首发与离线优先](./adr/0014-target-windows-and-operate-offline-first.md)
-- [ADR 0015：GitHub 未签名 GPL 衍生版](./adr/0015-github-unsigned-gpl-fork.md)
+| 主题 / Topic | 入口 / Resources |
+| --- | --- |
+| 使用与排错 / Using the app | [故障排查](user/troubleshooting.md) · [Blockbench](user/blockbench-setup.md) · [Python 工作台](user/python-workbench.md) |
+| SDK 与协议 / SDK and protocol | [SDK](../sdk/README.md) · [协议](../sdk/protocol.md) · [Agent 手册](ai/agent-playbook.md) · [权限模型](security/permission-model.md) |
+| 架构 / Architecture | [系统总览](architecture/system-overview.md) · [UI/Core 契约](architecture/ui-core-contract.md) · [插件兼容](architecture/plugin-compatibility.md) · [术语](../CONTEXT.md) · [ADR](adr/) |
+| 维护与发布 / Maintenance | [当前待办](remaining-work.md) · [测试](testing/README.md) · [发布流程](build/release-process.md) · [仓库与文档维护](maintenance/repository-maintenance.md) |
+| 素材与来源 / Media and attribution | [当前截图](../assets/screenshots/README.md) · [品牌素材](../assets/branding/README.md) · [上游来源](../UPSTREAM.md) · [第三方许可](../compliance/README.md) |
 
-## 专项设计
+旧 PRD、阶段计划和过程日志从[历史文档快照](maintenance/repository-maintenance.md#history)查阅。当前目录保留使用、开发、接口与发布所需的文档。
 
-- [系统架构总览](./architecture/system-overview.md)
-- [UI 与 Java Core 合同](./architecture/ui-core-contract.md)
-- [上游插件兼容架构](./architecture/plugin-compatibility.md)
-- [MCP 与自动化权限模型](./security/permission-model.md)
-- [Fabric 1.21.1 纵向能力清单](./compatibility/fabric-1211-vertical-slice.md)
-- [阶段与发布门禁](./testing/release-gates.md)
-- [剩余完善清单](./remaining-work.md)
-- [Windows 干净构建基线](./build/windows-clean-build.md)
-
-## 历史需求与交接
-
-- [2026-08-25 项目评估](./research/project-assessment-2026-08-25.md)
-
-- [阶段 0–7 需求基线](../PRD.md)、[阶段 9](../PRD-STAGE-9.md)、[后续深化路线](../PRD-NEXT.md)、[Stage 17](../PRD-STAGE-17.md)
-- [历史路线图](./roadmap/README.md)、[Blockbench 专项](../PRD-BLOCKBENCH.md)
-- [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)、[zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
-- [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)、[阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)、[阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
-
-这些文档中的“待完成”“未发布”描述对应当时的状态。当前平台发布与包级支持范围以[当前下载](./releases/current.md)为准；历史证据原址保留，避免破坏链接和发布哈希绑定。已退役的展示截图和 U0 原型通过固定 Git 快照追溯，不作为当前界面素材。
-
-## 开发与发布
-
-- [开发环境](./build/development-setup.md)
-- [Windows 干净构建基线](./build/windows-clean-build.md)
-- [Windows 预览版发布流程](./build/release-process.md)
-- [预览版说明模板](./releases/preview-template.md)
-
-## 用户与 AI
-
-- [快速开始](./user/getting-started.md)
-- [用户指南](./user/README.md)
-- [故障排查](./user/troubleshooting.md)
-- [MCP 接入快速开始](./ai/getting-started.md)
-- [AI SDK 与评测](../sdk/README.md)
-- [AI 协议规则](../sdk/protocol.md)
-
-## 调研依据
-
-- [MCP 生态与可复用项目](./research/mcp-landscape.md)
-- [MCreator 资源包现有能力](./research/mcreator-resource-pack-capabilities.md)
-- [语言与运行时选择](./research/language-and-runtime-options.md)
-- [Fabric Generator 采用方案](./research/fabric-generator-adoption.md)
-
-## 执行前确认
-
-[执行期未决事项](./open-decisions.md)记录需要实测的决策边界；当前待办以 [剩余完善清单](./remaining-work.md) 为入口。已由 ADR 固化的决策不得在任务实现中被隐式改写。维护变更继续遵守既有兼容与发布门禁；项目目录和本地清理边界见 [仓库维护说明](./maintenance/repository-maintenance.md)。
+Historical plans and work logs are available in the [documentation snapshot](maintenance/repository-maintenance.md#history).

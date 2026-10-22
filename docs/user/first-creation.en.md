@@ -70,4 +70,4 @@ An ordinary export proves a build/copy; player confirmation records observed beh
 | Missing texture | Restore `minecraft:stone`, save, build and start a new client. |
 | Exit not successful | Inspect final client logs/state before marking the route complete. |
 
-The [2026-10-14 input-check record](../testing/first-success-2026-10-14.md) is historical evidence, not acceptance of the new guide or this run. Package-specific evidence is linked from [current downloads](../releases/current.md).
+The [2026-10-14 input-check record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/first-success-2026-10-14.md) is historical evidence, not acceptance of the new guide or this run. Package-specific evidence is linked from [current downloads](../releases/current.md).

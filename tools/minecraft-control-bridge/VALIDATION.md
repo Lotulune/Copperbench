@@ -109,7 +109,7 @@ v0.1.1 在 Windows 与 Linux 各通过 29 项自动化测试。游戏测试随�
 
 49 项回归通过，含真实 MCP/worker 的单请求流程和并发急停测试。已重连后实际 doctor 确认 0.2.0，复用已校准的 854×480 默认英文菜单模板：一次 `mc_menu_flow(enter_world)` 在 **8.324 秒**进入指定 `PRD17 Scene C v7`；一次 `mc_menu_flow(save_and_quit)` 在 **1.600 秒**完成保存并观察到窗口关闭。每个流程包含三批本地输入，不需要逐按钮的主模型/Jev 往返，本轮 Jev 调用为 0。
 
-主 LLM 另行核验世界保存、Stopping 日志、客户端 PID 消失和 Copperbench task succeeded。两个请求计时不包含 Minecraft 启动、一次校准、用户切焦点及最终证据审查，不与上一轮包含其他操作的总会话时间计算比例。完整范围、准备阶段失焦和证据见 [本地菜单流程验收](../../docs/testing/minecraft-control-menu-flows-2026-09-23.md)。
+主 LLM 另行核验世界保存、Stopping 日志、客户端 PID 消失和 Copperbench task succeeded。两个请求计时不包含 Minecraft 启动、一次校准、用户切焦点及最终证据审查，不与上一轮包含其他操作的总会话时间计算比例。完整范围、准备阶段失焦和证据见 [本地菜单流程验收](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/minecraft-control-menu-flows-2026-09-23.md)。
 
 ## v0.1.2 合同与操作策略修复（2026-09-22）
 
