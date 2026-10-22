@@ -169,6 +169,7 @@ jobs:
           name: nightly-gate-core-${{ github.run_attempt }}
           path: |
             output/nightly-results/core/
+            build/nightly-results/stage9-native-jcef-scale.json
             build/reports/tests/
             build/reports/workspace-doctor/
             build/test-results/
