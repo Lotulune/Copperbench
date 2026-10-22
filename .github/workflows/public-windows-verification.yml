@@ -1,4 +1,4 @@
-name: Verify public Windows 0.1.9 assets
+name: Verify public Windows 0.1.17 assets
 
 on:
   workflow_call:
@@ -37,20 +37,23 @@ jobs:
           assert os.environ['GITHUB_REPOSITORY']=='Lotulune/Copperbench'
           PY
           git fetch --depth=1 origin "$SOURCE_SHA"
-          gh api repos/Lotulune/Copperbench/releases/tags/v0.1.9 > "$evidence/public-release.json"
-          gh release download v0.1.9 --repo Lotulune/Copperbench --dir "$payload"
+          gh api repos/Lotulune/Copperbench/releases/tags/v0.1.17 > "$evidence/public-release.json"
+          gh release download v0.1.17 --repo Lotulune/Copperbench --dir "$payload"
           python scripts/cloud-acceptance/verify-public-assets.py --platform windows --source "$SOURCE_SHA" \
             --release "$evidence/public-release.json" --payload "$payload" --result "$evidence/public-verification.json"
           release_run="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["workflowRun"])' "$payload/RELEASE-METADATA.json")"
           [[ "$release_run" =~ ^[1-9][0-9]*$ ]]
           gh api "repos/Lotulune/Copperbench/actions/runs/$release_run" > "$evidence/release-run.json"
           python scripts/cloud-acceptance/verify-candidate-provenance.py --payload "$payload" \
-            --metadata RELEASE-METADATA.json --workflow deploy.yml --source-ref refs/tags/v0.1.9 \
+            --metadata RELEASE-METADATA.json --workflow deploy.yml --source-ref refs/tags/v0.1.17 \
             --source "$SOURCE_SHA" --run "$release_run" --output "$evidence/provenance"
           python scripts/cloud-acceptance/verify-candidate-package.py \
-            --archive "$payload/Copperbench.0.1.9.Windows.64bit.zip" --source "$SOURCE_SHA" \
+            --archive "$payload/Copperbench.0.1.17.Windows.64bit.zip" --source "$SOURCE_SHA" \
             --result "$evidence/archive-entry-verification.json"
-          cp "$payload/RELEASE-METADATA.json" "$payload/SHA256SUMS.txt" "$payload/product-status.json" "$evidence/"
+          python scripts/cloud-acceptance/verify-public-fix-markers.py \
+            --archive "$payload/Copperbench.0.1.17.Windows.64bit.zip" --source "$SOURCE_SHA" \
+            --result "$evidence/fix-markers.json"
+          cp "$payload/RELEASE-METADATA.json" "$payload/SHA256SUMS.txt" "$payload/product-status.json" "$payload/copperbench-update-windows-x64.properties" "$evidence/"
           python - <<'PY'
           import os,json,hashlib
           from pathlib import Path
@@ -59,8 +62,8 @@ jobs:
           assert run['head_sha']==os.environ['SOURCE_SHA'] and run['conclusion']=='success'
           assert run['path']=='.github/workflows/deploy.yml'
           result={'status':'passed','kind':'cloud-public-windows-byte-verification','sourceCommit':os.environ['SOURCE_SHA'],
-                  'releaseTag':'v0.1.9','releaseRun':str(run['id']),'verificationRun':os.environ['GITHUB_RUN_ID'],
-                  'harnessCommit':os.environ['GITHUB_SHA'],'scope':'All ten public assets downloaded and matched API/checksum/provenance; package docs, version, fix classes and data-pack template inspected; installation acceptance is separate'}
+                  'releaseTag':'v0.1.17','releaseRun':str(run['id']),'verificationRun':os.environ['GITHUB_RUN_ID'],
+                  'harnessCommit':os.environ['GITHUB_SHA'],'scope':'All fifteen public assets downloaded and matched API/checksum/provenance; package docs, version, fix classes and data-pack template inspected; installation acceptance is separate'}
           (root/'result.json').write_text(json.dumps(result,indent=2)+'\n')
           hashes={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
           (root/'evidence-hashes.json').write_text(json.dumps(hashes,indent=2)+'\n')
@@ -68,7 +71,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: public-windows-0.1.9-verification
+          name: public-windows-0.1.17-verification
           path: output/minecraft-validation/public-windows-verification/
           if-no-files-found: error
           retention-days: 30
