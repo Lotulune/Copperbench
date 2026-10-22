@@ -82,6 +82,6 @@
 
 最终日志 `output/stage17-v38/resumed/full-regression-final.log`，原始日志 `.tmp/gradle-external/5bb91f41a3c14702963dd3bafbbd230b.log`；全部 XML、逐套件统计/跳过项和哈希在 `resumed/full-regression-final-evidence/`。最终测试源 SHA-256 `590cb4354cb64f8890bed6e5113412038ffa1de4d9103b8530087fb9507cf8eb`，相对冻结源的测试补丁为 `resumed/persistence-fixture-final.patch`。运行源码与冻结 v38 一致，Windows 和 Ubuntu 已安装主 JAR 哈希相同，见 `resumed/final-source-audit.json`。
 
-G17-A～D 按原 PRD 的受影响范围完成证据核对，汇总见 [最终门禁核对](stage-17-final-gate-review-2026-09-25.md)。条件跳过保留为未执行，本轮不扩大历史八轨/平台/UI/独立试作的证据范围；不声称固定玩家 UUID 库存连续、Ubuntu 默认直连网络、全量冷缓存或三个无介入完整试作通过。历史失联 task 继续保持未知。
+G17-A～D 按原 PRD 的受影响范围完成证据核对，汇总见 [最终门禁核对](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/stage-17-final-gate-review-2026-09-25.md)。条件跳过保留为未执行，本轮不扩大历史八轨/平台/UI/独立试作的证据范围；不声称固定玩家 UUID 库存连续、Ubuntu 默认直连网络、全量冷缓存或三个无介入完整试作通过。历史失联 task 继续保持未知。
 
 本轮已获授权安装 Ubuntu v38；未提交、推送或发布候选，未推进与提交绑定的 `product-status.json`。开发候选验收与公开发行分别记账。

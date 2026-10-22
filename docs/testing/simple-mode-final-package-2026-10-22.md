@@ -2,7 +2,7 @@
 
 日期：2026-10-22（Asia/Tokyo）。Windows + Codex 的 SC-04 首作全流程通过，包含本次独立审查修复及最新附件、思考强度、权限、手动模型、模式切换和交付布局。没有提交、推送或发布。
 
-本记录补齐[独立审查报告](simple-mode-independent-review-2026-10-22.md)中“最新候选包尚未完整重验”的缺口。其他平台和后端不由这一条结果推定通过。
+本记录补齐[独立审查报告](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/simple-mode-independent-review-2026-10-22.md)中“最新候选包尚未完整重验”的缺口。其他平台和后端不由这一条结果推定通过。
 
 ## 候选身份与环境
 
@@ -98,10 +98,10 @@
 
 ## 范围与剩余未测项
 
-本轮完整通过的是此候选包、Windows、Codex `gpt-6.1-sol/high/default`、Fabric 1.21.1 的简单方块路线。配合[独立审查及回归](simple-mode-independent-review-2026-10-22.md)，补齐 SC-04 的主平台/主后端闭环。本轮未发现需要新增产品代码修复的失败。
+本轮完整通过的是此候选包、Windows、Codex `gpt-6.1-sol/high/default`、Fabric 1.21.1 的简单方块路线。配合[独立审查及回归](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/simple-mode-independent-review-2026-10-22.md)，补齐 SC-04 的主平台/主后端闭环。本轮未发现需要新增产品代码修复的失败。
 
 - Linux、其他 CLI 的同包完整首作、朋友独立体验、全新主机/冷 Gradle 缓存未执行。
-- Grok 文件、DSH 模型目录和其他后端协议能力沿用各自[聊天选项验收](agent-composer-options.md)的范围；Claude 当前源故障未在本轮重试。没有把历史记录算作这些后端的新包全流程验证。
+- Grok 文件、DSH 模型目录和其他后端协议能力沿用各自[聊天选项验收](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-composer-options.md)的范围；Claude 当前源故障未在本轮重试。没有把历史记录算作这些后端的新包全流程验证。
 - 自动批准的传参与确认、容量上限/损坏恢复、手动模型失败路径等边界依据已有真实临时文件服务测试及浏览器回归；未在这条桌面首作中重新填满 100 会话/16 MiB，也未开启主机自动批准。
 - 原生文件选择器与图片读取已实测；Windows Explorer 实际拖放和所有后端图片能力未在本轮扩测。
 - 应用内既有通用帮助的部分中文标题仍保留；新增简洁首作路线和双模式教程的双语与交互已检查。

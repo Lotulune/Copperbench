@@ -75,10 +75,9 @@ Windows 安装包未做 Authenticode 签名，首次构建需要联网，Blockbe
 
 ## 文档
 
-- [文档导航](docs/README.md) · [第一件作品](docs/user/first-creation.md) · [构建失败与导出](docs/user/build-and-export.md)
-- [Agent 接入](docs/ai/getting-started.md) · [用公开 API 创建同一个步道方块](docs/ai/trail-block.md) · [SDK](sdk/README.md)
-- [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [项目目录与维护](docs/maintenance/repository-maintenance.md)
-- [当前状态：下载版／源码／预览／未验证](docs/status.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
+- [使用指南](docs/user/README.md) · [下载](docs/releases/current.md) · [故障排查](docs/user/troubleshooting.md)
+- [Agent 接入](docs/ai/getting-started.md) · [SDK](sdk/README.md)
+- [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [全部文档](docs/README.md)
 
 <a id="development"></a>
 

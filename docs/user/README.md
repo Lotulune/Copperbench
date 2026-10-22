@@ -29,7 +29,7 @@
 
 八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.2 Linux 安装包的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/maintenance-012-linux-installed-2026-09-28.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部 Agent 与陌生用户研究已按用户要求终止；内部回归不替代陌生用户可用性验证。
 
-资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.17 的记录见 [Windows 说明](../releases/v0.1.17.md)和 [Linux 说明](../releases/v0.1.17-linux.md)。
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.17 的记录见 [Windows 说明](../releases/v0.1.17.md)和 [Linux 说明](../releases/v0.1.17-linux.md)。
 
 ## 模组元素
 

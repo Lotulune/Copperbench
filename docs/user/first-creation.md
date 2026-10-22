@@ -81,4 +81,4 @@
 | 方块显示黑紫贴图 | 检查纹理是否仍为 `minecraft:stone`，保存、构建并重启客户端。 |
 | 客户端已关闭但任务仍运行或失败 | 查看任务最后日志和退出状态，先处理退出问题再判定本次流程完成。 |
 
-历史输入检查范围见[2026-10-14 记录](../testing/first-success-2026-10-14.md)，不代表新增引导或本次游戏步骤已经验收。当前平台包的证据范围以[当前下载中的发布记录](../releases/current.md)为准。
+历史输入检查范围见[2026-10-14 记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/first-success-2026-10-14.md)，不代表新增引导或本次游戏步骤已经验收。当前平台包的证据范围以[当前下载中的发布记录](../releases/current.md)为准。

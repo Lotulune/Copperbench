@@ -1,6 +1,6 @@
 # Native SDK discovery and diagnostic changes
 
-The [agent-readiness PRD](../../docs/roadmap/agent-readiness-prd-2026-10-09.md) separates SDK compatibility, Core discovery and real delivery acceptance. The [M1 record](../../docs/testing/agent-readiness-m1.md) records the current verification scope.
+The [agent-readiness PRD](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/roadmap/agent-readiness-prd-2026-10-09.md) separates SDK compatibility, Core discovery and real delivery acceptance. The [M1 record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-readiness-m1.md) records the current verification scope.
 
 ## Discover only published contracts
 
@@ -74,7 +74,7 @@ Simple named placeholders in diagnostic fallbacks are replaced using `message.ar
 
 `Workspace.preview_generation()` and `CopperbenchClient.preview_generation()` return the Core envelope for `preview_generation`; TypeScript exposes `previewGeneration()`. Inspect `data.status`: `ready` is a source-safety observation, `conflicted` contains bounded per-path ownership conflicts, and `unknown` means the backend cannot establish a complete result. No status issues a write permit or establishes build/gameplay acceptance.
 
-The query returns the observed revision, workspace-input fingerprint (nullable when unsafe/unavailable), managed paths, total counts and explicit truncation flags. It neither prepares dependencies nor writes workspace files. Execution uses the same plan and checks inputs again; changing source after a successful preview can still reject generation. Older hosts retain their normal unsupported-operation error. See [usage and limits](README.md#生成前只读预检) and the [adapter verification record](../../docs/testing/generation-preflight-2026-10-09.md).
+The query returns the observed revision, workspace-input fingerprint (nullable when unsafe/unavailable), managed paths, total counts and explicit truncation flags. It neither prepares dependencies nor writes workspace files. Execution uses the same plan and checks inputs again; changing source after a successful preview can still reject generation. Older hosts retain their normal unsupported-operation error. See [usage and limits](README.md#生成前只读预检) and the [adapter verification record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/generation-preflight-2026-10-09.md).
 
 ## Verification
 
@@ -82,4 +82,4 @@ The query returns the observed revision, workspace-input fingerprint (nullable w
 python -W error::ResourceWarning -m unittest discover -s sdk/python -p 'test_*.py'
 ```
 
-The SDK regressions are protocol-level tests. They do not replace real Core, packaged-JAR or installed-client acceptance. The [contract-alignment record](../../docs/testing/sdk-contract-alignment-2026-10-11.md) covers the corrected missing-contract, literal-message and source-navigation behavior. The [initial implementation record](../../docs/testing/agent-readiness-2026-10-09.md) retains its historical scope.
+The SDK regressions are protocol-level tests. They do not replace real Core, packaged-JAR or installed-client acceptance. The [contract-alignment record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/sdk-contract-alignment-2026-10-11.md) covers the corrected missing-contract, literal-message and source-navigation behavior. The [initial implementation record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-readiness-2026-10-09.md) retains its historical scope.

@@ -128,4 +128,4 @@ Windows 的 JVM 属性附加查询被拒绝，因此未使用该查询作为运�
 DeepSeek README 确认官方 npm 包 `@deepseek-ai/dsh`；界面提供该包的 npm 全局安装方式以让宿主发现 `dsh`。连接检查只发送协议初始化，不发送模型提示词。Antigravity 不提供该检查，成功真实回复才能记录请求验证。
 
 
-后续模型强度、附件和手动模型输入的独立验证见[聊天选项验收](agent-composer-options.md)，不沿用本页旧候选包的游戏结论。
+后续模型强度、附件和手动模型输入的独立验证见[聊天选项验收](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-composer-options.md)，不沿用本页旧候选包的游戏结论。
