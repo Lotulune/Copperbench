@@ -93,7 +93,11 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const previewAsset = visibleAssets.find(asset => asset.id === assetId);
   const recentTask = newestTasks(Object.values(state.tasks))[0];
   const taskRunning = Object.values(state.tasks).some(task => task.state === 'queued' || task.state === 'running');
-  const works = useMemo(() => state.elements.filter(element => `${element.displayName} ${element.name}`.toLowerCase().includes(workSearch.trim().toLowerCase())), [state.elements, workSearch]);
+  // Keep session/draft/task ownership mounted across modes, but do not build thousands
+  // of hidden sidebar buttons on every Core query notification in Professional mode.
+  const works = useMemo(() => active
+    ? state.elements.filter(element => `${element.displayName} ${element.name}`.toLowerCase().includes(workSearch.trim().toLowerCase()))
+    : [], [active, state.elements, workSearch]);
 
   useEffect(() => { if (snapshot?.provider) setProvider(snapshot.provider); }, [snapshot?.provider]);
   useEffect(() => {

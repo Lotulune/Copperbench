@@ -389,3 +389,46 @@ test('provider icons identify choices and conversations with keyboard access and
   await expect(menu).toHaveCount(0);
   await expect(page.getByTestId('simple-prompt')).toBeFocused();
 });
+
+test('professional mode omits the large hidden list while repeated switches retain search, selection and drafts', async ({ page }) => {
+  await installAgentFixture(page);
+  await page.goto('/');
+  const lamp = page.locator('[data-testid^="simple-element-"]').filter({ hasText: 'Copper Lamp' });
+  await lamp.click();
+  await page.getByRole('tab', { name: '设置', exact: true }).click();
+  const parameter = page.locator('[data-testid^="simple-parameter-"]').first();
+  await parameter.fill('Retained parameter draft');
+  await page.getByTestId('simple-prompt').fill('Retained chat draft');
+  await page.evaluate(async () => {
+    const { coreBridge } = await import('/src/bridge/index.ts');
+    const state = coreBridge.getState();
+    const original = [...state.elements];
+    state.elements = [...original, ...Array.from({ length: 2000 - original.length }, (_, index) => ({
+      ...original[0], id: `scale-mode-${index}`, name: `scale_mode_${index}`, displayName: `Scale mode ${index}`
+    }))];
+    // Fixture-only state publication exercises the same provider subscription as native query notifications.
+    (coreBridge as unknown as { notifyState(): void }).notifyState();
+  });
+  await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(2000);
+  const search = page.getByRole('searchbox', { name: '查找作品内容', exact: true });
+  await search.fill('Copper Lamp');
+  await expect(lamp).toHaveAttribute('aria-pressed', 'true');
+  const detectCount = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByTestId('mode-professional').click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    await page.getByTestId('nav-data').click();
+    await page.getByTestId('creator-data-view').getByRole('button', { name: '刷新', exact: true }).click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    expect(await unsavedDrafts(page)).toBe(true);
+    await page.getByTestId('mode-simple').click();
+    await expect(search).toHaveValue('Copper Lamp');
+    await expect(lamp).toHaveAttribute('aria-pressed', 'true');
+    await expect(parameter).toHaveValue('Retained parameter draft');
+    await expect(page.getByTestId('simple-prompt')).toHaveValue('Retained chat draft');
+  }
+  await search.fill('');
+  await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(2000);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length)).toBe(detectCount);
+});
+
