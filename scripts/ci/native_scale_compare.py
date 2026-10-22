@@ -18,7 +18,7 @@ from nightly import save, sha256
 TEST = 'dev.copperbench.shell.Stage9NativeJcefScaleGateTest'
 EVIDENCE = Path('build/nightly-results/stage9-native-jcef-scale.json')
 XML = Path(f'build/test-results/test/TEST-{TEST}.xml')
-BASELINE = 'e98adf9f130e20565adcefca2f111549c2070252'
+BASELINE = '5d88dd2a2cc02c64df7c3320c9ed1fafbbe333c5'
 
 
 def verify_checkout(root: Path, expected: str):

@@ -18,7 +18,7 @@ on:
       scale_baseline_sha:
         description: "Full diagnostic-only baseline commit SHA"
         type: string
-        default: e98adf9f130e20565adcefca2f111549c2070252
+        default: 5d88dd2a2cc02c64df7c3320c9ed1fafbbe333c5
 
 permissions:
   contents: read
