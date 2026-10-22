@@ -13,15 +13,15 @@
 | **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
 | **包级验收边界** | 最终包安装／升级／卸载、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开按各包记录确认；旧性能和缓存结论保留原范围 | [平台验证范围](releases/current.md) |
 
-## 0.1.16 发布快照
+## 0.1.17 发布快照
 
-Windows 与 Linux **0.1.16** 已公开，链接与核验见[当前下载](releases/current.md)。两平台二进制源码为 `c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0`；Linux 签名发布标签指向 `ec9a70e1e18ff78cebf4c276211363baaca77371`，直接晋级固定候选文件。
+Windows 与 Linux **0.1.17** 已公开，下载链接与核验见[当前下载](releases/current.md)。两平台二进制源码为 `81563c9bc6ae4371b662a65b1b0bbf5ce9e5e4cb`；Linux 签名发布标签指向 `7be632956b05e9d5a87e85ba527bd5e7a86dd300`。
 
 | 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **0.1.16 已交付能力** | 双语简洁引导、实际模型目录与手动输入、思考强度、附件、会话权限、Markdown/复制、历史恢复和隐藏侧栏优化 | [Windows 变更](releases/v0.1.16.md) · [Linux 变更](releases/v0.1.16-linux.md) · [简洁首作](user/simple-creation.md) |
-| **发布验证** | Windows 15 项公开资产、10 项下载字节/来源及 4 个更新组件核对；Linux 13 项候选门禁、独立核验、完整草稿比对、18 项公开资产及 8 个更新组件核对 | [Windows 记录](testing/maintenance-release-0.1.16.md) · [Linux 记录](testing/linux-publication-0.1.16.md) |
-| **实机与剩余范围** | 本地 Windows + Codex 候选完成游戏放置、保存重开与应用继续；正式重建包的完整安装/升级/卸载和玩家验收未重复。Linux 保持 `formalSupportClaim=false` | [候选首作](testing/simple-mode-final-package-2026-10-22.md) · [Linux 范围](testing/maintenance-linux-0.1.16.md) |
+| **0.1.17 修复** | 旧会话原位续聊、附件错误即时翻译、截断消息后的附件回收、窄窗模式名称完整显示 | [Windows 变更](releases/v0.1.17.md) · [Linux 变更](releases/v0.1.17-linux.md) |
+| **发布验证** | Windows 公开资产与更新组件核验；Linux 候选、独立消费者、签名授权及完整草稿比对 | [Windows 记录](testing/maintenance-release-0.1.17.md) · [Linux 记录](testing/linux-publication-0.1.17.md) |
+| **验证范围** | 旧格式、可控 CLI 子进程、浏览器与构建检查通过；真实账号完整升级和玩家流程未复验，Linux `formalSupportClaim=false` | [源码回归](testing/assessment-0.1.16-fixes.md) · [Linux 固定授权](testing/maintenance-linux-0.1.17.md) |
 
 ## 支持范围
 

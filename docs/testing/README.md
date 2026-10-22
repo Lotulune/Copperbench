@@ -7,7 +7,7 @@
 | 内容 | 入口 |
 | --- | --- |
 | 当前平台发布与包级验证 | [当前下载与发布记录](../releases/current.md) |
-| 0.1.17 修复与发布准备 | [发布记录](maintenance-release-0.1.17.md) · [旧会话、附件与窄窗回归](assessment-0.1.16-fixes.md) |
+| Windows／Linux 0.1.17 发布与验证 | [Windows 发布记录](maintenance-release-0.1.17.md) · [Linux 发布记录](linux-publication-0.1.17.md) · [Linux 固定授权](maintenance-linux-0.1.17.md) · [修复回归](assessment-0.1.16-fixes.md) |
 | Windows／Linux 0.1.16 发布与验证 | [Windows 发布记录](maintenance-release-0.1.16.md) · [Linux 发布记录](linux-publication-0.1.16.md) · [Linux 固定授权](maintenance-linux-0.1.16.md) · [独立审查](simple-mode-independent-review-2026-10-22.md) · [本地候选首作](simple-mode-final-package-2026-10-22.md) |
 | Windows／Linux 0.1.15 发布与验证 | [Windows 发布记录](maintenance-release-0.1.15.md) · [Linux 发布记录](linux-publication-0.1.15.md) · [Linux 候选授权](maintenance-linux-0.1.15.md) |
 | 0.1.14 未发布构建 | [失败原因与保留记录](maintenance-release-0.1.14.md) |

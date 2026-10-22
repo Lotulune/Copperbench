@@ -20,4 +20,4 @@ If startup is blank, use the package's bundled runtime and fully extract `jdk/` 
 
 Version changes, known issues and verification scope are linked from [current downloads](../releases/current.md). Each package retains the features of its release; when reading newer source-branch documentation, check your installed version and available controls.
 
-For later updates, choose **Check for updates** in **Help & about** and follow the prompts. The [Windows 0.1.16 notes](../releases/v0.1.16.md) and [Linux 0.1.16 notes](../releases/v0.1.16-linux.md) record that release's platform changes and verification scope.
+For later updates, choose **Check for updates** in **Help & about** and follow the prompts. The [Windows 0.1.17 notes](../releases/v0.1.17.md) and [Linux 0.1.17 notes](../releases/v0.1.17-linux.md) record that release's platform changes and verification scope.

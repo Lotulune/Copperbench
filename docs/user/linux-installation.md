@@ -6,30 +6,30 @@
 
 ## 校验与安装
 
-核对同一 Release 附带的 `linux-candidate-sha256.txt`、`LINUX-RELEASE-AUTHORIZATION.json` 及 GitHub 来源证明。以下文件名和哈希对应 0.1.16；其他版本应使用自己的校验清单。
+核对同一 Release 附带的 `linux-candidate-sha256.txt`、`LINUX-RELEASE-AUTHORIZATION.json` 及 GitHub 来源证明。以下文件名和哈希对应 0.1.17；其他版本应使用自己的校验清单。
 
-[Linux 0.1.16](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.16-linux-stable) 的公开文件哈希如下，仅适用于该版本：
+[Linux 0.1.17](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.17-linux-stable) 的公开文件哈希如下，仅适用于该版本：
 
-- `copperbench_0.1.16_amd64.deb`：`96cd39fba71273981e6b8accea18ba73b67f5c2213077b3a0aba1bc9fcd08ebb`。
-- `Copperbench.0.1.16.Linux.x86_64.tar.gz`：`b27084b1a7875ba50a6c4e11306892a0e1f932624ba4d6b8b435b99dc5a1bf2b`。
-- `Copperbench.0.1.16.Linux.x86_64.Setup.tar.gz`：`9d1d74dc066a11d3724912209bd7eb5c47a06a036405ca04dbca4c9713e325c4`。
+- `copperbench_0.1.17_amd64.deb`：`1ca009b4084868c12b79d7fd6d6341897ef696a62e49ca1d81b80978a01d117a`。
+- `Copperbench.0.1.17.Linux.x86_64.tar.gz`：`9e4062ecdd57ddc7ff954befd60212d0ded123e20f84615e89c9ddec97fab3fc`。
+- `Copperbench.0.1.17.Linux.x86_64.Setup.tar.gz`：`8170a6cb157f50a25a16873862d36c503de50b38343aa1b4f55ba3bd7f5880c8`。
 
 图形安装：解压 Setup 包，运行 `Install Copperbench`，按[双语向导说明](graphical-installation.md)完成安装。
 
-下面以 0.1.16 为例；安装其他版本时使用对应 Release 的文件名与解压目录。在下载文件所在目录执行：
+下面以 0.1.17 为例；安装其他版本时使用对应 Release 的文件名与解压目录。在下载文件所在目录执行：
 
 ```sh
-sudo apt install ./copperbench_0.1.16_amd64.deb
+sudo apt install ./copperbench_0.1.17_amd64.deb
 ```
 
-然后从应用菜单启动 Copperbench，或运行 `copperbench`。0.1.16 便携版解压后运行：
+然后从应用菜单启动 Copperbench，或运行 `copperbench`。0.1.17 便携版解压后运行：
 
 ```sh
-tar -xzf Copperbench.0.1.16.Linux.x86_64.tar.gz
-./Copperbench0116/copperbench.sh
+tar -xzf Copperbench.0.1.17.Linux.x86_64.tar.gz
+./Copperbench0117/copperbench.sh
 ```
 
-GitHub 将候选包文件名中的空格规范化为点；原候选清单仍使用 `Copperbench 0.1.16 Linux x86_64.tar.gz`。两者字节和 SHA-256 相同；使用原候选校验器时，将下载文件保存为清单中的原名。
+GitHub 将候选包文件名中的空格规范化为点；原候选清单仍使用 `Copperbench 0.1.17 Linux x86_64.tar.gz`。两者字节和 SHA-256 相同；使用原候选校验器时，将下载文件保存为清单中的原名。
 
 ## 设置与使用
 
@@ -39,11 +39,11 @@ GNOME 自动登录会话可能需要通过系统提示正常解锁密钥环，JC
 
 Debian 包可用 `sudo apt remove copperbench` 卸载；用户设置和自行选择的工作区保留。继续按[第一件作品](first-creation.md)创作；若该安装版本没有首启引导，可按教程手动新建 Fabric 1.21.1 工作区。
 
-## 0.1.16 发布与验证
+## 0.1.17 发布与验证
 
-0.1.16 完善简洁引导、模型与附件、会话权限、历史恢复和隐藏侧栏性能，并补齐随包 UI 依赖许可正文。13 项候选门禁、独立消费者核验、来源证明和草稿下载字节比对通过，18 项公开资产及 8 个更新组件的大小与 SHA-256 已核对；未重复完整 GNOME 安装、升级、卸载或玩家操作验收，详见[发布记录](../testing/linux-publication-0.1.16.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)和[0.1.4 记录](../testing/product-shell-linux-publication-0.1.4.md)保留原范围。
+0.1.17 修复旧会话原位续聊、附件错误语言切换、长会话附件回收及窄窗口模式名称截断。13 项候选门禁、独立消费者核验、来源证明和草稿下载字节比对通过，18 项公开资产及 8 个更新组件的大小与 SHA-256 已核对；未重复完整 GNOME 安装、升级、卸载或玩家操作验收，详见[发布记录](../testing/linux-publication-0.1.17.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)和[0.1.4 记录](../testing/product-shell-linux-publication-0.1.4.md)保留原范围。
 
-该版本变更见 [0.1.16 Linux 说明](../releases/v0.1.16-linux.md)；各平台当前版本见[当前下载](../releases/current.md)。
+该版本变更见 [0.1.17 Linux 说明](../releases/v0.1.17-linux.md)；各平台当前版本见[当前下载](../releases/current.md)。
 
 ## 历史 0.1.7 包的核验记录
 
