@@ -23,4 +23,6 @@ The [local integration receipt](../../evidence/maintenance/2026-10-22/release-0.
 
 PR/main CI, documentation, full Windows preflight, signed tagging, official Windows packaging, and Linux exact-candidate authorization/publication will be recorded here as they finish. No final package hashes or public timestamps are asserted before the workflows and public assets are verified.
 
+Final package inspection found that the new Markdown runtime's upstream license texts were absent from the distribution license directory. A packaging-only follow-up adds the actual bundled UI packages' upstream texts and source hashes, retaining the existing Blockly notice, and makes the frozen-archive consumer require the notice file byte-for-byte whenever it exists in that source. Runtime code is unchanged. The earlier `7a0317f4` Linux candidate and its successful independent verification remain evidence for that source; final publication must use the rebuilt candidate containing these notices.
+
 Full official installer upgrade/uninstall, 360 scanning, cold-cache installation, independent novice usability, Linux gameplay and other CLI full workflows are not newly claimed. Existing support gates retain their original scope; Linux maintenance publication must keep `formalSupportClaim=false` and exact frozen-byte provenance.

@@ -30,6 +30,12 @@ MCreator 插件页面曾显示 LGPLv3，与固定仓库文件不一致。产品�
 
 固定 MCreator 源码的 `license/` 目录包含 Apache Commons、Log4j、Blockly、FlatLaf、FreeMarker、Gradle、Gson、Guava、JGit、JNA、OpenJDK、RSyntaxTextArea、SnakeYAML Engine 等依赖的许可或通知。此文件仅作为阶段 0 索引，不替代完整许可证正文，也不表示未来 JCEF/React 依赖已完成审计。
 
+### Copperbench Web UI（2026-10-22）
+
+`license/Copperbench UI Dependency Licenses.txt` 收录生产 UI 中 55 个 npm 包提供的完整许可/通知正文，包含 React、Lucide、react-markdown 及 Markdown 解析依赖。Blockly 继续使用原有 `license/Blockly License.txt`，上游通知保持不变。
+
+范围依据实际生产 bundle 的模块清单；包版本由 `ui-shell/package-lock.json` 固定。各上游许可文件及汇总正文的 SHA-256 保存在 `evidence/maintenance/2026-10-22/ui-runtime-licenses.json`。Windows、Linux 和 macOS 的现有导出任务复制整个 `license/` 目录，许可正文随包提供；这项记录不扩大各平台的支持或验收声明。
+
 ## 可选外部建模工具（2026-09-13）
 
 - [Blockbench](https://github.com/JannisX11/blockbench)：GPLv3；官方说明允许插件/主题采用独立许可，原创输出归创作者所有。
