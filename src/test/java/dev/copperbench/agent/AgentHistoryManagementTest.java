@@ -12,6 +12,77 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgentHistoryManagementTest {
     @TempDir Path root;
 
+    @Test void truncatedAttachmentsSurviveReopenAndAreReclaimedOnlyAfterTheirLastConversationIsDeleted() throws Exception {
+        AgentAttachments.Item unique, shared;
+        try (AgentAttachments files = new AgentAttachments(root)) {
+            unique = AgentAttachmentsTest.add(files, "old.txt", new byte[] { 1, 2, 3, 4 });
+            shared = AgentAttachmentsTest.add(files, "shared.txt", new byte[] { 5, 6, 7, 8 });
+        }
+        AgentChatStore store = new AgentChatStore(root);
+        var longSession = store.create("codex"); longSession.remoteId = "native-long"; longSession.interrupted = true;
+        for (int i = 0; i < 1000; i++) {
+            JsonObject message = AgentJson.object("id", "message-" + i, "role", "user", "text", "History " + i, "at", i);
+            if (i < 2) message.add("attachments", AgentJson.array((i == 0 ? unique : shared).json()));
+            longSession.messages.add(message);
+        }
+        var other = store.create("claude");
+        other.messages.add(AgentJson.object("id", "shared-reference", "role", "user", "text", "Keep shared file", "at", 1,
+                "attachments", AgentJson.array(shared.json())));
+        store.selected = longSession.id; store.save();
+        try (AgentChatService service = new AgentChatService(root)) {
+            JsonObject loaded = service.handle(new JsonObject()); // The interrupted-session notice exercises normal message retention.
+            assertEquals(1000, loaded.getAsJsonArray("messages").size());
+            assertEquals("retention", AgentJson.string(loaded.getAsJsonArray("messages").get(0).getAsJsonObject(), "id"));
+            assertFalse(loaded.getAsJsonArray("messages").toString().contains(unique.id()));
+            service.handleAttachment(AgentJson.object("operation", "attachmentDiscard", "id", unique.id()));
+            assertTrue(Files.exists(unique.path()), "Native resume still needs the expired message's file");
+        }
+        AgentChatStore saved = new AgentChatStore(root); saved.load();
+        assertEquals(Set.of(unique.id(), shared.id()), saved.sessions.get(longSession.id).retainedAttachmentIds);
+        assertEquals("native-long", saved.sessions.get(longSession.id).remoteId);
+        Path source = root.resolve("draft.txt"); Files.writeString(source, "Unsent draft");
+        try (AgentChatService service = new AgentChatService(root)) {
+            JsonObject imported = service.importDroppedAttachments(List.of(source));
+            String draft = AgentJson.string(imported.getAsJsonArray("attachments").get(0).getAsJsonObject(), "id");
+            Path draftCopy = new AgentAttachments(root).read(draft).path();
+            Path directory = unique.path().getParent().getParent();
+            long stored = 0;
+            try (var paths = Files.walk(directory)) {
+                for (Path path : paths.filter(Files::isRegularFile).toList()) stored += Files.size(path);
+            }
+            try (var padding = new java.io.RandomAccessFile(directory.resolve("budget.bin").toFile(), "rw")) {
+                padding.setLength(AgentAttachments.MAX_STORE_BYTES - stored);
+            }
+            JsonObject full = service.handleAttachment(AgentJson.object("operation", "attachmentBegin", "name", "next.txt", "size", 4));
+            assertFalse(full.get("ok").getAsBoolean()); assertTrue(AgentJson.string(full, "error").contains("256 MiB"));
+            JsonObject deleted = service.handle(AgentJson.object("operation", "deleteConversation", "conversationId", longSession.id, "confirmed", true));
+            assertFalse(deleted.has("error"), deleted.toString());
+            assertFalse(Files.exists(unique.path().getParent()));
+            assertTrue(Files.exists(shared.path()), "Another conversation still owns the shared attachment");
+            assertTrue(Files.exists(draftCopy), "Unsent draft attachments must survive unrelated deletion");
+            assertTrue(service.handleAttachment(AgentJson.object("operation", "attachmentBegin", "name", "next.txt", "size", 4)).get("ok").getAsBoolean(),
+                    "Deleting the truncated attachment must release storage budget");
+            service.handle(AgentJson.object("operation", "deleteConversations", "conversationIds", AgentJson.array(new JsonPrimitive(other.id)), "confirmed", true));
+            assertFalse(Files.exists(shared.path().getParent()));
+            assertTrue(Files.exists(draftCopy));
+        }
+        AgentChatStore reopened = new AgentChatStore(root); reopened.load(); assertTrue(reopened.sessions.isEmpty());
+    }
+
+    @Test void invalidRetainedAttachmentMetadataPreservesTheOriginalHistory() throws Exception {
+        AgentChatStore store = new AgentChatStore(root); store.create("codex"); store.save();
+        Path history = root.resolve(".copperbench/agent-chat/history.json");
+        JsonObject data = JsonParser.parseString(Files.readString(history)).getAsJsonObject();
+        for (JsonElement invalid : List.of(new JsonPrimitive("not-an-array"), AgentJson.array(new JsonPrimitive("../../outside")),
+                AgentJson.array(new JsonPrimitive(123)))) {
+            data.getAsJsonArray("sessions").get(0).getAsJsonObject().add("retainedAttachmentIds", invalid);
+            Files.writeString(history, data.toString());
+            AgentChatStore reopened = new AgentChatStore(root);
+            assertThrows(java.io.IOException.class, reopened::load);
+            assertTrue(reopened.unreadable); assertEquals(data.toString(), Files.readString(history));
+        }
+    }
+
     @Test void deletingAtTheSessionLimitPersistsAndAllowsANewConversationAfterReopen() throws Exception {
         AgentChatStore store = new AgentChatStore(root);
         for (int i = 0; i < 90; i++) store.create("claude");

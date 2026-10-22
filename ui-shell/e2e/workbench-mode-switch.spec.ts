@@ -91,6 +91,8 @@ for (const dark of [false, true]) test(`compact equal segments fit both labels w
   await page.setViewportSize({ width: 500, height: 600 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await fixture(page, { mode: 'professional', english: true, dark });
+  // Exercise a wider system fallback, independent of the optional Inter/Segoe UI fonts.
+  await page.addStyleTag({ content: ':root { --font-sans: Verdana, "DejaVu Sans", sans-serif; }' });
   const control = page.getByTestId('workbench-mode-control');
   await control.hover();
   await expect(page.getByTestId('mode-simple')).toBeInViewport({ ratio: 1 });
@@ -99,6 +101,8 @@ for (const dark of [false, true]) test(`compact equal segments fit both labels w
   expect(await control.evaluate(element => parseFloat(getComputedStyle(element).transitionDuration))).toBeLessThan(0.001);
   expect(await page.locator('.workbench-mode-slider').evaluate(element => parseFloat(getComputedStyle(element).transitionDuration))).toBeLessThan(0.001);
   for (const id of ['mode-simple', 'mode-professional']) expect(await page.getByTestId(id).evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  const tools = await page.locator('.titlebar-tools').boundingBox();
+  expect((await control.boundingBox())!.x + (await control.boundingBox())!.width).toBeLessThanOrEqual(tools!.x);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('compact-mode-expanded.png'), style: '.scenario-switcher { visibility: hidden !important; }' });
 });

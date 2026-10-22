@@ -1,16 +1,28 @@
 import { test, expect, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const legacyHistory = JSON.parse(readFileSync(new URL('../../src/test/resources/dev/copperbench/agent/history-0.1.15.json', import.meta.url), 'utf8'));
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-async function fixture(page: Page, options: { dark?: boolean; failed?: boolean; english?: boolean } = {}) {
-  await page.addInitScript(options => {
+async function fixture(page: Page, options: { dark?: boolean; failed?: boolean; english?: boolean; legacy?: boolean } = {}) {
+  await page.addInitScript(({ options, legacyHistory }) => {
     localStorage.setItem('copperbench.workbench.mode', 'simple');
     localStorage.setItem('copperbench.ui.locale', options.english ? 'en' : 'zh');
     localStorage.setItem('copperbench.theme', options.dark ? 'dark' : 'light');
     const calls: any[] = [];
     let failed = options.failed, rejectNew = false;
     const snapshot: any = { state: 'idle', sequence: 1, conversationId: null, provider: null, sessions: [], messages: [], approvals: [],
-      providers: [{ id: 'claude', label: 'Claude Code', installed: true, executable: '/fixture/claude', version: 'fixture', setupUrl: 'https://example.com', loginAvailable: true }] };
+      providers: [{ id: options.legacy ? 'codex' : 'claude', label: options.legacy ? 'Codex CLI' : 'Claude Code', installed: true, executable: '/fixture/cli', version: 'fixture', setupUrl: 'https://example.com', loginAvailable: true }] };
+    if (options.legacy) {
+      const saved = sessionStorage.getItem('legacy-model-fixture');
+      const history = saved ? JSON.parse(saved) : legacyHistory;
+      snapshot.sessions = history.sessions;
+      const session = snapshot.sessions.find((item: any) => item.id === history.selectedConversationId);
+      Object.assign(snapshot, { conversationId: session.id, provider: session.provider, model: session.model ?? null,
+        usesSessionModel: !session.model && Boolean(session.remoteId), messages: session.messages });
+      localStorage.setItem('copperbench.agent.models', JSON.stringify({ codex: 'saved-default' }));
+    }
     (window as any).modelsFixture = { calls, fail: (value: boolean) => { failed = value; }, reject: (value: boolean) => { rejectNew = value; },
       update: (patch: object) => Object.assign(snapshot, patch) };
     window.__COPPERBENCH_AGENT_HOST__ = { async invoke(request: any) {
@@ -18,26 +30,73 @@ async function fixture(page: Page, options: { dark?: boolean; failed?: boolean; 
       calls.push(request);
       if (request.operation === 'models') snapshot.providers[0].modelCatalog = failed
         ? { state: 'failed', models: [], requiresSelection: true, source: 'service', error: 'Model service unavailable' }
-        : { state: 'ready', requiresSelection: true, source: 'service', models: [{ id: 'deepseek-v4.1-flash', label: 'DeepSeek Flash' }, { id: 'z-ai/glm-5.3', label: 'GLM 5.3' }] };
+        : { state: 'ready', requiresSelection: true, source: 'service', defaultModel: options.legacy ? 'catalog-default' : undefined,
+          models: [{ id: 'deepseek-v4.1-flash', label: 'DeepSeek Flash' }, { id: 'z-ai/glm-5.3', label: 'GLM 5.3' }] };
       if (request.operation === 'new') {
         if (rejectNew) { snapshot.error = 'Could not save conversation'; return { ...snapshot, sequence: ++snapshot.sequence }; }
         snapshot.conversationId = `conversation-${snapshot.sessions.length}`;
-        snapshot.provider = request.provider; snapshot.model = request.model ?? null;
+        snapshot.provider = request.provider; snapshot.model = request.model ?? null; snapshot.usesSessionModel = false;
         snapshot.messages = []; delete snapshot.error;
-        snapshot.sessions.push({ id: snapshot.conversationId, provider: request.provider, model: snapshot.model, title: `Model chat ${snapshot.sessions.length}`, updatedAt: Date.now() });
+        snapshot.sessions.push({ id: snapshot.conversationId, provider: request.provider, model: snapshot.model, title: `Model chat ${snapshot.sessions.length}`, updatedAt: Date.now(), messages: snapshot.messages });
       }
       if (request.operation === 'select') {
         const session = snapshot.sessions.find((session: any) => session.id === request.conversationId);
         snapshot.conversationId = session.id; snapshot.provider = session.provider; snapshot.model = session.model;
+        snapshot.usesSessionModel = !session.model && Boolean(session.remoteId); snapshot.messages = session.messages;
       }
-      if (request.operation === 'send') { snapshot.messages.push({ id: `user-${calls.length}`, role: 'user', text: request.text, at: Date.now() }); snapshot.state = 'running'; }
+      if (request.operation === 'send') { snapshot.messages.push({ id: `user-${calls.length}`, role: 'user', text: request.text, at: Date.now(), delivery: 'sent' }); snapshot.state = options.legacy ? 'idle' : 'running'; }
+      if (options.legacy) sessionStorage.setItem('legacy-model-fixture', JSON.stringify({ selectedConversationId: snapshot.conversationId, sessions: snapshot.sessions }));
       return { ...snapshot, sequence: ++snapshot.sequence };
     } };
-  }, options);
+  }, { options, legacyHistory });
   await page.goto('/');
-  await expect(page.getByTestId('simple-provider')).toHaveAttribute('data-provider-value', 'claude');
+  await expect(page.getByTestId('simple-provider')).toHaveAttribute('data-provider-value', options.legacy ? 'codex' : 'claude');
   await expect.poll(() => page.evaluate(() => (window as any).modelsFixture.calls.filter((request: any) => request.operation === 'models').length)).toBe(1);
 }
+
+test('legacy history continues in place without adopting defaults and survives reopening', async ({ page }, info) => {
+  await fixture(page, { legacy: true, english: true });
+  const conversation = legacyHistory.selectedConversationId;
+  await expect(page.getByRole('log')).toContainText('Created the original blue block');
+  await expect(page.getByTestId('simple-model')).toHaveText('Keep session model');
+  const prompt = page.getByTestId('simple-prompt');
+  await prompt.fill('Continue the original block');
+  await page.getByTestId('simple-model').click();
+  await expect(page.getByRole('dialog', { name: 'Choose a model' })).toContainText('Continue with the original CLI session model');
+  await page.keyboard.press('Escape');
+  await expect(prompt).toHaveValue('Continue the original block');
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  await page.screenshot({ path: info.outputPath('legacy-continue.png') });
+  await page.getByTestId('simple-send').click();
+  const calls = await page.evaluate(() => (window as any).modelsFixture.calls);
+  expect(calls.filter((request: any) => request.operation === 'new')).toHaveLength(0);
+  const sent = calls.find((request: any) => request.operation === 'send');
+  expect(sent).toMatchObject({ conversationId: conversation, provider: 'codex', text: 'Continue the original block' });
+  expect(sent).not.toHaveProperty('model');
+  await expect(prompt).toHaveValue('');
+  await page.reload();
+  await expect(page.getByTestId('simple-model')).toHaveText('Keep session model');
+  await expect(page.getByRole('log')).toContainText('Continue the original block');
+  await expect(page.getByRole('log')).toContainText('Created the original blue block');
+  await prompt.fill('Draft for the chosen model');
+  await page.getByTestId('simple-model').click();
+  await page.locator('[data-model-id="z-ai/glm-5.3"]').click();
+  await expect(prompt).toHaveValue('Draft for the chosen model');
+  expect(await page.evaluate(() => (window as any).modelsFixture.calls.filter((request: any) => request.operation === 'new')))
+    .toMatchObject([{ model: 'z-ai/glm-5.3', provider: 'codex' }]);
+  await page.getByTestId(`simple-conversation-${conversation}`).click();
+  await expect(page.getByRole('log')).toContainText('Created the original blue block');
+  await expect(page.getByTestId('simple-model')).toHaveText('Keep session model');
+});
+
+test('a model-less new conversation still requires a selection', async ({ page }) => {
+  await fixture(page);
+  await page.getByTestId('simple-new-chat').click();
+  await expect(page.getByTestId('simple-conversation-conversation-0')).toBeVisible();
+  await page.getByTestId('simple-prompt').fill('Choose a model first');
+  await expect(page.getByTestId('simple-send')).toBeDisabled();
+  await expect(page.getByTestId('simple-model')).toHaveText('选择或输入模型');
+});
 
 test('configured service models are selectable, preserve drafts and reach the send request', async ({ page }) => {
   await fixture(page);

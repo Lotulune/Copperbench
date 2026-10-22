@@ -183,8 +183,7 @@ public final class AgentChatService implements AutoCloseable {
 
     private Set<String> referencedAttachments() {
         Set<String> ids = new HashSet<>();
-        for (AgentChatStore.Conversation session : store.sessions.values()) for (JsonElement message : session.messages)
-            for (JsonElement item : AgentJson.list(message.getAsJsonObject(), "attachments")) ids.add(AgentJson.string(item.getAsJsonObject(), "id"));
+        for (AgentChatStore.Conversation session : store.sessions.values()) ids.addAll(session.attachmentIds());
         return ids;
     }
 
@@ -524,8 +523,8 @@ public final class AgentChatService implements AutoCloseable {
         if (role.equals("system") || role.equals("tool")) AgentCopy.put(message, "text", AgentJson.bounded(text, 32768));
         if (session.messages.size() >= 1000) {
             // Preserve a visible retention marker; native CLI history remains authoritative for resume.
-            session.messages.remove(0);
-            if (session.messages.size() >= 999) session.messages.remove(0);
+            session.retainAttachments(session.messages.remove(0).getAsJsonObject());
+            if (session.messages.size() >= 999) session.retainAttachments(session.messages.remove(0).getAsJsonObject());
             JsonObject marker = AgentJson.object("id", "retention", "role", "system", "at", System.currentTimeMillis());
             AgentCopy.put(marker, "text", "仅显示最近 1,000 条记录；CLI 保留其原生会话历史。");
             session.messages.asList().addFirst(marker);
@@ -560,6 +559,7 @@ public final class AgentChatService implements AutoCloseable {
         JsonObject result = AgentJson.object("state", state, "conversationId", selected == null ? null : selected.id,
                 "provider", selected == null ? null : selected.provider, "sessions", sessions,
                 "model", selected == null ? null : selected.model,
+                "usesSessionModel", selected != null && selected.model == null && selected.remoteId != null,
                 "messages", selected == null ? new JsonArray() : selected.messages.deepCopy(), "approvals", pending,
                 "providers", providerStates, "sequence", sequence, "detecting", detecting, "checking", checking,
                 "history", store.capacity(), "storageBlocked", storageError != null);

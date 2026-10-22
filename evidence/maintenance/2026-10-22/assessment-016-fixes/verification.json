@@ -1,0 +1,367 @@
+{
+  "date": "2026-10-22",
+  "baseCommit": "59bc654be0ba9c5fac72a5f65dcd45e5bfbe33c6",
+  "scope": "Windows source, deterministic native CLI subprocesses, and managed Chromium browser fixtures",
+  "environment": {
+    "java": "JBR-25.0.3+1-329.124-jcef",
+    "node": "24.22.1",
+    "npm": "11.19.1",
+    "playwright": "1.62.1",
+    "chromium": "151.0.7922.34",
+    "chromiumRevision": "1234"
+  },
+  "checks": {
+    "javaSuites": [
+      {
+        "name": "dev.copperbench.agent.AgentAttachmentsTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentChatServiceTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentHistoryManagementTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentModelProtocolTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentModelsTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentProcessTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentProtocolTest",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.agent.AgentTurnOptionsTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "dev.copperbench.bridge.JcefAgentBridgeTransportTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "javadoc": "passed",
+    "uiUnit": {
+      "passed": 76,
+      "failed": 0
+    },
+    "uiCore": {
+      "passed": 50,
+      "failed": 0
+    },
+    "boundaryFormattingRerun": {
+      "passed": 3,
+      "failed": 0
+    },
+    "uiBuild": "passed",
+    "browserInitial": {
+      "passed": 76,
+      "failed": 4,
+      "failure": "Compact mode labels still constrained by titlebar grid width"
+    },
+    "browserUnchangedConversationSpecs": {
+      "passed": 70,
+      "failed": 0
+    },
+    "browserFinalLayoutSpecs": {
+      "passed": 32,
+      "failed": 0
+    },
+    "browserUniqueSpecProjectCases": 102,
+    "oldSerializerJsonComparison": "passed"
+  },
+  "legacyWriter": {
+    "commit": "d99aa3f4af171954a575f82de3afd1ee5b34c9a6",
+    "storeBlob": "c6547c8c9fbd89e3b66edd54100589189c23dd87",
+    "comparison": "JSON equality; serializer compiled separately with current supporting AgentJson and permission classes"
+  },
+  "sourceFiles": [
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentChatService.java",
+      "bytes": 38306,
+      "sha256": "c2eac0ff781deea60091af1062f669102e6cda531331b62e653db8179aeb9641",
+      "gitBlob": "f6822262f43b38619cdbe273f3c3a4e32ad49781"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentChatStore.java",
+      "bytes": 13205,
+      "sha256": "ede970edfae133e7e4554e62aa771e9832a9e0b25818256c86ec0b9bd5a0ab5a",
+      "gitBlob": "e6ebc80e33d3af3c37197fc2c31a576673d341b3"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentChatServiceTest.java",
+      "bytes": 35807,
+      "sha256": "04f25b1571f771915f40c9b703798502e0eca9779bb7e351a4327975a62f4934",
+      "gitBlob": "5b004ae8511bfd40d748b4debb010fff5c76d966"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentHistoryManagementTest.java",
+      "bytes": 15337,
+      "sha256": "74aaebd112cd9f1daaf1b4a3d51a9528118f9ca4edd73ac53505a362468668b8",
+      "gitBlob": "915d275a4f2f92d861c91f1bc88598ec963cfa21"
+    },
+    {
+      "path": "src/test/resources/dev/copperbench/agent/history-0.1.15.json",
+      "bytes": 466,
+      "sha256": "9f3264945576429089d58fd1b666aec886813b1ec7acd90e885db118ea9b6a91",
+      "gitBlob": "6c2a5dbed81cd8061dac72445aa314929401bd69"
+    },
+    {
+      "path": "ui-shell/e2e/agent-composer-options.spec.ts",
+      "bytes": 24429,
+      "sha256": "24ba46af543f142a849e252554dc99a1b14dd3a517d60d165a1aef4451d05fab",
+      "gitBlob": "24cb85c6186da239f2634454a4ba25ddf9ae1d65"
+    },
+    {
+      "path": "ui-shell/e2e/agent-models.spec.ts",
+      "bytes": 12441,
+      "sha256": "9bc0c7b6ade1cc66df179ce108af8f4b32191f22a9c8766ec87f8e3d750b535d",
+      "gitBlob": "a4aabc503b9094b88abbc774a73ae9fe60fdd03b"
+    },
+    {
+      "path": "ui-shell/e2e/workbench-mode-switch.spec.ts",
+      "bytes": 8056,
+      "sha256": "8bb1ff283d7d9be3c6f03a91e7e2791795f0fc55b38a8573bb404097b9dfdcd7",
+      "gitBlob": "38e9cb4effa089e53099f4e399a07eaf8772c3c5"
+    },
+    {
+      "path": "ui-shell/src/bridge/agentBridge.ts",
+      "bytes": 14732,
+      "sha256": "a940fcfac330a9ed64ab907c0c64890fe170fde24ae7ac0a63f211e123208e43",
+      "gitBlob": "2b24ef632281a0cbf0cf25e313c7258453f6cc58"
+    },
+    {
+      "path": "ui-shell/src/components/AgentAttachments.tsx",
+      "bytes": 2850,
+      "sha256": "a776f19d7bdc8a9fbe2a883003f68b4baacde1af22f62bbaeb72862fe6200662",
+      "gitBlob": "2aee44a531a435bae673c0008d4240954d1d156c"
+    },
+    {
+      "path": "ui-shell/src/components/AgentModelSelect.tsx",
+      "bytes": 8833,
+      "sha256": "ab04104765818909e92b8bcc20a797eb5dd745de3c05fbc6491807a0cca7e726",
+      "gitBlob": "044516b3cf31d1f288e830dec8f27503b69ffce8"
+    },
+    {
+      "path": "ui-shell/src/components/SimpleCreationView.tsx",
+      "bytes": 54386,
+      "sha256": "a74e6bf5827174758e990ae6400504f1137e9d04a19200231171fa2d77b2bba0",
+      "gitBlob": "e2a7379e0341993e912eabfa9f6f24cb3baf2108"
+    },
+    {
+      "path": "ui-shell/src/components/workbenchModeSwitch.css",
+      "bytes": 3187,
+      "sha256": "0ef5e833c2cf6d57d71a1c48a8481ff4fa9614a9b3b3b71ff2c778d331253c72",
+      "gitBlob": "ed0e934bf4105f94063fbbed07346dbe6aedd912"
+    },
+    {
+      "path": "ui-shell/src/hooks/useAgentAttachments.ts",
+      "bytes": 9805,
+      "sha256": "0432e2cf31ff0943bb9cfb9a36f4eeff82fab03e654fc743c85f511c9ad13978",
+      "gitBlob": "b6d52414a6140df388b23d9e3113e99a5ec18ec5"
+    },
+    {
+      "path": "ui-shell/tests/agent-boundary.test.mjs",
+      "bytes": 2849,
+      "sha256": "2e9f73c416a8627a0eb0712bfc4649c082462e8cd18d9099f7731e1f0fda6602",
+      "gitBlob": "401a5dd046cf794be73d0502b1e34c4d68127191"
+    }
+  ],
+  "builtArtifacts": [
+    {
+      "path": "build/classes/java/main/dev/copperbench/agent/AgentChatStore.class",
+      "bytes": 15060,
+      "sha256": "9172b6ff654d9acb5dc8474a81b1c7a25b0349ab81ef4bb98befd02b249bfa0a"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/agent/AgentChatStore$Conversation.class",
+      "bytes": 4244,
+      "sha256": "8f36d86e0cf52ef33e10bc6160fb8ed81c6b7cbae1817bdcbf4b5b531617d36e"
+    },
+    {
+      "path": "build/classes/java/main/dev/copperbench/agent/AgentChatService.class",
+      "bytes": 35798,
+      "sha256": "081d8b06c573fe011392e035b66aaa38467a5f0525292743aef531b1c197d997"
+    },
+    {
+      "path": "ui-shell/dist/index.html",
+      "bytes": 1241,
+      "sha256": "03ac053bf0d5579c77e1dfc938e35b0be9eae0d01795b5b6d79d422d33fed69e"
+    },
+    {
+      "path": "ui-shell/dist/assets/AdvancementWorkbench-DysOYoxz.js",
+      "bytes": 25964,
+      "sha256": "1415c8c37e64a3482ced07ac87fc699a8ebd1168994c623f089fc0e1a3ff0295"
+    },
+    {
+      "path": "ui-shell/dist/assets/code-xml-V5RxKYP0.js",
+      "bytes": 380,
+      "sha256": "39da68ff3001bb83b82fec53884dd1ab13ab7e77cded39f6151900e78a8c64ea"
+    },
+    {
+      "path": "ui-shell/dist/assets/EditorRecoveryNotice-BSeCwMxs.js",
+      "bytes": 1038,
+      "sha256": "a02498ee01bd12bf905a8ecb3e58d5c80325377a6095462263ebb0027215a019"
+    },
+    {
+      "path": "ui-shell/dist/assets/FunctionWorkbench-BIwOfZ8l.js",
+      "bytes": 21690,
+      "sha256": "1a609eac4ef376995e63f62250af6c5e41262be3df3837ac8f2dd07dbe459000"
+    },
+    {
+      "path": "ui-shell/dist/assets/GuiWorkbench-BNYJzL9U.js",
+      "bytes": 21777,
+      "sha256": "b1a5ed37808d1753cbdeb2c979aa43f12c453719447b9de12c7f6c796bafd943"
+    },
+    {
+      "path": "ui-shell/dist/assets/index-CVAmtKKU.js",
+      "bytes": 1265966,
+      "sha256": "bfc769445dab860c8a0af58aa6d017f2083d80a0074c4dcf8e89f364c9f79d86"
+    },
+    {
+      "path": "ui-shell/dist/assets/layoutNumericDrafts-UqGf9r3k.js",
+      "bytes": 1095,
+      "sha256": "2bfad084eb8ecc3965e935dbdb072be2c70e166b5a29ab79bd29d5efa87f0ccb"
+    },
+    {
+      "path": "ui-shell/dist/assets/LootTableWorkbench-KBduCnf8.js",
+      "bytes": 26935,
+      "sha256": "dab5201ff92e80300b009f9fc4c89ee3ad09b5f078f3e048a1115d6eeffc80ee"
+    },
+    {
+      "path": "ui-shell/dist/assets/OverlayWorkbench-Cqsrilmr.js",
+      "bytes": 24124,
+      "sha256": "45de2a20a088ef1b651d9d7240e1bf3a8ed0848f3b1a056d2fd6e1b5586bbdb1"
+    },
+    {
+      "path": "ui-shell/dist/assets/ProcedureWorkbench-D2FewYYx.js",
+      "bytes": 902596,
+      "sha256": "b236a4534a998de55012099a23541fb49d785f1e8d609b26575a2daf224404dc"
+    },
+    {
+      "path": "ui-shell/dist/assets/index-oOMWhq2m.css",
+      "bytes": 198842,
+      "sha256": "c9e9a521e63e5531571ded1d81be98e275af079f5ecaa10d0aeab3fec91c1919"
+    }
+  ],
+  "captures": [
+    {
+      "path": "evidence/maintenance/2026-10-22/assessment-016-fixes/legacy-continue.png",
+      "bytes": 91295,
+      "sha256": "66c82b14facf5fc4efe1c75d75363be7369fdc1c969fea531e846a12c1e46646"
+    },
+    {
+      "path": "evidence/maintenance/2026-10-22/assessment-016-fixes/attachment-error.png",
+      "bytes": 96504,
+      "sha256": "df47fe667cfd1f00f4719772ea7e9946a08d18804108423d2143499d8370a473"
+    },
+    {
+      "path": "evidence/maintenance/2026-10-22/assessment-016-fixes/compact-light.png",
+      "bytes": 32216,
+      "sha256": "5a6c411b265c8ca7703f4be47325ea3cddadc9fda6ce89dfc8f5fcd14e9d8589"
+    },
+    {
+      "path": "evidence/maintenance/2026-10-22/assessment-016-fixes/compact-dark.png",
+      "bytes": 34773,
+      "sha256": "c16cf53d8b6cf4c27fb23c57d8705be6e894f8fe6e77597fabfec5bfa377ee3e"
+    }
+  ],
+  "localReceipts": [
+    {
+      "path": "output/assessment-016/java.log",
+      "bytes": 617,
+      "sha256": "d8abfc32eb139c3241e1eee328162aa9bba5e16685121ea186104ae571efe889"
+    },
+    {
+      "path": "output/assessment-016/java-external.log",
+      "bytes": 11475,
+      "sha256": "4bc888a082b2fa1bb3dd4be82509bc20a008a3aa245968ba62cc65c8f4938eaa"
+    },
+    {
+      "path": "output/assessment-016/java-results.json",
+      "bytes": 1309,
+      "sha256": "49feaf6b850a428ec52d965b97ff0679abd0b919e3d812c1c0d54b58a1f276b4"
+    },
+    {
+      "path": "output/assessment-016/ui-unit.log",
+      "bytes": 7799,
+      "sha256": "39fc009f56c7f1555a2cc659bf9ed1ea2fd9508bd0e211796d50be3641c1d1f7"
+    },
+    {
+      "path": "output/assessment-016/ui-core.log",
+      "bytes": 5217,
+      "sha256": "5806a62bd53c444e7a5eafc7a9885ac4723f39a1c6edfc99190712aa1f890dd2"
+    },
+    {
+      "path": "output/assessment-016/browser.log",
+      "bytes": 25666,
+      "sha256": "6cd27f11e5334042d98987aa0155c3f260c456f06b43e8a9037382ccfb8234e9"
+    },
+    {
+      "path": "output/assessment-016/browser-layout.log",
+      "bytes": 6642,
+      "sha256": "95732a638e26529a99a39711595da105b3a99991fc6fbdc45b2d8807e822dfb7"
+    },
+    {
+      "path": "output/assessment-016/ui-build-final.log",
+      "bytes": 1936,
+      "sha256": "7d5410d68f2a02d6b19696d42c5a67b52bd7704c81d62f2701ac56677ceb1b64"
+    },
+    {
+      "path": "output/assessment-016/legacy-writer.log",
+      "bytes": 82,
+      "sha256": "8d70cb3d55b3be5bbae7e456e703dbf11e01c7b46981ded86889693cf180bc49"
+    },
+    {
+      "path": "output/assessment-016/agent-boundary-final.log",
+      "bytes": 408,
+      "sha256": "15ef358a52370a4aaa653881a43833051c600fbeaa61ac53722ed20763279d49"
+    },
+    {
+      "path": "output/assessment-016/design-findings.json",
+      "bytes": 4,
+      "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+    }
+  ],
+  "unverified": [
+    "Installed-package upgrade with a real CLI account",
+    "Linux/JCEF rendering",
+    "Already-orphaned attachments from earlier truncation"
+  ]
+}

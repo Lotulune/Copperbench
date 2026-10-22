@@ -28,11 +28,15 @@ Antigravity uses its configured permission rules. Its headless interface cannot 
 
 The model menu always offers **Enter a model ID manually**, including during loading and after discovery fails. Enter the full ID supplied by your service and choose **Use model**. DSH catalogs retain provider identity; use the full ID when several providers share a model. The CLI and upstream service must still accept the selected model.
 
+Older conversations with a saved native CLI session but no recorded model show **Keep session model**. Send a message to continue that same session without overriding its model with your current default. Choosing a model explicitly starts a new conversation and carries over the unsent draft. A new conversation without a native session still requires a model selection.
+
 The control to the right of the model offers `low`, `medium`, `high`, `xhigh` and `max`. Choose a level supported by the model. Not every model supports every level; the CLI or service may reject or adjust the requested effort. Copperbench passes the selected value without remapping it. Effort is retained with the conversation and changes apply to the next message.
 
 Use the paperclip, drop files, or paste images into the composer. Review thumbnails, filenames and sizes, or remove attachments before sending. Up to 8 files and 20 MiB total are allowed per message, with a 10 MiB limit per file. PNG, JPEG and GIF images must be at most 5 MiB and 24 megapixels. Changing models transfers the unsent attachments with the text draft.
 
 Files are copied into `.copperbench/agent-chat/attachments/` in the workspace. Moving the original does not affect a sent copy. Ordinary files are provided as paths for the CLI to read. Codex and Claude receive native image input; Grok and DSH receive images only when they advertise image support. Antigravity's current streaming interface accepts only text: remove images or switch assistants. File paths are never presented as proof of visual input. Upload and capability failures retain the unsent draft with an actionable error.
+
+Only the latest 1,000 messages are displayed. Their earlier attachments remain available to the native CLI session and are tracked until the conversation is deleted, including after reopening the workspace. Deletion reclaims copies with no remaining conversation or draft reference and releases their storage budget.
 
 **Default permissions** follow CLI rules and show approval requests in the conversation. **Automatic approval** requires confirmation and applies only to this in-app conversation. Codex also removes its workspace sandbox; Claude, Grok and Antigravity use their session flags; DSH automatically selects a single-use allowance only for requests it actually sends. Service and system restrictions still apply. Starting a conversation with another model or assistant restores default permissions. No global settings are written.
 

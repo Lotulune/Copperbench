@@ -24,6 +24,8 @@ final class AgentChatStore {
         AgentTurnOptions options = AgentTurnOptions.DEFAULT;
         long updatedAt;
         final JsonArray messages;
+        // Native CLI history can still read attachments after their visible messages expire.
+        final Set<String> retainedAttachmentIds = new LinkedHashSet<>();
         boolean interrupted;
         boolean defaultTitle;
         Conversation(String id, String provider, String title, long updatedAt, JsonArray messages) {
@@ -38,7 +40,19 @@ final class AgentChatStore {
         }
         JsonObject json() {
             JsonObject result = summary(); result.addProperty("remoteId", remoteId);
+            JsonArray retained = new JsonArray(); retainedAttachmentIds.forEach(retained::add);
+            result.add("retainedAttachmentIds", retained);
             result.addProperty("interrupted", interrupted); result.add("messages", messages); return result;
+        }
+        void retainAttachments(JsonObject message) {
+            for (JsonElement item : AgentJson.list(message, "attachments"))
+                retainedAttachmentIds.add(AgentJson.string(item.getAsJsonObject(), "id"));
+        }
+        Set<String> attachmentIds() {
+            Set<String> ids = new HashSet<>(retainedAttachmentIds);
+            for (JsonElement message : messages) for (JsonElement item : AgentJson.list(message.getAsJsonObject(), "attachments"))
+                ids.add(AgentJson.string(item.getAsJsonObject(), "id"));
+            return ids;
         }
     }
 
@@ -81,6 +95,15 @@ final class AgentChatStore {
                 }
                 Conversation conversation = new Conversation(id, provider, AgentJson.bounded(AgentJson.required(session, "title"), 120),
                         session.get("updatedAt").getAsLong(), messages.deepCopy());
+                if (session.has("retainedAttachmentIds")) {
+                    if (!session.get("retainedAttachmentIds").isJsonArray()) throw new JsonParseException("Invalid retained attachments");
+                    for (JsonElement retained : session.getAsJsonArray("retainedAttachmentIds")) {
+                        if (!retained.isJsonPrimitive() || !retained.getAsJsonPrimitive().isString()
+                                || !retained.getAsString().matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"))
+                            throw new JsonParseException("Invalid retained attachment ID");
+                        conversation.retainedAttachmentIds.add(retained.getAsString());
+                    }
+                }
                 String remote = AgentJson.string(session, "remoteId");
                 if (!remote.isBlank()) conversation.remoteId = AgentJson.remoteId(remote);
                 if (session.has("model") && !session.get("model").isJsonNull()) {
