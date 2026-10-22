@@ -8,7 +8,7 @@
 
 从[当前下载](../releases/current.md)选择对应平台的稳定包，并查看该版本的验证范围。Windows 与 Linux 的版本分别列出。目标平台为 Windows 11 x64（build 22000 及以上）与 Ubuntu 24.04 LTS x86_64；其他 Linux 发行版与架构未验证。
 
-0.1.15 新增简洁创作与专业工作台切换，以及五种本机 CLI 创作助手。具体平台变更见 [Windows 版本说明](../releases/v0.1.15.md)、[Linux 版本说明](../releases/v0.1.15-linux.md)和[状态页](../status.md)。
+0.1.16 完善简洁首作引导，并加入模型目录、思考强度、附件、会话权限与历史恢复。具体平台变更见 [Windows 版本说明](../releases/v0.1.16.md)、[Linux 版本说明](../releases/v0.1.16-linux.md)和[状态页](../status.md)。
 
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 

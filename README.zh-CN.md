@@ -19,9 +19,9 @@
 
 Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 
-**当前稳定版：Windows 0.1.15、Linux 0.1.15。** 新增简洁创作与专业工作台切换，接入五种本机 CLI 创作助手，并改善草稿保护、任务日志、弹窗焦点和原生进度显示。安装包和验证记录见[当前下载](docs/releases/current.md)。
+**当前稳定版：Windows 0.1.16、Linux 0.1.16。** 完善简洁首作引导与运行时双语，新增实际模型目录、思考强度、文件/图片附件、会话权限及历史整理恢复。安装包和验证记录见[当前下载](docs/releases/current.md)。
 
-源码身份、安装包哈希和验证范围分别记录在 [Windows 0.1.15 发布记录](docs/testing/maintenance-release-0.1.15.md)和 [Linux 0.1.15 发布记录](docs/testing/linux-publication-0.1.15.md)中。
+源码身份、安装包哈希和验证范围分别记录在 [Windows 0.1.16 发布记录](docs/testing/maintenance-release-0.1.16.md)和 [Linux 0.1.16 发布记录](docs/testing/linux-publication-0.1.16.md)中。
 
 <a id="getting-started"></a>
 
@@ -29,10 +29,10 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.15](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.15) | EXE · 便携 ZIP · MSIX · 应用内更新组件 | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.15](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.15-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz · 应用内更新组件 | [Linux 安装](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.16](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.16) | EXE · 便携 ZIP · MSIX · 应用内更新组件 | [快速开始](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.16](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.16-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz · 应用内更新组件 | [Linux 安装](docs/user/linux-installation.md) |
 
-版本说明：[Windows 0.1.15](docs/releases/v0.1.15.md) · [Linux 0.1.15](docs/releases/v0.1.15-linux.md)。后续更新可在「帮助与关于」中选择「检查更新」。
+版本说明：[Windows 0.1.16](docs/releases/v0.1.16.md) · [Linux 0.1.16](docs/releases/v0.1.16-linux.md)。后续更新可在「帮助与关于」中选择「检查更新」。
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 在「简洁创作」中点击「新建作品」，或切换「专业工作台」使用手动编辑教程；选择加载器、Minecraft 版本和新的工作区目录。

@@ -1,28 +1,42 @@
-# 0.1.16 integration and publication record
+# Windows 0.1.16 publication and integration record
 
-Date: 2026-10-22. Publication preparation is in progress; current public Windows and Linux downloads remain 0.1.15 until verified. The user authorized commits, pushes, processing both open PRs, and publishing new installers.
+[Windows v0.1.16](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.16) was published at **2026-10-22T05:50:38Z** from signed source `c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0`. The complete [release workflow](https://github.com/Lotulune/Copperbench/actions/runs/39726326742) passed tests, Javadoc, packaging, branding, hashes, SBOM/provenance, draft asset verification and publication.
 
-## Integrated changes
+## Changes and review
 
-- Simple creation onboarding, bilingual runtime messages and guides, model catalog/manual selection, effort, attachments, session permissions, Markdown and history recovery: initial reviewed commit `11ceb6ae06441205c98fe96ce45672239b45c522`.
-- [PR #146](https://github.com/Lotulune/Copperbench/pull/146): bilingual README badge rows; merged as `9b2e2e3e2d751c8d70f5bffa0b75b40ed3211418`.
-- [PR #147](https://github.com/Lotulune/Copperbench/pull/147): preserve native scale failure evidence, omit inactive sidebar derivation, and prevent fast Stop from submitting another draft. Its exact candidate and diagnostic baseline passed the [full nightly and Windows A/B run](https://github.com/Lotulune/Copperbench/actions/runs/39704919193).
-- Merge resolution preserves the newer model/effort/attachment/permission controls and the Stop default-action fix, adds the inactive-sidebar optimization, and makes the additional browser tests expand the current mode selector before choosing a mode.
+The release includes guided Simple creation, bilingual runtime messages and tours, model catalogs/manual IDs, effort, file/image attachments, session permissions, Markdown/copy and history recovery. The [independent review](simple-mode-independent-review-2026-10-22.md) fixed five stop/draft/history/cleanup issues. [PR #146](https://github.com/Lotulune/Copperbench/pull/146) added README badges; [PR #147](https://github.com/Lotulune/Copperbench/pull/147) retained native failure evidence and omitted inactive sidebar rendering. Both are merged. [PR #148](https://github.com/Lotulune/Copperbench/pull/148) integrated the reviewed creator workflow, preserving PR #147 ancestry.
 
-## Evidence and scope
+[PR #149](https://github.com/Lotulune/Copperbench/pull/149) corrected the missing upstream UI dependency license texts found during package finalization. It adds 55 packages' provided texts, retaining the existing Blockly notice and accounting for all 56 shipped packages. Runtime code is unchanged by this packaging follow-up. ZIP/tar consumer tests require source-declared notices to be present and byte-identical.
 
-The [independent review](simple-mode-independent-review-2026-10-22.md) records five fixes and their relevant Java/UI/browser checks. The [final local candidate record](simple-mode-final-package-2026-10-22.md) covers a complete Windows + Codex workflow, two real Minecraft client processes, same-world persistence, ordinary export and application restart/continuation. It binds the pre-integration candidate ZIP/JAR and workspace artifact hashes; it is not an installed-acceptance claim for later official rebuilds.
+## Verification
 
-Selected original [candidate evidence](../../evidence/maintenance/2026-10-22/release-0.1.16/simple-mode-candidate/archived-files.json), including task-input receipts, both normal-exit game logs, placement/reopen screenshots and artifact hashes, is retained in the repository. Complete local actions and observations remain under `output/minecraft-validation/sc04-final-review-20261022/`.
+| Layer | Actual result |
+| --- | --- |
+| Local integration | 74 UI unit, 50 UI-Core, 36 browser, seven comparison-harness and six Windows native/evidence tests passed; native reference-refresh P95 114.3 ms against the unchanged 300 ms gate. [Receipt](../../evidence/maintenance/2026-10-22/release-0.1.16/integration/verification.json). |
+| Native PR #147 comparison | [Full nightly / A-B](https://github.com/Lotulune/Copperbench/actions/runs/39704919193) passed; all six original source/hash/sample/XML receipts were checked. [Comparison](../../evidence/maintenance/2026-10-22/release-0.1.16/pr147-native-scale/comparison.json). |
+| Windows source preflight | [Run 39712617227](https://github.com/Lotulune/Copperbench/actions/runs/39712617227) on `8df6e6430e9a6b4944b021a0808a5ea3d8975602`: JUnit XML reports 1,493 passed, 73 skipped, zero failures/errors; native diagnostics and accessibility executed. The later notice-only correction is separate; the final tagged release reran its full tests. |
+| Final source | [Main CI](https://github.com/Lotulune/Copperbench/actions/runs/39723695133) and [documentation](https://github.com/Lotulune/Copperbench/actions/runs/39723704177) passed on `c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0`; main Chromium reported 498 passed. |
+| Final Windows release | [Run 39726326742](https://github.com/Lotulune/Copperbench/actions/runs/39726326742) passed all release steps on `v0.1.16`. The Windows executables remain Authenticode unsigned. |
+| Public assets | All 15 API asset digests match [SHA256SUMS.txt](https://github.com/Lotulune/Copperbench/releases/download/v0.1.16/SHA256SUMS.txt). Ten public files, including EXE/ZIP, were downloaded and byte-hashed. Four update components match the downloaded 0.1.16 descriptor. |
+| Public provenance and ZIP | Verified SLSA signature and exact source/tag/workflow/run for all ten downloaded files. ZIP inspection checked six source-bound entries, including the application version, legacy markers/template and complete UI notice. |
 
-The [Windows scale comparison](../../evidence/maintenance/2026-10-22/release-0.1.16/pr147-native-scale/comparison.json) contains three alternating exact-source trials per variant on one runner. Candidate reference-refresh P95 was 130.9, 115.3 and 114.4 ms; baseline was 219.1, 222.8 and 220.4 ms. All six original JSON hashes, source identities, sample counts, P95 calculations and JUnit XML were checked. These are the recorded PR #147 measurements, not measurements of an untested rebuild.
+The original updated-base PR #147 Windows job had a native load timeout; its targeted retry passed. PR #148's first MCP job passed native UI but timed out preparing the external conformance CLI before protocol cases; its targeted retry passed all six applicable scenarios / eight checks. These failures remain recorded rather than being counted as a single clean run.
 
-## Release checks
+## Published files and source identity
 
-The [local integration receipt](../../evidence/maintenance/2026-10-22/release-0.1.16/integration/verification.json) records 74 UI unit tests, 50 UI-Core tests, 36 Chromium/compact browser scenarios, seven comparison-harness tests, production UI build/localization, product-status and Markdown checks. Five evidence-writer JUnit tests and the actual Windows native scale gate passed with no skips. The integrated source measured reference-refresh P95 114.3 ms, element-filter P95 10.1 ms and Procedure search P95 8.5 ms. Browser layout screenshots were inspected. An initial local Gradle invocation failed during command-line path parsing before tests; the explicit argument-array invocation passed.
+| File | Bytes | SHA-256 |
+| --- | --- | --- |
+| [Windows EXE](https://github.com/Lotulune/Copperbench/releases/download/v0.1.16/Copperbench.0.1.16.Windows.64bit.exe) | 503302189 | `6b67632a2fb89d33811993ad1bb75bbf8ee691b989d23cea998b188ad704ecb1` |
+| [Portable ZIP](https://github.com/Lotulune/Copperbench/releases/download/v0.1.16/Copperbench.0.1.16.Windows.64bit.zip) | 606486136 | `4c742427040e3b4b54846f4b214dd029837ef521b0b8eb1f9217913a795d9cba` |
+| Product JAR inside the ZIP | 8536730 | `c10ccfef42dd4ac4dce85bdc1d2365c093b4332a9e8bc6405ea54262371f738f` |
+| UI dependency license text inside the ZIP | 69123 | `e0bf667519d677902d6aa3ccde353a79e6bfad80f7bd1c410f98fafa2b1312b5` |
 
-PR/main CI, documentation, full Windows preflight, signed tagging, official Windows packaging, and Linux exact-candidate authorization/publication will be recorded here as they finish. No final package hashes or public timestamps are asserted before the workflows and public assets are verified.
+[RELEASE-METADATA.json](https://github.com/Lotulune/Copperbench/releases/download/v0.1.16/RELEASE-METADATA.json) records the signed source and producer run. The ten downloaded files include the EXE, ZIP, checksum file, release metadata, update descriptor, SBOM, product-status and license/notice documents. MSIX and the component ZIPs were checked through their public API digests and checksum/descriptor bindings; they were not independently executed or locally installed.
 
-Final package inspection found that the new Markdown runtime's upstream license texts were absent from the distribution license directory. A packaging-only follow-up adds the actual bundled UI packages' upstream texts and source hashes, retaining the existing Blockly notice, and makes the frozen-archive consumer require the notice file byte-for-byte whenever it exists in that source. Runtime code is unchanged. The earlier `7a0317f4` Linux candidate and its successful independent verification remain evidence for that source; final publication must use the rebuilt candidate containing these notices.
+Raw public API receipts, downloaded-byte verification, provenance and archive inspection are retained locally under `output/release-0.1.16/public/windows/`; large downloads are in `output/release-0.1.16/windows-public-payload/`. The official release assets and workflow links above are permanent retrieval points for the published identities.
 
-Full official installer upgrade/uninstall, 360 scanning, cold-cache installation, independent novice usability, Linux gameplay and other CLI full workflows are not newly claimed. Existing support gates retain their original scope; Linux maintenance publication must keep `formalSupportClaim=false` and exact frozen-byte provenance.
+## Installed and gameplay scope
+
+The [local Windows + Codex candidate](simple-mode-final-package-2026-10-22.md) completed actual attachments, approval, stop, creation, Minecraft placement and same-world reopen, ordinary export, application restart and explicit continuation. Its [archived evidence](../../evidence/maintenance/2026-10-22/release-0.1.16/simple-mode-candidate/archived-files.json) retains its own candidate hashes. That record is not relabeled as a new full installed acceptance of the official rebuild.
+
+Full official installer upgrade/uninstall, 360 scanning, cold-cache installation, independent novice usability, Linux player interaction and other CLI full workflows were not newly repeated. Linux publication is recorded [separately](linux-publication-0.1.16.md). Tagged source declarations and shipped documents retain their build-time text; later publication records do not alter released bytes.

@@ -8,28 +8,28 @@ Open the Release linked from the Linux row in [current downloads](../releases/cu
 
 Use the same release's `linux-candidate-sha256.txt`, candidate metadata, provenance and `LINUX-RELEASE-AUTHORIZATION.json`. Verify against your downloaded version's manifest; the old hashes at the end of this page apply only to their historical packages.
 
-The [Linux 0.1.15 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.15-linux-stable) published these hashes, which apply only to that version:
+The [Linux 0.1.16 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.16-linux-stable) published these hashes, which apply only to that version:
 
-- `copperbench_0.1.15_amd64.deb`: `ece4b83e12132307c82c51a875ae0eccfdc36458b5f1b7671b94b62e0c39ef3d`.
-- `Copperbench.0.1.15.Linux.x86_64.tar.gz`: `bcf013b9e9661d2d6ef4de58e73c77419cd08ac70c7cab35c10b887c6a55f98f`.
-- `Copperbench.0.1.15.Linux.x86_64.Setup.tar.gz`: `c304781269aed0b36882033ad396b7814bdedd0987b72b50d9a9ec3e118e431c`.
+- `copperbench_0.1.16_amd64.deb`: `96cd39fba71273981e6b8accea18ba73b67f5c2213077b3a0aba1bc9fcd08ebb`.
+- `Copperbench.0.1.16.Linux.x86_64.tar.gz`: `b27084b1a7875ba50a6c4e11306892a0e1f932624ba4d6b8b435b99dc5a1bf2b`.
+- `Copperbench.0.1.16.Linux.x86_64.Setup.tar.gz`: `9d1d74dc066a11d3724912209bd7eb5c47a06a036405ca04dbca4c9713e325c4`.
 
 For the graphical wizard, extract `Setup.tar.gz` and run `Install Copperbench`. Follow the [English wizard instructions](graphical-installation.md#english).
 
-The commands below use 0.1.15; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
+The commands below use 0.1.16; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
 
 ```sh
-sudo apt install ./copperbench_0.1.15_amd64.deb
+sudo apt install ./copperbench_0.1.16_amd64.deb
 ```
 
-For the 0.1.15 portable package:
+For the 0.1.16 portable package:
 
 ```sh
-tar -xzf Copperbench.0.1.15.Linux.x86_64.tar.gz
-./Copperbench0115/copperbench.sh
+tar -xzf Copperbench.0.1.16.Linux.x86_64.tar.gz
+./Copperbench0116/copperbench.sh
 ```
 
-GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.15 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
+GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.16 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
 
 ## Settings, scope and removal
 
@@ -39,11 +39,11 @@ GNOME automatic login can require unlocking the keyring through the normal syste
 
 Uninstall the Debian package with `sudo apt remove copperbench`; preferences and user workspaces remain. Continue with [Trail Block](first-creation.en.md). If your installed version has no first-launch tour, follow the tutorial's manual Fabric 1.21.1 workspace route.
 
-## 0.1.15 publication and verification
+## 0.1.16 publication and verification
 
-Version 0.1.15 adds Simple creation, five host-installed CLI agents, draft protection and desktop interaction fixes. The [publication record](../testing/linux-publication-0.1.15.md) records 13 candidate gates, independent consumer verification, signed provenance, complete downloaded-draft byte comparison and matching sizes/hashes for all 18 public assets and 8 update components. Full GNOME installation, upgrade, uninstall and player-controlled gameplay acceptance were not repeated. The [0.1.4 publication](../testing/product-shell-linux-publication-0.1.4.md) and [0.1.2 installed acceptance](../testing/maintenance-012-linux-installed-2026-09-28.md) retain their original package scope.
+Version 0.1.16 improves guided creation, model/attachment controls, session permissions, history recovery and hidden-sidebar performance, and includes the shipped UI dependency license texts. The [publication record](../testing/linux-publication-0.1.16.md) records 13 candidate gates, independent consumer verification, signed provenance, complete downloaded-draft byte comparison and matching sizes/hashes for all 18 public assets and 8 update components. Full GNOME installation, upgrade, uninstall and player-controlled gameplay acceptance were not repeated. The [0.1.4 publication](../testing/product-shell-linux-publication-0.1.4.md) and [0.1.2 installed acceptance](../testing/maintenance-012-linux-installed-2026-09-28.md) retain their original package scope.
 
-Changes for that version are in the [Linux 0.1.15 notes](../releases/v0.1.15-linux.md); current platform versions remain in [current downloads](../releases/current.md).
+Changes for that version are in the [Linux 0.1.16 notes](../releases/v0.1.16-linux.md); current platform versions remain in [current downloads](../releases/current.md).
 
 ## Historical 0.1.7 package verification
 
