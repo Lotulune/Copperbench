@@ -56,12 +56,12 @@ export function AgentModelSelect({ value, usesSessionModel = false, catalog, dis
   };
   useEffect(() => { if (open) document.getElementById(`${id}-option-${highlight}`)?.scrollIntoView({ block: 'nearest' }); }, [open, highlight, id]);
   return <>
-    <button type="button" ref={trigger} className="creation-model-trigger" data-testid="simple-model" data-model-value={value}
+    <button type="button" ref={trigger} className="creation-select-trigger creation-model-trigger" data-testid="simple-model" data-model-value={value}
       aria-label={`${uiText('模型', 'Model')}: ${value || emptyLabel}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined}
       title={value || undefined} disabled={disabled} onClick={() => open ? setOpen(false) : expand()}>
       <span>{chosen?.label || value || emptyLabel}</span><ChevronDown size={13} aria-hidden="true" />
     </button>
-    {open && createPortal(<div ref={menu} id={id} role="dialog" aria-label={uiText('选择模型', 'Choose a model')} className="creation-model-menu" style={position}
+    {open && createPortal(<div ref={menu} id={id} role="dialog" aria-label={uiText('选择模型', 'Choose a model')} className="creation-select-menu creation-model-menu" style={position}
       onKeyDown={keyDown} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null) && event.relatedTarget !== trigger.current) setOpen(false); }}>
       <div className="creation-model-search"><Search size={15} aria-hidden="true" /><input ref={search} value={query} maxLength={200}
         aria-label={uiText('搜索或输入模型 ID', 'Search or enter a model ID')} placeholder={uiText('搜索或输入模型 ID', 'Search or enter a model ID')}
@@ -76,7 +76,7 @@ export function AgentModelSelect({ value, usesSessionModel = false, catalog, dis
         <p>{uiText('填写当前源提供的完整模型 ID，无需等待列表加载。', 'Enter the full model ID from your service without waiting for the list.')}</p></div>}
       {catalog?.state === 'loading' && <p role="status">{uiText('正在获取模型列表…', 'Loading models…')}</p>}
       {catalog?.error && <p role="alert" className="creation-model-error">{agentText(catalog.error, catalog.errorText)}</p>}
-      <div id={`${id}-list`} role="listbox" aria-label={uiText('可用模型', 'Available models')} className="creation-model-options">
+      <div id={`${id}-list`} role="listbox" aria-label={uiText('可用模型', 'Available models')} className="creation-select-options">
         {choices.map((model, index) => <div id={`${id}-option-${index}`} key={model.id} role="option" aria-selected={model.id === value}
           data-highlighted={index === highlight} data-testid="model-option" data-model-id={model.id} onMouseEnter={() => setHighlight(index)}
           onMouseDown={event => event.preventDefault()} onClick={() => choose(model.id)}><span><strong>{model.label}</strong>{model.id !== model.label && <small>{model.id}</small>}</span>{model.id === value && <Check size={14} aria-hidden="true" />}</div>)}
