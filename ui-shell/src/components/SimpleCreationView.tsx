@@ -132,7 +132,11 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const previewAsset = visibleAssets.find(asset => asset.id === assetId);
   const recentTask = newestTasks(Object.values(state.tasks))[0];
   const taskRunning = Object.values(state.tasks).some(task => task.state === 'queued' || task.state === 'running');
-  const works = useMemo(() => state.elements.filter(element => `${element.displayName} ${element.name}`.toLowerCase().includes(workSearch.trim().toLowerCase())), [state.elements, workSearch]);
+  // Keep session/draft/task ownership mounted across modes, but do not build thousands
+  // of hidden sidebar buttons on every Core query notification in Professional mode.
+  const works = useMemo(() => active
+    ? state.elements.filter(element => `${element.displayName} ${element.name}`.toLowerCase().includes(workSearch.trim().toLowerCase()))
+    : [], [active, state.elements, workSearch]);
 
   useEffect(() => {
     if (snapshot?.provider) { setProvider(snapshot.provider); return; }
@@ -490,6 +494,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                   value={permission} disabled={busy || Boolean(agent.pending)} onChange={event => void choosePermission(event.target.value as AgentPermission)}>
                   <option value="default">{uiText('默认权限', 'Default permissions')}</option><option value="auto-approve">{uiText('自动批准', 'Automatic approval')}</option>
                 </select></label>
+                {/* A fast stop reply can reuse this node as Submit before the click default action. */}
                 {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={event => { event.preventDefault(); void agent.invoke({ operation: 'stop' }); }}><Square size={15} fill="currentColor" /></button>
                   : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={(!draft.trim() && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || busy || needsModel || Boolean(snapshot?.storageBlocked) || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
               </div>

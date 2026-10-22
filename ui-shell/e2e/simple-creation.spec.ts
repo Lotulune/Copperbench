@@ -403,3 +403,102 @@ test('provider icons identify choices and conversations with keyboard access and
   await expect(menu).toHaveCount(0);
   await expect(page.getByTestId('simple-prompt')).toBeFocused();
 });
+
+test('professional mode omits the large hidden list while repeated switches retain search, selection and drafts', async ({ page }) => {
+  await installAgentFixture(page);
+  await page.goto('/');
+  const lamp = page.locator('[data-testid^="simple-element-"]').filter({ hasText: 'Copper Lamp' });
+  await lamp.click();
+  await page.getByRole('tab', { name: '设置', exact: true }).click();
+  const parameter = page.locator('[data-testid^="simple-parameter-"]').first();
+  await parameter.fill('Retained parameter draft');
+  await page.getByTestId('simple-prompt').fill('Retained chat draft');
+  await page.evaluate(async () => {
+    const { coreBridge } = await import('/src/bridge/index.ts');
+    const state = coreBridge.getState();
+    const original = [...state.elements];
+    state.elements = [...original, ...Array.from({ length: 2000 - original.length }, (_, index) => ({
+      ...original[0], id: `scale-mode-${index}`, name: `scale_mode_${index}`, displayName: `Scale mode ${index}`
+    }))];
+    // Fixture-only state publication exercises the same provider subscription as native query notifications.
+    (coreBridge as unknown as { notifyState(): void }).notifyState();
+  });
+  await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(2000);
+  const search = page.getByRole('searchbox', { name: '查找作品内容', exact: true });
+  await search.fill('Copper Lamp');
+  await expect(lamp).toHaveAttribute('aria-pressed', 'true');
+  const detectCount = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-professional').click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    await page.getByTestId('nav-data').click();
+    await page.getByTestId('creator-data-view').getByRole('button', { name: '刷新', exact: true }).click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    expect(await unsavedDrafts(page)).toBe(true);
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-simple').click();
+    await expect(search).toHaveValue('Copper Lamp');
+    await expect(lamp).toHaveAttribute('aria-pressed', 'true');
+    await expect(parameter).toHaveValue('Retained parameter draft');
+    await expect(page.getByTestId('simple-prompt')).toHaveValue('Retained chat draft');
+  }
+  await search.fill('');
+  await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(2000);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length)).toBe(detectCount);
+});
+
+
+test('switching modes during an unresolved send preserves the pending operation, approval and next draft', async ({ page }) => {
+  await installAgentFixture(page);
+  await page.goto('/');
+  await expect(page.getByTestId('simple-prompt')).toBeVisible();
+  await page.evaluate(() => {
+    const host = window.__COPPERBENCH_AGENT_HOST__!;
+    const original = host.invoke.bind(host);
+    let release!: () => void;
+    const blocked = new Promise<void>(resolve => { release = resolve; });
+    Object.assign(window, { releaseScaleModeSend: release });
+    host.invoke = async request => {
+      if (request.operation === 'send') { sessionStorage.setItem('scale-mode-send-pending', 'true'); await blocked; }
+      return original(request);
+    };
+  });
+  await page.getByTestId('simple-prompt').fill('approval');
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  const detectCount = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length);
+  await page.getByTestId('simple-send').click();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('scale-mode-send-pending'))).toBe('true');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-professional').click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-simple').click();
+    await expect(page.getByTestId('simple-send')).toBeDisabled();
+    await expect(page.getByTestId('simple-prompt')).toHaveValue('approval');
+  }
+  // Complete the outstanding operation while its controls are hidden.
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-professional').click();
+  await page.evaluate(() => (window as unknown as { releaseScaleModeSend(): void }).releaseScaleModeSend());
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-simple').click();
+  await expect(page.getByTestId('simple-agent-approval')).toBeVisible();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('');
+  await page.getByTestId('simple-prompt').fill('Next task draft');
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-professional').click();
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-simple').click();
+  await expect(page.getByTestId('simple-agent-approval')).toBeVisible();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Next task draft');
+  await page.getByTestId('simple-stop').click();
+  await expect(page.getByTestId('simple-agent-approval')).toHaveCount(0);
+  await expect(page.getByRole('log')).toContainText('已停止');
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Next task draft');
+  const calls: string[] = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]'));
+  expect(calls.filter(op => op === 'detect')).toHaveLength(detectCount);
+  expect(calls.filter(op => op === 'send')).toHaveLength(1);
+  expect(calls.filter(op => op === 'stop')).toHaveLength(1);
+});
