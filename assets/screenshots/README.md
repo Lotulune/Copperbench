@@ -1,8 +1,19 @@
 # Current promotional images and screenshots
 
-For promotional videos, covers and product introductions, use the UI images listed below. The [Copperbench icon](../branding/copperbench-icon-source.png) and its [source details](../branding/README.md) are the current branding assets.
+Both root READMEs lead with the introduction animation below. For static covers and product illustrations, use the versioned UI images listed here. The [Copperbench icon](../branding/copperbench-icon-source.png) and its [source details](../branding/README.md) are the current branding assets.
 
-## Current published interface: 0.1.4
+## README introduction: 0.1.17
+
+[Copperbench introduction GIF](../promo/v0.1.17/copperbench-intro.gif) — 960 × 540, 242 frames, 20.17 seconds, continuous looping, 6,473,774 bytes. The on-screen captions are Chinese and the title strip identifies 0.1.17.
+
+Prepared on 2026-10-23 from the user's supplied `copperbench-promo-960.gif`. The recording environment and exact product source commit were not supplied. The original has 271 frames and a duration of 22.58 seconds. The README copy retains frames 0–241, ending before the closing project-name/address card and its transition. Original compressed frame data, palettes and frame delays are preserved without re-encoding.
+
+| File | SHA-256 |
+| --- | --- |
+| Supplied `copperbench-promo-960.gif` | `7f30440a8edce11d6f67f74d8ee1911b0b83d2af3bb9353545594e21c814ecfe` |
+| README `copperbench-intro.gif` | `ccac1d4fe9902a8eb5e096f0bc5776770628eb399ee416a62823b218e878e400` |
+
+## Workbench screenshots: 0.1.4
 
 | View | English | 简体中文 |
 | --- | --- | --- |

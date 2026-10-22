@@ -14,6 +14,10 @@
   <p><a href="docs/releases/current.md">Download</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
+<p align="center">
+  <img src="assets/promo/v0.1.17/copperbench-intro.gif" alt="A short Copperbench introduction: Simple creation and the Professional workbench" width="960">
+</p>
+
 Start in [Simple creation](docs/user/simple-creation.en.md) for a guided conversation workflow, or use the [manual Professional route](docs/user/first-creation.en.md).
 
 
