@@ -35,17 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.15",
-      "linuxTag": "v0.1.13-linux-stable",
+      "tag": "v0.1.16",
+      "linuxTag": "v0.1.15-linux-stable",
       "status": "ready",
       "linuxStatus": "public-stable",
       "decision": "approved",
-      "decisionDate": "2026-10-21",
-      "scope": "Windows and Linux release preparation for simple creation mode with five host-installed CLI agents, draft protection, native pickers, task/log continuity, localization and dialog accessibility fixes. Final 0.1.15 source CI and packaging are pending. Current public Windows and Linux packages remain 0.1.13 until publication is verified. No new full installed or player acceptance is claimed.",
+      "decisionDate": "2026-10-22",
+      "scope": "Prepare Windows and Linux 0.1.16 with guided simple creation, bilingual runtime messages, model catalogs and manual IDs, reasoning effort, file/image attachments, per-session permissions, history recovery and native sidebar performance fixes. The local Windows + Codex final-candidate workflow passed including gameplay persistence and ordinary export. Final merged-source CI, official packages and publication are tracked separately; public platform downloads remain 0.1.15 until verified.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/simple-creation-fixes-2026-10-21.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.15.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-21/release-0.1.15/previous-release.json",
+      "developmentEvidence": "docs/testing/simple-mode-independent-review-2026-10-22.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.16.md",
+      "previousReleaseState": "evidence/maintenance/2026-10-22/release-0.1.16/previous-release-state.json",
       "sourceVerification": {
         "requiredCi": {
           "status": "pending"
@@ -53,9 +53,9 @@
         "documentation": {
           "status": "pending"
         },
-        "installedPackageAcceptance": "not-repeated",
-        "fullGameplayAcceptance": "not-repeated",
-        "nativeUiEvidence": "docs/testing/simple-creation-merge-2026-10-21.md"
+        "installedPackageAcceptance": "local-windows-candidate-portable-first-creation-passed; official installers not yet retested",
+        "fullGameplayAcceptance": "local-windows-candidate-codex-fabric-1.21.1-placement-and-reopen-passed",
+        "nativeUiEvidence": "docs/testing/simple-mode-final-package-2026-10-22.md"
       }
     },
     "linuxMaintenanceRelease": {

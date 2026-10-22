@@ -1,0 +1,20 @@
+{
+  "world": "CB_FINAL_20261022",
+  "item": "final_review_trail:trail_block",
+  "blockPosition": [
+    2,
+    -60,
+    4
+  ],
+  "hotbarCount": 16,
+  "preparationCommands": [
+    "/give @s final_review_trail:trail_block 16",
+    "/tp @s ~ ~ ~ 0 45"
+  ],
+  "playerInteraction": "one right-click on the grass surface",
+  "placementScreenshot": "126-player-right-click-place-trail-block.jpg",
+  "identityScreenshot": "127-identify-placed-block-and-coordinates.jpg",
+  "textureObserved": "stone",
+  "normalExit": true,
+  "runClientTask": "c34a75e6-66dd-48e5-a054-d92347230abf"
+}

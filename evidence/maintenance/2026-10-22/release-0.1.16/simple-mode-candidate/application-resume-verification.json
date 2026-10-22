@@ -1,0 +1,16 @@
+{
+  "chatRestoredWithoutAutomaticExecution": true,
+  "explicitReadOnlyContinuation": "passed",
+  "localConversationId": "ef636566-468f-4728-bf10-19241ccb0d0d",
+  "provider": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "permission": "default",
+  "userMessageCount": 4,
+  "elementRevision": 2,
+  "coreTaskIdsUnchanged": true,
+  "activeCoreTasks": 0,
+  "exportHashUnchanged": true,
+  "artifactSha256": "5ea24cd2023a735b84666fc41de4dbb157f6a87207492c574506158ab4ddf35f",
+  "firstQueryEnvironmentFailure": "sandbox blocked local desktop discovery; one-time approval resolved it"
+}

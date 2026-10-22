@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.shell.Stage9ScaleEvidenceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-22T02:26:46.474Z" hostname="RIMURU" time="0.067">
+  <properties/>
+  <testcase name="writeFailureDoesNotReplaceOriginalFailureAndCannotPassSilently()" classname="dev.copperbench.shell.Stage9ScaleEvidenceTest" time="0.022"/>
+  <testcase name="thresholdFailureKeepsEveryCollectedSampleAndOriginalAssertion()" classname="dev.copperbench.shell.Stage9ScaleEvidenceTest" time="0.012"/>
+  <testcase name="interruptedSampleKeepsPartialSeriesWithoutInventingAValue()" classname="dev.copperbench.shell.Stage9ScaleEvidenceTest" time="0.011"/>
+  <testcase name="successWritesMeasuredValuesAndCompletion()" classname="dev.copperbench.shell.Stage9ScaleEvidenceTest" time="0.009"/>
+  <testcase name="setupFailureStillWritesEnvironmentAndFailure()" classname="dev.copperbench.shell.Stage9ScaleEvidenceTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

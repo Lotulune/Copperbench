@@ -1,0 +1,18 @@
+{
+  "world": "CB_FINAL_20261022",
+  "item": "final_review_trail:trail_block",
+  "blockPosition": [
+    2,
+    -60,
+    4
+  ],
+  "hotbarCount": 16,
+  "newClientProcessId": 28396,
+  "firstClientProcessId": 61104,
+  "newClientTask": "08ab0335-b884-498c-80d9-40c03a9aeb25",
+  "reopenScreenshot": "137-reopened-world-block-and-inventory.jpg",
+  "identityScreenshot": "138-verify-persisted-block-identity.jpg",
+  "textureObserved": "stone",
+  "newGiveOrPlacementAfterReopen": false,
+  "normalExit": true
+}

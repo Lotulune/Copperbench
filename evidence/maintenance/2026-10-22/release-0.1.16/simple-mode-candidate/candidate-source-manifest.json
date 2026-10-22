@@ -1,0 +1,371 @@
+{
+  "baseCommit": "21d8fc0148c5decf48589236b5b57b131517d2b0",
+  "branch": "codex/simple-mode-onboarding",
+  "at": "2026-10-21T22:37:18.672610+00:00",
+  "files": [
+    {
+      "path": ".impeccable/design.json",
+      "sha256": "fa9280daf7c793f3faef8bf65e4c6f22af949abf0e27fb4ffae12a14e3da0dc4"
+    },
+    {
+      "path": "DESIGN.md",
+      "sha256": "d1c3fe14495c67a89cc64b63bd5cfe4fc90ef64c92777122131d6092eb31ebcc"
+    },
+    {
+      "path": "README.md",
+      "sha256": "3019e0b38761499809de6833886aa69b2f43d97fa878d63bb6780fc8bd4e4212"
+    },
+    {
+      "path": "README.zh-CN.md",
+      "sha256": "ee6408346869f5411b77e9b5889d5ab16fb6c2b7a46f43c1998665e41b8b593d"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "f077072110856177ab597bf4cce9dc9e9053b36263e2d2932b29a91df4ad3ed5"
+    },
+    {
+      "path": "docs/testing/agent-composer-options.md",
+      "sha256": "a3e4e504f63a8f43c647fe1180e8c0fc6639003e9011d5735d5da43c0d22df77"
+    },
+    {
+      "path": "docs/testing/simple-mode-independent-review-2026-10-22.md",
+      "sha256": "0265d7e44bf08ac9622a1b01c1218099fadc654a2e1be3c965c9d446917535df"
+    },
+    {
+      "path": "docs/testing/simple-mode-onboarding.md",
+      "sha256": "41d315fc869eb1ce4f93a6f069a3050b3556d08281a9fc44a86d8e95c5ae024f"
+    },
+    {
+      "path": "docs/user/README.md",
+      "sha256": "87897485863c5f5f800fc52abd8b2fdb8d8f609d8761a1631d0d47325d61368d"
+    },
+    {
+      "path": "docs/user/first-creation.en.md",
+      "sha256": "3f90ae669758e5ff18086fee1639ac0cbb943a0ead2ccfb4d09622d592297fbd"
+    },
+    {
+      "path": "docs/user/first-creation.md",
+      "sha256": "b19c7e46c2e790eabee41c6c251818293a9e59504f486ef1bb7ccf3e2d677bc3"
+    },
+    {
+      "path": "docs/user/getting-started.en.md",
+      "sha256": "d027ae84b4143006ab86ba8f4f6790ed5bb546dd3794852299a60796de71377d"
+    },
+    {
+      "path": "docs/user/getting-started.md",
+      "sha256": "0c143253bcc83b093b206b867896470b78bb72983de6116431134c6ab110a1f7"
+    },
+    {
+      "path": "docs/user/simple-creation.en.md",
+      "sha256": "a04ad297df355a14c038b88a99f661123bb04e2b9916a1125e0b77935558e705"
+    },
+    {
+      "path": "docs/user/simple-creation.md",
+      "sha256": "cc2d50debf2567cd50ce5048a809821524d4ba2a1df7d1266d9a8568f2472ec7"
+    },
+    {
+      "path": "platform/export.gradle",
+      "sha256": "857c946e95b0bab36e39881aa25948ce82480183021aad10441d2b67d0de0c82"
+    },
+    {
+      "path": "product-status.json",
+      "sha256": "76a6fbdc6d3e1c0d9d6c0f6abf711eac192304d61b94efe83e56e743b74f77b0"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AcpAgentProtocol.java",
+      "sha256": "32ab03fb057eec23b8ef8477b16fc3eaabb46db68d74d3b668c7217b17c786bb"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentAttachments.java",
+      "sha256": "cd9bb5bcdb429fc75463bde319d7c56b007b96a216f8d91e3f16aae371cc07cc"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentChatService.java",
+      "sha256": "8e797aa10e1db03a83cc6e4b0ad065e73d8f9cd4ff69f3eaeea1280d1eb282a5"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentChatStore.java",
+      "sha256": "5570ce2b2258726913066264bffc371c9f802d1618c1bdad8ebf61ae0ed113c2"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentCopy.java",
+      "sha256": "43d7ff90b54a6705bf7ecf738742296d71af5ea3ba4e618ea4dc02032c6d0e53"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentDesktopActions.java",
+      "sha256": "7c6c4cd8ee0cf2b6ecf1060c15389c2cddb3b15fca1d7bb8f3009841cb61f1a3"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentModels.java",
+      "sha256": "68c6dcc2124974a09a3dc5b04e0b7b63783a3e765e34ad906a66c360542b91a7"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentProcess.java",
+      "sha256": "c1522e53c0cd89b7d7554b5d28f4281e2312870fe10de39c94f0108d44f83cf9"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentProtocol.java",
+      "sha256": "5a09b1d9b667752d74f129a009e82e5d1f2b0e1de6a5ce31bd04c6d64acc6e1c"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentProvider.java",
+      "sha256": "217ba8b8cd600178192ddc46573b38b94cc7bd692e048c7ff3f4b81e4539f33c"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentRun.java",
+      "sha256": "9cc7455d31bdd4cb18b68de5ae55daed030f46387ecc5dc8bd957e11b5f79684"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AgentTurnOptions.java",
+      "sha256": "60374aa49cb2581da42570fde29b2c64eb2e020abc15803e55c78e349b215e0b"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/AntigravityAgentProtocol.java",
+      "sha256": "61c97bb4051121c2cd22c6213e61103251da029e56bf7642cf19e15b380ef3b8"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/ClaudeAgentProtocol.java",
+      "sha256": "1c7b9bb7ee5a592aa467e818ce9ee499b749a44b1abfb3bb06d22abd90954de3"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/ClaudeModelSource.java",
+      "sha256": "079c39b87c123f96efe6bdbe32ced04338a294725625f80679b23db5165fec74"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/agent/CodexAgentProtocol.java",
+      "sha256": "b7343e1c3257be561540d292f8bed2f8ee33b1cfb1704b38c3b0447a496c0157"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/bridge/JcefAgentBridgeTransport.java",
+      "sha256": "9ae70e4827ea5df09c625c953c6f98f9c85fdafad8c452092c5ea96f73681f89"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/bridge/JcefAssetImportBridgeTransport.java",
+      "sha256": "57a25864f1024659a276ad849a1a29a3f3bb593ee48b5ffcc22667b78dcbc69b"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/shell/CopperbenchProductShell.java",
+      "sha256": "03605160435b2a448a8ff4a6cd0f24f4de827f09cd808db5b79f2b3d13cbdf08"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/shell/StartupTour.java",
+      "sha256": "0d12b1a513c60c9801fe16a39a84b4db3abaad5373d4fe608b6f1f31fd519227"
+    },
+    {
+      "path": "src/main/resources/dev/copperbench/agent/messages.json",
+      "sha256": "978027ace40c67c018cbd7e3f3d258290b4a54937aa421709c6797d9d33a9e57"
+    },
+    {
+      "path": "src/main/resources/mcreator.conf",
+      "sha256": "6079f48c202a0e7638dc1c6530f71e7d37c029d1310dc13c7de81dea36c6f004"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentAttachmentsTest.java",
+      "sha256": "b55dd8a0c80b241b71304d1b81f962caa634ff216743710b9d3bffde1ba26e13"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentChatServiceTest.java",
+      "sha256": "cd0448b4fc2b6ccd77c7e6441e2bea73684ec9acbdc4af5c9bfa03264e180e56"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentComposerDesktopMain.java",
+      "sha256": "d23b0df58c110a9df62ef09b50e6314386ba21a644f91b702eb2ee5630e56775"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentComposerProbeMain.java",
+      "sha256": "f7c247c881b20b589ee8e4e5f59429972503e18a49d449783803450797a96dcd"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentConnectionProbeMain.java",
+      "sha256": "c341c37d1a686843e237c5e93248dce1ff46a3379d69fe4945125f20fa3036ca"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentHistoryManagementTest.java",
+      "sha256": "a38690bed24ee6b15228950853650a804ec852c027a9bbf3cee69bafcb74fa81"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentModelProbeMain.java",
+      "sha256": "5b56822add390a7aad8826bcc48977c27d40edaeb96963727268f020b840ce3e"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentModelProtocolTest.java",
+      "sha256": "8f6f18ed4e6c030a1714b3f4345ca1a1a06f490a48e15116e302d3aa3efa8d7b"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentModelsTest.java",
+      "sha256": "37eed621f7d0e1606c5315e09aabedc747780a5ae60a986c5cc35c7557342674"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentProtocolTest.java",
+      "sha256": "f4f48a6a97c7bbaaedbc7531245d0f083874629e55c2450fcc6ed975eb0ed751"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/AgentTurnOptionsTest.java",
+      "sha256": "5625de0ea403390abcd2fb65090d024017c66d02bb3ff788e289a91a943e5c8b"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/agent/FakeAgentCli.java",
+      "sha256": "9b900dcb0ce81976a335e714f75531aa3e632ad4acb3100e9bf6047a73730a72"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/bridge/JcefAgentBridgeTransportTest.java",
+      "sha256": "c5fd1ef4b7c30a5b1ef1fe7cacea4e5e9fac1ef72e94ee3a810e94dd87470b10"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/shell/StartupLayoutFixture.java",
+      "sha256": "e3e5a02def946b9e4c3abb9fe0189e514d61d2eaac09925b9ccbd257333091a9"
+    },
+    {
+      "path": "ui-core/fixtures/v1.0/release/release-notes.json",
+      "sha256": "0d64683bb5218e292c639f4166ccd43a9f47aaf91aefabafd23eb3d73ac7006a"
+    },
+    {
+      "path": "ui-shell/e2e/agent-composer-options.spec.ts",
+      "sha256": "f006227ed19c154cf7d5cca2ce5f14da59205647cbf47360382667b10dea127b"
+    },
+    {
+      "path": "ui-shell/e2e/agent-experience.spec.ts",
+      "sha256": "97af15b42c38aa530b047d5a17270ac5db1849b6dd4b44b2d1bd2da961543159"
+    },
+    {
+      "path": "ui-shell/e2e/agent-models.spec.ts",
+      "sha256": "1943462f15db994821e6ae6cd81b4f4993e8c64400b949d7ad36903604eeec0d"
+    },
+    {
+      "path": "ui-shell/e2e/first-creation-delivery.spec.ts",
+      "sha256": "eda1b88d00b12800595e0885db297d5bb1b4c0709ff8abbad79c3977c99b90d9"
+    },
+    {
+      "path": "ui-shell/e2e/fixtures/agent-runtime.json",
+      "sha256": "07a8940ad295775095d419bdfe376938fd3388050e2895ab1251a42d28dd27bf"
+    },
+    {
+      "path": "ui-shell/e2e/simple-creation.spec.ts",
+      "sha256": "81c3edeb105d0f343b294c2b014ca500eb542da0625bc331ef7807b85224b9fd"
+    },
+    {
+      "path": "ui-shell/e2e/workbench-mode-switch.spec.ts",
+      "sha256": "305a94800808d13fa4c34d434513a4c90f8139505c2045b04e15d39a2a6a96eb"
+    },
+    {
+      "path": "ui-shell/package-lock.json",
+      "sha256": "51247bab8299d8a766a3b7c8a49c6c85e36fb1332c4d50da1ef7383455b87925"
+    },
+    {
+      "path": "ui-shell/package.json",
+      "sha256": "3fe5a781b2a6e516cf96f6a908a927d151a04445a718a37e8c25f2df8021634d"
+    },
+    {
+      "path": "ui-shell/src/App.tsx",
+      "sha256": "b032d4b275ade045da6698d60177b48da0d896850432256a23979633ec4e9645"
+    },
+    {
+      "path": "ui-shell/src/bridge/CoreBridge.ts",
+      "sha256": "ed6d7e281c89c516e6c886eaeb3309c3b256f5787e31af01c517df52ed72d496"
+    },
+    {
+      "path": "ui-shell/src/bridge/agentBridge.ts",
+      "sha256": "58fe24bdebf1fd1cc618e2f11b536bd8abe3464bbc9541d6c7f97718652a0701"
+    },
+    {
+      "path": "ui-shell/src/components/AgentApprovalPrompt.tsx",
+      "sha256": "9ef2cc1903a24a6a085a679dc50df1f7ab09d2d1e1817382760211719de62253"
+    },
+    {
+      "path": "ui-shell/src/components/AgentAttachments.tsx",
+      "sha256": "edee764369a9a0cb5dd4fc8ade8c2c9f84a77b7752ee5c53dff4fbd94c3d0503"
+    },
+    {
+      "path": "ui-shell/src/components/AgentHistoryDialog.tsx",
+      "sha256": "7ebdd6debfc7b7a0aefbf85ec5307b505d57fadc8a74011e6ab2025dc026d5d2"
+    },
+    {
+      "path": "ui-shell/src/components/AgentMessageBody.tsx",
+      "sha256": "4a0e47bb9386b9b716d48a052972660b6cceb34f98fe16045bedc71c1a6424c8"
+    },
+    {
+      "path": "ui-shell/src/components/AgentModelSelect.tsx",
+      "sha256": "963c4d876dcfc69e86b87ba642ee9d113c1086dd25cfa4715b5792d0c64257a5"
+    },
+    {
+      "path": "ui-shell/src/components/AgentProviderSelect.tsx",
+      "sha256": "c82903aca023415b94890e8ef59bf59bdda33f2dd3890dcfc1568c3286c10fcd"
+    },
+    {
+      "path": "ui-shell/src/components/AgentSetupDialog.tsx",
+      "sha256": "1d6c01719013939c49f4d56f62866243a8891dd0aa31168dfa869179c143a3a1"
+    },
+    {
+      "path": "ui-shell/src/components/DeliveryDialog.tsx",
+      "sha256": "aebdd95164a006ee424b768cf91b6607e0408229f0c9a0b3981f2ff7d0a2316c"
+    },
+    {
+      "path": "ui-shell/src/components/FirstCreationGuide.tsx",
+      "sha256": "4c5301cee4f60b53da37f5db53e114905bbcee1f7ae3a2e53297a64e436c649e"
+    },
+    {
+      "path": "ui-shell/src/components/FramelessTitlebar.tsx",
+      "sha256": "60d4bc5695c85e7744448f6a66ce170bdfe28222e98bb0220b075d61efe7ac7e"
+    },
+    {
+      "path": "ui-shell/src/components/HelpView.tsx",
+      "sha256": "f2049881c561938d1764718d1b5d98d5c4af588a12561e409f068928b1dcdbe1"
+    },
+    {
+      "path": "ui-shell/src/components/SimpleCreationView.tsx",
+      "sha256": "4a96935b4a37e3aa7b9cc1c44fbf5acd0a435f9052037c946ab7651ffe76adb9"
+    },
+    {
+      "path": "ui-shell/src/components/WorkbenchModeSwitch.tsx",
+      "sha256": "ca5889c078a0c34ee9369450a614fc3071ffe6784d36806a75f921134a25fb07"
+    },
+    {
+      "path": "ui-shell/src/components/agentAttachments.css",
+      "sha256": "f56707aeaa7ba6ddcd25cf65465c826379bc48215ff29581e6f3fdc64951f509"
+    },
+    {
+      "path": "ui-shell/src/components/agentExperience.css",
+      "sha256": "ac0d85680557257b4080f48bd1efe091b304bec9df3d2dfc9ef7d0ca066afa82"
+    },
+    {
+      "path": "ui-shell/src/components/agentModels.css",
+      "sha256": "abb652f251514c8f999f9290bbac3a7620e304a8e90b6fbec41a0c70ea476a3a"
+    },
+    {
+      "path": "ui-shell/src/components/firstCreation.css",
+      "sha256": "4fc20f9aa56b23881ac8bb1712cbbd86b76e1beb021c37841b8dd317f99e3faa"
+    },
+    {
+      "path": "ui-shell/src/components/simpleCreation.css",
+      "sha256": "e0e77c630fc8320ddb5cfdea14741347c799e47996c4e91967c538c26cbdaafd"
+    },
+    {
+      "path": "ui-shell/src/components/workbenchModeSwitch.css",
+      "sha256": "a86ca8217355ae2ddc3d7e74181104a6d78a45f0f36c0a971f7191c91d3904e1"
+    },
+    {
+      "path": "ui-shell/src/content/simpleCreationGuide.ts",
+      "sha256": "5cbd9dc247c08816e9cb75c0f169a790a5fc69b1506389b44f9925414dfb872e"
+    },
+    {
+      "path": "ui-shell/src/content/userGuide.ts",
+      "sha256": "c8f9b4b52ad5dccd3136c71bfa101fa76806f93525769e060e7b472d3d3e1cf8"
+    },
+    {
+      "path": "ui-shell/src/hooks/useAgentAttachments.ts",
+      "sha256": "ab9b4ae859d7c2de4ccb43720ffd01e451f9694077a680cae27534ebf6bd51f1"
+    },
+    {
+      "path": "ui-shell/src/onboarding/WorkbenchTour.tsx",
+      "sha256": "aea07511a6439847d32207b5c42e30c874b73d8fd468508171a6558b5eb53311"
+    },
+    {
+      "path": "ui-shell/src/onboarding/workbenchTour.css",
+      "sha256": "cdb1c7769abf4de469c3a550be32e414312969a9599ebec307fa88062bfb1a32"
+    },
+    {
+      "path": "ui-shell/tests/agent-boundary.test.mjs",
+      "sha256": "310f509057fe794b2f672a81807b3eb97a33b6f64e8da9928f804192da899abc"
+    }
+  ]
+}
