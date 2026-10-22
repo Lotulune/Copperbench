@@ -14,7 +14,14 @@ public final class StartupTour extends JPanel {
     private final JFrame owner;
     private final Component previous;
     private final JComponent target;
-    private final JPanel card = new JPanel(new BorderLayout(0, 16));
+    private final JPanel card = new JPanel(new BorderLayout(0, 16)) {
+        @Override public void paint(Graphics graphics) {
+            Graphics2D copy = (Graphics2D) graphics.create();
+            copy.setComposite(AlphaComposite.SrcOver.derive(Math.max(0, Math.min(1, opacity * stepOpacity))));
+            copy.translate(0, animate ? (1 - stepOpacity) * 12 : 0);
+            super.paint(copy); copy.dispose();
+        }
+    };
     private final JLabel heading = new JLabel();
     private final JTextArea description = new JTextArea();
     private final JButton next = new JButton();
@@ -22,6 +29,10 @@ public final class StartupTour extends JPanel {
     private final Runnable start;
     private int step;
     private float opacity;
+    private float stepOpacity = 1f;
+    private long stepStarted;
+    private long closingStarted;
+    private Runnable afterDismiss = () -> {};
     private final long started = System.nanoTime();
     private final boolean animate = !Boolean.FALSE.equals(Toolkit.getDefaultToolkit().getDesktopProperty("win.clientAreaAnimation"));
 
@@ -46,19 +57,27 @@ public final class StartupTour extends JPanel {
         JButton skip = new JButton(text("跳过引导", "Skip tour"));
         skip.addActionListener(_ -> dismiss()); buttons.add(skip); buttons.add(next);
         next.setName("first-run-next"); next.setMargin(new Insets(9, 16, 9, 16));
-        next.addActionListener(_ -> { if (++step < 3) updateStep(); else { dismiss(); start.run(); } });
+        next.addActionListener(_ -> { if (++step < 3) updateStep(); else dismiss(this.start); });
         card.add(buttons, BorderLayout.SOUTH); add(card);
         getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "dismiss");
         getActionMap().put("dismiss", new AbstractAction() { @Override public void actionPerformed(ActionEvent event) { dismiss(); } });
-        updateStep();
         animation = new Timer(16, _ -> {
-            opacity = Math.min(1f, (System.nanoTime() - started) / 240_000_000f);
+            long now = System.nanoTime();
+            if (closingStarted != 0) {
+                opacity = Math.max(0f, 1f - (now - closingStarted) / 180_000_000f);
+                if (opacity == 0) { finishDismiss(); return; }
+            } else opacity = Math.min(1f, (now - started) / 240_000_000f);
+            float progress = Math.min(1f, (now - stepStarted) / 340_000_000f);
+            stepOpacity = 1f - (float) Math.pow(1 - progress, 4);
             repaint();
+            if (closingStarted == 0 && opacity == 1 && progress == 1) animationStop();
         });
+        updateStep();
         if (animate) animation.start(); else opacity = 1f;
         owner.addWindowListener(new WindowAdapter() { @Override public void windowClosed(WindowEvent event) { animation.stop(); } });
     }
     private void updateStep() {
+        stepStarted = System.nanoTime(); stepOpacity = animate ? 0f : 1f;
         heading.setText(new String[] {text("欢迎，开始第一件作品", "Welcome to your first creation"), text("创建并编辑你的方块", "Create and edit your block"), text("运行、检查、交付", "Run, inspect and deliver")}[step]);
         description.setText(new String[] {
                 text("从这里新建工作区。我们会准备 Fabric 1.21.1 的首作设置，再由你选择项目保存位置。", "Start with a new workspace here. We will prepare Fabric 1.21.1 settings; you choose where to save your project."),
@@ -67,8 +86,17 @@ public final class StartupTour extends JPanel {
         next.setText(step < 2 ? text("下一步", "Next") + "  " + (step + 1) + "/3" : text("开始创作", "Start creating"));
         getAccessibleContext().setAccessibleName(heading.getText());
         revalidate(); repaint();
+        if (animate) animation.restart();
     }
-    private void dismiss() { animation.stop(); setVisible(false); owner.setGlassPane(previous); target.requestFocusInWindow(); }
+    private void animationStop() { animation.stop(); }
+    private void dismiss() { dismiss(() -> {}); }
+    private void dismiss(Runnable after) {
+        if (closingStarted != 0) return;
+        afterDismiss = after; next.setEnabled(false);
+        if (!animate) { finishDismiss(); return; }
+        closingStarted = System.nanoTime(); animation.restart();
+    }
+    private void finishDismiss() { animation.stop(); setVisible(false); owner.setGlassPane(previous); target.requestFocusInWindow(); afterDismiss.run(); }
     public void focusNext() { next.requestFocusInWindow(); }
     @Override public void doLayout() {
         int width = Math.min(470, getWidth() - 32), height = Math.min(250, getHeight() - 32);
@@ -83,8 +111,7 @@ public final class StartupTour extends JPanel {
         var hole = new RoundRectangle2D.Float(spot.x - 6, spot.y - 6, spot.width + 12, spot.height + 12, 14, 14);
         Area mask = new Area(new Rectangle(0, 0, getWidth(), getHeight())); mask.subtract(new Area(hole));
         g.setColor(new Color(12, 16, 22, (int) (175 * opacity))); g.fill(mask);
-        float pulse = animate ? (float) (0.5 + 0.5 * Math.sin((System.nanoTime() - started) / 500_000_000d)) : 0f;
-        g.setColor(new Color(226, 170, 122, (int) (opacity * (160 + 95 * pulse)))); g.setStroke(new BasicStroke(2 + pulse)); g.draw(hole);
+        g.setColor(new Color(226, 170, 122, (int) (opacity * 230))); g.setStroke(new BasicStroke(2)); g.draw(hole);
         g.dispose();
     }
 }

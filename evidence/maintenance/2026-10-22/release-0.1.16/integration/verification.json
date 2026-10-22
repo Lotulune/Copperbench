@@ -1,0 +1,47 @@
+{
+  "scope": "Local integration check after merging current Simple-mode work with PR147 and PR146",
+  "java": {
+    "tests": 6,
+    "skipped": 0,
+    "failed": 0
+  },
+  "uiUnitPassed": 74,
+  "uiCorePassed": 50,
+  "browserPassed": 36,
+  "nativeComparisonHarnessPassed": 7,
+  "productStatus": "passed",
+  "markdownLinks": "passed",
+  "productionUiBuild": "passed via Gradle processResources",
+  "nativeReferenceRefreshP95Millis": 114.30000001192093,
+  "initialAttempt": "Command-line path parsing failed before tests; retry using explicit GradleArgs array passed.",
+  "sources": [
+    {
+      "path": "ui-shell/src/components/SimpleCreationView.tsx",
+      "sha256": "6d1f25df3f94b66fc371627b9d27a9af1de98fcba26ba96c98444b7af5cb2a6a"
+    },
+    {
+      "path": "ui-shell/src/components/WorkbenchModeSwitch.tsx",
+      "sha256": "ca5889c078a0c34ee9369450a614fc3071ffe6784d36806a75f921134a25fb07"
+    },
+    {
+      "path": "ui-shell/e2e/simple-creation.spec.ts",
+      "sha256": "41b88ff24780ac394766bfed832bf4a93656e4183f9cdd6bd95a9bbc062653a2"
+    },
+    {
+      "path": "ui-shell/e2e/workbench-mode-switch.spec.ts",
+      "sha256": "305a94800808d13fa4c34d434513a4c90f8139505c2045b04e15d39a2a6a96eb"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/shell/Stage9NativeJcefScaleGateTest.java",
+      "sha256": "b5b174799bb46c7d14cb6445bf36e6fe703b4e377bcfdaf54b5be8bb732ad069"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/shell/Stage9ScaleEvidence.java",
+      "sha256": "1b390f11d667f442b22527e31edbec2c131caf4512161b76602fbb7a9b64c72b"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/shell/Stage9ScaleEvidenceTest.java",
+      "sha256": "eb7ba29eb0c30ab0184b9ef9e0541dcf93f5c76f608c77770a551fbaac851064"
+    }
+  ]
+}

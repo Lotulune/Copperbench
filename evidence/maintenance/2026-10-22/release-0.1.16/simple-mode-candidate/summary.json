@@ -1,0 +1,160 @@
+{
+  "completedAt": "2026-10-22T02:05:11.114063+00:00",
+  "result": "passed",
+  "scope": "Windows + Codex gpt-6.1-sol/high/default + Fabric 1.21.1 final candidate first creation",
+  "candidate": {
+    "kind": "local-portable-candidate",
+    "version": "0.1.16",
+    "buildId": "local-windows-0.1.16-final-review-20261022",
+    "published": false,
+    "zipPath": "C:\\Users\\Administrator\\.codex\\worktrees\\simple-creation-merge\\Minecraft_ModCreator\\build\\export\\Copperbench 0.1.16 Windows 64bit.zip",
+    "sourceUrl": "file:///C:/Users/Administrator/.codex/worktrees/simple-creation-merge/Minecraft_ModCreator/build/export/Copperbench%200.1.16%20Windows%2064bit.zip",
+    "sha256": "85c98869059501c235cb288fdf0d9e5176e023063eddbaf84b0858861d281f0a",
+    "productJarSha256": "d84f2c6094fb89e02066b2275efef2d7b62223240db5712a755a55fa0a29e3b9",
+    "executableSha256": "c0cd5784d40a11a59aa60824be77b2b279452fb042422a74843314f2e1eb20ea",
+    "sourceManifestSha256": "f848c191f40303ccee6f5f135d08eb4d79e71a2cc62b8b6766fcda4a7f2360a4",
+    "baseCommit": "21d8fc0148c5decf48589236b5b57b131517d2b0",
+    "workingTreeModified": true,
+    "product": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\candidate\\Copperbench0116",
+    "profile": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\profile",
+    "workspaceRoot": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\workspace",
+    "worldName": "CB_FINAL_20261022",
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "permission": "default",
+    "workspaceFile": "D:/AICoding/CopperbenchAcceptance/sc04-final-review-20261022/workspace/final_review_trail.mcreator",
+    "workspaceName": "Final Review Trail",
+    "modId": "final_review_trail",
+    "displayScale": "125% (120 DPI)",
+    "os": "Windows 11 x64",
+    "appProcessId": 56868
+  },
+  "passed": [
+    "fresh profile and workspace",
+    "native startup and both mode tours",
+    "five CLI detection and Codex protocol handshake",
+    "real model catalog and explicit model/effort selection",
+    "native file and image selection and real model comprehension",
+    "public SDK creation, validation rejection, correction and saved values",
+    "native approval across language/mode changes with draft retention",
+    "composer stop without repeated send",
+    "player right-click placement and resource ID",
+    "normal shutdown and same-world reopen in a new client process",
+    "ordinary mod export with actual artifact hash",
+    "application restart without automatic replay",
+    "explicit read-only continuation after restart",
+    "all acceptance app and game processes exited normally"
+  ],
+  "tasks": [
+    {
+      "id": "08ab0335-b884-498c-80d9-40c03a9aeb25",
+      "kind": "run_client",
+      "state": "succeeded",
+      "inputSha256": "3060dac6bd01d59e49372adc74f3364a5676d97aa060150e3c5040c7616c51e6",
+      "inputUnchangedAtCompletion": true,
+      "receiptFile": "task-inputs\\08ab0335-b884-498c-80d9-40c03a9aeb25.json"
+    },
+    {
+      "id": "a05779c4-c494-44ea-ad3b-3acaa078a517",
+      "kind": "build",
+      "state": "succeeded",
+      "inputSha256": "e5ec52d935aa736db7b5b103a36a24de607e715962c61b9166ca5151b5072b8e",
+      "inputUnchangedAtCompletion": false,
+      "receiptFile": "task-inputs\\a05779c4-c494-44ea-ad3b-3acaa078a517.json"
+    },
+    {
+      "id": "a0d0625f-9cc0-49f7-8138-4c87c5395620",
+      "kind": "export",
+      "state": "succeeded",
+      "inputSha256": "3060dac6bd01d59e49372adc74f3364a5676d97aa060150e3c5040c7616c51e6",
+      "inputUnchangedAtCompletion": true,
+      "receiptFile": "task-inputs\\a0d0625f-9cc0-49f7-8138-4c87c5395620.json"
+    },
+    {
+      "id": "c34a75e6-66dd-48e5-a054-d92347230abf",
+      "kind": "run_client",
+      "state": "succeeded",
+      "inputSha256": "3060dac6bd01d59e49372adc74f3364a5676d97aa060150e3c5040c7616c51e6",
+      "inputUnchangedAtCompletion": true,
+      "receiptFile": "task-inputs\\c34a75e6-66dd-48e5-a054-d92347230abf.json"
+    }
+  ],
+  "game": {
+    "world": "CB_FINAL_20261022",
+    "block": "final_review_trail:trail_block",
+    "position": [
+      2,
+      -60,
+      4
+    ],
+    "hotbarCount": 16,
+    "clientPids": [
+      61104,
+      28396
+    ],
+    "normalExits": true
+  },
+  "export": {
+    "exportPath": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\workspace\\build\\libs\\final-review-20261022\\trail-block.jar",
+    "exportSha256": "5ea24cd2023a735b84666fc41de4dbb157f6a87207492c574506158ab4ddf35f",
+    "exportBytes": 43308,
+    "buildPath": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\workspace\\build\\libs\\final_review_trail-1.0.jar",
+    "buildSha256": "5ea24cd2023a735b84666fc41de4dbb157f6a87207492c574506158ab4ddf35f",
+    "matchesBuildJar": true,
+    "modId": "final_review_trail",
+    "modVersion": "1.0.0",
+    "exportTaskId": "a0d0625f-9cc0-49f7-8138-4c87c5395620",
+    "exportType": "ordinary rebuild-and-export",
+    "packagedJarGameTest": "not performed"
+  },
+  "applicationResume": {
+    "chatRestoredWithoutAutomaticExecution": true,
+    "explicitReadOnlyContinuation": "passed",
+    "localConversationId": "ef636566-468f-4728-bf10-19241ccb0d0d",
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "permission": "default",
+    "userMessageCount": 4,
+    "elementRevision": 2,
+    "coreTaskIdsUnchanged": true,
+    "activeCoreTasks": 0,
+    "exportHashUnchanged": true,
+    "artifactSha256": "5ea24cd2023a735b84666fc41de4dbb157f6a87207492c574506158ab4ddf35f",
+    "firstQueryEnvironmentFailure": "sandbox blocked local desktop discovery; one-time approval resolved it"
+  },
+  "productFailures": [],
+  "environmentEvents": [
+    "Desktop input paused on unrelated-window occlusion and physical Escape; resumed only after user continuation and fresh observation.",
+    "Native accessibility indexes were unavailable in some controls; observed coordinate/keyboard navigation was used.",
+    "The resumed SDK query required one-time approval to discover the local desktop Core."
+  ],
+  "evidenceCaveats": [
+    "First agent build input changed while acceptance-receipt.json was updated; final two game tasks and export have the same stable input identity.",
+    "No claim of standalone packaged-JAR GameTest acceptance."
+  ],
+  "notRun": [
+    "Linux full flow",
+    "Other CLIs full flow on this candidate",
+    "Independent novice/friend usability study",
+    "Cold Gradle cache or clean host installation",
+    "Live automatic-approval mode",
+    "Full 100-session/16-MiB history desktop saturation in this run",
+    "Windows Explorer drag-and-drop in this run"
+  ],
+  "newProductCodeChanges": false,
+  "committed": false,
+  "pushed": false,
+  "published": false,
+  "automation": {
+    "id": "automation",
+    "status": "PAUSED",
+    "confirmedFrom": "local automation.toml"
+  },
+  "finalChecks": {
+    "markdownLinks": "passed",
+    "diffWhitespace": "passed",
+    "details": "final-validation.json"
+  }
+}

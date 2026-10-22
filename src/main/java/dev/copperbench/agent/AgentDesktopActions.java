@@ -9,9 +9,16 @@ import java.util.*;
 /** Opens official setup/sign-in surfaces. A launched login window is not evidence of authentication. */
 class AgentDesktopActions {
     void setup(AgentProvider provider) throws IOException {
+        browse(provider.setupUrl());
+    }
+
+    void browse(String url) throws IOException {
+        URI uri = URI.create(url);
+        if (!Set.of("http", "https").contains(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null)
+            throw new IllegalArgumentException("Only HTTP and HTTPS links are supported");
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
-            throw new IOException("无法打开浏览器，请访问 " + provider.setupUrl());
-        Desktop.getDesktop().browse(URI.create(provider.setupUrl()));
+            throw new IOException("无法打开浏览器，请访问 " + url);
+        Desktop.getDesktop().browse(uri);
     }
 
     void login(AgentProvider provider, java.nio.file.Path workspace) throws IOException {

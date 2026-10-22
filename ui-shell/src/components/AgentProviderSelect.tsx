@@ -5,7 +5,9 @@ import { AGENT_PROVIDERS, type AgentProvider, type AgentProviderId } from '../br
 import { uiText } from '../i18n';
 import { AgentProviderIcon, AGENT_PROVIDER_NAMES } from './AgentProviderIcon';
 
-export function AgentProviderSelect({ value, providers, disabled, active, detecting, onChange }: {
+export function AgentProviderSelect({ value, providers, disabled, active, detecting, onChange, id = 'creation-provider', testId = 'simple-provider' }: {
+  id?: string;
+  testId?: string;
   value: AgentProviderId;
   providers: AgentProvider[];
   disabled: boolean;
@@ -71,7 +73,7 @@ export function AgentProviderSelect({ value, providers, disabled, active, detect
   };
 
   return <>
-    <button type="button" ref={trigger} id="creation-provider" className="creation-provider-trigger" data-testid="simple-provider"
+    <button type="button" ref={trigger} id={id} className="creation-provider-trigger" data-testid={testId}
       data-provider-value={value} role="combobox" aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? menuId : undefined}
       aria-activedescendant={open ? optionId(highlight) : undefined} aria-label={`${uiText('创作助手', 'Assistant')}: ${AGENT_PROVIDER_NAMES[value]}`}
       disabled={disabled} onClick={() => open ? setOpen(false) : expand()} onKeyDown={keyDown}

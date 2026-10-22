@@ -1,0 +1,84 @@
+.workbench-mode-slot {
+  --mode-slot-width: 230px;
+  position: relative;
+  justify-self: center;
+  width: var(--mode-slot-width);
+  max-width: 100%;
+  min-width: 0;
+  height: 38px;
+  container-type: inline-size;
+}
+
+.titlebar .workbench-mode-switch {
+  --mode-option-width: calc((100cqw - 6px) / 2);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--mode-option-width) + 6px);
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--border-active);
+  border-radius: 7px;
+  background: var(--titlebar-bg);
+  transform: translateX(-50%);
+  overflow: hidden;
+  -webkit-app-region: no-drag;
+  /* Only this bounded, absolutely positioned control changes width; siblings stay still. */
+  transition: width 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.titlebar .workbench-mode-switch[data-expanded="true"] { width: 100cqw; }
+.workbench-mode-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, var(--mode-option-width));
+  width: calc(2 * var(--mode-option-width));
+  height: 32px;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.workbench-mode-switch[data-expanded="false"][data-mode="professional"] .workbench-mode-track { transform: translateX(calc(-1 * var(--mode-option-width))); }
+.workbench-mode-slider {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--mode-option-width);
+  border-radius: 4px;
+  background: var(--accent-copper-fill);
+  pointer-events: none;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.workbench-mode-switch[data-mode="professional"] .workbench-mode-slider { transform: translateX(var(--mode-option-width)); }
+.titlebar .workbench-mode-switch button {
+  position: relative;
+  min-width: 0;
+  width: var(--mode-option-width);
+  height: 32px;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--text-sub);
+  font: 500 12px var(--font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color 140ms ease-out, opacity 140ms ease-out;
+}
+.titlebar .workbench-mode-switch button[aria-pressed="true"] { color: var(--text-on-accent); }
+.titlebar .workbench-mode-switch button:not([aria-pressed="true"]):hover { background: var(--bg-hover); }
+.workbench-mode-switch[data-expanded="false"] button:not([aria-pressed="true"]) { visibility: hidden; opacity: 0; pointer-events: none; }
+.titlebar .workbench-mode-switch button:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -3px; }
+.titlebar .workbench-mode-switch button[aria-pressed="true"]:focus-visible { outline-color: var(--text-on-accent); }
+
+@media (max-width: 990px) {
+  .workbench-mode-slot { --mode-slot-width: 206px; }
+  .titlebar .workbench-mode-switch button { font-size: 11px; }
+}
+@media (max-width: 650px) {
+  .workbench-mode-slot { --mode-slot-width: 186px; }
+  .titlebar .workbench-mode-switch button { padding: 0 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .titlebar .workbench-mode-switch { transition-duration: 0s; }
+  .workbench-mode-track, .workbench-mode-slider { transition: none; }
+  .titlebar .workbench-mode-switch button { transition: color 80ms linear, opacity 80ms linear; }
+}

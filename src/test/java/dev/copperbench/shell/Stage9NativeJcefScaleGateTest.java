@@ -13,7 +13,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.sun.management.OperatingSystemMXBean;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.application.WorkspaceApplicationService;
@@ -45,9 +44,7 @@ import org.junit.jupiter.api.condition.OS;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
@@ -117,109 +114,155 @@ class Stage9NativeJcefScaleGateTest {
 	}
 
 	@Test void fixedHardwareProductShellMeetsStage9ScaleTargets() throws Exception {
-		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
-		store.register(scaleWorkspace());
-		Clock clock = Clock.systemUTC();
-		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
-				new InMemoryWorkspaceTaskGateway(clock, UUID::randomUUID), clock, UUID::randomUUID);
-		WorkspaceEntryAdapter adapter = new WorkspaceEntryAdapter(service,
-				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
-		JFrame[] windowRef = new JFrame[1];
+		Stage9ScaleEvidence evidence = new Stage9ScaleEvidence(
+				Path.of("build", "nightly-results", "stage9-native-jcef-scale.json"));
+		evidence.data.addProperty("elements", ELEMENT_COUNT);
+		evidence.data.addProperty("references", REFERENCE_COUNT);
+		evidence.data.addProperty("procedureNodes", PROCEDURE_NODE_COUNT);
+		evidence.data.addProperty("sampleCount", SAMPLE_COUNT);
+		evidence.data.addProperty("p95TargetMillis", P95_TARGET_MILLIS);
+		evidence.data.addProperty("longActionCeilingMillis", LONG_ACTION_CEILING_MILLIS);
+		evidence.data.addProperty("scope", "Real Windows JCEF: element filter, reference refresh, Procedure open/search/edit/save/reopen");
+		List<Double> elementFilterSamples = evidence.samples("elementFilterSamplesMillis");
+		List<Double> referenceRefreshSamples = evidence.samples("referenceRefreshSamplesMillis");
+		List<Double> procedureSearchSamples = evidence.samples("procedureSearchSamplesMillis");
+		evidence.capture(() -> {
+			evidence.phase("setup");
+			RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+			store.register(scaleWorkspace());
+			Clock clock = Clock.systemUTC();
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store,
+					new InMemoryWorkspaceTaskGateway(clock, UUID::randomUUID), clock, UUID::randomUUID);
+			WorkspaceEntryAdapter adapter = new WorkspaceEntryAdapter(service,
+					new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+			JFrame[] windowRef = new JFrame[1];
 
-		try (WebView webView = new WebView(CopperbenchProductShell.UI_URL);
-				JcefCoreBridgeTransport ignored = webView.attachCoreBridge(WORKSPACE_ID, adapter)) {
-			SwingUtilities.invokeAndWait(() -> {
-				JFrame window = new JFrame("Copperbench native scale gate");
-				window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-				window.setContentPane(webView);
-				window.setSize(1440, 900);
-				window.setLocationRelativeTo(null);
-				window.setVisible(true);
-				windowRef[0] = window;
-			});
+			try (WebView webView = new WebView(CopperbenchProductShell.UI_URL);
+					JcefCoreBridgeTransport ignored = webView.attachCoreBridge(WORKSPACE_ID, adapter)) {
+				SwingUtilities.invokeAndWait(() -> {
+					JFrame window = new JFrame("Copperbench native scale gate");
+					window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+					window.setContentPane(webView);
+					window.setSize(1440, 900);
+					window.setLocationRelativeTo(null);
+					window.setVisible(true);
+					windowRef[0] = window;
+				});
 
-			CountDownLatch loaded = new CountDownLatch(1);
-			webView.addLoadListener(loaded::countDown);
-			webView.forceLoad();
-			assertTrue(loaded.await(30, TimeUnit.SECONDS), "Production React shell did not finish loading");
-			await(() -> "true".equals(js(webView,
-					NATIVE_WORKSPACE_READY)), 30,
-					"Production shell did not bind the native JCEF UI-Core host");
+				CountDownLatch loaded = new CountDownLatch(1);
+				webView.addLoadListener(loaded::countDown);
+				webView.forceLoad();
+				assertTrue(loaded.await(30, TimeUnit.SECONDS), "Production React shell did not finish loading");
+				await(() -> "true".equals(js(webView,
+						NATIVE_WORKSPACE_READY)), 30,
+						"Production shell did not bind the native JCEF UI-Core host");
 
-			js(webView, FIXTURE_LOCALE_SETUP);
-			awaitWithDiagnostics(webView, () -> "zh-CN".equals(js(webView, "document.documentElement.lang")),
-					10, "Scale fixture did not apply its Chinese UI locale");
+				js(webView, FIXTURE_LOCALE_SETUP);
+				awaitWithDiagnostics(webView, () -> "zh-CN".equals(js(webView, "document.documentElement.lang")),
+						10, "Scale fixture did not apply its Chinese UI locale");
 
-			clickTestId(webView, "nav-elements");
-			await(() -> "true".equals(js(webView,
-					"document.querySelector('[data-testid=elements-pagination]')?.textContent.includes('2000') === true")),
-					30, "The real JCEF element list did not load all 2,000 elements");
+				// A fresh profile now defaults to Simple mode. Do not depend on a preceding
+				// native accessibility test to leave this shared CEF profile in Professional mode.
+				clickTestId(webView, "mode-professional");
+				await(() -> "true".equals(js(webView,
+						"document.querySelector('[data-testid=mode-professional]')?.getAttribute('aria-pressed') === 'true'")),
+						10, "Professional workbench did not become visible in native JCEF");
+				evidence.data.add("browser", com.google.gson.JsonParser.parseString(js(webView, """
+						JSON.stringify({ userAgent: navigator.userAgent, viewportCssWidth: innerWidth,
+						    viewportCssHeight: innerHeight, devicePixelRatio, visibilityState: document.visibilityState,
+						    hasFocus: document.hasFocus(), mode: document.querySelector('[data-testid=app-shell]')?.dataset.workbenchMode })
+						""")));
+				for (String key : List.of("viewportCssWidth", "viewportCssHeight", "devicePixelRatio"))
+					evidence.data.add(key, evidence.data.getAsJsonObject("browser").get(key));
+				clickTestId(webView, "nav-elements");
+				await(() -> "true".equals(js(webView,
+						"document.querySelector('[data-testid=elements-pagination]')?.textContent.includes('2000') === true")),
+						30, "The real JCEF element list did not load all 2,000 elements");
 
-			// Warm the React filter path once before collecting the fixed-hardware samples.
-			measureElementFilter(webView, "scale_filter_alpha_unique", FILTER_ALPHA_ID);
-			List<Double> elementFilterSamples = new ArrayList<>(SAMPLE_COUNT);
-			for (int sample = 0; sample < SAMPLE_COUNT; sample++) {
-				boolean alpha = sample % 2 == 0;
-				elementFilterSamples.add(measureElementFilter(webView,
-						alpha ? "scale_filter_beta_unique" : "scale_filter_alpha_unique",
-						alpha ? FILTER_BETA_ID : FILTER_ALPHA_ID));
+				// Warm the React filter path once before collecting the fixed-hardware samples.
+				evidence.phase("element-filter-warmup");
+				evidence.data.addProperty("elementFilterWarmupMillis", measureElementFilter(webView, "scale_filter_alpha_unique", FILTER_ALPHA_ID));
+				evidence.phase("element-filter-samples");
+				for (int sample = 0; sample < SAMPLE_COUNT; sample++) {
+					evidence.sample(sample);
+					boolean alpha = sample % 2 == 0;
+					elementFilterSamples.add(measureElementFilter(webView,
+							alpha ? "scale_filter_beta_unique" : "scale_filter_alpha_unique",
+							alpha ? FILTER_BETA_ID : FILTER_ALPHA_ID));
+				}
+				double elementFilterP95 = p95(elementFilterSamples);
+				evidence.data.addProperty("elementFilterP95Millis", elementFilterP95);
+				assertTrue(elementFilterP95 < P95_TARGET_MILLIS,
+						"2,000-element real-JCEF filter P95 exceeded 300 ms: " + elementFilterP95);
+
+				evidence.phase("reference-view-setup");
+				clickTestId(webView, "nav-data");
+				await(() -> "10000".equals(js(webView,
+						"document.querySelector('[data-testid=tab-references] .badge')?.textContent.trim() ?? ''")), 30,
+						"The real JCEF reference view did not load 10,000 edges");
+				evidence.phase("reference-refresh-warmup");
+				evidence.data.addProperty("referenceRefreshWarmupMillis", measureReferenceRefresh(webView));
+				evidence.phase("reference-refresh-samples");
+				for (int sample = 0; sample < SAMPLE_COUNT; sample++) {
+					evidence.sample(sample);
+					referenceRefreshSamples.add(measureReferenceRefresh(webView));
+				}
+				double referenceRefreshP95 = p95(referenceRefreshSamples);
+				evidence.data.addProperty("referenceRefreshP95Millis", referenceRefreshP95);
+				assertTrue(referenceRefreshP95 < P95_TARGET_MILLIS,
+						"10,000-reference real-JCEF query/refresh P95 exceeded 300 ms: " + referenceRefreshP95);
+
+				evidence.phase("procedure-setup");
+				clickTestId(webView, "nav-elements");
+				measureElementFilter(webView, "scale_procedure_gate", PROCEDURE_ID);
+				evidence.phase("procedure-open");
+				double procedureOpenMillis = measureProcedureOpen(webView, PROCEDURE_NODE_COUNT);
+				evidence.data.addProperty("procedureOpenMillis", procedureOpenMillis);
+				assertTrue(procedureOpenMillis < LONG_ACTION_CEILING_MILLIS,
+						"500-node Procedure open exceeded the 10 s usability ceiling: " + procedureOpenMillis);
+
+				evidence.phase("procedure-search-warmup");
+				evidence.data.addProperty("procedureSearchWarmupMillis", measureProcedureSearch(webView, "math_number"));
+				evidence.phase("procedure-search-samples");
+				for (int sample = 0; sample < SAMPLE_COUNT; sample++) {
+					evidence.sample(sample);
+					procedureSearchSamples.add(measureProcedureSearch(webView, sample % 2 == 0 ? "text" : "math"));
+				}
+				double procedureSearchP95 = p95(procedureSearchSamples);
+				evidence.data.addProperty("procedureSearchP95Millis", procedureSearchP95);
+				assertTrue(procedureSearchP95 < P95_TARGET_MILLIS,
+						"500-node Procedure palette-search P95 exceeded 300 ms: " + procedureSearchP95);
+
+				evidence.phase("procedure-edit-setup");
+				measureProcedureSearch(webView, "math_number");
+				evidence.phase("procedure-edit");
+				double procedureEditMillis = measureProcedureAddBlock(webView, PROCEDURE_NODE_COUNT + 1);
+				evidence.data.addProperty("procedureEditMillis", procedureEditMillis);
+				assertTrue(procedureEditMillis < P95_TARGET_MILLIS,
+						"500-node Procedure edit interaction exceeded 300 ms: " + procedureEditMillis);
+
+				evidence.phase("procedure-save");
+				double procedureSaveMillis = measureProcedureSave(webView);
+				evidence.data.addProperty("procedureSaveMillis", procedureSaveMillis);
+				assertTrue(procedureSaveMillis < LONG_ACTION_CEILING_MILLIS,
+						"500-node Procedure save exceeded the 10 s usability ceiling: " + procedureSaveMillis);
+
+				evidence.phase("procedure-reopen-setup");
+				clickAriaLabel(webView, "返回元素列表");
+				await(() -> "true".equals(js(webView,
+						"document.querySelector('[data-element-id=\"" + PROCEDURE_ID + "\"]') !== null")), 10,
+						"Procedure list did not return after save");
+				evidence.phase("procedure-reopen");
+				double procedureReopenMillis = measureProcedureOpen(webView, PROCEDURE_NODE_COUNT + 1);
+				evidence.data.addProperty("procedureReopenMillis", procedureReopenMillis);
+				assertTrue(procedureReopenMillis < LONG_ACTION_CEILING_MILLIS,
+						"501-node Procedure reopen exceeded the 10 s usability ceiling: " + procedureReopenMillis);
+
+			} finally {
+				if (windowRef[0] != null)
+					SwingUtilities.invokeAndWait(windowRef[0]::dispose);
 			}
-			double elementFilterP95 = p95(elementFilterSamples);
-			assertTrue(elementFilterP95 < P95_TARGET_MILLIS,
-					"2,000-element real-JCEF filter P95 exceeded 300 ms: " + elementFilterP95);
-
-			clickTestId(webView, "nav-data");
-			await(() -> "10000".equals(js(webView,
-					"document.querySelector('[data-testid=tab-references] .badge')?.textContent.trim() ?? ''")), 30,
-					"The real JCEF reference view did not load 10,000 edges");
-			measureReferenceRefresh(webView); // warm bridge serialization and React projection
-			List<Double> referenceRefreshSamples = new ArrayList<>(SAMPLE_COUNT);
-			for (int sample = 0; sample < SAMPLE_COUNT; sample++)
-				referenceRefreshSamples.add(measureReferenceRefresh(webView));
-			double referenceRefreshP95 = p95(referenceRefreshSamples);
-			assertTrue(referenceRefreshP95 < P95_TARGET_MILLIS,
-					"10,000-reference real-JCEF query/refresh P95 exceeded 300 ms: " + referenceRefreshP95);
-
-			clickTestId(webView, "nav-elements");
-			measureElementFilter(webView, "scale_procedure_gate", PROCEDURE_ID);
-			double procedureOpenMillis = measureProcedureOpen(webView, PROCEDURE_NODE_COUNT);
-			assertTrue(procedureOpenMillis < LONG_ACTION_CEILING_MILLIS,
-					"500-node Procedure open exceeded the 10 s usability ceiling: " + procedureOpenMillis);
-
-			measureProcedureSearch(webView, "math_number"); // warm catalog/search path
-			List<Double> procedureSearchSamples = new ArrayList<>(SAMPLE_COUNT);
-			for (int sample = 0; sample < SAMPLE_COUNT; sample++)
-				procedureSearchSamples.add(measureProcedureSearch(webView, sample % 2 == 0 ? "text" : "math"));
-			double procedureSearchP95 = p95(procedureSearchSamples);
-			assertTrue(procedureSearchP95 < P95_TARGET_MILLIS,
-					"500-node Procedure palette-search P95 exceeded 300 ms: " + procedureSearchP95);
-
-			measureProcedureSearch(webView, "math_number");
-			double procedureEditMillis = measureProcedureAddBlock(webView, PROCEDURE_NODE_COUNT + 1);
-			assertTrue(procedureEditMillis < P95_TARGET_MILLIS,
-					"500-node Procedure edit interaction exceeded 300 ms: " + procedureEditMillis);
-
-			double procedureSaveMillis = measureProcedureSave(webView);
-			assertTrue(procedureSaveMillis < LONG_ACTION_CEILING_MILLIS,
-					"500-node Procedure save exceeded the 10 s usability ceiling: " + procedureSaveMillis);
-
-			clickAriaLabel(webView, "返回元素列表");
-			await(() -> "true".equals(js(webView,
-					"document.querySelector('[data-element-id=\"" + PROCEDURE_ID + "\"]') !== null")), 10,
-					"Procedure list did not return after save");
-			double procedureReopenMillis = measureProcedureOpen(webView, PROCEDURE_NODE_COUNT + 1);
-			assertTrue(procedureReopenMillis < LONG_ACTION_CEILING_MILLIS,
-					"501-node Procedure reopen exceeded the 10 s usability ceiling: " + procedureReopenMillis);
-
-			String viewport = js(webView,
-					"[window.innerWidth,window.innerHeight,window.devicePixelRatio].join(',')");
-			writeEvidence(viewport, elementFilterSamples, elementFilterP95, referenceRefreshSamples,
-					referenceRefreshP95, procedureOpenMillis, procedureSearchSamples, procedureSearchP95,
-					procedureEditMillis, procedureSaveMillis, procedureReopenMillis);
-		} finally {
-			if (windowRef[0] != null)
-				SwingUtilities.invokeAndWait(windowRef[0]::dispose);
-		}
+		});
 	}
 
 	private static double measureElementFilter(WebView webView, String query, UUID expectedId) throws Exception {
@@ -531,59 +574,6 @@ class Stage9NativeJcefScaleGateTest {
 		return new ProcedureIr(ProcedureIr.SCHEMA_VERSION, "no_ext_trigger", nodes, List.of(), new JsonObject());
 	}
 
-	private static void writeEvidence(String viewport, List<Double> elementFilterSamples, double elementFilterP95,
-			List<Double> referenceRefreshSamples, double referenceRefreshP95, double procedureOpenMillis,
-			List<Double> procedureSearchSamples, double procedureSearchP95, double procedureEditMillis,
-			double procedureSaveMillis, double procedureReopenMillis) throws Exception {
-		String[] viewportParts = viewport.split(",");
-		JsonObject evidence = new JsonObject();
-		evidence.addProperty("schemaVersion", "1.0");
-		evidence.addProperty("kind", "stage9-native-jcef-scale-gate");
-		evidence.addProperty("platform", "windows");
-		evidence.addProperty("host", "real-jcef-production-shell");
-		evidence.addProperty("osName", System.getProperty("os.name"));
-		evidence.addProperty("osVersion", System.getProperty("os.version"));
-		evidence.addProperty("osArch", System.getProperty("os.arch"));
-		evidence.addProperty("javaVersion", System.getProperty("java.version"));
-		evidence.addProperty("processorIdentifier", String.valueOf(System.getenv("PROCESSOR_IDENTIFIER")));
-		evidence.addProperty("logicalProcessors", Runtime.getRuntime().availableProcessors());
-		java.lang.management.OperatingSystemMXBean baseOs = ManagementFactory.getOperatingSystemMXBean();
-		if (baseOs instanceof OperatingSystemMXBean os)
-			evidence.addProperty("totalPhysicalMemoryMiB", os.getTotalMemorySize() / (1024L * 1024L));
-		if (viewportParts.length == 3) {
-			evidence.addProperty("viewportCssWidth", Double.parseDouble(viewportParts[0]));
-			evidence.addProperty("viewportCssHeight", Double.parseDouble(viewportParts[1]));
-			evidence.addProperty("devicePixelRatio", Double.parseDouble(viewportParts[2]));
-		}
-		evidence.addProperty("elements", ELEMENT_COUNT);
-		evidence.addProperty("references", REFERENCE_COUNT);
-		evidence.addProperty("procedureNodes", PROCEDURE_NODE_COUNT);
-		evidence.addProperty("sampleCount", SAMPLE_COUNT);
-		evidence.add("elementFilterSamplesMillis", JSON.toJsonTree(elementFilterSamples));
-		evidence.addProperty("elementFilterP95Millis", elementFilterP95);
-		evidence.add("referenceRefreshSamplesMillis", JSON.toJsonTree(referenceRefreshSamples));
-		evidence.addProperty("referenceRefreshP95Millis", referenceRefreshP95);
-		evidence.addProperty("procedureOpenMillis", procedureOpenMillis);
-		evidence.add("procedureSearchSamplesMillis", JSON.toJsonTree(procedureSearchSamples));
-		evidence.addProperty("procedureSearchP95Millis", procedureSearchP95);
-		evidence.addProperty("procedureEditMillis", procedureEditMillis);
-		evidence.addProperty("procedureSaveMillis", procedureSaveMillis);
-		evidence.addProperty("procedureReopenMillis", procedureReopenMillis);
-		evidence.addProperty("p95TargetMillis", P95_TARGET_MILLIS);
-		evidence.addProperty("longActionCeilingMillis", LONG_ACTION_CEILING_MILLIS);
-		evidence.addProperty("passed", elementFilterP95 < P95_TARGET_MILLIS
-				&& referenceRefreshP95 < P95_TARGET_MILLIS && procedureSearchP95 < P95_TARGET_MILLIS
-				&& procedureEditMillis < P95_TARGET_MILLIS && procedureOpenMillis < LONG_ACTION_CEILING_MILLIS
-				&& procedureSaveMillis < LONG_ACTION_CEILING_MILLIS
-				&& procedureReopenMillis < LONG_ACTION_CEILING_MILLIS);
-		evidence.addProperty("scope",
-				"Fixed-hardware real Windows JCEF product path: 2,000-element filter, 10,000-reference refresh, "
-						+ "and 500-node Procedure open/search/edit/save/reopen.");
-		evidence.addProperty("generatedAt", Instant.now().toString());
-		Path output = Path.of("build", "nightly-results", "stage9-native-jcef-scale.json");
-		Files.createDirectories(output.getParent());
-		Files.writeString(output, JSON.toJson(evidence), StandardCharsets.UTF_8);
-	}
 
 	private static String js(WebView webView, String expression) {
 		return webView.executeScript(expression, WebView.JSExecutionType.RETURN_VALUE);

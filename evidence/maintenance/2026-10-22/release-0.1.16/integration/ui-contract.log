@@ -1,0 +1,62 @@
+
+> @mod-creator/ui-core-contract@1.0.0 test
+> node --test tests/schema.test.mjs tests/preview-extension.test.mjs tests/acceptance-diagnostics.test.mjs tests/version-copy-upgrade.test.mjs tests/editor-version.test.mjs
+
+✔ acceptance diagnostic projection is opt-in and all Core replay states preserve structured counts (114.6236ms)
+✔ editor 1.1 is an explicit operation version and rejects unrelated requests (77.2201ms)
+✔ actual fabric editor responses satisfy their selected version without loosening 1.0 (336.17ms)
+✔ actual neoforge editor responses satisfy their selected version without loosening 1.0 (253.4244ms)
+✔ preview is separately negotiated and scoped; old command objects remain strict (219.7499ms)
+✔ preview evidence cannot claim ready without reason and scope fields (281.8308ms)
+✔ Procedure trigger catalogs carry typed dependencies and remain optional for older hosts (313.9423ms)
+✔ required-case requests use a separate contract and remain invalid in frozen v1.0 commands (250.5151ms)
+✔ creation discovery distinguishes availability and validates read-only paging (114.3137ms)
+✔ generation preflight has no mutation payload and cannot claim ready with unknown input or conflicts (192.7241ms)
+✔ wire operations cover Java and UI callers, with matching request and response categories (193.0652ms)
+✔ workspace source edits require a disk hash, revision and bounded text while reads remain separate (112.8478ms)
+✔ source projections retain ownership, evidence locations and conflict-compatible response shapes (193.265ms)
+✔ asset preview and apply contracts preserve grant, plan-token and batch boundaries (85.1473ms)
+✔ Procedure refactor contracts require the selected refactor inputs and a revision-bound plan (76.9043ms)
+✔ source management and local templates accept supported inputs and reject invalid selections (78.5568ms)
+✔ new operation responses accept success and failure envelopes (178.5544ms)
+✔ element identity distinguishes internal names from generator resource IDs without requiring new fields in old clients (97.618ms)
+✔ Blockbench discovery accepts explicit probing and rejects unexpected execution options (73.224ms)
+✔ modeling tasks require a single source and a saved file hash for completion (66.5177ms)
+✔ modeling query results describe persisted context and independent binding while accepting legacy tasks (119.2267ms)
+✔ all UI-Core schemas compile and all mock scenarios validate (227.1812ms)
+✔ modeling imports require concrete mappings, a preview token, and typed replacement consent (85.4511ms)
+✔ Stage17 auto mapping, external references and verified exports match the published contract (74.9204ms)
+✔ list_mod_elements accepts the unified cursor query contract and rejects unknown fields (68.7356ms)
+✔ workspace registry, recovery point, and publish batch lists accept cursor contracts (70.2771ms)
+✔ get_task requires an incremental log cursor and rejects malformed cursors (82.2764ms)
+✔ workspace plans validate ordered plan, preview, and apply envelopes (76.68ms)
+✔ list_mod_elements result accepts imported read-only upstream element types (132.4502ms)
+✔ canonical events include the workspace lifecycle emitted by Java Core (0.8851ms)
+✔ version track matrix fixture validates against the canonical tracks schema (22.0648ms)
+✔ release notes fixture validates against the canonical release schema (31.1868ms)
+✔ asset reference graph fixture validates against the canonical asset projection schema (27.6625ms)
+✔ legacy v0.1 schemas and fixtures remain valid after the v1 freeze (110.0118ms)
+✔ handshake rejects an incompatible version without an untyped fallback (23.2132ms)
+✔ a mutating command without expectedRevision is rejected (68.4157ms)
+✔ an event with the wrong payload shape is rejected (42.2974ms)
+✔ history lifecycle events emitted by Java Core are accepted (38.3664ms)
+✔ unknown envelope properties are rejected (66.9062ms)
+✔ history projections use versioned query envelopes (120.9566ms)
+✔ restore requires an explicit confirmation fact (77.8015ms)
+✔ protected operation decisions are explicit and bounded (69.3938ms)
+✔ task authority schemas accept scoped grants and reject invalid lifetime or untrusted internal flags (66.858ms)
+✔ task summaries carry bounded verification and source identity including pending and stale evidence (25.6378ms)
+✔ doctor query is read-only and observations cannot imply a network probe or authorization (71.5103ms)
+✔ copy upgrade requests require negotiation and cannot smuggle write parameters (81.612ms)
+✔ version 2 execution requires the bound plan, revision, exact target and new directory name (54.7957ms)
+✔ actual version 2 fabric plan is independently negotiated and cannot be mistaken for a v1 plan (75.1367ms)
+✔ actual version 2 neoforge plan is independently negotiated and cannot be mistaken for a v1 plan (54.321ms)
+✔ actual Core plans bind source identity and keep unavailable conversions explicit (42.967ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 50
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4079.2722

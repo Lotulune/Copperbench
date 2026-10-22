@@ -11,16 +11,28 @@ final class AntigravityAgentProtocol implements AgentProtocol {
     private final Channel channel;
     private final String resume;
     private volatile boolean denied;
+    private String selectedModel;
+    private AgentTurnOptions options = AgentTurnOptions.DEFAULT;
+    private List<AgentAttachments.Item> attachments = List.of();
     private String lastResponseKey = "assistant:response";
     AntigravityAgentProtocol(Channel channel, String resume) { this.channel = channel; this.resume = resume; }
+    @Override public void useModel(String model) { selectedModel = AgentModels.id(model); }
+    @Override public void configure(AgentTurnOptions options, List<AgentAttachments.Item> attachments) {
+        if (attachments.stream().anyMatch(AgentAttachments.Item::image))
+            throw new IllegalArgumentException("Antigravity 当前流式接口不支持图片，请移除图片或切换助手");
+        this.options = options; this.attachments = attachments;
+    }
     @Override public List<String> arguments() {
         List<String> args = new ArrayList<>(List.of("--input-format", "stream-json", "--output-format", "stream-json"));
         if (resume != null) args.addAll(List.of("--conversation", resume));
+        if (selectedModel != null) args.addAll(List.of("--model", selectedModel));
+        if (options.effort() != null) args.addAll(List.of("--effort", options.effort()));
+        if (options.autoApprove()) args.add("--dangerously-skip-permissions");
         return args;
     }
     @Override public void start(String text, String instructions) {
         channel.ready();
-        channel.send(AgentJson.object("event", "user", "message", AgentJson.object("content", instructions + "\nPlayer request:\n" + text)));
+        channel.send(AgentJson.object("event", "user", "message", AgentJson.object("content", instructions + "\nPlayer request:\n" + AgentAttachments.prompt(text, attachments))));
     }
     @Override public void receive(JsonObject frame) {
         switch (AgentJson.string(frame, "event")) {

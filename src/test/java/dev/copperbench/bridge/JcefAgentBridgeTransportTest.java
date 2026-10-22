@@ -39,7 +39,7 @@ class JcefAgentBridgeTransportTest {
 
 	@Test void requestsPreserveTheWorkspaceServiceContractWithinABoundedEnvelope() {
 		assertTrue(JcefAgentBridgeTransport.parseRequest(JcefAgentBridgeTransport.QUERY_PREFIX + "{}").isEmpty());
-		for (String operation : new String[]{"status", "detect", "new", "select", "send", "stop", "approve", "login", "openSetup"})
+		for (String operation : new String[]{"status", "detect", "new", "select", "send", "stop", "approve", "login", "openSetup", "attachmentTarget", "attachmentBegin", "attachmentChunk", "attachmentCommit", "attachmentDiscard", "attachmentPreview"})
 			assertEquals(operation, JcefAgentBridgeTransport.parseRequest(JcefAgentBridgeTransport.QUERY_PREFIX
 					+ "{\"operation\":\"" + operation + "\"}").get("operation").getAsString());
 		String prefix = JcefAgentBridgeTransport.QUERY_PREFIX + "{\"operation\":\"send\",\"message\":\"";
@@ -55,6 +55,7 @@ class JcefAgentBridgeTransportTest {
 		assertTrue(script.contains("__COPPERBENCH_AGENT_HOST__"));
 		assertTrue(script.contains("copperbench:agent:"));
 		assertTrue(script.contains("persistent: false"));
+		assertTrue(script.contains("nativeFileSelection: true"));
 		assertFalse(script.contains("token"));
 	}
 }

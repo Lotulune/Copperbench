@@ -2,6 +2,7 @@
   <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
   <h1>Copperbench</h1>
   <p><strong>Visual editing, manual Java and local Agent collaboration in one Minecraft mod project.</strong></p>
+
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
   <p>
     <a href="https://github.com/Lotulune/Copperbench/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lotulune/Copperbench/test.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="Build and test status on main"></a>
@@ -12,6 +13,9 @@
   </p>
   <p><a href="docs/releases/current.md">Download</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
+
+Start in [Simple creation](docs/user/simple-creation.en.md) for a guided conversation workflow, or use the [manual Professional route](docs/user/first-creation.en.md).
+
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 

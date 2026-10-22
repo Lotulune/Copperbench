@@ -3,10 +3,15 @@ import React, { useState } from 'react';
 import { ArrowRight, FileArchive, LoaderCircle, RefreshCw } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
-import { ABOUT_FACTS, TRACK_HONEST_FACTS, USER_GUIDE_SECTIONS } from '../content/userGuide';
+import { ABOUT_FACTS, TRACK_HONEST_FACTS, USER_GUIDE_SECTIONS, simpleCreationPrompt, simpleCreationSteps } from '../content/userGuide';
+import { useWorkbenchTour } from '../onboarding/WorkbenchTour';
+import { useWorkbenchMode } from '../context/WorkbenchModeContext';
+import { CopyTextButton } from './AgentMessageBody';
 
 export const HelpView: React.FC = () => {
   const { setActiveView } = useWorkbench();
+  const { openTour } = useWorkbenchTour();
+  const { mode } = useWorkbenchMode();
   const [includeWorkspaceFiles, setIncludeWorkspaceFiles] = useState(false);
   const [exportingDiagnostics, setExportingDiagnostics] = useState(false);
   const [diagnosticExportStatus, setDiagnosticExportStatus] = useState<string | null>(null);
@@ -28,6 +33,14 @@ export const HelpView: React.FC = () => {
   return <div className="help-view" data-testid="help-view" style={{ flex: 1, minWidth: 0, padding: '24px', overflowY: 'auto' }}>
     <div style={{ width: '100%', maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
       <h1 style={{ margin: 0, fontSize: 22, fontWeight: 550 }}>{uiText('帮助与关于', 'Help & about')}</h1>
+      <section className="simple-guide" data-testid="simple-first-creation-guide">
+        <h2>{uiText('用对话完成第一件作品', 'Create your first project through conversation')}</h2>
+        <button type="button" className="btn-secondary" data-testid="help-start-tour" onClick={openTour}>{mode === 'simple' ? uiText('简洁模式动画教程', 'Simple mode guided tour') : uiText('专业模式动画教程', 'Professional mode guided tour')}<ArrowRight size={14} aria-hidden="true" /></button>
+        <details open={mode === 'simple'}><summary>{uiText('首作路线：Trail Block', 'First-creation route: Trail Block')}</summary>
+          <ol>{simpleCreationSteps().map(([title, body]) => <li key={title}><strong>{title}</strong><p>{body}</p></li>)}</ol>
+          <h3>{uiText('示例需求', 'Example request')}</h3><code>{simpleCreationPrompt()}</code><CopyTextButton text={simpleCreationPrompt()} />
+        </details>
+      </section>
 
       <section data-testid="diagnostic-support-panel" aria-labelledby="diagnostic-support-heading"
         style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 20, borderBottom: '1px solid var(--border-subtle)' }}>

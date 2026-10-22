@@ -1,0 +1,13 @@
+{
+  "exportPath": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\workspace\\build\\libs\\final-review-20261022\\trail-block.jar",
+  "exportSha256": "5ea24cd2023a735b84666fc41de4dbb157f6a87207492c574506158ab4ddf35f",
+  "exportBytes": 43308,
+  "buildPath": "D:\\AICoding\\CopperbenchAcceptance\\sc04-final-review-20261022\\workspace\\build\\libs\\final_review_trail-1.0.jar",
+  "buildSha256": "5ea24cd2023a735b84666fc41de4dbb157f6a87207492c574506158ab4ddf35f",
+  "matchesBuildJar": true,
+  "modId": "final_review_trail",
+  "modVersion": "1.0.0",
+  "exportTaskId": "a0d0625f-9cc0-49f7-8138-4c87c5395620",
+  "exportType": "ordinary rebuild-and-export",
+  "packagedJarGameTest": "not performed"
+}

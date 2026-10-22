@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ArrowLeft, ArrowUp, Box, Check, ChevronDown, ExternalLink, FileArchive, FolderOpen, HelpCircle, History, Image, LoaderCircle, Plus, RefreshCw, Settings, Square, Play } from 'lucide-react';
-import { agentIsActive, type AgentProviderId } from '../bridge/agentBridge';
+import { ArrowLeft, ArrowUp, Box, Brain, Check, ChevronDown, ExternalLink, FileArchive, FolderOpen, HelpCircle, History, Image, LoaderCircle, Paperclip, Plus, RefreshCw, Settings, ShieldCheck, Square, Play } from 'lucide-react';
+import { AGENT_EFFORTS, AGENT_PROVIDERS, agentIsActive, agentText, validModelId, type AgentEffort, type AgentPermission, type AgentProviderId, type AgentTurnOptions } from '../bridge/agentBridge';
 import { useAgentSession } from '../hooks/useAgentSession';
+import { useAgentAttachments } from '../hooks/useAgentAttachments';
 import { hasUnsavedDrafts, setUnsavedDraftCount } from '../hooks/unsavedDraftGuard';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useWorkbenchMode } from '../context/WorkbenchModeContext';
@@ -16,7 +17,28 @@ import { workbenchNavigation } from './workbenchNavigation';
 import { newestTasks } from './taskPresentation';
 import { AgentProviderIcon, AGENT_PROVIDER_NAMES as providerNames } from './AgentProviderIcon';
 import { AgentProviderSelect } from './AgentProviderSelect';
+import { AgentModelSelect } from './AgentModelSelect';
+import { AgentAttachments } from './AgentAttachments';
 import { AgentApprovalPrompt } from './AgentApprovalPrompt';
+import { AgentMessageBody } from './AgentMessageBody';
+import { AgentSetupDialog, providerStatus } from './AgentSetupDialog';
+import { AgentHistoryDialog } from './AgentHistoryDialog';
+import { useWorkbenchTour } from '../onboarding/WorkbenchTour';
+import './agentExperience.css';
+
+const PROVIDER_PREFERENCE = 'copperbench.agent.provider';
+const MODEL_PREFERENCES = 'copperbench.agent.models';
+function savedProvider(): AgentProviderId | null {
+  try { const id = localStorage.getItem(PROVIDER_PREFERENCE); return AGENT_PROVIDERS.includes(id as AgentProviderId) ? id as AgentProviderId : null; }
+  catch { return null; }
+}
+function savedModels(): Partial<Record<AgentProviderId, string>> {
+  try {
+    const value = JSON.parse(localStorage.getItem(MODEL_PREFERENCES) ?? '{}');
+    return Object.fromEntries(AGENT_PROVIDERS.flatMap(id => typeof value?.[id] === 'string' && (value[id] === '' || validModelId(value[id])) ? [[id, value[id]]] : []));
+  } catch { return {}; }
+}
+
 
 type ParameterSession = { workspaceId: string; editor: ModElementEditorProjection; revision: number; values: Record<string, string | boolean>; saving?: boolean; saveUnknown?: boolean; error?: string };
 const basicFields = new Set(['displayname', 'hardness', 'resistance', 'stacksize', 'maxstacksize', 'luminance', 'lightlevel']);
@@ -41,6 +63,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const { state, activeView, setActiveView, selectedElementId, setSelectedElementId, listAssets, getModElementEditor,
     previewModElementChange, updateModElement, refreshWorkspace, runClient, setActiveTaskId, setIsTaskDrawerOpen } = useWorkbench();
   const { setMode } = useWorkbenchMode();
+  const { openTour } = useWorkbenchTour();
   const { openDelivery, openWorkspaceOpen } = useFirstCreation();
   const workspace = state.workbench?.workspace;
   const workspaceId = workspace?.id;
@@ -49,8 +72,18 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const agent = useAgentSession(active && home, workspaceId);
   const snapshot = agent.snapshot;
   const running = agentIsActive(snapshot?.state);
-  const [provider, setProvider] = useState<AgentProviderId>('codex');
+  const busy = running || Boolean(snapshot?.checking);
+  const [provider, setProvider] = useState<AgentProviderId>(() => savedProvider() ?? 'codex');
+  const [modelPreferences, setModelPreferences] = useState(savedModels);
+  const requestedCatalogs = useRef(new Set<string>());
+  const explicitProvider = useRef(savedProvider());
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [turnPreferences, setTurnPreferences] = useState<Record<string, AgentTurnOptions>>({});
+  const [dragging, setDragging] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const submission = useRef<{ key: string; draft: string; previousMessages: Set<string>; attachments: string[]; accepted?: boolean } | null>(null);
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const [workSearch, setWorkSearch] = useState('');
   const [previewTab, setPreviewTab] = useState<'appearance' | 'settings'>('appearance');
@@ -87,15 +120,37 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
     && !state.elements.some(element => element.id === session.editor.element.id));
   const draftKey = `${workspaceId ?? ''}:${snapshot?.conversationId ?? 'new'}`;
   const draft = drafts[draftKey] ?? '';
+  const attached = useAgentAttachments(workspaceId, draftKey, active && home);
+  const effort = turnPreferences[draftKey]?.effort ?? snapshot?.effort ?? 'medium';
+  const permission = turnPreferences[draftKey]?.permission ?? snapshot?.permission ?? 'default';
   const effectiveProvider = snapshot?.provider ?? provider;
   const providerInfo = snapshot?.providers.find(item => item.id === effectiveProvider);
+  const modelCatalog = providerInfo?.modelCatalog;
+  const effectiveModel = snapshot?.conversationId ? snapshot.model ?? '' : modelPreferences[effectiveProvider] ?? modelCatalog?.defaultModel ?? '';
+  const needsModel = !effectiveModel;
   const visibleAssets = assets.filter(asset => asset.category === 'texture' || asset.category === 'model');
   const previewAsset = visibleAssets.find(asset => asset.id === assetId);
   const recentTask = newestTasks(Object.values(state.tasks))[0];
   const taskRunning = Object.values(state.tasks).some(task => task.state === 'queued' || task.state === 'running');
-  const works = useMemo(() => state.elements.filter(element => `${element.displayName} ${element.name}`.toLowerCase().includes(workSearch.trim().toLowerCase())), [state.elements, workSearch]);
+  // Keep session/draft/task ownership mounted across modes, but do not build thousands
+  // of hidden sidebar buttons on every Core query notification in Professional mode.
+  const works = useMemo(() => active
+    ? state.elements.filter(element => `${element.displayName} ${element.name}`.toLowerCase().includes(workSearch.trim().toLowerCase()))
+    : [], [active, state.elements, workSearch]);
 
-  useEffect(() => { if (snapshot?.provider) setProvider(snapshot.provider); }, [snapshot?.provider]);
+  useEffect(() => {
+    if (snapshot?.provider) { setProvider(snapshot.provider); return; }
+    if (!snapshot || snapshot.detecting || snapshot.sessions.length || explicitProvider.current) return;
+    const installed = snapshot.providers.filter(item => item.installed && !item.error);
+    if (installed.length) setProvider(installed[0].id);
+  }, [snapshot?.provider, snapshot?.detecting, snapshot?.providers, snapshot?.sessions.length]);
+  useEffect(() => {
+    if (!active || !home || !workspaceId || !providerInfo?.installed || agent.loading || agent.pending || snapshot?.detecting || busy) return;
+    const key = `${workspaceId}:${effectiveProvider}`;
+    if (requestedCatalogs.current.has(key) || modelCatalog) return;
+    requestedCatalogs.current.add(key);
+    void agent.invoke({ operation: 'models', provider: effectiveProvider });
+  }, [active, home, workspaceId, providerInfo?.installed, agent.loading, agent.pending, snapshot?.detecting, busy, effectiveProvider, modelCatalog, agent.invoke]);
   useEffect(() => {
     if (agentIsActive(previousAgentState.current) && snapshot && !agentIsActive(snapshot.state)) {
       void actions.current.refreshWorkspace(); setReloadAssets(value => value + 1); setReloadParameters(value => value + 1);
@@ -148,34 +203,93 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
     return () => setUnsavedDraftCount('simple-parameters', 0);
   }, [parameters]);
   useEffect(() => {
-    setUnsavedDraftCount('simple-chat', Object.values(drafts).filter(text => text.trim()).length);
+    setUnsavedDraftCount('simple-chat', Object.values(drafts).filter(text => text.trim()).length + attached.draftCount);
     return () => setUnsavedDraftCount('simple-chat', 0);
-  }, [drafts]);
+  }, [drafts, attached.draftCount]);
+  useEffect(() => {
+    const pending = submission.current;
+    if (!pending || !snapshot) return;
+    if (pending.key !== `${workspaceId}:${snapshot.conversationId ?? 'new'}` && pending.key !== `${workspaceId}:new`) {
+      submission.current = null;
+      return;
+    }
+    const sent = snapshot.messages.find(message => message.role === 'user' && !pending.previousMessages.has(message.id)
+      && message.delivery !== 'pending' && message.delivery !== 'failed');
+    if (sent) {
+      pending.accepted = true;
+      setDrafts(current => current[pending.key] === pending.draft ? { ...current, [pending.key]: '' } : current);
+      attached.accepted(pending.key, pending.attachments);
+      submission.current = null;
+    } else if (!agentIsActive(snapshot.state)) submission.current = null;
+  }, [snapshot?.sequence]);
 
   const changeDraft = (value: string) => setDrafts(current => ({ ...current, [draftKey]: value }));
+  const discardConversationDrafts = (ids: string[]) => {
+    const keys = new Set(ids.map(id => `${workspaceId}:${id}`));
+    setDrafts(current => Object.fromEntries(Object.entries(current).filter(([key]) => !keys.has(key))));
+    setTurnPreferences(current => Object.fromEntries(Object.entries(current).filter(([key]) => !keys.has(key))));
+    keys.forEach(key => attached.discardDraft(key));
+    if (submission.current && keys.has(submission.current.key)) submission.current = null;
+  };
   const send = async () => {
     const text = draft.trim();
-    if (!text || !workspaceId || !providerInfo?.installed || running || agent.pending || hasParameterDrafts) return;
+    if ((!text && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || busy || needsModel || agent.pending || snapshot?.storageBlocked || hasParameterDrafts) return;
     const submittedKey = draftKey;
     const previousMessages = new Set(snapshot?.messages.map(message => message.id) ?? []);
+    const attachmentIds = attached.files.flatMap(file => file.item ? [file.item.id] : []);
+    const submitted = { key: submittedKey, draft, previousMessages, attachments: attachmentIds, accepted: false };
+    submission.current = submitted;
     following.current = true;
     const result = await agent.invoke({ operation: 'send', provider: effectiveProvider,
-      ...(snapshot?.conversationId ? { conversationId: snapshot.conversationId } : {}), text });
-    if (result?.messages.some(message => message.role === 'user' && !previousMessages.has(message.id))) {
-      setDrafts(current => current[submittedKey] === draft ? { ...current, [submittedKey]: '' } : current);
+      ...(snapshot?.conversationId ? { conversationId: snapshot.conversationId } : {}), model: effectiveModel, effort, permission, attachments: attachmentIds, text });
+    if (!snapshot?.conversationId && result?.conversationId && !submitted.accepted) {
+      const nextKey = `${workspaceId}:${result.conversationId}`;
+      submitted.key = nextKey;
+      attached.move(submittedKey, nextKey);
+      setDrafts(current => {
+        const next = { ...current, [nextKey]: current[submittedKey] ?? draft }; delete next[submittedKey]; return next;
+      });
+      setTurnPreferences(current => ({ ...current, [nextKey]: { effort, permission } }));
     }
+    if (!result || result.error && !result.messages.some(message => message.role === 'user' && !previousMessages.has(message.id))) submission.current = null;
   };
-  const newConversation = async (next = effectiveProvider) => {
-    if (running || agent.pending) return;
+  const newConversation = async (next = effectiveProvider, model = next === effectiveProvider ? effectiveModel : modelPreferences[next] ?? '', carryDraft = false) => {
+    if (busy || agent.pending || attached.uploading) return;
+    explicitProvider.current = next;
+    try { localStorage.setItem(PROVIDER_PREFERENCE, next); } catch { /* Keep this window's selection. */ }
     setProvider(next); setActiveView('hub'); following.current = true;
-    const result = await agent.invoke({ operation: 'new', provider: next });
-    if (!snapshot?.conversationId && result?.conversationId) setDrafts(current => {
+    const result = await agent.invoke({ operation: 'new', provider: next, ...(model ? { model } : {}), effort, permission: 'default' });
+    if (!result?.error && (!snapshot?.conversationId || carryDraft) && result?.conversationId && result.conversationId !== snapshot?.conversationId) {
+      attached.move(draftKey, `${workspaceId}:${result.conversationId}`);
+      setTurnPreferences(current => ({ ...current, [`${workspaceId}:${result.conversationId}`]: { effort, permission: 'default' } }));
+      setDrafts(current => {
       if (!current[draftKey]) return current;
       const nextDrafts = { ...current, [`${workspaceId}:${result.conversationId}`]: current[draftKey] };
       delete nextDrafts[draftKey];
       return nextDrafts;
-    });
+      });
+    }
     if (result) requestAnimationFrame(() => composerRef.current?.focus());
+    return result;
+  };
+  const chooseModel = async (model: string) => {
+    const result = await newConversation(effectiveProvider, model, true);
+    if (!result?.error && result?.conversationId && (result.model ?? '') === model) {
+      setModelPreferences(current => {
+        const next = { ...current, [effectiveProvider]: model };
+        try { localStorage.setItem(MODEL_PREFERENCES, JSON.stringify(next)); } catch { /* Keep the current window's selection. */ }
+        return next;
+      });
+    }
+  };
+  const choosePermission = async (next: AgentPermission) => {
+    if (next === 'auto-approve' && !await confirmAction({
+      title: uiMessage('允许此对话自动批准操作？', 'Automatically approve actions in this conversation?'),
+      message: uiMessage('CLI 可以自动执行命令、修改文件和访问网络。Codex 会同时取消工作区沙箱限制。此设置仅用于本应用内的当前对话，不改写主机配置。',
+        'The CLI can run commands, change files and access the network without asking. Codex also removes its workspace sandbox. This applies only to this in-app conversation and does not change host settings.'),
+      confirmLabel: uiMessage('启用自动批准', 'Enable automatic approval')
+    })) return;
+    setTurnPreferences(current => ({ ...current, [draftKey]: { effort, permission: next } }));
   };
   const updateParameter = (patch: Partial<ParameterSession>) => setParameters(current => current[parameterKey]
     ? { ...current, [parameterKey]: { ...current[parameterKey], ...patch } } : current);
@@ -241,7 +355,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
         : snapshot?.state === 'stopping' ? uiText('正在停止…', 'Stopping…')
           : snapshot?.state === 'running' ? uiText('正在创作…', 'Working…')
             : snapshot?.state === 'failed' ? uiText('本次任务未完成', 'This task did not complete')
-              : providerInfo?.installed ? uiText('已检测到', 'CLI detected') : uiText('先连接创作助手', 'Connect a creation assistant');
+              : providerStatus(providerInfo);
   const antigravityDenied = effectiveProvider === 'antigravity' && /permission|denied|approval|权限|拒绝/i.test(snapshot?.error ?? agent.error ?? '');
 
   return <div className={`creation-shell${active ? ' is-simple' : ''}`} data-testid="creation-shell" data-active={active}>
@@ -268,9 +382,11 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
           <button type="button" aria-label={uiText('新对话', 'New conversation')} title={uiText('新对话', 'New conversation')} data-testid="simple-new-chat" disabled={!agent.available || !workspaceId || running || Boolean(agent.pending)} onClick={() => void newConversation()}><Plus size={16} /></button></div>
         <div className="creation-conversation-list">{snapshot?.sessions.map(session => <button type="button" key={session.id}
           aria-pressed={snapshot.conversationId === session.id} disabled={running || Boolean(agent.pending)} data-testid={`simple-conversation-${session.id}`}
-          title={`${session.title} · ${providerNames[session.provider]}`} onClick={() => { setActiveView('hub'); following.current = true; void agent.invoke({ operation: 'select', conversationId: session.id }); }}>
-          <AgentProviderIcon provider={session.provider} size={16} /><span>{session.title || uiText('新对话', 'New conversation')}</span>
+          title={`${agentText(session.title, session.titleText)} · ${providerNames[session.provider]}`} onClick={() => { setActiveView('hub'); following.current = true; void agent.invoke({ operation: 'select', conversationId: session.id }); }}>
+          <AgentProviderIcon provider={session.provider} size={16} /><span>{agentText(session.title, session.titleText) || uiText('新对话', 'New conversation')}</span>
         </button>)}</div>
+        <button type="button" className="creation-history-manage" data-testid="simple-manage-conversations" disabled={!agent.available || !workspaceId} onClick={() => setHistoryOpen(true)}>{uiText('整理对话记录', 'Manage conversations')}</button>
+        {snapshot?.history && snapshot.history.level !== 'ok' && <p className="creation-capacity-note">{uiText('对话空间需要整理', 'Conversation storage needs attention')}</p>}
       </section>
       <nav className="creation-utilities" aria-label={uiText('作品工具', 'Creation tools')}>
         <button type="button" onClick={() => setActiveView('history')} data-testid="simple-history"><History size={17} />{uiText('恢复点', 'Recovery points')}</button>
@@ -287,6 +403,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
             {home && workspace && <span className="creation-version">{workspace.generator.displayName}</span>}</div>
         </div>
         <div className="creation-header-actions">
+          <button type="button" className="creation-secondary" data-testid="simple-tour" onClick={openTour}><HelpCircle size={16} />{uiText('快速教程', 'Quick tour')}</button>
           <button type="button" className="creation-primary" data-testid="simple-playtest" disabled={!workspace || playPending || taskRunning || running || hasParameterDrafts}
             onClick={() => void playtest()}><Play size={16} />{uiText('在游戏中试玩', 'Playtest in game')}</button>
           <button type="button" className="creation-secondary" data-testid="simple-export" disabled={!workspace || running || taskRunning} onClick={openDelivery}><FileArchive size={16} />{uiText('导出模组', 'Export mod')}</button>
@@ -309,49 +426,81 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
               ].map(text => <button type="button" key={text} onClick={() => { changeDraft(text); composerRef.current?.focus(); }}>{text}<ArrowUp size={13} aria-hidden="true" /></button>)}</div>
                 : <button type="button" className="creation-primary" onClick={() => setActiveView('new-workspace')}>{uiText('创建第一件作品', 'Create your first project')}</button>}
             </div>}
-            {snapshot?.messages.map(message => message.role === 'tool' ? <details key={message.id} className="creation-tool-message"><summary>{uiText('操作详情', 'Action details')}<ChevronDown size={13} aria-hidden="true" /></summary><pre>{message.text}</pre></details>
+            {snapshot?.messages.map(message => message.role === 'tool' ? <details key={message.id} className="creation-tool-message"><summary>{uiText('操作详情', 'Action details')}<ChevronDown size={13} aria-hidden="true" /></summary><pre>{agentText(message.text, message.textText)}</pre></details>
               : <div key={message.id} className={`creation-message is-${message.role}`} data-message-role={message.role}>
                 {message.role === 'assistant' && <span className="creation-avatar" aria-hidden="true"><AgentProviderIcon provider={effectiveProvider} size={21} /></span>}
-                <div><span className="sr-only">{message.role === 'user' ? uiText('你：', 'You:') : message.role === 'assistant' ? `${providerNames[effectiveProvider]}:` : uiText('状态：', 'Status:')}</span><p>{message.text}</p></div>
+                <div><span className="sr-only">{message.role === 'user' ? uiText('你：', 'You:') : message.role === 'assistant' ? `${providerNames[effectiveProvider]}:` : uiText('状态：', 'Status:')}</span>{message.role === 'assistant' ? <AgentMessageBody text={message.text} /> : <p>{message.role === 'system' ? agentText(message.text, message.textText) : message.text}</p>}
+                  <AgentAttachments key={`${workspaceId}:${message.id}`} files={message.attachments ?? []} />
+                  {message.delivery === 'failed' && <span className="creation-delivery-note">{uiText('未发送给模型，可在输入框修改后重试。', 'Not sent to the model. Edit the draft and try again.')}</span>}
+                </div>
               </div>)}
             {running && snapshot?.state !== 'waiting_approval' && <p className="creation-working"><LoaderCircle size={14} className="creation-spinner" aria-hidden="true" />{status}</p>}
+            {snapshot?.approvals.map(approval => <AgentApprovalPrompt key={approval.id} approval={approval} disabled={Boolean(agent.pending)}
+              onRespond={answer => void agent.invoke({ operation: 'approve', id: approval.id, ...answer })} />)}
           </div>
           <div className="creation-compose-area">
             {!agent.available ? <div className="creation-connection-note" role="status" data-testid="simple-agent-unavailable"><strong>{uiText('桌面创作助手尚未连接', 'Desktop assistant is unavailable')}</strong><p>{uiText('在支持创作助手的桌面应用中打开作品，再选择已安装的助手。', 'Open the project in a desktop app with assistant support, then select an installed assistant.')}</p></div>
               : !agent.loading && !snapshot?.detecting && workspace && !providerInfo?.installed && <div className="creation-connection-note" role="status" data-testid="simple-provider-setup"><strong>{uiText('连接创作助手', 'Connect a creation assistant')}</strong><p>{uiText(`尚未检测到 ${providerNames[effectiveProvider]}。安装并完成配置后，点击重新检测。`, `${providerNames[effectiveProvider]} was not detected. Install and configure it, then check again.`)}</p><div>
-                <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}><ExternalLink size={14} />{uiText('安装指南', 'Setup guide')}</button>
+                <button type="button" disabled={Boolean(agent.pending)} onClick={() => setSetupOpen(true)}><ExternalLink size={14} />{uiText('安装指南', 'Setup guide')}</button>
                 <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'detect' })}><RefreshCw size={14} />{uiText('重新检测', 'Check again')}</button>
               </div></div>}
-            {(agent.error || snapshot?.error) && <div className="creation-chat-error" role="alert" data-testid="simple-agent-error"><p>{agent.error || snapshot?.error}</p>
+            {(agent.error || snapshot?.error) && <div className="creation-chat-error" role="alert" data-testid="simple-agent-error"><p>{agent.error || agentText(snapshot?.error, snapshot?.errorText)}</p>
               {antigravityDenied && <p>{uiText('请在 Antigravity 的配置中允许所需操作，然后重新发送请求。', 'Allow the required operation in Antigravity settings, then send your request again.')}</p>}
-              <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'status' })}>{uiText('重新连接', 'Reconnect')}</button>
+              <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'status' })}>{uiText('刷新状态', 'Refresh status')}</button>
             </div>}
-            {snapshot?.approvals.map(approval => <AgentApprovalPrompt key={approval.id} approval={approval} disabled={Boolean(agent.pending)}
-              onRespond={answer => void agent.invoke({ operation: 'approve', id: approval.id, ...answer })} />)}
+            {providerInfo?.error && <p className="creation-chat-error" role="alert">{agentText(providerInfo.error, providerInfo.errorText)}</p>}
+            {snapshot?.storageBlocked && <button type="button" className="btn-secondary" onClick={() => setHistoryOpen(true)}>{uiText('整理对话并恢复', 'Manage history and recover')}</button>}
             {orphanedDrafts.length > 0 && <div className="creation-connection-note" role="status" data-testid="simple-orphan-drafts">
               <p>{uiText('这些内容已移除，仍保留未应用的输入：', 'Removed content still has unapplied input: ')}{orphanedDrafts.map(([, session]) => session.editor.element.displayName).join('、')}</p>
               <button type="button" disabled={orphanedDrafts.some(([, session]) => session.saving)} onClick={discardOrphanedDrafts}>{uiText('放弃已移除内容的输入', 'Discard input for removed content')}</button>
             </div>}
             {hasParameterDrafts && <p className="creation-compose-hint" role="status">{uiText('先应用或放弃作品设置中的输入，再继续对话或试玩。', 'Apply or discard the settings draft before chatting or playtesting.')}</p>}
-            <form className="creation-composer" onSubmit={event => { event.preventDefault(); void send(); }}>
+            <div className="creation-assistant-entry">{providerInfo?.installed && providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'login', provider: effectiveProvider })}>{uiText('登录', 'Sign in')}</button>}{providerInfo?.installed && !providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}>{uiText('配置指南', 'Setup guide')}</button>}<button type="button" data-testid="simple-agent-setup" onClick={() => setSetupOpen(true)}><Settings size={14} aria-hidden="true" />{uiText('安装与连接助手', 'Install and connect assistants')}</button></div>
+            {attached.error && <p className="creation-chat-error" role="alert">{attached.error}</p>}
+            <form className={`creation-composer${dragging ? ' is-dragging' : ''}`} onSubmit={event => { event.preventDefault(); void send(); }}
+              onDragOver={event => { if (event.dataTransfer.types.includes('Files')) { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; setDragging(true); } }}
+              onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false); }}
+              onDrop={event => { if (event.dataTransfer.files.length) { event.preventDefault(); setDragging(false); void attached.addFiles(Array.from(event.dataTransfer.files)); } }}>
+              <AgentAttachments files={attached.files} onRemove={attached.remove} />
+              <input className="creation-file-input" data-testid="agent-file-input" ref={fileInput} type="file" multiple tabIndex={-1}
+                aria-label={uiText('选择文件和图片', 'Choose files and images')} onChange={event => { void attached.addFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
               <label className="sr-only" htmlFor="creation-prompt">{uiText('描述想添加或修改的内容', 'Describe what to add or change')}</label>
               <textarea id="creation-prompt" ref={composerRef} data-testid="simple-prompt" value={draft} maxLength={64000} rows={3}
                 placeholder={uiText('描述你想添加或修改的内容…', 'Describe what you want to add or change…')}
                 onChange={event => changeDraft(event.target.value)} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
+                onPaste={event => { const files = Array.from(event.clipboardData.files); if (files.length) { event.preventDefault(); void attached.addFiles(files); } }}
                 onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && !event.nativeEvent.isComposing && !composing.current && event.keyCode !== 229) { event.preventDefault(); void send(); } }} />
-              <div className="creation-composer-tools"><div className="creation-provider-choice"><label htmlFor="creation-provider">{uiText('创作助手', 'Assistant')}</label>
+              <div className="creation-composer-tools">
+                <button type="button" className="creation-attach-button" aria-label={uiText('添加文件和图片', 'Add files and images')}
+                  title={uiText('添加、拖入文件或粘贴图片；最多 8 个，总计 20 MiB。图片支持 PNG、JPEG、GIF，单张不超过 5 MiB。', 'Add or drop files, or paste images. Up to 8 files, 20 MiB total. PNG, JPEG and GIF images, up to 5 MiB each.')}
+                  disabled={!workspaceId || !agent.available || attached.uploading} onClick={() => window.__COPPERBENCH_AGENT_HOST__?.nativeFileSelection ? void attached.selectNative() : fileInput.current?.click()}><Paperclip size={17} aria-hidden="true" /></button>
+                <div className="creation-provider-choice"><label htmlFor="creation-provider">{uiText('创作助手', 'Assistant')}</label>
                 <AgentProviderSelect value={effectiveProvider} providers={snapshot?.providers ?? []} active={active && home} detecting={snapshot?.detecting}
-                  disabled={running || Boolean(agent.pending) || agent.loading || !agent.available || !workspaceId}
+                  disabled={busy || attached.uploading || Boolean(agent.pending) || agent.loading || !agent.available || !workspaceId}
                   onChange={next => void newConversation(next)} />
                 {providerInfo?.installed && <Check size={13} className="creation-provider-ready" aria-label={uiText('已检测到安装', 'Installation detected')} />}
               </div>
-                {providerInfo?.installed && providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'login', provider: effectiveProvider })}>{uiText('登录', 'Sign in')}</button>}
-                {providerInfo?.installed && !providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}>{uiText('配置指南', 'Setup guide')}</button>}
-                {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'stop' })}><Square size={15} fill="currentColor" /></button>
-                  : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={!draft.trim() || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
+                <div className="creation-model-settings"><AgentModelSelect value={effectiveModel} catalog={modelCatalog} active={active && home}
+                  disabled={busy || attached.uploading || Boolean(agent.pending && agent.pending !== 'models') || agent.loading || !agent.available || !workspaceId}
+                  onChange={model => void chooseModel(model)} onRefresh={() => void agent.invoke({ operation: 'models', provider: effectiveProvider })} />
+                  <label className="creation-turn-choice"><Brain size={14} aria-hidden="true" /><select data-testid="simple-effort" aria-label={uiText('思考强度', 'Reasoning effort')}
+                    aria-describedby="creation-effort-hint" value={effort} disabled={busy || Boolean(agent.pending)}
+                    onChange={event => setTurnPreferences(current => ({ ...current, [draftKey]: { effort: event.target.value as AgentEffort, permission } }))}>
+                    {AGENT_EFFORTS.map(level => <option key={level} value={level}>{level}</option>)}
+                  </select></label>
+                </div>
+                <label className="creation-turn-choice"><ShieldCheck size={14} aria-hidden="true" /><select data-testid="simple-permission" aria-label={uiText('执行权限', 'Execution permissions')}
+                  title={uiText('默认权限沿用 CLI 的审批规则，需要批准时在对话中确认。', 'Default permissions follow CLI rules. Confirm requests in the conversation when approval is needed.')}
+                  value={permission} disabled={busy || Boolean(agent.pending)} onChange={event => void choosePermission(event.target.value as AgentPermission)}>
+                  <option value="default">{uiText('默认权限', 'Default permissions')}</option><option value="auto-approve">{uiText('自动批准', 'Automatic approval')}</option>
+                </select></label>
+                {/* A fast stop reply can reuse this node as Submit before the click default action. */}
+                {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={event => { event.preventDefault(); void agent.invoke({ operation: 'stop' }); }}><Square size={15} fill="currentColor" /></button>
+                  : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={(!draft.trim() && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || busy || needsModel || Boolean(snapshot?.storageBlocked) || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
               </div>
             </form>
-            <p className="creation-composer-footnote">{uiText('Enter 发送 · Shift + Enter 换行', 'Enter to send · Shift + Enter for a new line')}{snapshot?.conversationId && <span>{uiText('切换助手会新建对话', 'Switching assistants starts a new conversation')}</span>}</p>
+            <p id="creation-effort-hint" className="creation-effort-hint">{uiText('请按模型选择思考强度，并非所有模型都支持全部档位；CLI 或当前源可能拒绝或调整所选强度。', 'Choose an effort supported by your model. Not all models support every level; the CLI or service may reject or adjust it.')}</p>
+            <p className="creation-composer-footnote">{uiText('Enter 发送 · Shift + Enter 换行', 'Enter to send · Shift + Enter for a new line')}{snapshot?.conversationId && <span>{uiText('切换助手或模型会新建对话', 'Changing assistants or models starts a new conversation')}</span>}</p>
           </div>
         </section>
         <aside className="creation-preview" ref={previewRef} aria-label={uiText('作品预览', 'Creation preview')}>
@@ -395,5 +544,10 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
       </div>
       <div className="creation-existing-view" hidden={active && home}>{children}</div>
     </div>
+    {active && setupOpen && <AgentSetupDialog snapshot={snapshot} initialProvider={effectiveProvider} busy={running} available={agent.available} pending={Boolean(agent.pending)} error={agent.error}
+      onClose={() => setSetupOpen(false)} invoke={agent.invoke} onChoose={next => { if (next !== effectiveProvider || !snapshot?.conversationId) void newConversation(next); }} />}
+    {active && historyOpen && <AgentHistoryDialog snapshot={snapshot} busy={busy} pending={Boolean(agent.pending)} invoke={agent.invoke} onClose={() => setHistoryOpen(false)}
+      draftConversationIds={snapshot?.sessions.filter(session => drafts[`${workspaceId}:${session.id}`]?.trim() || attached.draftKeys.includes(`${workspaceId}:${session.id}`)).map(session => session.id) ?? []}
+      onDeleted={discardConversationDrafts} />}
   </div>;
 }

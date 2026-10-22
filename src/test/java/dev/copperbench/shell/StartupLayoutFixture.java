@@ -7,12 +7,15 @@ import net.mcreator.ui.init.*;
 import net.mcreator.ui.laf.themes.ThemeManager;
 import net.mcreator.ui.workspace.selector.WorkspaceSelector;
 import net.mcreator.util.MCreatorVersionNumber;
+import net.mcreator.util.TerribleModuleHacks;
 import javax.swing.*;
 import java.util.Properties;
 
 /** Isolated desktop acceptance surface. Never opens or creates a real workspace. */
 public final class StartupLayoutFixture {
     public static void main(String[] args) throws Exception {
+        TerribleModuleHacks.openAllFor(ClassLoader.getSystemClassLoader().getUnnamedModule());
+        TerribleModuleHacks.openMCreatorRequirements();
         FirstRunOnboarding.initialize();
         PreferencesManager.init();
         if (args.length > 2) PreferencesManager.PREFERENCES.hidden.uiTheme.set(args[2].equals("dark") ? "default_dark" : "default_light");

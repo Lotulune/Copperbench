@@ -20,6 +20,7 @@ Choose a route below. Each key guide links directly to the same topic in the oth
 | --- | --- | --- |
 | Install / 安装 | [快速开始](./user/getting-started.md) · [Ubuntu](./user/linux-installation.md) | [Quick start](./user/getting-started.en.md) · [Ubuntu](./user/linux-installation.en.md) |
 | First creation / 首作 | [步道方块](./user/first-creation.md) | [Trail Block](./user/first-creation.en.md) |
+| Simple creation / 简洁首作 | [对话创作](./user/simple-creation.md) | [Conversational creation](./user/simple-creation.en.md) |
 | Build failure → export / 失败到导出 | [修复与交付](./user/build-and-export.md) | [Recovery and delivery](./user/build-and-export.en.md) |
 | Agent / 自动化 | [选择接入](./ai/getting-started.md) · [同一作品](./ai/trail-block.md) | [Choose an entry](./ai/getting-started.en.md) · [The same creation](./ai/trail-block.en.md) |
 | Contribute / 源码贡献 | [开发环境](./build/development-setup.md) | [Development setup](./build/development-setup.en.md) · [Contributing](../CONTRIBUTING.md) |

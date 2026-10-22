@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 
 /** Native file-selection boundary for grant-scoped Asset Center imports. */
 public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandlerAdapter implements Closeable {
@@ -59,8 +60,10 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 	private final DropTarget previousDropTarget;
 	private final DropTarget assetDropTarget;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	private final Predicate<List<Path>> chatDrop;
 
-	private JcefAssetImportBridgeTransport(WebView webView, Window owner, WorkspaceApplicationService service) {
+	private JcefAssetImportBridgeTransport(WebView webView, Window owner, WorkspaceApplicationService service, Predicate<List<Path>> chatDrop) {
+		this.chatDrop = chatDrop;
 		this.webView = Objects.requireNonNull(webView, "webView");
 		this.owner = Objects.requireNonNull(owner, "owner");
 		this.service = Objects.requireNonNull(service, "service");
@@ -98,7 +101,13 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 
 	public static JcefAssetImportBridgeTransport attach(WebView webView, Window owner,
 			WorkspaceApplicationService service) {
-		return new JcefAssetImportBridgeTransport(webView, owner, service);
+		return new JcefAssetImportBridgeTransport(webView, owner, service, paths -> false);
+	}
+
+	/** Shares the native drop boundary with chat without competing Swing DropTargets. */
+	public static JcefAssetImportBridgeTransport attach(WebView webView, Window owner,
+			WorkspaceApplicationService service, Predicate<List<Path>> chatDrop) {
+		return new JcefAssetImportBridgeTransport(webView, owner, service, Objects.requireNonNull(chatDrop));
 	}
 
 	private void installHost() {
@@ -127,6 +136,7 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 				paths.add(file.toPath());
 			}
 			if (paths.isEmpty()) throw new IllegalArgumentException("No files were dropped");
+			if (chatDrop.test(paths)) { complete = true; return; }
 			List<WorkspaceApplicationService.AssetImportSelectionGrant> grants = service.grantAssetImportSources(paths);
 			publishDroppedSources(grants);
 			complete = true;

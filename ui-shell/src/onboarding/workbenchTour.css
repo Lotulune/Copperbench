@@ -1,0 +1,28 @@
+:root { --tour-overlay: rgba(10, 14, 18, .7); }
+.workbench-tour { position: fixed; inset: 0; z-index: 2000; isolation: isolate; animation: tour-overlay-enter 200ms ease-out; }
+.workbench-tour-mask { position: absolute; inset: 0; }
+.workbench-tour-highlight { stroke: var(--accent-copper); stroke-width: 2; }
+.workbench-tour-card { position: absolute; left: 0; top: 0; max-height: calc(100dvh - 24px); overflow: auto; padding: 20px; border: 1px solid var(--border-active); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-main); box-shadow: var(--shadow-lg); transition: transform 380ms var(--motion-ease); }
+.workbench-tour-card > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--text-muted); font-size: 12px; }
+.workbench-tour-card > header button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--radius-sm); color: var(--text-main); background: transparent; cursor: pointer; }
+.workbench-tour-card > header button:hover { background: var(--bg-hover); }
+.workbench-tour-track { height: 2px; margin: 12px 0 18px; background: var(--border-subtle); overflow: hidden; }
+.workbench-tour-track > span { display: block; height: 100%; background: var(--accent-copper); transform-origin: left; transition: transform 380ms var(--motion-ease); }
+.workbench-tour-copy { min-height: 122px; animation: tour-step-forward 300ms var(--motion-ease); }
+.workbench-tour-copy[data-direction="-1"] { animation-name: tour-step-back; }
+.workbench-tour-copy h2 { margin: 0 0 10px; font-size: 18px; line-height: 1.4; font-weight: 600; text-wrap: balance; }
+.workbench-tour-copy p { margin: 0; font-size: 13px; line-height: 1.8; color: var(--text-muted); overflow-wrap: anywhere; }
+.workbench-tour-card > footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.workbench-tour-card:focus-visible { outline: 2px solid var(--accent-copper); outline-offset: 2px; }
+.workbench-tour-card .btn-primary { background: var(--accent-copper-fill); color: var(--text-on-accent); }
+.workbench-tour-card .btn-primary:hover { background: var(--accent-copper-fill-hover); }
+.workbench-tour-guide-link { display: block; margin: 14px auto 0; padding: 4px; background: transparent; border: 0; color: var(--accent-copper); text-decoration: underline; text-underline-offset: 3px; font-size: 12px; cursor: pointer; }
+.workbench-tour[data-closing="true"] { opacity: 0; transition: opacity 180ms ease-out; pointer-events: none; }
+@keyframes tour-overlay-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tour-step-forward { from { opacity: .35; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes tour-step-back { from { opacity: .35; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .workbench-tour-card, .workbench-tour-track > span { transition: none; }
+  .workbench-tour-copy { animation: tour-overlay-enter 100ms linear; }
+  .workbench-tour[data-closing="true"] { transition-duration: 80ms; }
+}

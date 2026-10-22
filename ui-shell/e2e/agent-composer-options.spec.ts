@@ -1,0 +1,252 @@
+import { test, expect, type Page } from '@playwright/test';
+
+test.use({ storageState: { cookies: [], origins: [] } });
+const pixel = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a7ioAAAAASUVORK5CYII=';
+
+async function fixture(page: Page, options: { dark?: boolean; english?: boolean; failure?: boolean; nativeSelection?: boolean } = {}) {
+  await page.addInitScript(({ options, pixel }) => {
+    localStorage.setItem('copperbench.workbench.mode', 'simple');
+    localStorage.setItem('copperbench.ui.locale', options.english ? 'en' : 'zh');
+    localStorage.setItem('copperbench.theme', options.dark ? 'dark' : 'light');
+    const calls: any[] = [], uploads = new Map<string, any>(), sessions: any[] = [], transcripts = new Map<string, any[]>();
+    let reject = false, target = '', deleteFails = false, retryFails = false, cleanupFails = false;
+    const snapshot: any = { state: 'idle', sequence: 1, conversationId: null, provider: null, sessions, messages: [], approvals: [],
+      providers: [{ id: 'codex', label: 'Codex CLI', installed: true, executable: '/fixture/codex', setupUrl: 'https://example.com', loginAvailable: true,
+        modelCatalog: options.failure ? { state: 'failed', models: [], error: 'Catalog unavailable' } : { state: 'ready', models: [{ id: 'fixture-model', label: 'Fixture model' }], defaultModel: 'fixture-model' } }] };
+    (window as any).composerFixture = { calls, uploads, snapshot, reject: (value: boolean) => { reject = value; }, target: () => target,
+      deleteFailure: (value: boolean) => { deleteFails = value; }, retryFailure: (value: boolean) => { retryFails = value; },
+      cleanupFailure: (value: boolean) => { cleanupFails = value; },
+      seedHistory: () => {
+        const session = { id: crypto.randomUUID(), provider: 'codex', model: 'fixture-model', title: 'Earlier conversation', updatedAt: Date.now() };
+        sessions.push(session); transcripts.set(session.id, [{ id: crypto.randomUUID(), role: 'user', text: 'Earlier request', at: Date.now() }]);
+        snapshot.sequence++; return session.id;
+      },
+      nativeDrop: () => { const item = { id: crypto.randomUUID(), name: 'native-drop.txt', size: 10, mediaType: 'application/octet-stream' }; uploads.set(item.id, item);
+        window.dispatchEvent(new CustomEvent('copperbench:agent-attachments', { detail: { ok: true, target, attachments: [item] } })); },
+      unsupported: () => { snapshot.state = 'failed'; snapshot.error = 'Unsupported effort'; snapshot.messages.at(-1).delivery = 'failed'; snapshot.sequence++; } };
+    window.__COPPERBENCH_AGENT_HOST__ = { nativeFileSelection: options.nativeSelection, async invoke(request: any) {
+      calls.push(request);
+      if (request.operation === 'attachmentTarget') { target = request.target; return { ok: true }; }
+      if (request.operation === 'attachmentSelect') { const item = { id: crypto.randomUUID(), name: 'native-selected.txt', size: 10, mediaType: 'application/octet-stream' };
+        uploads.set(item.id, item); return { ok: true, attachments: [item] }; }
+      if (request.operation === 'attachmentBegin') { const id = crypto.randomUUID(); uploads.set(id, { id, name: request.name, size: request.size, offset: 0,
+        mediaType: request.name.endsWith('.png') ? 'image/png' : 'application/octet-stream' }); return { ok: true, id, offset: 0 }; }
+      if (request.operation === 'attachmentChunk') { const item = uploads.get(request.id); item.offset += atob(request.data).length; return { ok: true, id: item.id, offset: item.offset }; }
+      if (request.operation === 'attachmentCommit') { const { offset, ...attachment } = uploads.get(request.id); return { ok: true, attachment }; }
+      if (request.operation === 'attachmentDiscard') return { ok: true };
+      if (request.operation === 'attachmentPreview') return { ok: true, dataUrl: `data:image/png;base64,${pixel}` };
+      if (request.operation === 'new') {
+        const session = { id: crypto.randomUUID(), provider: request.provider, model: request.model ?? null, effort: request.effort, permission: request.permission, title: 'Conversation', updatedAt: Date.now() };
+        sessions.push(session); Object.assign(snapshot, { conversationId: session.id, provider: session.provider, model: session.model, effort: session.effort, permission: session.permission, messages: [] });
+        transcripts.set(session.id, snapshot.messages);
+      }
+      if (request.operation === 'send') {
+        if (!snapshot.conversationId) {
+          const session = { id: crypto.randomUUID(), provider: request.provider, model: request.model, effort: request.effort, permission: request.permission, title: 'First message', updatedAt: Date.now() };
+          sessions.push(session); Object.assign(snapshot, { conversationId: session.id, provider: session.provider, model: session.model, effort: session.effort, permission: session.permission });
+          transcripts.set(session.id, snapshot.messages);
+        }
+        if (reject) { snapshot.state = 'starting'; snapshot.messages.push({ id: crypto.randomUUID(), role: 'user', text: request.text, at: Date.now(), delivery: 'pending' }); }
+        else {
+          snapshot.state = 'idle'; snapshot.effort = request.effort; snapshot.permission = request.permission;
+          snapshot.messages.push({ id: crypto.randomUUID(), role: 'user', text: request.text, at: Date.now(), delivery: 'sent', attachments: request.attachments.map((id: string) => {
+            const { offset, ...item } = uploads.get(id); return item;
+          }) });
+        }
+      }
+      if (request.operation === 'stop') {
+        snapshot.state = 'idle'; snapshot.messages.at(-1).delivery = 'failed';
+      }
+      if (request.operation === 'select') {
+        const session = sessions.find(item => item.id === request.conversationId);
+        Object.assign(snapshot, { conversationId: session.id, provider: session.provider, model: session.model, state: 'idle', messages: transcripts.get(session.id) });
+      }
+      if (request.operation === 'deleteConversations') {
+        delete snapshot.historyResult;
+        if (deleteFails) snapshot.error = 'History write failed';
+        else {
+          for (let i = sessions.length - 1; i >= 0; i--) if (request.conversationIds.includes(sessions[i].id)) sessions.splice(i, 1);
+          if (request.conversationIds.includes(snapshot.conversationId)) Object.assign(snapshot, { conversationId: null, provider: null, model: null, messages: [] });
+          if (cleanupFails) snapshot.error = 'Conversation deleted; attachment cleanup failed'; else delete snapshot.error;
+          snapshot.historyResult = { operation: request.operation };
+        }
+      }
+      if (request.operation === 'retryHistory') {
+        delete snapshot.historyResult;
+        if (retryFails) snapshot.error = 'Disk is full';
+        else { delete snapshot.error; snapshot.storageBlocked = false; snapshot.historyResult = { operation: request.operation }; }
+      }
+      return { ...snapshot, sequence: ++snapshot.sequence };
+    } };
+  }, { options, pixel });
+  await page.goto('/'); await expect(page.getByTestId('simple-prompt')).toBeVisible();
+}
+
+async function hasDrafts(page: Page) {
+  return page.evaluate(async () => {
+    const url = performance.getEntriesByType('resource').map(entry => entry.name)
+      .find(value => new URL(value).pathname === '/src/hooks/unsavedDraftGuard.ts') ?? '/src/hooks/unsavedDraftGuard.ts';
+    return (await import(/* @vite-ignore */ url)).hasUnsavedDrafts();
+  });
+}
+
+test('stopping before model admission keeps the draft when another history is opened', async ({ page }) => {
+  await fixture(page);
+  const earlier = await page.evaluate(() => (window as any).composerFixture.seedHistory());
+  await page.getByTestId('agent-file-input').setInputFiles({ name: 'keep.txt', mimeType: 'text/plain', buffer: Buffer.from('keep') });
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  await page.getByTestId('simple-prompt').fill('Keep the stopped request');
+  await page.evaluate(() => (window as any).composerFixture.reject(true));
+  await page.getByTestId('simple-send').click();
+  await expect(page.getByTestId('simple-stop')).toBeVisible();
+  const stopped = await page.evaluate(() => (window as any).composerFixture.snapshot.conversationId);
+  await page.getByTestId('simple-stop').click();
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  await page.getByTestId(`simple-conversation-${earlier}`).click();
+  await expect(page.getByRole('log')).toContainText('Earlier request');
+  await page.getByTestId(`simple-conversation-${stopped}`).click();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Keep the stopped request');
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.filter((item: any) => item.operation === 'send'))).toHaveLength(1);
+});
+
+test('confirmed deletion clears only deleted conversation drafts after persistence succeeds', async ({ page }, testInfo) => {
+  await fixture(page, { english: true });
+  for (const name of ['first', 'second']) {
+    await page.getByTestId('simple-new-chat').click();
+    await page.getByTestId('simple-prompt').fill(`${name} unsent draft`);
+    await page.getByTestId('agent-file-input').setInputFiles({ name: `${name}.txt`, mimeType: 'text/plain', buffer: Buffer.from(name) });
+    await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  }
+  await page.getByTestId('simple-manage-conversations').click();
+  const dialog = page.getByTestId('agent-history-dialog');
+  for (const checkbox of await dialog.getByRole('checkbox').all()) await checkbox.check();
+  await dialog.getByRole('button', { name: 'Delete selected (2)', exact: true }).click();
+  await expect(page.getByTestId('confirm-dialog')).toContainText('unsent text and attachments');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  expect(await hasDrafts(page)).toBe(true);
+  await page.evaluate(() => (window as any).composerFixture.deleteFailure(true));
+  await dialog.getByRole('button', { name: 'Delete selected (2)', exact: true }).click();
+  await page.getByRole('button', { name: 'Delete selected', exact: true }).click();
+  await expect(dialog).toContainText('History write failed');
+  expect(await hasDrafts(page)).toBe(true);
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.filter((item: any) => item.operation === 'attachmentDiscard'))).toHaveLength(0);
+  await page.evaluate(() => { (window as any).composerFixture.deleteFailure(false); (window as any).composerFixture.cleanupFailure(true); });
+  for (const checkbox of await dialog.getByRole('checkbox').all()) await checkbox.check();
+  await dialog.getByRole('button', { name: 'Delete selected (2)', exact: true }).click();
+  await expect(page.getByTestId('confirm-dialog')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('delete-drafts-confirmation.png'), animations: 'disabled' });
+  await page.getByRole('button', { name: 'Delete selected', exact: true }).click();
+  await expect(dialog).toContainText('Conversation deleted; attachment cleanup failed');
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('');
+  await expect(page.locator('.creation-composer [data-testid="agent-attachment"]')).toHaveCount(0);
+  await expect.poll(() => hasDrafts(page)).toBe(false);
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.filter((item: any) => item.operation === 'attachmentDiscard'))).toHaveLength(2);
+});
+
+test('retrying history reports failure and recovery inside the management dialog', async ({ page }) => {
+  await fixture(page, { english: true });
+  await page.evaluate(() => { const fixture = (window as any).composerFixture; fixture.snapshot.storageBlocked = true; fixture.snapshot.sequence++; fixture.retryFailure(true); });
+  await page.getByTestId('simple-manage-conversations').click();
+  const dialog = page.getByTestId('agent-history-dialog');
+  await dialog.getByRole('button', { name: 'Retry saving history', exact: true }).click();
+  await expect(dialog).toContainText('Disk is full');
+  await page.evaluate(() => (window as any).composerFixture.retryFailure(false));
+  await dialog.getByRole('button', { name: 'Retry saving history', exact: true }).click();
+  await expect(dialog).toContainText('History saved. You can continue the conversation.');
+  await expect(dialog.getByRole('button', { name: 'Retry saving history', exact: true })).toHaveCount(0);
+});
+
+test('manual input works without a catalog and effort stays immediately to the model right', async ({ page }) => {
+  await fixture(page, { failure: true, english: true });
+  await page.getByTestId('simple-prompt').fill('Keep this draft');
+  await page.getByTestId('simple-model').click();
+  await page.getByRole('button', { name: 'Enter a model ID manually', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Model ID to use', exact: true }).fill('deepseek-ai/custom');
+  await page.getByRole('button', { name: 'Use model', exact: true }).click();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Keep this draft');
+  await expect(page.getByTestId('simple-model')).toHaveAttribute('data-model-value', 'deepseek-ai/custom');
+  await expect(page.getByTestId('simple-effort').locator('option')).toHaveText(['low', 'medium', 'high', 'xhigh', 'max']);
+  const model = await page.getByTestId('simple-model').boundingBox(), effort = await page.getByTestId('simple-effort').boundingBox();
+  expect(effort!.x).toBeGreaterThanOrEqual(model!.x + model!.width);
+  await expect(page.locator('#creation-effort-hint')).toContainText('Not all models support every level');
+  await page.getByTestId('simple-effort').selectOption('max'); await page.getByTestId('simple-send').click();
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.findLast((call: any) => call.operation === 'send')))
+    .toMatchObject({ model: 'deepseek-ai/custom', effort: 'max', permission: 'default' });
+});
+
+test('file selection, pasted images, browser drops and native drops stay in the draft until sending', async ({ page }) => {
+  await fixture(page);
+  await page.getByTestId('agent-file-input').setInputFiles({ name: 'notes.md', mimeType: 'text/markdown', buffer: Buffer.from('a'.repeat(300000)) });
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  await page.getByTestId('simple-prompt').evaluate((element, png) => {
+    const bytes = Uint8Array.from(atob(png), c => c.charCodeAt(0)); const clipboard = new DataTransfer();
+    clipboard.items.add(new File([bytes], 'clipboard.png', { type: 'image/png' }));
+    element.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: clipboard }));
+  }, pixel);
+  await page.locator('.creation-composer').evaluate(element => {
+    const transfer = new DataTransfer(); transfer.items.add(new File(['drop'], 'dropped.txt', { type: 'text/plain' }));
+    element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+  });
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(3);
+  await page.evaluate(() => (window as any).composerFixture.nativeDrop());
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(4);
+  await expect(page.locator('.creation-composer img[alt="clipboard.png"]')).toBeVisible();
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.some((call: any) => call.operation === 'send'))).toBe(false);
+  await page.getByRole('button', { name: '移除 dropped.txt', exact: true }).click();
+  await page.getByTestId('simple-model').click();
+  await page.getByRole('combobox', { name: '搜索或输入模型 ID' }).fill('new-model');
+  await page.getByRole('combobox', { name: '搜索或输入模型 ID' }).press('Enter');
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(3);
+  await page.getByTestId('simple-send').click();
+  await expect(page.locator('.creation-composer [data-testid="agent-attachment"]')).toHaveCount(0);
+  await expect(page.getByRole('log').getByTestId('agent-attachment')).toHaveCount(3);
+  const send = await page.evaluate(() => (window as any).composerFixture.calls.findLast((call: any) => call.operation === 'send'));
+  expect(send.attachments).toHaveLength(3); expect(send.text).toBe('');
+});
+
+test('automatic approval requires confirmation and rejected preflight retains draft and attachment', async ({ page }) => {
+  await fixture(page);
+  await page.getByTestId('simple-permission').selectOption('auto-approve');
+  await page.getByRole('button', { name: '取消', exact: true }).click();
+  await expect(page.getByTestId('simple-permission')).toHaveValue('default');
+  await page.getByTestId('simple-permission').selectOption('auto-approve');
+  await page.getByRole('button', { name: '启用自动批准', exact: true }).click();
+  await expect(page.getByTestId('simple-permission')).toHaveValue('auto-approve');
+  await page.getByTestId('agent-file-input').setInputFiles({ name: 'keep.txt', mimeType: 'text/plain', buffer: Buffer.from('keep') });
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  await page.getByTestId('simple-prompt').fill('Do not lose this draft');
+  await page.evaluate(() => (window as any).composerFixture.reject(true));
+  await page.getByTestId('simple-send').click();
+  await expect(page.getByTestId('simple-effort')).toBeDisabled();
+  await page.evaluate(() => (window as any).composerFixture.unsupported());
+  await expect(page.getByTestId('simple-agent-error')).toContainText('Unsupported effort');
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Do not lose this draft');
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+});
+
+test('desktop file button uses the native selector and keeps attachments before send', async ({ page }) => {
+  await fixture(page, { nativeSelection: true });
+  await page.getByRole('button', { name: '添加文件和图片', exact: true }).click();
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  await expect(page.locator('.creation-composer')).toContainText('native-selected.txt');
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.filter((call: any) => ['attachmentBegin', 'send'].includes(call.operation)))).toHaveLength(0);
+  await page.getByTestId('simple-send').click();
+  await expect(page.getByRole('log')).toContainText('native-selected.txt');
+});
+
+for (const dark of [false, true]) test(`compact composer and manual model input remain reachable (${dark ? 'dark' : 'light'})`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 500, height: 600 }); await fixture(page, { dark, failure: true });
+  await page.getByTestId('agent-file-input').setInputFiles({ name: 'long-attachment-filename-for-small-windows.txt', mimeType: 'text/plain', buffer: Buffer.from('preview') });
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  await page.getByTestId('simple-prompt').fill('依据附件创建新的方块');
+  await page.getByTestId('simple-model').click(); await page.getByRole('button', { name: '手动输入模型 ID', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: '想使用的模型 ID' })).toBeInViewport();
+  await page.getByRole('textbox', { name: '想使用的模型 ID' }).fill('custom-model');
+  await page.getByRole('button', { name: '使用模型', exact: true }).click();
+  await page.getByTestId('simple-send').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('simple-send')).toBeInViewport();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('composer-options.png') });
+});

@@ -1,0 +1,139 @@
+{
+  "state": "waiting_approval",
+  "conversationId": "native-fixture-conversation",
+  "provider": "codex",
+  "sessions": [
+    {
+      "id": "native-fixture-conversation",
+      "provider": "codex",
+      "title": "新创作",
+      "updatedAt": 1,
+      "defaultTitle": false
+    }
+  ],
+  "messages": [
+    {
+      "id": "native-message-0",
+      "role": "user",
+      "text": "新创作",
+      "at": 1
+    },
+    {
+      "id": "native-message-1",
+      "role": "tool",
+      "text": "NOTE: Picked up JDK_JAVA_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:\\AICoding\\Minecraft_ModCreator\\.tmp\n",
+      "at": 1
+    }
+  ],
+  "approvals": [
+    {
+      "id": "native-approval-0",
+      "title": "允许运行命令？",
+      "detail": "{\"command\":\"gradle build\",\"reason\":\"Compile requested mod\"}",
+      "choices": [
+        {
+          "id": "choice-0",
+          "label": "允许这次",
+          "labelText": {
+            "key": "agent.allowOnce",
+            "zh": "允许这次",
+            "en": "Allow once",
+            "args": {}
+          }
+        },
+        {
+          "id": "choice-1",
+          "label": "拒绝",
+          "labelText": {
+            "key": "agent.deny",
+            "zh": "拒绝",
+            "en": "Deny",
+            "args": {}
+          }
+        },
+        {
+          "id": "choice-2",
+          "label": "停止本轮",
+          "labelText": {
+            "key": "agent.stopTurn",
+            "zh": "停止本轮",
+            "en": "Stop this turn",
+            "args": {}
+          }
+        }
+      ],
+      "kind": "permission",
+      "multiSelect": false,
+      "allowCustom": false,
+      "titleText": {
+        "key": "agent.commandApproval",
+        "zh": "允许运行命令？",
+        "en": "Allow this command?",
+        "args": {}
+      }
+    }
+  ],
+  "providers": [
+    {
+      "id": "codex",
+      "label": "Codex CLI",
+      "installed": true,
+      "executable": "/fixture/codex",
+      "setupUrl": "https://developers.openai.com/codex/cli/",
+      "loginAvailable": true,
+      "checkAvailable": true,
+      "detection": "found"
+    },
+    {
+      "id": "claude",
+      "label": "Claude Code",
+      "installed": true,
+      "executable": "/fixture/claude",
+      "setupUrl": "https://code.claude.com/docs/en/setup",
+      "loginAvailable": true,
+      "checkAvailable": true,
+      "detection": "found"
+    },
+    {
+      "id": "grok",
+      "label": "Grok Build",
+      "installed": true,
+      "executable": "/fixture/grok",
+      "setupUrl": "https://docs.x.ai/build/overview",
+      "loginAvailable": true,
+      "checkAvailable": true,
+      "detection": "found"
+    },
+    {
+      "id": "antigravity",
+      "label": "Antigravity CLI",
+      "installed": true,
+      "executable": "/fixture/antigravity",
+      "setupUrl": "https://antigravity.google/docs/cli/overview/",
+      "loginAvailable": true,
+      "checkAvailable": false,
+      "detection": "found"
+    },
+    {
+      "id": "deepseek",
+      "label": "DeepSeek Harness",
+      "installed": true,
+      "executable": "/fixture/deepseek",
+      "setupUrl": "https://github.com/deepseek-ai/deepseek-harness",
+      "loginAvailable": false,
+      "checkAvailable": true,
+      "detection": "found"
+    }
+  ],
+  "sequence": 1,
+  "detecting": false,
+  "checking": false,
+  "history": {
+    "count": 1,
+    "maxCount": 100,
+    "bytes": 580,
+    "maxBytes": 16777216,
+    "level": "ok"
+  },
+  "storageBlocked": false
+}

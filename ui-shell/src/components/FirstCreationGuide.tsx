@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Box, CheckCircle2, Flag, FolderOpen, Hammer, Play, X } from 'lucide-react';
 import { isNativeHostPresent } from '../bridge';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useWorkbenchMode } from '../context/WorkbenchModeContext';
+import { useWorkbenchTour } from '../onboarding/WorkbenchTour';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { elementEditorDraftKey, getElementEditorDraft } from '../hooks/elementEditorDrafts';
 import { hasUnsavedDrafts } from '../hooks/unsavedDraftGuard';
@@ -13,6 +15,8 @@ import type { CommandResult, ModElementEditorProjection } from '../types/contrac
 import './firstCreation.css';
 
 export function FirstCreationGuide() {
+  const { mode } = useWorkbenchMode();
+  const { openTour } = useWorkbenchTour();
   const { state, createModElement, buildWorkspace, runClient, getModElementEditor,
     setSelectedElementId, setActiveView, setActiveTaskId, setIsTaskDrawerOpen } = useWorkbench();
   const { guideOpen, closeGuide, pauseGuide, openGuide, tourActive, binding, referenceError, referencesReady, refreshReferences,
@@ -33,7 +37,13 @@ export function FirstCreationGuide() {
   currentWorkspaceId.current = workspace?.id;
   const readEditor = useRef(getModElementEditor);
   readEditor.current = getModElementEditor;
-  const dialogRef = useDialogA11y(guideOpen && targetIsOpen, closeGuide);
+  const dialogRef = useDialogA11y(guideOpen && targetIsOpen && mode === 'professional', closeGuide);
+
+  useEffect(() => {
+    if (mode !== 'simple' || !guideOpen || !targetIsOpen) return;
+    closeGuide();
+    openTour();
+  }, [mode, guideOpen, targetIsOpen, closeGuide, openTour]);
 
   useEffect(() => {
     let current = true;
@@ -48,7 +58,7 @@ export function FirstCreationGuide() {
     return () => { current = false; };
   }, [guideOpen, element?.id, element?.updatedAt, workspace?.revision, native]);
 
-  if (!binding || !targetIsOpen) return null;
+  if (!binding || !targetIsOpen || mode === 'simple') return null;
   if (!guideOpen) return tourActive ? <div className="first-creation-resume" role="region" aria-label={uiText('创作引导', 'Creation tour')}>
     <button type="button" data-testid="continue-first-creation" onClick={() => openGuide()}>{uiText('继续引导', 'Continue tour')}<ArrowRight size={14} aria-hidden="true" /></button>
     <button type="button" onClick={closeGuide} aria-label={uiText('结束引导', 'End tour')}><X size={16} aria-hidden="true" /></button>

@@ -1,0 +1,594 @@
+{
+  "deletedAttachmentCleanup": {
+    "zh": "会话已删除，但部分附件副本未能清理：{detail}",
+    "en": "The conversation was deleted, but some attachment copies could not be removed: {detail}"
+  },
+  "new": {
+    "zh": "新创作",
+    "en": "New creation"
+  },
+  "interrupted": {
+    "zh": "上次创作未确认结束。已保留记录；发送新消息后才会继续，并应先核对已有任务。",
+    "en": "The previous turn did not finish. Your history is retained. Check existing tasks before sending a new message to continue."
+  },
+  "stopped": {
+    "zh": "CLI 助手已停止，已有修改保留。已提交的 Copperbench 构建等任务可能仍在运行，可在任务面板查看或停止；再次发送消息才会继续创作。",
+    "en": "The CLI assistant stopped. Existing changes are retained. Submitted Copperbench tasks may still be running; inspect or stop them in the task panel. Send another message to continue creating."
+  },
+  "retention": {
+    "zh": "仅显示最近 1,000 条记录；CLI 保留其原生会话历史。",
+    "en": "Only the latest 1,000 messages are shown. The CLI keeps its native session history."
+  },
+  "allowOnce": {
+    "zh": "允许这次",
+    "en": "Allow once"
+  },
+  "allowSession": {
+    "zh": "允许本次 CLI 会话",
+    "en": "Allow for this CLI session"
+  },
+  "allowTurn": {
+    "zh": "仅本轮允许",
+    "en": "Allow for this turn"
+  },
+  "deny": {
+    "zh": "拒绝",
+    "en": "Deny"
+  },
+  "stopTurn": {
+    "zh": "停止本轮",
+    "en": "Stop this turn"
+  },
+  "commandApproval": {
+    "zh": "允许运行命令？",
+    "en": "Allow this command?"
+  },
+  "fileApproval": {
+    "zh": "允许修改文件？",
+    "en": "Allow file changes?"
+  },
+  "accessApproval": {
+    "zh": "允许本轮扩大访问范围？",
+    "en": "Allow broader access for this turn?"
+  },
+  "claudeApproval": {
+    "zh": "允许 Claude Code 使用 {tool}？",
+    "en": "Allow Claude Code to use {tool}?"
+  },
+  "operationApproval": {
+    "zh": "{provider} 请求执行操作",
+    "en": "{provider} requests an operation"
+  },
+  "busy": {
+    "zh": "请先停止或等待当前创作完成",
+    "en": "Stop the current turn or wait for it to finish first."
+  },
+  "closed": {
+    "zh": "创作工作区已关闭",
+    "en": "This creation workspace is closed."
+  },
+  "missingSession": {
+    "zh": "创作会话不存在",
+    "en": "This conversation no longer exists."
+  },
+  "messageLimit": {
+    "zh": "消息不能超过 65,536 字符",
+    "en": "Messages cannot exceed 65,536 characters."
+  },
+  "missingCli": {
+    "zh": "未找到 {provider}，请先安装并点击检查连接",
+    "en": "{provider} was not found. Install it and detect it again."
+  },
+  "providerBinding": {
+    "zh": "每个会话固定使用一个 CLI，请新建会话后切换工具",
+    "en": "Each conversation uses one CLI. Start a new conversation to switch assistants."
+  },
+  "tooManyApprovals": {
+    "zh": "CLI 同时请求了过多输入，本轮已停止",
+    "en": "The CLI requested too many simultaneous inputs. This turn was stopped."
+  },
+  "turnFailed": {
+    "zh": "CLI 未完成本轮创作",
+    "en": "The CLI did not complete this turn."
+  },
+  "expiredApproval": {
+    "zh": "批准请求已失效",
+    "en": "This approval request is no longer active."
+  },
+  "invalidChoices": {
+    "zh": "问题选项必须为数组",
+    "en": "Question choices must be an array."
+  },
+  "tooManyChoices": {
+    "zh": "选择了过多选项",
+    "en": "Too many options were selected."
+  },
+  "invalidChoice": {
+    "zh": "无效的问题选项",
+    "en": "This question option is invalid."
+  },
+  "customText": {
+    "zh": "自定义回答必须为文本",
+    "en": "A custom answer must be text."
+  },
+  "answerLength": {
+    "zh": "回答过长",
+    "en": "This answer is too long."
+  },
+  "noCustom": {
+    "zh": "此问题不支持自定义回答",
+    "en": "This question does not accept a custom answer."
+  },
+  "answerRequired": {
+    "zh": "请选择选项或填写回答",
+    "en": "Select an option or enter an answer."
+  },
+  "singleAnswer": {
+    "zh": "此问题只能提交一个回答",
+    "en": "This question accepts one answer."
+  },
+  "invalidApproval": {
+    "zh": "无效的批准选项",
+    "en": "This approval option is invalid."
+  },
+  "installFirst": {
+    "zh": "请先安装 {provider}",
+    "en": "Install {provider} first."
+  },
+  "deepseekSetup": {
+    "zh": "请运行 dsh web，在 Settings → Models 中配置模型，然后返回发送消息。",
+    "en": "Run dsh web, configure a model in Settings → Models, then return to send a message."
+  },
+  "loginOpened": {
+    "zh": "已打开 {provider} 的官方登录终端。完成登录后返回检查连接；打开窗口不代表已登录。",
+    "en": "Opened the official {provider} sign-in terminal. Complete sign-in, then return to check the connection. Opening the window does not confirm sign-in."
+  },
+  "sessionLimit": {
+    "zh": "创作会话已达 100 条，请先整理工作区创作记录",
+    "en": "The 100-conversation limit was reached. Manage conversation history before creating another."
+  },
+  "byteLimit": {
+    "zh": "创作记录已达 16 MiB，请整理历史后继续",
+    "en": "Conversation history reached 16 MiB. Manage history to continue."
+  },
+  "readLimit": {
+    "zh": "创作记录超过读取上限，请保留并整理 {path}",
+    "en": "History exceeds the read limit. Back up and recover it: {path}"
+  },
+  "unreadable": {
+    "zh": "无法读取创作记录，原文件已保留：{path}",
+    "en": "Could not read conversation history. The original file is retained: {path}"
+  },
+  "backupRequired": {
+    "zh": "请先备份并恢复无法读取的历史记录",
+    "en": "Back up and recover the unreadable history first."
+  },
+  "historyReadable": {
+    "zh": "历史记录可以读取，请使用会话整理",
+    "en": "History is readable. Use conversation management."
+  },
+  "backupFailed": {
+    "zh": "历史备份验证失败，原文件未变更",
+    "en": "The history backup could not be verified. The original file is unchanged."
+  },
+  "confirmationRequired": {
+    "zh": "请确认此历史操作",
+    "en": "Confirm this history operation first."
+  },
+  "activeDelete": {
+    "zh": "请先停止当前会话并等待收尾后再删除",
+    "en": "Stop the active conversation and wait for it to settle before deleting it."
+  },
+  "checkCancelled": {
+    "zh": "连接检查已取消",
+    "en": "The connection check was cancelled."
+  },
+  "processPending": {
+    "zh": "CLI 已返回结果，但未正常结束；后台进程已停止，请检查工具任务状态",
+    "en": "The CLI returned a result but did not exit normally. Its process was stopped; check tool task status."
+  },
+  "exitCode": {
+    "zh": "CLI 退出码 {detail}",
+    "en": "CLI exit code: {detail}"
+  },
+  "childrenRunning": {
+    "zh": "CLI 子进程未能完全停止，请在系统进程管理器中检查 {provider}",
+    "en": "Some CLI child processes did not stop. Check {provider} in the system process manager."
+  },
+  "connectionClosed": {
+    "zh": "CLI 连接已关闭",
+    "en": "The CLI connection is closed."
+  },
+  "noResult": {
+    "zh": "CLI 未返回有效结果",
+    "en": "The CLI returned no valid result."
+  },
+  "invalidProtocol": {
+    "zh": "CLI 返回无法识别的协议消息，请检查 CLI 版本或启动器",
+    "en": "The CLI returned an unsupported protocol message. Check its version or launcher."
+  },
+  "outputClosed": {
+    "zh": "CLI 输出连接已关闭",
+    "en": "The CLI output connection is closed."
+  },
+  "earlyClose": {
+    "zh": "CLI 连接在本轮完成前关闭{detail}",
+    "en": "The CLI connection closed before this turn completed.{detail}"
+  },
+  "closeTimeout": {
+    "zh": "CLI 会话关闭确认超时",
+    "en": "CLI session closure confirmation timed out."
+  },
+  "initTimeout": {
+    "zh": "CLI 初始化或会话恢复超时，请检查登录与网络",
+    "en": "CLI initialization or session recovery timed out. Check sign-in and network access."
+  },
+  "notStarted": {
+    "zh": "CLI 尚未启动",
+    "en": "The CLI has not started."
+  },
+  "processExited": {
+    "zh": "CLI 进程已退出",
+    "en": "The CLI process exited."
+  },
+  "lineLimit": {
+    "zh": "CLI 消息超过 2 Mi 字符限制",
+    "en": "A CLI message exceeded the 2 Mi character limit."
+  },
+  "acpVersion": {
+    "zh": "{provider} 的 ACP 版本不兼容，请更新 CLI 后重试。",
+    "en": "The ACP version of {provider} is incompatible. Update the CLI and try again."
+  },
+  "deepseekResume": {
+    "zh": "此版本的 DeepSeek Harness 不支持恢复会话，请更新 dsh 或新建对话。",
+    "en": "This DeepSeek Harness version does not support session recovery. Update dsh or start a new conversation."
+  },
+  "deniedOperation": {
+    "zh": "{provider} 有操作未获授权，请检查拒绝信息后明确继续。",
+    "en": "An operation was not authorized for {provider}. Review the denial before explicitly continuing."
+  },
+  "ended": {
+    "zh": "{provider} 本轮结束：{detail}",
+    "en": "{provider} turn ended: {detail}"
+  },
+  "unsupportedClient": {
+    "zh": "{provider} 请求了未启用的客户端能力：{method}；未执行该操作。",
+    "en": "{provider} requested an unavailable client capability: {method}. The operation was not performed."
+  },
+  "incompleteApproval": {
+    "zh": "{provider} 未提供当前操作的完整信息，审批请求已取消。",
+    "en": "{provider} did not provide complete operation details. The approval request was cancelled."
+  },
+  "noApprovalChoices": {
+    "zh": "{provider} 未提供可选择的批准选项，该请求已取消。",
+    "en": "{provider} provided no approval choices. The request was cancelled."
+  },
+  "closeUnconfirmed": {
+    "zh": "{provider} 会话关闭未获确认：{detail}",
+    "en": "{provider} session closure was not confirmed: {detail}"
+  },
+  "codexUnknown": {
+    "zh": "未知的 Codex 结束状态：{status}",
+    "en": "Unknown Codex terminal state: {status}"
+  },
+  "unsupportedRequest": {
+    "zh": "CLI 请求暂不支持：{method}。该动作未获批准，可停止并调整任务。",
+    "en": "Unsupported CLI request: {method}. The action was not approved. Stop and adjust the task if needed."
+  },
+  "claudeDenied": {
+    "zh": "Claude Code 拒绝了操作：{detail}",
+    "en": "Claude Code denied an operation: {detail}"
+  },
+  "claudeRetry": {
+    "zh": "Claude Code 正在重试连接：{detail}",
+    "en": "Claude Code is retrying the connection: {detail}"
+  },
+  "claudePermission": {
+    "zh": "有操作未获 Claude Code 授权；请查看拒绝信息，调整 CLI 权限后明确继续。",
+    "en": "Claude Code did not authorize an operation. Review the denial, adjust CLI permissions, then explicitly continue."
+  },
+  "claudeFailed": {
+    "zh": "Claude Code 未成功完成：{detail}",
+    "en": "Claude Code did not complete successfully: {detail}"
+  },
+  "claudeControl": {
+    "zh": "Claude 请求的控制操作暂不支持，未执行该操作：{detail}",
+    "en": "The requested Claude control operation is unsupported and was not performed: {detail}"
+  },
+  "antigravityPermission": {
+    "zh": "Antigravity 已拒绝需要批准的操作。其无界面模式不支持交互授权；请在官方 CLI 中调整所需权限，再返回明确继续。",
+    "en": "Antigravity denied an operation requiring approval. Headless mode does not support interactive approval. Adjust permissions in the official CLI, then return and explicitly continue."
+  },
+  "antigravityDenied": {
+    "zh": "Antigravity 权限拒绝：{detail}\n请在官方 CLI 中处理所需权限后重新发送；这里不会伪造批准。",
+    "en": "Antigravity permission denial: {detail}\nHandle permissions in the official CLI, then explicitly send again."
+  },
+  "antigravityFailed": {
+    "zh": "Antigravity 有操作因权限被拒绝；请在官方 CLI 中处理权限后明确继续。",
+    "en": "Antigravity denied an operation. Handle permissions in the official CLI before explicitly continuing."
+  },
+  "browserUnavailable": {
+    "zh": "无法打开浏览器，请访问 {url}",
+    "en": "Could not open a browser. Visit {url}"
+  },
+  "loginTimeout": {
+    "zh": "登录窗口启动超时",
+    "en": "Opening the sign-in window timed out."
+  },
+  "loginFailed": {
+    "zh": "无法打开登录窗口，请在终端运行官方 CLI 登录命令",
+    "en": "Could not open sign-in. Run the official CLI sign-in command in a terminal."
+  },
+  "loginCancelled": {
+    "zh": "打开登录窗口已取消",
+    "en": "Opening sign-in was cancelled."
+  },
+  "plan": {
+    "zh": "制作步骤：\n{detail}",
+    "en": "Plan:\n{detail}"
+  },
+  "fileChanges": {
+    "zh": "文件修改：{detail}\n状态：{status}",
+    "en": "File changes: {detail}\nStatus: {status}"
+  },
+  "commandOutput": {
+    "zh": "{detail}\n状态：{status}",
+    "en": "{detail}\nStatus: {status}"
+  },
+  "versionTimeout": {
+    "zh": "版本检查超时",
+    "en": "The version check timed out."
+  },
+  "versionFailed": {
+    "zh": "CLI 版本检查失败：{detail}",
+    "en": "CLI version check failed: {detail}"
+  },
+  "cmdCharacters": {
+    "zh": "CLI 启动路径或参数含不支持的 cmd 字符；请选择 .exe 或 .ps1 启动器",
+    "en": "The CLI path or arguments contain unsupported cmd characters. Use an .exe or .ps1 launcher."
+  },
+  "unknownTool": {
+    "zh": "未知的创作工具",
+    "en": "Unknown creation assistant."
+  },
+  "missingField": {
+    "zh": "缺少 {field}",
+    "en": "Missing {field}"
+  },
+  "remoteId": {
+    "zh": "CLI 返回了无效的会话标识",
+    "en": "The CLI returned an invalid session identifier."
+  },
+  "versionExit": {
+    "zh": "版本检查退出码 {code}",
+    "en": "Version check exit code: {code}"
+  },
+  "modelId": {
+    "zh": "模型 ID 格式无效",
+    "en": "The model ID is invalid."
+  },
+  "modelLimit": {
+    "zh": "模型列表超过读取上限",
+    "en": "The model list exceeds the read limit."
+  },
+  "modelEmpty": {
+    "zh": "当前服务未返回可用模型，请刷新或输入模型 ID",
+    "en": "The service returned no available models. Refresh or enter a model ID."
+  },
+  "modelTimeout": {
+    "zh": "获取模型列表超时",
+    "en": "Loading the model list timed out."
+  },
+  "modelCommand": {
+    "zh": "模型列表命令失败，请检查 CLI 登录与服务配置",
+    "en": "The model list command failed. Check CLI sign-in and service settings."
+  },
+  "modelCredentials": {
+    "zh": "模型凭据格式无效，请检查主机 CLI 配置",
+    "en": "The model credential is invalid. Check the host CLI settings."
+  },
+  "modelAddress": {
+    "zh": "模型服务地址无效",
+    "en": "The model service address is invalid."
+  },
+  "modelProjectAddress": {
+    "zh": "项目覆盖了模型服务地址，请先在主机 CLI 配置中确认该源",
+    "en": "The project overrides the model service address. Confirm the source in the host CLI settings first."
+  },
+  "modelProjectConfig": {
+    "zh": "项目覆盖了模型服务配置，请先在主机 CLI 配置中确认该源",
+    "en": "The project overrides the model service settings. Confirm the source in the host CLI settings first."
+  },
+  "modelConfigLimit": {
+    "zh": "CLI 配置文件过大，无法读取模型服务设置",
+    "en": "The CLI configuration file is too large to read model service settings."
+  },
+  "modelConfigRead": {
+    "zh": "无法读取 CLI 的模型服务设置",
+    "en": "Could not read the CLI model service settings."
+  },
+  "modelConnection": {
+    "zh": "无法连接模型列表服务，请检查当前源与网络",
+    "en": "Could not connect to the model list service. Check the source and network."
+  },
+  "modelHttp": {
+    "zh": "模型列表请求失败（HTTP {code}），请检查当前源与权限",
+    "en": "The model list request failed (HTTP {code}). Check the source and permissions."
+  },
+  "modelResponse": {
+    "zh": "模型服务返回了无法读取的列表",
+    "en": "The model service returned an unreadable list."
+  },
+  "modelPagination": {
+    "zh": "模型列表分页无效",
+    "en": "The model list returned invalid pagination."
+  },
+  "modelUnconfirmed": {
+    "zh": "CLI 未确认所选模型，本轮未发送",
+    "en": "The CLI did not confirm the selected model. The message was not sent."
+  },
+  "modelUnsupported": {
+    "zh": "此 CLI 版本未提供模型选择，请更新后重试",
+    "en": "This CLI version does not support model selection. Update it and try again."
+  },
+  "modelUnsupportedProtocol": {
+    "zh": "此 CLI 不支持指定模型",
+    "en": "This CLI does not support selecting a model."
+  },
+  "modelCatalogUnsupported": {
+    "zh": "当前 CLI 未提供模型列表，请输入模型 ID",
+    "en": "This CLI does not provide a model list. Enter a model ID."
+  },
+  "modelFixed": {
+    "zh": "每个会话固定使用一个模型，请新建对话后切换模型",
+    "en": "Each conversation uses one model. Start a new conversation to change models."
+  },
+  "attachmentsOptions1": {
+    "zh": "思考强度无效",
+    "en": "Invalid reasoning effort."
+  },
+  "attachmentsOptions2": {
+    "zh": "权限选项无效",
+    "en": "Invalid permission option."
+  },
+  "attachmentsOptions3": {
+    "zh": "未知的附件操作",
+    "en": "Unknown attachment operation."
+  },
+  "attachmentsOptions4": {
+    "zh": "附件目录不在当前工作区内",
+    "en": "The attachment directory is outside this workspace."
+  },
+  "attachmentsOptions5": {
+    "zh": "附件标识无效",
+    "en": "Invalid attachment ID."
+  },
+  "attachmentsOptions6": {
+    "zh": "附件路径无效",
+    "en": "Invalid attachment path."
+  },
+  "attachmentsOptions7": {
+    "zh": "附件大小或分块位置无效",
+    "en": "Invalid attachment size or chunk offset."
+  },
+  "attachmentsOptions8": {
+    "zh": "附件文件名无效",
+    "en": "Invalid attachment filename."
+  },
+  "attachmentsOptions9": {
+    "zh": "附件须非空且不超过 10 MiB",
+    "en": "Each attachment must be non-empty and no larger than 10 MiB."
+  },
+  "attachmentsOptions10": {
+    "zh": "同时最多添加 8 个附件",
+    "en": "Add up to 8 attachments at a time."
+  },
+  "attachmentsOptions11": {
+    "zh": "附件存储已达 256 MiB，请删除不再需要的对话附件",
+    "en": "Attachment storage has reached 256 MiB. Delete conversations with attachments you no longer need."
+  },
+  "attachmentsOptions12": {
+    "zh": "附件上传已失效，请重新添加",
+    "en": "This upload is no longer available. Add the file again."
+  },
+  "attachmentsOptions13": {
+    "zh": "附件分块过大",
+    "en": "The attachment chunk is too large."
+  },
+  "attachmentsOptions14": {
+    "zh": "附件分块无效",
+    "en": "Invalid attachment chunk."
+  },
+  "attachmentsOptions15": {
+    "zh": "附件分块顺序或大小无效，请重新添加",
+    "en": "Invalid attachment chunk order or size. Add the file again."
+  },
+  "attachmentsOptions16": {
+    "zh": "附件尚未上传完整",
+    "en": "The attachment has not finished uploading."
+  },
+  "attachmentsOptions17": {
+    "zh": "附件不存在或路径无效，请重新添加",
+    "en": "The attachment is missing or its path is invalid. Add it again."
+  },
+  "attachmentsOptions18": {
+    "zh": "图片请使用 PNG、JPEG 或 GIF 格式",
+    "en": "Use a PNG, JPEG or GIF image."
+  },
+  "attachmentsOptions19": {
+    "zh": "图片不能超过 5 MiB 或 2,400 万像素",
+    "en": "Images must be no larger than 5 MiB or 24 megapixels."
+  },
+  "attachmentsOptions20": {
+    "zh": "无法读取图片，请重新选择",
+    "en": "The image could not be read. Select it again."
+  },
+  "attachmentsOptions21": {
+    "zh": "无法读取图片，请转换为 PNG、JPEG 或 GIF 后添加",
+    "en": "The image could not be read. Convert it to PNG, JPEG or GIF and add it again."
+  },
+  "attachmentsOptions22": {
+    "zh": "附件记录无效",
+    "en": "Invalid attachment record."
+  },
+  "attachmentsOptions23": {
+    "zh": "附件内容已变化，请重新添加",
+    "en": "The attachment contents changed. Add it again."
+  },
+  "attachmentsOptions24": {
+    "zh": "附件图片格式已变化，请重新添加",
+    "en": "The image format changed. Add it again."
+  },
+  "attachmentsOptions25": {
+    "zh": "附件列表无效",
+    "en": "Invalid attachment list."
+  },
+  "attachmentsOptions26": {
+    "zh": "每条消息最多 8 个附件",
+    "en": "Attach up to 8 files per message."
+  },
+  "attachmentsOptions27": {
+    "zh": "每条消息的附件总大小不能超过 20 MiB",
+    "en": "Attachments must total 20 MiB or less per message."
+  },
+  "attachmentsOptions28": {
+    "zh": "每次最多添加 8 个附件",
+    "en": "Add up to 8 attachments at a time."
+  },
+  "attachmentsOptions29": {
+    "zh": "请选择文件，不能添加文件夹",
+    "en": "Select files, not folders."
+  },
+  "attachmentsOptions30": {
+    "zh": "此附件没有图片预览",
+    "en": "This attachment has no image preview."
+  },
+  "attachmentsOptions31": {
+    "zh": "请填写消息或添加附件",
+    "en": "Write a message or add an attachment."
+  },
+  "attachmentsOptions32": {
+    "zh": "Antigravity 当前流式接口不支持图片，请移除图片或切换助手",
+    "en": "The current Antigravity streaming interface does not accept images. Remove the image or switch assistants."
+  },
+  "attachmentsOptions33": {
+    "zh": "此 CLI 或当前模型未声明图片支持，请移除图片或切换助手与模型",
+    "en": "This CLI or model does not advertise image support. Remove the image or choose another assistant and model."
+  },
+  "attachmentsOptions34": {
+    "zh": "此 CLI 或所选模型未提供思考强度设置，请换用支持的模型",
+    "en": "This CLI or model does not provide reasoning effort settings. Choose a model that supports them."
+  },
+  "attachmentsOptions35": {
+    "zh": "CLI 未确认所选思考强度，请选择该模型支持的档位",
+    "en": "The CLI did not confirm the requested effort. Choose a level supported by the model."
+  },
+  "attachmentsOptions36": {
+    "zh": "多个提供方包含此模型，请从列表选择完整模型 ID",
+    "en": "Multiple providers have this model. Select the full model ID from the list."
+  },
+  "cliLineLimit": {
+    "zh": "CLI 消息超过读取上限",
+    "en": "The CLI message exceeds the read limit."
+  }
+}

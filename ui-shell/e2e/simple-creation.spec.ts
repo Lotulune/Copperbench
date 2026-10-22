@@ -11,10 +11,11 @@ async function installAgentFixture(page: Page, options: { installed?: boolean; e
     const providers = ['codex', 'claude', 'grok', 'antigravity', 'deepseek'].map((id, index) => ({
       id, label: ['Codex CLI', 'Claude Code', 'Grok Build', 'Antigravity CLI', 'DeepSeek Harness'][index],
       installed: options.installed !== false, executable: options.installed === false ? null : `/fixture/${id}`,
+      modelCatalog: { state: 'ready', models: [{ id: 'fixture-model', label: 'Fixture model' }], defaultModel: 'fixture-model' },
       setupUrl: 'https://example.invalid/fixture', loginAvailable: options.installed !== false && id !== 'deepseek'
     }));
     type Message = { id: string; role: string; text: string; at: number };
-    type Session = { id: string; provider: string; title: string; updatedAt: number; messages: Message[] };
+    type Session = { id: string; provider: string; model: string; title: string; updatedAt: number; messages: Message[] };
     let sessions: Session[] = JSON.parse(localStorage.getItem('agent-test-sessions') ?? '[]');
     let selected = sessions[0]?.id ?? '';
     let state = 'idle', sequence = 0;
@@ -26,18 +27,20 @@ async function installAgentFixture(page: Page, options: { installed?: boolean; e
       calls.push(operation); localStorage.setItem('agent-test-calls', JSON.stringify(calls));
     };
     const current = () => sessions.find(session => session.id === selected);
-    const snapshot = () => ({ state, sequence: ++sequence, conversationId: selected || null, provider: current()?.provider ?? null,
+    const snapshot = () => ({ state, sequence: ++sequence, conversationId: selected || null, provider: current()?.provider ?? null, model: current()?.model ?? null,
       sessions: sessions.map(({messages: _, ...session}) => session), messages: current()?.messages ?? [], providers, approvals, error });
     const add = (role: string, text: string) => {
       current()?.messages.push({ id: crypto.randomUUID(), role, text, at: Date.now() }); save();
     };
     window.__COPPERBENCH_AGENT_HOST__ = { async invoke(payload) {
-      const operation = String(payload.operation); record(operation);
+      const operation = String(payload.operation);
+      if (operation === 'attachmentTarget') return { ok: true };
+      record(operation);
       if (operation === 'new') {
-        selected = crypto.randomUUID(); sessions.push({id:selected, provider:String(payload.provider), title:'新对话', updatedAt:Date.now(), messages:[]}); save();
+        selected = crypto.randomUUID(); sessions.push({id:selected, provider:String(payload.provider), model:String(payload.model ?? 'fixture-model'), title:'新对话', updatedAt:Date.now(), messages:[]}); save();
       } else if (operation === 'select') selected = String(payload.conversationId);
       else if (operation === 'send') {
-        if (!selected) { selected = crypto.randomUUID(); sessions.push({id:selected, provider:String(payload.provider), title:'林间铜灯', updatedAt:Date.now(), messages:[]}); }
+        if (!selected) { selected = crypto.randomUUID(); sessions.push({id:selected, provider:String(payload.provider), model:String(payload.model ?? 'fixture-model'), title:'林间铜灯', updatedAt:Date.now(), messages:[]}); }
         add('user', String(payload.text)); state = 'running'; error = undefined;
         if (String(payload.text).includes('approval')) {
           state = 'waiting_approval'; approvals = [{id:'approval-1', title:'运行构建', detail:'Build the current workspace', choices:[{id:'once',label:'允许一次'},{id:'deny',label:'拒绝'}]}];
@@ -73,6 +76,7 @@ test('first visit defaults to simple; returning preferences and an explicit choi
   await expect(page.getByTestId('mode-simple')).toHaveAttribute('aria-pressed','true');
   await expect(page.getByTestId('simple-agent-unavailable')).toBeVisible();
   await expect(page.getByTestId('simple-send')).toBeDisabled();
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-professional').click();
   await page.reload();
   await expect(page.getByTestId('mode-professional')).toHaveAttribute('aria-pressed','true');
@@ -156,7 +160,9 @@ test('chat drafts reach the close guard and move into a newly selected backend b
   await page.getByTestId('simple-prompt').fill('保留这段尚未发送的创作想法');
   await expect.poll(() => unsavedDrafts(page)).toBe(true);
   expect(await unsavedDrafts(page,['simple-chat'])).toBe(false);
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-professional').click();
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-simple').click();
   await page.getByTestId('simple-provider').click();
   await page.getByTestId('provider-option-claude').click();
@@ -174,10 +180,12 @@ test('chat drafts reach the close guard and move into a newly selected backend b
 test('playtest asks before using saved content when another editor has unsaved changes', async ({ page }) => {
   await installAgentFixture(page);
   await page.goto('/');
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-professional').click();
   await page.getByTestId('nav-elements').click();
   await page.locator('.element-card').filter({hasText:'Copper Lamp'}).click();
   await page.getByTestId('field-displayName').fill('Unapplied professional edit');
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-simple').click();
   expect(await unsavedDrafts(page)).toBe(true);
   await page.evaluate(async () => {
@@ -233,10 +241,12 @@ test('conversation and editor drafts survive mode changes, approvals, cancellati
   await page.goto('/');
   const prompt = page.getByTestId('simple-prompt');
   await prompt.fill('铜灯草稿');
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-professional').click();
   await page.getByTestId('nav-tools-toggle').click();
   await page.getByTestId('nav-python').click();
   await page.getByTestId('python-source').fill('print("retained editor")');
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-simple').click();
   await expect(prompt).toHaveValue('铜灯草稿');
   await prompt.dispatchEvent('keydown', {key:'Enter',code:'Enter',isComposing:true});
@@ -244,8 +254,10 @@ test('conversation and editor drafts survive mode changes, approvals, cancellati
   await page.getByTestId('simple-send').click();
   await expect(page.getByTestId('simple-stop')).toBeEnabled();
   await page.screenshot({path:'../output/simple-creation-validation/ui-running.png',fullPage:true});
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-professional').click();
   await expect(page.getByTestId('python-source')).toHaveValue('print("retained editor")');
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-simple').click();
   await page.getByTestId('simple-stop').click();
   await expect(page.getByRole('log')).toContainText('已停止');
@@ -310,6 +322,7 @@ test('desktop and compact layouts keep actions reachable with both themes', asyn
   await page.goto('/');
   await expect(page.getByTestId('simple-prompt')).toBeVisible();
   const expectModeTargets = async () => {
+    await page.getByTestId('workbench-mode-control').hover();
     for (const id of ['mode-simple', 'mode-professional']) {
       const button = page.getByTestId(id);
       await expect(button).toBeInViewport({ratio:1});
@@ -332,6 +345,7 @@ test('desktop and compact layouts keep actions reachable with both themes', asyn
   const dimensions = await page.evaluate(() => ({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
   expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.width);
   await page.screenshot({path:`../output/simple-creation-validation/ui-compact-500-${testInfo.project.name}.png`,fullPage:true});
+  await page.getByTestId('workbench-mode-control').hover();
   await page.getByTestId('mode-professional').click();
   const search = page.getByTestId('workbench-command-trigger');
   await expect(search).toBeInViewport({ratio:1});
@@ -388,4 +402,103 @@ test('provider icons identify choices and conversations with keyboard access and
   await page.getByTestId('simple-prompt').click();
   await expect(menu).toHaveCount(0);
   await expect(page.getByTestId('simple-prompt')).toBeFocused();
+});
+
+test('professional mode omits the large hidden list while repeated switches retain search, selection and drafts', async ({ page }) => {
+  await installAgentFixture(page);
+  await page.goto('/');
+  const lamp = page.locator('[data-testid^="simple-element-"]').filter({ hasText: 'Copper Lamp' });
+  await lamp.click();
+  await page.getByRole('tab', { name: '设置', exact: true }).click();
+  const parameter = page.locator('[data-testid^="simple-parameter-"]').first();
+  await parameter.fill('Retained parameter draft');
+  await page.getByTestId('simple-prompt').fill('Retained chat draft');
+  await page.evaluate(async () => {
+    const { coreBridge } = await import('/src/bridge/index.ts');
+    const state = coreBridge.getState();
+    const original = [...state.elements];
+    state.elements = [...original, ...Array.from({ length: 2000 - original.length }, (_, index) => ({
+      ...original[0], id: `scale-mode-${index}`, name: `scale_mode_${index}`, displayName: `Scale mode ${index}`
+    }))];
+    // Fixture-only state publication exercises the same provider subscription as native query notifications.
+    (coreBridge as unknown as { notifyState(): void }).notifyState();
+  });
+  await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(2000);
+  const search = page.getByRole('searchbox', { name: '查找作品内容', exact: true });
+  await search.fill('Copper Lamp');
+  await expect(lamp).toHaveAttribute('aria-pressed', 'true');
+  const detectCount = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-professional').click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    await page.getByTestId('nav-data').click();
+    await page.getByTestId('creator-data-view').getByRole('button', { name: '刷新', exact: true }).click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    expect(await unsavedDrafts(page)).toBe(true);
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-simple').click();
+    await expect(search).toHaveValue('Copper Lamp');
+    await expect(lamp).toHaveAttribute('aria-pressed', 'true');
+    await expect(parameter).toHaveValue('Retained parameter draft');
+    await expect(page.getByTestId('simple-prompt')).toHaveValue('Retained chat draft');
+  }
+  await search.fill('');
+  await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(2000);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length)).toBe(detectCount);
+});
+
+
+test('switching modes during an unresolved send preserves the pending operation, approval and next draft', async ({ page }) => {
+  await installAgentFixture(page);
+  await page.goto('/');
+  await expect(page.getByTestId('simple-prompt')).toBeVisible();
+  await page.evaluate(() => {
+    const host = window.__COPPERBENCH_AGENT_HOST__!;
+    const original = host.invoke.bind(host);
+    let release!: () => void;
+    const blocked = new Promise<void>(resolve => { release = resolve; });
+    Object.assign(window, { releaseScaleModeSend: release });
+    host.invoke = async request => {
+      if (request.operation === 'send') { sessionStorage.setItem('scale-mode-send-pending', 'true'); await blocked; }
+      return original(request);
+    };
+  });
+  await page.getByTestId('simple-prompt').fill('approval');
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  const detectCount = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length);
+  await page.getByTestId('simple-send').click();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('scale-mode-send-pending'))).toBe('true');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-professional').click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    await page.getByTestId('workbench-mode-control').hover();
+    await page.getByTestId('mode-simple').click();
+    await expect(page.getByTestId('simple-send')).toBeDisabled();
+    await expect(page.getByTestId('simple-prompt')).toHaveValue('approval');
+  }
+  // Complete the outstanding operation while its controls are hidden.
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-professional').click();
+  await page.evaluate(() => (window as unknown as { releaseScaleModeSend(): void }).releaseScaleModeSend());
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-simple').click();
+  await expect(page.getByTestId('simple-agent-approval')).toBeVisible();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('');
+  await page.getByTestId('simple-prompt').fill('Next task draft');
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-professional').click();
+  await page.getByTestId('workbench-mode-control').hover();
+  await page.getByTestId('mode-simple').click();
+  await expect(page.getByTestId('simple-agent-approval')).toBeVisible();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Next task draft');
+  await page.getByTestId('simple-stop').click();
+  await expect(page.getByTestId('simple-agent-approval')).toHaveCount(0);
+  await expect(page.getByRole('log')).toContainText('已停止');
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Next task draft');
+  const calls: string[] = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]'));
+  expect(calls.filter(op => op === 'detect')).toHaveLength(detectCount);
+  expect(calls.filter(op => op === 'send')).toHaveLength(1);
+  expect(calls.filter(op => op === 'stop')).toHaveLength(1);
 });

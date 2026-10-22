@@ -21,6 +21,11 @@ interface AgentProtocol {
         default void ready() { }
     }
     List<String> arguments();
+    default void configure(AgentTurnOptions options, List<AgentAttachments.Item> attachments) { }
+    default void useModel(String model) { if (model != null) throw new UnsupportedOperationException("此 CLI 不支持指定模型"); }
+    default JsonObject models() throws Exception { throw new UnsupportedOperationException("当前 CLI 未提供模型列表，请输入模型 ID"); }
+    /** Establish the CLI protocol without creating a session or submitting a model/tool request. */
+    default void check() throws Exception { throw new UnsupportedOperationException("Connection checks are unavailable for this CLI protocol"); }
     void start(String text, String instructions) throws Exception;
     void receive(JsonObject frame);
     void stop();

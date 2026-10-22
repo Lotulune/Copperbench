@@ -1,6 +1,29 @@
 import { useState } from 'react';
-import type { AgentApproval, AgentApprovalAnswer } from '../bridge/agentBridge';
+import { agentText, type AgentApproval, type AgentApprovalAnswer } from '../bridge/agentBridge';
 import { uiText } from '../i18n';
+
+function PermissionDetail({ detail }: { detail: string }) {
+  let command: string | undefined, reason: string | undefined, cwd: string | undefined;
+  try {
+    const value: unknown = JSON.parse(detail);
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const row = value as Record<string, unknown>;
+      if (typeof row.command === 'string' && row.command.trim()) {
+        command = row.command;
+        if (typeof row.reason === 'string') reason = row.reason;
+        if (typeof row.cwd === 'string') cwd = row.cwd;
+      }
+    }
+  } catch { /* Non-JSON CLI details retain their original text. */ }
+  if (!command) return <p className="creation-approval-detail" tabIndex={0}>{detail}</p>;
+  return <>
+    {reason && <p className="creation-approval-reason">{reason}</p>}
+    {cwd && <p className="creation-approval-location">{uiText('位置', 'Location')}: {cwd}</p>}
+    <pre className="creation-approval-detail" tabIndex={0} aria-label={uiText('待运行命令', 'Command to run')}>{command}</pre>
+    <details className="creation-approval-metadata"><summary>{uiText('查看完整操作', 'View full operation')}</summary>
+      <pre className="creation-approval-detail" tabIndex={0}>{detail}</pre></details>
+  </>;
+}
 
 export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
   approval: AgentApproval; disabled: boolean; onRespond: (answer: AgentApprovalAnswer) => void;
@@ -14,9 +37,10 @@ export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
   const canSubmit = selected.length > 0 || (allowCustom && answer.length > 0);
   const titleId = `approval-${approval.id}`;
   return <section className="creation-approval" aria-labelledby={titleId} data-testid="simple-agent-approval">
-    <h3 id={titleId}>{approval.title}</h3><p>{approval.detail}</p>
+    <h3 id={titleId}>{agentText(approval.title, approval.titleText)}</h3>
+    {question ? <p>{approval.detail}</p> : <PermissionDetail detail={approval.detail} />}
     {!question ? <div>{approval.choices.map(choice => <button type="button" key={choice.id} disabled={disabled}
-      onClick={() => onRespond({ choice: choice.id })}>{choice.label}</button>)}</div>
+      onClick={() => onRespond({ choice: choice.id })}>{agentText(choice.label, choice.labelText)}</button>)}</div>
       : <form className="creation-approval-answer" onSubmit={event => {
         event.preventDefault();
         if (canSubmit && !disabled) onRespond({ choices: selected, ...(allowCustom && answer ? { answer } : {}) });
@@ -29,7 +53,7 @@ export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
                 setSelected(current => multiSelect ? current.includes(choice.id) ? current.filter(id => id !== choice.id) : [...current, choice.id] : [choice.id]);
                 if (!multiSelect) setCustom('');
               }} />
-            <span>{choice.label}{choice.description && <small>{choice.description}</small>}</span>
+            <span>{agentText(choice.label, choice.labelText)}{choice.description && <small>{choice.description}</small>}</span>
           </label>)}
         </fieldset>}
         {allowCustom && <label className="creation-question-custom" htmlFor={`answer-${approval.id}`}>

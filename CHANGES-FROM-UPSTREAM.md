@@ -2,6 +2,12 @@
 
 This distribution is based on MCreator `2026.2.33518` at commit `361429609b772039a3eb9ab81662c25b225f1d0d`. The built-in Fabric generator is based on `26.1.2-2026.2-2.8` at commit `abfe19329126b679a26baafe5cade5a75d455528`.
 
+## 2026-10-22 creator guidance and assistant workflow
+
+- Added bilingual Simple creation onboarding and runtime messages, live model discovery/manual selection, reasoning effort, file/image attachments and per-conversation permission controls for the host CLI adapters.
+- Added safe Markdown/copy, history export/deletion/capacity recovery, and corrected Stop/draft/attachment cleanup feedback.
+- Refined the native startup tour, mode selector and delivery controls; omitted inactive Simple-mode sidebar derivation while retaining session/draft/task ownership. Native scale checks now retain failure evidence and exact-source Windows comparison samples.
+
 ## Stage 0 product changes
 
 - Added the Copperbench `0.1.0` distribution identity, `dev.copperbench.studio` application ID, `dev.copperbench` product namespace, and `.copperbench` user-data directory.

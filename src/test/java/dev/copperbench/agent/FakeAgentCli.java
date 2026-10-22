@@ -59,6 +59,11 @@ public final class FakeAgentCli {
     private static void codex(JsonObject frame) {
         switch (AgentJson.string(frame, "method")) {
             case "initialize" -> response(frame, new JsonObject());
+            case "model/list" -> {
+                boolean first = AgentJson.string(AgentJson.child(frame, "params"), "cursor").isEmpty();
+                response(frame, AgentJson.object("data", AgentJson.array(AgentJson.object("model", first ? "fixture-model-a" : "fixture-model-b",
+                        "displayName", first ? "Model A" : "Model B", "isDefault", first)), "nextCursor", first ? "second-page" : null));
+            }
             case "thread/start", "thread/resume" -> response(frame, AgentJson.object("thread", AgentJson.object("id", "codex-fixture")));
             case "turn/start" -> {
                 response(frame, AgentJson.object("turn", AgentJson.object("id", "turn-fixture")));

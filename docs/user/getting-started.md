@@ -2,6 +2,8 @@
 
 [English](getting-started.en.md) · [首作](first-creation.md) · [构建失败与导出](build-and-export.md)
 
+
+默认简洁模式可直接跟随[对话首作路线](simple-creation.md)；界面中的“快速教程”可重看各个入口。
 ## 安装前
 
 从[当前下载](../releases/current.md)选择对应平台的稳定包，并查看该版本的验证范围。Windows 与 Linux 的版本分别列出。目标平台为 Windows 11 x64（build 22000 及以上）与 Ubuntu 24.04 LTS x86_64；其他 Linux 发行版与架构未验证。

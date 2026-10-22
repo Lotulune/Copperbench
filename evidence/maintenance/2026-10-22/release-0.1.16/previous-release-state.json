@@ -1,0 +1,24 @@
+{
+  "tag": "v0.1.15",
+  "linuxTag": "v0.1.13-linux-stable",
+  "status": "ready",
+  "linuxStatus": "public-stable",
+  "decision": "approved",
+  "decisionDate": "2026-10-21",
+  "scope": "Windows and Linux release preparation for simple creation mode with five host-installed CLI agents, draft protection, native pickers, task/log continuity, localization and dialog accessibility fixes. Final 0.1.15 source CI and packaging are pending. Current public Windows and Linux packages remain 0.1.13 until publication is verified. No new full installed or player acceptance is claimed.",
+  "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+  "developmentEvidence": "docs/testing/simple-creation-fixes-2026-10-21.md",
+  "integrationReport": "docs/testing/maintenance-release-0.1.15.md",
+  "previousReleaseState": "evidence/maintenance/2026-10-21/release-0.1.15/previous-release.json",
+  "sourceVerification": {
+    "requiredCi": {
+      "status": "pending"
+    },
+    "documentation": {
+      "status": "pending"
+    },
+    "installedPackageAcceptance": "not-repeated",
+    "fullGameplayAcceptance": "not-repeated",
+    "nativeUiEvidence": "docs/testing/simple-creation-merge-2026-10-21.md"
+  }
+}

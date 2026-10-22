@@ -101,6 +101,11 @@
 .creation-approval { padding: 14px; margin-bottom: 12px; border: 1px solid var(--border-focus); border-radius: var(--radius-md); background: var(--bg-surface); }
 .creation-approval h3 { font-size: 13px; font-weight: 600; }
 .creation-approval p { margin-top: 6px !important; color: var(--text-sub); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.creation-approval-detail { max-height: min(160px, 22vh); overflow: auto; overscroll-behavior: contain; white-space: pre-wrap; overflow-wrap: anywhere; }
+.creation-approval pre { margin: 8px 0; font: 11px/1.6 var(--font-mono); color: var(--text-main); }
+.creation-approval-reason, .creation-approval-location { max-height: 70px; overflow: auto; }
+.creation-approval-metadata { margin-top: 8px; color: var(--text-sub); font-size: 12px; }
+.creation-approval-metadata summary { cursor: pointer; padding: 3px 0; }
 .creation-approval > div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .creation-shell.is-simple .creation-approval button { padding: 6px 12px; border-color: var(--border-active); }
 .creation-approval-answer { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
@@ -114,8 +119,9 @@
 .creation-question-custom input { min-width: 0; width: 100%; padding: 7px 9px; }
 .creation-compose-hint { color: var(--text-sub); font-size: 12px; margin-bottom: 8px !important; }
 .creation-composer { border: 1px solid var(--border-active); border-radius: 12px; background: var(--bg-input); box-shadow: var(--shadow-sm); }
-.creation-composer:focus-within { border-color: var(--border-focus); }
+.creation-composer:focus-within { border-color: var(--border-focus); box-shadow: 0 0 0 2px var(--accent-copper-dim); }
 .creation-shell.is-simple .creation-composer textarea { display: block; width: 100%; resize: vertical; min-height: 76px; max-height: 220px; border: 0; outline: none; background: transparent; padding: 13px 15px 6px; line-height: 1.6; font-size: 14px; border-radius: 12px 12px 0 0; }
+.creation-shell.is-simple .creation-composer textarea:focus, .creation-shell.is-simple .creation-composer textarea:focus-visible { border: 0; outline: none; box-shadow: none; }
 .creation-composer-tools { display: flex; align-items: center; gap: 8px; padding: 8px 10px 10px 12px; }
 .creation-provider-choice { display: flex; align-items: center; gap: 5px; min-width: 0; }
 .creation-provider-choice label { font-size: 11px; color: var(--text-sub); white-space: nowrap; }
@@ -153,10 +159,6 @@
 .creation-shell.is-simple .creation-more-settings { justify-content: flex-start; color: var(--text-sub); padding: 8px 0; font-size: 12px; }
 .creation-shell.is-simple .creation-recovery-link { border-radius: 0; border-top-color: var(--border-subtle); justify-content: flex-start; min-height: 44px; margin-top: 16px; padding: 12px 0 0; flex-shrink: 0; color: var(--text-sub); font-size: 12px; }
 
-.titlebar .workbench-mode-switch { justify-self: center; display: inline-flex; min-width: 0; align-items: center; padding: 2px; border: 1px solid var(--border-active); border-radius: 7px; height: 38px; -webkit-app-region: no-drag; }
-.workbench-mode-switch button { min-width: 32px; height: 32px; border: 0; background: transparent; color: var(--text-sub); border-radius: 4px; padding: 0 16px; font: 500 12px var(--font-sans); white-space: nowrap; cursor: pointer; }
-.workbench-mode-switch button[aria-pressed="true"] { background: var(--accent-copper-fill); color: var(--text-on-accent); }
-.workbench-mode-switch button:not([aria-pressed="true"]):hover { background: var(--bg-hover); }
 .titlebar .creation-search-trigger { width: 32px; height: 32px; flex-shrink: 0; margin: 0; padding: 0; border: 0; justify-content: center; }
 
 @media (max-width: 1250px) {
@@ -181,7 +183,6 @@
   .creation-header-actions { gap: 7px; flex-wrap: wrap; }
   .creation-shell.is-simple .creation-header-actions button { padding: 7px 10px; font-size: 12px; }
   .creation-heading h1 { font-size: 18px; }
-  .workbench-mode-switch button { padding: 0 10px; font-size: 11px; }
 }
 @media (max-width: 650px) {
   .creation-shell.is-simple { display: flex; flex-direction: column; overflow: hidden; }
@@ -214,7 +215,6 @@
   .creation-shell.is-simple .creation-composer textarea { min-height: 62px; height: 62px; max-height: 110px; }
   .creation-composer-tools { padding-top: 4px; padding-bottom: 7px; }
   .creation-preview { padding: 20px 18px 16px; }
-  .workbench-mode-switch button { padding: 0 8px; font-size: 10px; }
   .creation-composer-footnote span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -255,7 +255,7 @@ The shell fills the window and delegates scrolling to its content regions. The s
 | At or below 990px | Rail: 162px. Conversation and preview stack in a scrolling content area. Conversation is 510px minimum and 760px maximum; preview is at least 300px. Preview/back controls provide direct navigation. Header actions wrap. |
 | At or below 650px | Rail becomes a 42px disclosure bar. Its expanded content overlays below it, with a two-column work list and four-column utilities. Main content scrolls vertically. The conversation fills the content viewport; preview follows below. Conversation padding is 18px. |
 
-The desktop composer area caps at 62% of its chat region and scrolls internally when approvals or guidance grow. At the smallest breakpoint its cap is 70%. The textarea is 76–220px high normally; at or below 650px it starts at 62px and caps at 110px. The desktop header is at least 82px high; the smallest layout uses 72px.
+The desktop composer area caps at 62% of its chat region and scrolls internally when connection or recovery guidance grows. Approvals live in the conversation scroll area so their details cannot push the composer off screen. At the smallest breakpoint its cap is 70%. The textarea is 76–220px high normally; at or below 650px it starts at 62px and caps at 110px. The desktop header is at least 82px high; the smallest layout uses 72px.
 
 Messages, conversations, and previews use bounded scrolling and `min-width: 0` / `min-height: 0` to shrink inside the shell. Long task text wraps; work and navigation labels can ellipsize. Common control gaps are 8px, message/avatar separation is 11px, and settings fields are separated by 15px. These are observed component values, not a new universal spacing scale.
 
@@ -285,25 +285,31 @@ Simple primary actions have a 38px minimum height, 600 weight, and the frontmatt
 
 General workbench primary, secondary, and danger controls have a 36px minimum height. Their base padding and radius appear in the frontmatter. Primary hover uses muted text as the fill; secondary hover uses card-hover fill and an active border; danger uses the existing red treatment. Dialog actions override to a 38px minimum height and their own shape. Use the source disabled rules rather than assuming all button families share one state.
 
+Command approvals show the request reason, working directory and exact command in a bounded scrolling area. Repeated protocol metadata remains expandable under the full-operation disclosure. Approval decisions and the composer stay reachable with long native payloads; question wording and answer controls retain their existing presentation.
+
 ### Inputs and composer
 
 Shared fields use a subtle 1px border, input background, 32px minimum height, and the frontmatter padding. Focus changes the border and adds `0 0 0 2px var(--accent-copper-dim)`. Placeholder color uses the supplementary text token. Disabled fields use 60% opacity and the hover background.
 
-The simple composer is an input surface with an active border and small shadow; `:focus-within` changes its border to the focus token. Its inner textarea keeps the source sizing, 14px text, 1.6 line-height, and native resize behavior. Backend choice, sign-in, and send/stop are inside the composer. Enter sends, Shift+Enter adds a line, and composition events prevent premature submission during IME entry.
+The simple composer is an input surface with an active border and small shadow; `:focus-within` owns the focus border and ring for the entire input surface. The textarea has no separate focus border, outline or shadow, so typing does not introduce a divider above the toolbar. Its inner textarea keeps the source sizing, 14px text, 1.6 line-height, and native resize behavior. Backend choice, model selection, sign-in, and send/stop are inside the composer. The toolbar wraps when space is limited. The model picker opens toward the available viewport space, supports search, refresh and manual IDs, and preserves keyboard focus. Switching the model creates a conversation and transfers the current draft. Enter sends, Shift+Enter adds a line, and composition events prevent premature submission during IME entry.
 
 ### Navigation and mode switch
 
 Professional navigation uses compact neutral rows: selected rows have active neutral fill and main text, without the older leading copper marker. Simple work selection uses dim copper and a subtle border; selected conversations use active neutral fill.
 
-The title-bar simple/professional switch uses pressed button semantics, copper fill for the active segment, and hover fill for inactive segments. The smallest layout keeps both labels. Compact navigation exposes its expanded state, closes on Escape, and returns focus to its toggle.
+The title-bar simple/professional switch reserves a stable slot while showing only the current mode at rest. Hover or keyboard focus reveals two equal-size segments; a copper slider moves between them in 280 ms. Pointer departure starts a 1,000 ms close delay that is cancelled by re-entry. Keyboard focus keeps options available until blur or Escape; touch opens on the first tap. Reduced motion retains brief color feedback while removing the spatial transitions. Compact layouts keep equal target sizes. Compact navigation exposes its expanded state, closes on Escape, and returns focus to its toggle.
 
 ### Badges, containers, and dialogs
 
 Pill badges use 11px text, 500 weight, 1.2 line-height, 2px by 8px padding, and their status pair. Reuse the neutral badge for non-semantic metadata.
 
+Ordinary delivery keeps the build action and a paired row of “new delivery path” / “open build output folder” actions together. The folder action stays to the right of the path action even when a narrow dialog wraps the build action onto its own line.
+
 A simple approval card uses a focus-colored border, surface fill, 14px padding, and the medium radius. Choices wrap; a free-text request uses an associated input label. Error cards use the red pair and supplementary actions. The existing Dialog component supplies labeled modal semantics through the shared dialog accessibility hook; reuse it for modal work.
 
 ### Conversation and work preview
+
+The composer keeps the model and reasoning effort together on one line. All five effort labels remain literal; a nearby localized sentence explains model and service support. Manual model entry is always visible in the menu and independent of catalog loading. Paperclip selection, pasted images and dropped files produce removable draft chips with names, sizes and bounded thumbnails. Attachment errors retain the draft. Default permissions and explicitly confirmed automatic approval use labeled native selects; starting another model conversation restores default permissions. These controls wrap using existing theme tokens without adding an inner textarea divider.
 
 User messages use dim-copper bubbles. Assistant messages use a compact copper avatar and plain content; tool output is disclosed under an expandable summary with bounded mono text. The log keeps `aria-live="off"` and follows the bottom only while the reader remains within the source's 72px threshold.
 

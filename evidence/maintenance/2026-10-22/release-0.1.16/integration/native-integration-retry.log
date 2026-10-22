@@ -1,0 +1,113 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Directory 'C:\Users\Administrator\.codex\worktrees\simple-creation-merge\Minecraft_ModCreator\jdk\jbr25_mac_x64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Directory 'C:\Users\Administrator\.codex\worktrees\simple-creation-merge\Minecraft_ModCreator\jdk\jbr25_mac_aarch64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Path for java installation 'D:\AICoding\Minecraft_ModCreator\jdk\jbr25_linux_64' (Gradle property 'org.gradle.java.installations.paths') does not contain a java executable
+
+> Task :compileGradleBridgeJava UP-TO-DATE
+> Task :processGradleBridgeResources NO-SOURCE
+> Task :gradleBridgeClasses UP-TO-DATE
+> Task :localIpcAgentJar UP-TO-DATE
+> Task :compileInstallerJava UP-TO-DATE
+> Task :processInstallerResources NO-SOURCE
+> Task :installerClasses UP-TO-DATE
+> Task :compileJava UP-TO-DATE
+
+> Task :buildUiShell
+
+> @mod-creator/ui-shell@0.1.16 build
+> npm run check:i18n && tsc && node scripts/build-dependency-evidence.mjs
+
+
+> @mod-creator/ui-shell@0.1.16 check:i18n
+> node scripts/check-i18n.mjs
+
+Chinese localization gate passed: 424/424 referenced keys translated.
+English localization gate passed: 1746 messages; source coverage and placeholders verified.
+[36mvite v6.4.5 [32mbuilding for production...[36m[39m
+transforming...
+[32m鉁?[39m 2165 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                               [39m[1m[2m    1.24 kB[22m[1m[22m[2m 鈹?gzip:   0.67 kB[22m
+[2mdist/[22m[32massets/antigravity-TC2DVLcA.svg          [39m[1m[2m    5.30 kB[22m[1m[22m[2m 鈹?gzip:   1.42 kB[22m
+[2mdist/[22m[32massets/icon-limr7-IG.png                 [39m[1m[2m   84.49 kB[22m[1m[22m
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+[2mdist/[22m[35massets/index-BaatnIaP.css                [39m[1m[2m  198.84 kB[22m[1m[22m[2m 鈹?gzip:  32.72 kB[22m
+[2mdist/[22m[36massets/code-xml-m9EBz7sF.js              [39m[1m[2m    0.38 kB[22m[1m[22m[2m 鈹?gzip:   0.28 kB[22m
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[2mdist/[22m[36massets/EditorRecoveryNotice-CjBoVccY.js  [39m[1m[2m    1.04 kB[22m[1m[22m[2m 鈹?gzip:   0.70 kB[22m
+[2mdist/[22m[36massets/layoutNumericDrafts-BZnOFsre.js   [39m[1m[2m    1.10 kB[22m[1m[22m[2m 鈹?gzip:   0.57 kB[22m
+[2mdist/[22m[36massets/FunctionWorkbench-CAjUYJq3.js     [39m[1m[2m   21.69 kB[22m[1m[22m[2m 鈹?gzip:   7.02 kB[22m
+[2mdist/[22m[36massets/GuiWorkbench-BJcVT--X.js          [39m[1m[2m   21.78 kB[22m[1m[22m[2m 鈹?gzip:   7.51 kB[22m
+[2mdist/[22m[36massets/OverlayWorkbench-DyISTZpx.js      [39m[1m[2m   24.12 kB[22m[1m[22m[2m 鈹?gzip:   7.54 kB[22m
+[2mdist/[22m[36massets/AdvancementWorkbench-BeuIPcvR.js  [39m[1m[2m   25.96 kB[22m[1m[22m[2m 鈹?gzip:   7.76 kB[22m
+[2mdist/[22m[36massets/LootTableWorkbench-BkvSXf1g.js    [39m[1m[2m   26.94 kB[22m[1m[22m[2m 鈹?gzip:   7.64 kB[22m
+[2mdist/[22m[36massets/ProcedureWorkbench-DjxdPgDg.js    [39m[1m[33m  902.60 kB[39m[22m[2m 鈹?gzip: 236.76 kB[22m
+[2mdist/[22m[36massets/index-C-0YJ1XJ.js                 [39m[1m[33m1,265.40 kB[39m[22m[2m 鈹?gzip: 382.76 kB[22m
+[32m鉁?built in 5.99s[39m
+
+> Task :processResources
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+
+> Task :test
+
+Stage9NativeJcefScaleGateTest STANDARD_OUT
+    2026-10-22-11:26:33 [Test worker/DEBUG] [Preferences Manager] Loading preferences from core
+    2026-10-22-11:26:33 [Test worker/DEBUG] [Plugin Loader] Searching for plugins in: .\plugins
+    2026-10-22-11:26:33 [Test worker/DEBUG] [Plugin Loader] Searching for plugins in: C:\Users\Administrator\.copperbench\plugins
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-neoforge-26.3 from .\plugins\generator-neoforge-26.3, weight: 14
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-26.2 from .\plugins\generator-26.2, weight: 13
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.3 from .\plugins\generator-fabric-26.3, weight: 13
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.2 from .\plugins\generator-fabric-26.2, weight: 12
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.1.2 from .\plugins\generator-fabric-26.1.2, weight: 11
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-1.20.1 from .\plugins\generator-1.20.1, weight: 10
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: core from .\plugins\mcreator-core, weight: 10
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: localization from .\plugins\mcreator-localization, weight: 10
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: themes from .\plugins\mcreator-themes, weight: 10
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-1.21.1 from .\plugins\generator-1.21.1, weight: 0
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-26.1.x from .\plugins\generator-26.1.x, weight: 0
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: generator-addon-26.1x from .\plugins\generator-addon-26.1x, weight: 0
+    2026-10-22-11:26:33 [Test worker/INFO] [Plugin Loader] Loading plugin: mcreator-link from .\plugins\mcreator-link, weight: 0
+    2026-10-22-11:26:35 [Test worker/DEBUG] [Theme Loader] Loading UI themes
+    2026-10-22-11:26:36 [Test worker/INFO] [net.mcreator.ui.laf.themes.Theme] Console font from default_dark will be used.
+    2026-10-22-11:26:36 [Test worker/INFO] [Theme Loader] Using MCreator UI theme: default_light
+    2026-10-22-11:26:37 [Test worker/INFO] [L10N] Setting default locale to: zh_CN; OS locale: zh_CN
+
+Stage9NativeJcefScaleGateTest > fixedHardwareProductShellMeetsStage9ScaleTargets() STANDARD_OUT
+    2026-10-22-11:26:37 [Test worker/INFO] [CEF] Initializing JCEF in WR mode
+    2026-10-22-11:26:37 [Test worker/DEBUG] [CEF] JCEF arguments: [--disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,WebHID]
+    2026-10-22-11:26:37 [Test worker/DEBUG] [CEF] Deleting orphaned CEF cache folder C:\Users\Administrator\AppData\Local\Copperbench\Temp\mcreator-cef-cache-8901108303867493639
+
+[58112:46848:1022/112638.539:ERROR:net\base\network_change_notifier_win.cc:189] WSALookupServiceBegin failed with: 10108
+
+> Task :test
+    2026-10-22-11:26:38 [AWT-EventQueue-0/DEBUG] [CEF] CefApp initialized (JCEF: 137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff, CEF: 137.0.17, Chromium: 137.0.7151.104)
+    2026-10-22-11:26:38 [Test worker/DEBUG] [net.mcreator.ui.chromium.WebView] JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable
+
+Stage9NativeJcefScaleGateTest > fixedHardwareProductShellMeetsStage9ScaleTargets() PASSED
+
+Stage9ScaleEvidenceTest > writeFailureDoesNotReplaceOriginalFailureAndCannotPassSilently() PASSED
+
+Stage9ScaleEvidenceTest > thresholdFailureKeepsEveryCollectedSampleAndOriginalAssertion() PASSED
+
+Stage9ScaleEvidenceTest > interruptedSampleKeepsPartialSeriesWithoutInventingAValue() PASSED
+
+Stage9ScaleEvidenceTest > successWritesMeasuredValuesAndCompletion() PASSED
+
+Stage9ScaleEvidenceTest > setupFailureStillWritesEnvironmentAndFailure() PASSED
+
+Initialize JCEF context without sandbox
+
+BUILD SUCCESSFUL in 45s
+9 actionable tasks: 4 executed, 5 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html
+externalGradleLog=C:\Users\Administrator\.codex\worktrees\simple-creation-merge\Minecraft_ModCreator\.tmp\gradle-external\81ce3a0243544aa9a66e0d319280b77b.log
