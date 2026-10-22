@@ -4,6 +4,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## 2026-10-22 creator guidance and assistant workflow
 
+- Restored legacy native CLI conversation continuation without a model override; retained attachment cleanup ownership after message truncation, kept attachment failures bilingual during locale changes, and corrected compact mode-label spacing for 0.1.17.
 - Added bilingual Simple creation onboarding and runtime messages, live model discovery/manual selection, reasoning effort, file/image attachments and per-conversation permission controls for the host CLI adapters.
 - Added safe Markdown/copy, history export/deletion/capacity recovery, and corrected Stop/draft/attachment cleanup feedback.
 - Refined the native startup tour, mode selector and delivery controls; omitted inactive Simple-mode sidebar derivation while retaining session/draft/task ownership. Native scale checks now retain failure evidence and exact-source Windows comparison samples.
