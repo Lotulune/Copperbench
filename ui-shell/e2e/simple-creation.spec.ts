@@ -432,3 +432,51 @@ test('professional mode omits the large hidden list while repeated switches reta
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length)).toBe(detectCount);
 });
 
+
+test('switching modes during an unresolved send preserves the pending operation, approval and next draft', async ({ page }) => {
+  await installAgentFixture(page);
+  await page.goto('/');
+  await expect(page.getByTestId('simple-prompt')).toBeVisible();
+  await page.evaluate(() => {
+    const host = window.__COPPERBENCH_AGENT_HOST__!;
+    const original = host.invoke.bind(host);
+    let release!: () => void;
+    const blocked = new Promise<void>(resolve => { release = resolve; });
+    Object.assign(window, { releaseScaleModeSend: release });
+    host.invoke = async request => {
+      if (request.operation === 'send') { sessionStorage.setItem('scale-mode-send-pending', 'true'); await blocked; }
+      return original(request);
+    };
+  });
+  await page.getByTestId('simple-prompt').fill('approval');
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  const detectCount = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]').filter((op: string) => op === 'detect').length);
+  await page.getByTestId('simple-send').click();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('scale-mode-send-pending'))).toBe('true');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page.getByTestId('mode-professional').click();
+    await expect(page.locator('[data-testid^="simple-element-"]')).toHaveCount(0);
+    await page.getByTestId('mode-simple').click();
+    await expect(page.getByTestId('simple-send')).toBeDisabled();
+    await expect(page.getByTestId('simple-prompt')).toHaveValue('approval');
+  }
+  // Complete the outstanding operation while its controls are hidden.
+  await page.getByTestId('mode-professional').click();
+  await page.evaluate(() => (window as unknown as { releaseScaleModeSend(): void }).releaseScaleModeSend());
+  await page.getByTestId('mode-simple').click();
+  await expect(page.getByTestId('simple-agent-approval')).toBeVisible();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('');
+  await page.getByTestId('simple-prompt').fill('Next task draft');
+  await page.getByTestId('mode-professional').click();
+  await page.getByTestId('mode-simple').click();
+  await expect(page.getByTestId('simple-agent-approval')).toBeVisible();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Next task draft');
+  await page.getByTestId('simple-stop').click();
+  await expect(page.getByTestId('simple-agent-approval')).toHaveCount(0);
+  await expect(page.getByRole('log')).toContainText('已停止');
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Next task draft');
+  const calls: string[] = await page.evaluate(() => JSON.parse(localStorage.getItem('agent-test-calls') ?? '[]'));
+  expect(calls.filter(op => op === 'detect')).toHaveLength(detectCount);
+  expect(calls.filter(op => op === 'send')).toHaveLength(1);
+  expect(calls.filter(op => op === 'stop')).toHaveLength(1);
+});

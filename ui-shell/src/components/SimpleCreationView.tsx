@@ -351,7 +351,8 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
               </div>
                 {providerInfo?.installed && providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'login', provider: effectiveProvider })}>{uiText('登录', 'Sign in')}</button>}
                 {providerInfo?.installed && !providerInfo.loginAvailable && <button type="button" className="creation-login" disabled={running || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}>{uiText('配置指南', 'Setup guide')}</button>}
-                {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'stop' })}><Square size={15} fill="currentColor" /></button>
+                {/* A fast stop reply can reuse this node as Submit before the click's default action. */}
+                {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={event => { event.preventDefault(); void agent.invoke({ operation: 'stop' }); }}><Square size={15} fill="currentColor" /></button>
                   : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={!draft.trim() || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
               </div>
             </form>
