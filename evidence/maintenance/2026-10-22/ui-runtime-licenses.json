@@ -4,7 +4,7 @@
   "productionDependencyReportSha256": "612736b8d9b6806e1b511a9fcc2885754236144ca718045a68707e581d72179f",
   "packageCount": 56,
   "noticePath": "license/Copperbench UI Dependency Licenses.txt",
-  "noticeSha256": "a1ed48b650a2dd6a5e6a7935a7008e63d82b9d6a1a5c3e930d24afd4e17879e4",
+  "noticeSha256": "e0bf667519d677902d6aa3ccde353a79e6bfad80f7bd1c410f98fafa2b1312b5",
   "packages": [
     {
       "name": "@ungap/structured-clone",
