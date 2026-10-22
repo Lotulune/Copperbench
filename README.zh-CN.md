@@ -14,6 +14,10 @@
   <p><a href="docs/releases/current.md">下载</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
 
+<p align="center">
+  <img src="assets/promo/v0.1.17/copperbench-intro.gif" alt="Copperbench 简要宣传片：简洁创作与专业工作台" width="960">
+</p>
+
 普通玩家可从[简洁创作首作路线](docs/user/simple-creation.md)开始；也可使用[专业模式手动路线](docs/user/first-creation.md)。
 
 
