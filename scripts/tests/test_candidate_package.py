@@ -98,6 +98,21 @@ class CandidatePackageTest(unittest.TestCase):
     def test_zip_archive_supported(self):
         self.assertEqual(verifier.verify_package(self.archive(kind='zip'), SOURCE)['status'], 'passed')
 
+    def test_source_ui_license_notices_are_required_and_byte_exact(self):
+        name = 'license/Copperbench UI Dependency Licenses.txt'
+        self.source[name] = b'upstream copyright and complete license text\n'
+        for kind in ['tar.gz', 'zip']:
+            with self.subTest(kind=kind):
+                self.entries.pop(name, None)
+                with self.assertRaisesRegex(AssertionError, 'missing expected'):
+                    verifier.verify_package(self.archive(kind=kind), SOURCE)
+                self.entries[name] = self.source[name]
+                result = verifier.verify_package(self.archive(kind=kind), SOURCE)
+                self.assertIn(name, result['entries'])
+                self.entries[name] = b'license text omitted'
+                with self.assertRaisesRegex(AssertionError, 'documentation differs'):
+                    verifier.verify_package(self.archive(kind=kind), SOURCE)
+
     def test_wrong_or_duplicate_packaged_version_rejected(self):
         for conf in [b'product.version=0.1.9', b'product.version=0.1.13\nproduct.version=0.1.9']:
             with self.subTest(conf=conf):

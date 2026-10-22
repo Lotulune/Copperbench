@@ -35,6 +35,10 @@ def verify_package(archive_path, source):
         # Preserve all document checks of the original 0.1.9 consumer.
         documents += ['docs/releases/v0.1.9.md', 'docs/releases/v0.1.9-linux.md',
                       'docs/testing/maintenance-release-0.1.9.md']
+    source_paths = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', source]).decode('utf-8').splitlines()
+    ui_licenses = 'license/Copperbench UI Dependency Licenses.txt'
+    if ui_licenses in source_paths:
+        documents.append(ui_licenses)
     originals = {path: source_bytes(source, path) for path in documents}
     targets = [*documents, 'lib/copperbench.jar', 'plugins/generator-1.20.1.zip']
     found = {}
@@ -86,7 +90,7 @@ def verify_package(archive_path, source):
     assert set(found) == set(targets), 'Package is missing expected source/version entries'
     return {'status': 'passed', 'archive': archive_path.name, 'sourceCommit': source,
             'productVersion': version, 'entries': found,
-            'scope': 'Selected source-bound documents, packaged application version, legacy fix markers and template bytes; no installed or gameplay acceptance.'}
+            'scope': 'Selected source-bound documents and UI license notices, packaged application version, legacy fix markers and template bytes; no installed or gameplay acceptance.'}
 
 
 def main():
