@@ -1,0 +1,16 @@
+9d1d74dc066a11d3724912209bd7eb5c47a06a036405ca04dbca4c9713e325c4  build/export/Copperbench 0.1.16 Linux x86_64 Setup.tar.gz
+28997feeacf31194465deab17ead6c67884dc7e58dc6510dd9315179214eba7f  build/export/Copperbench 0.1.16 Linux x86_64 Setup.tar.gz.build.json
+b27084b1a7875ba50a6c4e11306892a0e1f932624ba4d6b8b435b99dc5a1bf2b  build/export/Copperbench 0.1.16 Linux x86_64.tar.gz
+752ed9833cd7fbc6797e47ee2f5385010925e781d44bb29b25716c0dab16216e  build/export/LINUX-CANDIDATE-METADATA.json
+3087905c0abc8dfa3e7f6c12d442cbbe40d371fa4febd3eb8cc24fb616fcf882  build/export/copperbench-linux.spdx.json
+c719b49b7dbfaddca63f9ae95a99ce263fb02f4a33c4fea8f5f44984e7b41f95  build/export/copperbench-update-linux-x64-application.zip
+6c441ca22e52b1c7d1a7227b0644bb8edc2e31ff9c4e3d314ce89df51553f868  build/export/copperbench-update-linux-x64-gradle-8.8-bin.zip
+69fb5b5bf8a76969b13e782ab1fd48a53dc108e9d2895b9799dff9a31e42339e  build/export/copperbench-update-linux-x64-gradle-9.6.0-bin.zip
+1084357d04fa49bda034238242ed9f4f678b40f8fe53e374e97286d359214f24  build/export/copperbench-update-linux-x64-gradle-9.6.1-bin.zip
+8df29973eb34ea207d3820d88349a774b92dbf89e6995fb38b56ab12bd78a7dd  build/export/copperbench-update-linux-x64-gradle-9.7.0-bin.zip
+3658eb3be4f0e0a9d4b7e1a8c3dc37795b6e24cffb36ba6b7238936f8af4efe3  build/export/copperbench-update-linux-x64-jdk.zip
+24009fdb64d0ee7c084556705eb5ade730423bac2d2ee64ed6a67f959d685d8d  build/export/copperbench-update-linux-x64-jdk21.zip
+3fa7d7b24f0f8058797a3ef3ebfd5c6039e4195a068b493b502627c280f18775  build/export/copperbench-update-linux-x64-libraries.zip
+e602e488d205c7cb166ed116fabd07d3f9d4fe199bba00b6e02fc6c40befdbb5  build/export/copperbench-update-linux-x64.properties
+96cd39fba71273981e6b8accea18ba73b67f5c2213077b3a0aba1bc9fcd08ebb  build/export/copperbench_0.1.16_amd64.deb
+56bf7101d4e60e2cdb738f92427308c0efdea803e61c2aebb8d0d8222f2647b8  build/export/linux-candidate-manifest.json
