@@ -6,30 +6,30 @@ Open the Release linked from the Linux row in [current downloads](../releases/cu
 
 ## Verify and install
 
-Use the same release's `linux-candidate-sha256.txt`, candidate metadata, provenance and `LINUX-RELEASE-AUTHORIZATION.json`. Verify against your downloaded version's manifest; the old hashes at the end of this page apply only to their historical packages.
+Use the same release's `linux-candidate-sha256.txt`, candidate metadata, provenance and `LINUX-RELEASE-AUTHORIZATION.json`. Verify against your downloaded version's manifest; the hashes below apply only to their named versions.
 
-The [Linux 0.1.16 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.16-linux-stable) published these hashes, which apply only to that version:
+The [Linux 0.1.17 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.17-linux-stable) published these hashes, which apply only to that version:
 
-- `copperbench_0.1.16_amd64.deb`: `96cd39fba71273981e6b8accea18ba73b67f5c2213077b3a0aba1bc9fcd08ebb`.
-- `Copperbench.0.1.16.Linux.x86_64.tar.gz`: `b27084b1a7875ba50a6c4e11306892a0e1f932624ba4d6b8b435b99dc5a1bf2b`.
-- `Copperbench.0.1.16.Linux.x86_64.Setup.tar.gz`: `9d1d74dc066a11d3724912209bd7eb5c47a06a036405ca04dbca4c9713e325c4`.
+- `copperbench_0.1.17_amd64.deb`: `1ca009b4084868c12b79d7fd6d6341897ef696a62e49ca1d81b80978a01d117a`.
+- `Copperbench.0.1.17.Linux.x86_64.tar.gz`: `9e4062ecdd57ddc7ff954befd60212d0ded123e20f84615e89c9ddec97fab3fc`.
+- `Copperbench.0.1.17.Linux.x86_64.Setup.tar.gz`: `8170a6cb157f50a25a16873862d36c503de50b38343aa1b4f55ba3bd7f5880c8`.
 
 For the graphical wizard, extract `Setup.tar.gz` and run `Install Copperbench`. Follow the [English wizard instructions](graphical-installation.md#english).
 
-The commands below use 0.1.16; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
+The commands below use 0.1.17; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
 
 ```sh
-sudo apt install ./copperbench_0.1.16_amd64.deb
+sudo apt install ./copperbench_0.1.17_amd64.deb
 ```
 
-For the 0.1.16 portable package:
+For the 0.1.17 portable package:
 
 ```sh
-tar -xzf Copperbench.0.1.16.Linux.x86_64.tar.gz
-./Copperbench0116/copperbench.sh
+tar -xzf Copperbench.0.1.17.Linux.x86_64.tar.gz
+./Copperbench0117/copperbench.sh
 ```
 
-GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.16 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
+GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.17 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
 
 ## Settings, scope and removal
 
@@ -39,11 +39,11 @@ GNOME automatic login can require unlocking the keyring through the normal syste
 
 Uninstall the Debian package with `sudo apt remove copperbench`; preferences and user workspaces remain. Continue with [Trail Block](first-creation.en.md). If your installed version has no first-launch tour, follow the tutorial's manual Fabric 1.21.1 workspace route.
 
-## 0.1.16 publication and verification
+## 0.1.17 publication and verification
 
-Version 0.1.16 improves guided creation, model/attachment controls, session permissions, history recovery and hidden-sidebar performance, and includes the shipped UI dependency license texts. The [publication record](../testing/linux-publication-0.1.16.md) records 13 candidate gates, independent consumer verification, signed provenance, complete downloaded-draft byte comparison and matching sizes/hashes for all 18 public assets and 8 update components. Full GNOME installation, upgrade, uninstall and player-controlled gameplay acceptance were not repeated. The [0.1.4 publication](../testing/product-shell-linux-publication-0.1.4.md) and [0.1.2 installed acceptance](../testing/maintenance-012-linux-installed-2026-09-28.md) retain their original package scope.
+Version 0.1.17 restores legacy conversations, localizes attachment errors, retains attachment cleanup references and fixes compact mode labels. The [publication record](../testing/linux-publication-0.1.17.md) records 13 candidate gates, independent consumer verification, signed provenance, complete downloaded-draft byte comparison and matching sizes/hashes for all 18 public assets and 8 update components. Full GNOME installation, upgrade, uninstall and player-controlled gameplay acceptance were not repeated. The [0.1.4 publication](../testing/product-shell-linux-publication-0.1.4.md) and [0.1.2 installed acceptance](../testing/maintenance-012-linux-installed-2026-09-28.md) retain their original package scope.
 
-Changes for that version are in the [Linux 0.1.16 notes](../releases/v0.1.16-linux.md); current platform versions remain in [current downloads](../releases/current.md).
+Changes for that version are in the [Linux 0.1.17 notes](../releases/v0.1.17-linux.md); current platform versions remain in [current downloads](../releases/current.md).
 
 ## Historical 0.1.7 package verification
 
