@@ -542,7 +542,7 @@ test('0.1.15 rejects non-main or failed CI receipts and skipped installer checks
 });
 
 test('0.1.16 exact candidate requires thirteen successful CI steps and explicit approval', (t) => {
-  const { auth, check } = maintenanceUnitFixture(t, '0.1.16', '7a0317f431feae3082780da48382a162ff3b107a', '39717512904');
+  const { auth, check } = maintenanceUnitFixture(t, '0.1.16', 'c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0', '39723695135');
   assert.equal(check().ciStepsVerified, 13);
   assert.equal(check().fullInstalledAcceptance, 'not-repeated');
   auth.maintenanceApproval.approved = false;
@@ -550,7 +550,7 @@ test('0.1.16 exact candidate requires thirteen successful CI steps and explicit 
 });
 
 test('0.1.16 rejects substituted source, run, tag, package digest and installed certification', (t) => {
-  const { auth, check } = maintenanceUnitFixture(t, '0.1.16', '7a0317f431feae3082780da48382a162ff3b107a', '39717512904');
+  const { auth, check } = maintenanceUnitFixture(t, '0.1.16', 'c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0', '39723695135');
   for (const [key, invalid] of [['releaseTag', 'v0.1.17-linux-stable'],
     ['candidateSourceCommit', 'a'.repeat(40)], ['candidateWorkflowRunId', '39566352485'],
     ['acceptancePolicy', 'maintenance-ci-0.1.13'], ['portableSha256', 'f'.repeat(64)],
@@ -561,7 +561,7 @@ test('0.1.16 rejects substituted source, run, tag, package digest and installed 
 });
 
 test('0.1.16 rejects non-main or failed CI receipts and skipped installer checks', (t) => {
-  const { check, mutate } = maintenanceUnitFixture(t, '0.1.16', '7a0317f431feae3082780da48382a162ff3b107a', '39717512904');
+  const { check, mutate } = maintenanceUnitFixture(t, '0.1.16', 'c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0', '39723695135');
   for (const [key, value, restore] of [['head_branch', 'other', 'main'],
     ['event', 'pull_request', 'push'], ['conclusion', 'failure', 'success']]) {
     mutate('run', run => { run[key] = value; });
