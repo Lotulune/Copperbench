@@ -7,6 +7,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 - Added bilingual Simple creation onboarding and runtime messages, live model discovery/manual selection, reasoning effort, file/image attachments and per-conversation permission controls for the host CLI adapters.
 - Added safe Markdown/copy, history export/deletion/capacity recovery, and corrected Stop/draft/attachment cleanup feedback.
 - Refined the native startup tour, mode selector and delivery controls; omitted inactive Simple-mode sidebar derivation while retaining session/draft/task ownership. Native scale checks now retain failure evidence and exact-source Windows comparison samples.
+- Collected the upstream license texts for production UI dependencies and bound package verification to the notice file in the tested source.
 
 ## Stage 0 product changes
 
