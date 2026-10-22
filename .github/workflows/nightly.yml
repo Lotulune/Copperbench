@@ -11,6 +11,15 @@ on:
         default: none
         options: [none, sdk-windows]
 
+      compare_native_scale:
+        description: "Run three alternating native scale trials per source on one Windows runner"
+        type: boolean
+        default: false
+      scale_baseline_sha:
+        description: "Full diagnostic-only baseline commit SHA"
+        type: string
+        default: e98adf9f130e20565adcefca2f111549c2070252
+
 permissions:
   contents: read
 
@@ -388,10 +397,55 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  native-scale-comparison:
+    name: Windows native scale A/B comparison
+    if: github.event_name == 'workflow_dispatch' && inputs.compare_native_scale
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: candidate
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.scale_baseline_sha }}
+          path: baseline
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Set up JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Alternate exact baseline and candidate on this runner
+        env:
+          SCALE_BASELINE_SHA: ${{ inputs.scale_baseline_sha }}
+          SCALE_CANDIDATE_SHA: ${{ github.sha }}
+        run: >-
+          python candidate/scripts/ci/native_scale_compare.py
+          --baseline baseline --candidate candidate --output native-scale-comparison
+          --baseline-sha "$env:SCALE_BASELINE_SHA" --candidate-sha "$env:SCALE_CANDIDATE_SHA"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: native-scale-comparison-${{ github.run_attempt }}
+          path: native-scale-comparison/
+          if-no-files-found: error
+          retention-days: 30
+
   summary:
     name: Nightly product regression
     if: always()
-    needs: [sdk, ui, core, mcp, stage9-generator-golden, p263-native, wrapper]
+    needs: [sdk, ui, core, mcp, stage9-generator-golden, p263-native, wrapper, native-scale-comparison]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
