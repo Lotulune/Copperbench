@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.agent.AgentChatService;
 import net.mcreator.ui.chromium.WebView;
+import net.mcreator.ui.dialogs.file.FileDialogs;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
 import org.cef.browser.CefMessageRouter;
@@ -22,7 +23,10 @@ import org.cef.callback.CefQueryCallback;
 import org.cef.handler.CefMessageRouterHandlerAdapter;
 
 import java.io.Closeable;
+import javax.swing.SwingUtilities;
 import java.net.URI;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -35,8 +39,8 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 
 	public static final String QUERY_PREFIX = "copperbench:agent:";
 	static final int MAX_REQUEST_CHARS = 2 * 1024 * 1024;
-	private static final Set<String> OPERATIONS = Set.of("status", "detect", "new", "select", "send", "stop",
-			"approve", "login", "openSetup");
+	private static final Set<String> OPERATIONS = Set.of("status", "detect", "new", "select", "send", "stop", "checkConnection", "models", "exportConversation", "deleteConversation", "deleteConversations", "recoverHistory", "retryHistory", "openLink",
+			"approve", "login", "openSetup", "attachmentTarget", "attachmentSelect", "attachmentBegin", "attachmentChunk", "attachmentCommit", "attachmentDiscard", "attachmentPreview");
 
 	private final WebView webView;
 	private final AgentChatService service;
@@ -46,6 +50,7 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 	private final AtomicBoolean closed = new AtomicBoolean();
 	private final WebView.PageLoadListener loadListener = this::install;
 	private final Runnable closeListener = this::close;
+	private volatile String attachmentDropTarget;
 
 	private JcefAgentBridgeTransport(WebView webView, AgentChatService service) {
 		this.webView = Objects.requireNonNull(webView);
@@ -63,6 +68,7 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 	}
 
 	private void install() {
+		attachmentDropTarget = null;
 		if (!closed.get()) webView.executeScriptAsync(generateBootstrapScript());
 	}
 
@@ -100,11 +106,35 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 			callback.failure(400, "Invalid Agent request");
 			return true;
 		}
+		if ("attachmentTarget".equals(string(payload, "operation"))) {
+			String target = string(payload, "target");
+			if (target.length() > 300 || target.chars().anyMatch(Character::isISOControl)) { callback.failure(400, "Invalid attachment target"); return true; }
+			attachmentDropTarget = target.isBlank() ? null : target;
+			callback.success("{\"ok\":true}"); return true;
+		}
+		if ("attachmentSelect".equals(string(payload, "operation"))) {
+			SwingUtilities.invokeLater(() -> {
+				if (closed.get()) return;
+				try {
+					java.io.File[] files = FileDialogs.getMultiOpenDialog(SwingUtilities.getWindowAncestor(webView), new String[]{});
+					if (files == null || files.length == 0) { if (!closed.get()) callback.success("{\"ok\":true,\"attachments\":[]}"); return; }
+					List<Path> selected = java.util.Arrays.stream(files).map(java.io.File::toPath).toList();
+					requests.submit(() -> {
+						if (closed.get()) return;
+						JsonObject result = service.importDroppedAttachments(selected);
+						if (!closed.get()) callback.success(result.toString());
+					});
+				} catch (RuntimeException failure) {
+					if (!closed.get()) callback.failure(400, "Could not select attachments");
+				}
+			});
+			return true;
+		}
 		try {
 			requests.submit(() -> {
 				if (closed.get()) return;
 				try {
-					JsonObject result = service.handle(payload);
+					JsonObject result = string(payload, "operation").startsWith("attachment") ? service.handleAttachment(payload) : service.handle(payload);
 					if (!closed.get()) callback.success(result.toString());
 				} catch (RuntimeException exception) {
 					if (!closed.get()) callback.failure(400,
@@ -114,6 +144,26 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 		} catch (RejectedExecutionException exception) {
 			if (!closed.get()) callback.failure(503, "Agent bridge is closed");
 		}
+		return true;
+	}
+
+	private static String string(JsonObject value, String key) {
+		JsonElement item = value.get(key);
+		return item != null && item.isJsonPrimitive() && item.getAsJsonPrimitive().isString() ? item.getAsString() : "";
+	}
+
+	/** Routes a genuine native drop to the visible chat composer; false preserves Asset Center handling. */
+	public boolean handleFileDrop(List<Path> paths) {
+		String target = attachmentDropTarget;
+		if (closed.get() || target == null || !trustedUrl(expectedBrowser.getURL())) return false;
+		List<Path> selected = List.copyOf(paths);
+		try {
+			requests.submit(() -> {
+				if (closed.get()) return;
+				JsonObject result = service.importDroppedAttachments(selected); result.addProperty("target", target);
+				if (!closed.get()) webView.executeScriptAsync("window.dispatchEvent(new CustomEvent('copperbench:agent-attachments', {detail:" + result + "}));");
+			});
+		} catch (RejectedExecutionException ignored) { return false; }
 		return true;
 	}
 
@@ -135,7 +185,7 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 	public static String generateBootstrapScript() {
 		return """
 				(() => {
-				  window.__COPPERBENCH_AGENT_HOST__ = { invoke: payload => new Promise((resolve, reject) => {
+				  window.__COPPERBENCH_AGENT_HOST__ = { nativeFileSelection: true, invoke: payload => new Promise((resolve, reject) => {
 				    if (typeof window.cefQuery !== 'function') {
 				      reject(new Error('Agent bridge is not available'));
 				      return;
@@ -152,6 +202,7 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true)) return;
+		attachmentDropTarget = null;
 		webView.removeLoadStartListener(loadListener);
 		webView.removeCloseListener(closeListener);
 		// A browser reload must neither interrupt accepted requests nor stop CLI sessions.

@@ -31,6 +31,7 @@ import { DeliveryDialog } from './components/DeliveryDialog';
 import { OpenWorkspaceDialog } from './components/WorkspaceEntryActions';
 import { FeedbackHost } from './components/FeedbackHost';
 import { WorkbenchModeProvider, useWorkbenchMode } from './context/WorkbenchModeContext';
+import { WorkbenchTourProvider } from './onboarding/WorkbenchTour';
 import { SimpleCreationView } from './components/SimpleCreationView';
 import './styles/global.css';
 import './styles/workbench.css';
@@ -121,7 +122,7 @@ const ShellContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <WorkbenchProvider>
-      <WorkbenchModeProvider><FirstCreationProvider><ShellContent /></FirstCreationProvider></WorkbenchModeProvider>
+      <WorkbenchModeProvider><FirstCreationProvider><WorkbenchTourProvider><ShellContent /></WorkbenchTourProvider></FirstCreationProvider></WorkbenchModeProvider>
     </WorkbenchProvider>
   );
 };

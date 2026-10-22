@@ -132,7 +132,7 @@ tasks.withType(Copy).matching { it.name in ['exportWin64', 'exportLinux64', 'exp
         from('docs') {
             include 'README.md', 'status.md', 'remaining-work.md', 'stage-17-agent-workflow.md',
                     'user/README.md', 'user/getting-started*.md', 'user/first-creation*.md',
-                    'user/build-and-export*.md', 'user/linux-installation*.md',
+                    'user/build-and-export*.md', 'user/simple-creation*.md', 'user/linux-installation*.md',
                     'user/graphical-installation.md', 'user/security-alerts.md',
                     'user/troubleshooting.md', 'user/python-workbench.md', 'user/blockbench-*.md',
                     'ai/getting-started*.md', 'ai/trail-block*.md', 'ai/agent-playbook.md',

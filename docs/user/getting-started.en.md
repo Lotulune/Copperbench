@@ -2,6 +2,8 @@
 
 [简体中文](getting-started.md) · [First creation](first-creation.en.md) · [Build recovery and export](build-and-export.en.md)
 
+
+For the default Simple mode, follow [conversational first creation](simple-creation.en.md). Quick tour shows the interface controls again.
 Choose your platform's stable package from [current downloads](../releases/current.md) and review that version's verification scope. Windows and Linux versions are listed separately. Targets are Windows 11 x64 (build 22000+) and Ubuntu 24.04 LTS x86_64. Other distributions and architectures are unverified.
 
 Verify the download against the same release's manifest: `SHA256SUMS.txt` on Windows or `linux-candidate-sha256.txt` on Linux. Windows packages are not Authenticode-signed and can trigger SmartScreen. The application runtime is bundled; the first workspace/build can download Gradle, loader and Minecraft dependencies. Allow at least 8 GB RAM and enough disk space for those dependencies.

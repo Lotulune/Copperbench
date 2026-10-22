@@ -27,8 +27,10 @@ record AgentProvider(String id, String label, Path executable, String version, S
         JsonObject result = AgentJson.object("id", id, "label", label, "installed", executable != null,
                 "executable", executable == null ? null : executable.toString(), "setupUrl", setupUrl,
                 "loginAvailable", executable != null && !id.equals("deepseek"));
+        result.addProperty("checkAvailable", !id.equals("antigravity"));
         if (version != null && !version.isBlank()) result.addProperty("version", version);
-        if (discoveryError != null) result.addProperty("error", AgentJson.bounded(discoveryError, 512));
+        if (discoveryError != null) AgentCopy.put(result, "error", AgentJson.bounded(discoveryError, 512));
+        result.addProperty("detection", executable == null ? "missing" : discoveryError != null ? "version_failed" : version == null ? "found" : "ready");
         return result;
     }
 

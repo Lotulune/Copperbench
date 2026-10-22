@@ -25,6 +25,7 @@ final class AgentRun implements AgentProtocol.Channel {
     private final AgentWorkspaceContext context;
     private final Listener listener;
     private final AgentProtocol protocol;
+    private final int outputLimit;
     private final CompletableFuture<Outcome> outcome = new CompletableFuture<>();
     private final Map<String, CompletableFuture<JsonObject>> requests = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong();
@@ -35,8 +36,34 @@ final class AgentRun implements AgentProtocol.Channel {
     private final StringBuilder stderr = new StringBuilder();
 
     AgentRun(AgentProvider provider, AgentWorkspaceContext context, String remoteId, Listener listener) {
+        this(provider, context, remoteId, null, listener);
+    }
+    AgentRun(AgentProvider provider, AgentWorkspaceContext context, String remoteId, String model, Listener listener) {
+        this(provider, context, remoteId, model, AgentTurnOptions.DEFAULT, List.of(), listener);
+    }
+    AgentRun(AgentProvider provider, AgentWorkspaceContext context, String remoteId, String model,
+             AgentTurnOptions options, List<AgentAttachments.Item> attachments, Listener listener) {
         this.provider = provider; this.context = context; this.listener = listener;
         protocol = AgentProtocol.create(provider.id(), this, context.root(), remoteId);
+        protocol.useModel(model);
+        protocol.configure(options, attachments);
+        // Streaming CLIs can replay the submitted image blocks. Keep the bound tied to admitted input.
+        outputLimit = AgentProcess.MAX_LINE + (int) attachments.stream().filter(AgentAttachments.Item::image).mapToLong(item -> (item.size() + 2) / 3 * 4).sum();
+    }
+
+    JsonObject models() throws Exception {
+        Thread output = null, errors = null;
+        try {
+            if (stopped.get()) throw new CancellationException();
+            AgentProcess launched = new AgentProcess(provider.executable(), protocol.arguments(), context.root()); process = launched;
+            if (stopped.get()) throw new CancellationException();
+            output = Thread.startVirtualThread(() -> readOutput(launched));
+            errors = Thread.startVirtualThread(() -> readErrors(launched));
+            JsonObject catalog = protocol.models(); protocol.finish(); return catalog;
+        } finally {
+            shuttingDown = true;
+            if (process != null) { process.close(); joinReader(output); joinReader(errors); }
+        }
     }
 
     void execute(String prompt) {
@@ -92,6 +119,29 @@ final class AgentRun implements AgentProtocol.Channel {
         }
     }
 
+    /** No session/start, prompt, resume, approval or tool request is sent by this path. */
+    void check() {
+        Thread output = null, errors = null;
+        String failure = null;
+        try {
+            if (stopped.get()) throw new CancellationException();
+            AgentProcess launched = new AgentProcess(provider.executable(), protocol.arguments(), context.root());
+            process = launched;
+            if (stopped.get()) throw new CancellationException();
+            output = Thread.startVirtualThread(() -> readOutput(launched));
+            errors = Thread.startVirtualThread(() -> readErrors(launched));
+            protocol.check();
+        } catch (Exception exception) {
+            Throwable cause = exception instanceof ExecutionException && exception.getCause() != null ? exception.getCause() : exception;
+            failure = AgentJson.bounded(cause.getMessage(), 2000);
+        } finally {
+            shuttingDown = true;
+            AgentProcess launched = process;
+            if (launched != null) { launched.close(); joinReader(output); joinReader(errors); }
+            listener.finished(failure == null && !stopped.get(), stopped.get(), failure);
+        }
+    }
+
     private static void joinReader(Thread reader) {
         if (reader == null) return;
         try { reader.join(1000); } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
@@ -105,7 +155,7 @@ final class AgentRun implements AgentProtocol.Channel {
                     if (!protocol.stdoutDiagnostic(line)) receive(JsonParser.parseString(line).getAsJsonObject());
                 }
                 catch (RuntimeException malformed) { fail("CLI 返回无法识别的协议消息，请检查 CLI 版本或启动器"); }
-            });
+            }, outputLimit);
         } catch (IOException exception) { if (!shuttingDown) fail(exception.getMessage()); }
         finally {
             outputClosed = true;

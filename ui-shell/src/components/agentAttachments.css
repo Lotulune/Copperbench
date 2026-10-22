@@ -1,0 +1,23 @@
+.creation-attachments { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 10px 12px 0; }
+.creation-attachment { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-main); font-size: 12px; }
+.creation-attachment > svg { flex-shrink: 0; color: var(--text-sub); }
+.creation-attachment-label { display: grid; min-width: 0; max-width: 200px; gap: 2px; }
+.creation-attachment-label strong { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.creation-attachment-label small { color: var(--text-sub); font-size: 11px; overflow-wrap: anywhere; }
+.creation-attachment.has-error { border-color: var(--badge-red); }
+.creation-attachment.has-error small { color: var(--badge-red); }
+.creation-shell.is-simple .creation-attachment button { min-height: 28px; min-width: 28px; padding: 4px; }
+.creation-attachment-thumbnail { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; overflow: hidden; border-radius: var(--radius-xs); }
+.creation-attachment-thumbnail img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.creation-message .creation-attachments { padding: 5px 0; }
+.creation-model-settings { display: inline-flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; }
+.creation-turn-choice { display: inline-flex; align-items: center; gap: 4px; min-width: 0; color: var(--text-muted); }
+.creation-turn-choice svg { flex-shrink: 0; }
+.creation-shell.is-simple .creation-turn-choice select { background: transparent; border: 0; font-size: 12px; min-height: 32px; padding: 4px 2px; color: var(--text-muted); min-width: 0; }
+.creation-shell.is-simple .creation-attach-button { min-width: 32px; min-height: 32px; padding: 5px; }
+.creation-shell.is-simple .creation-composer.is-dragging { border-color: var(--accent-copper); background: var(--accent-copper-dim); }
+.creation-effort-hint { margin-top: 6px !important; color: var(--text-sub); font-size: 11px; line-height: 1.5; }
+.creation-delivery-note { font-size: 11px; color: var(--badge-red); }
+.creation-file-input { display: none; }
+.creation-shell.is-simple .creation-model-settings .creation-model-trigger { max-width: min(230px, 33vw); }
+@media (max-width: 650px) { .creation-shell.is-simple .creation-model-settings .creation-model-trigger { min-width: 65px; max-width: 165px; } }

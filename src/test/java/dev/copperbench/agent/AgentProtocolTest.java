@@ -14,7 +14,7 @@ class AgentProtocolTest {
     @TempDir Path workspace;
     record Pending(String id, String title, String detail, JsonArray choices, Consumer<String> answer) { }
     record PendingQuestion(String id, JsonArray choices, boolean multiSelect, boolean allowCustom, Consumer<List<String>> answer) { }
-    static final class Wire implements AgentProtocol.Channel {
+    static class Wire implements AgentProtocol.Channel {
         final List<JsonObject> sent = new ArrayList<>();
         final List<String> methods = new ArrayList<>();
         final List<Pending> approvals = new ArrayList<>();
@@ -63,6 +63,27 @@ class AgentProtocolTest {
         assertEquals("turn/interrupt", AgentJson.string(wire.sent.getLast(), "method"));
         protocol.receive(AgentJson.object("method", "turn/completed", "params", AgentJson.object("turn", AgentJson.object("status", "failed", "error", AgentJson.object("message", "build failed")))));
         assertFalse(wire.success); assertTrue(wire.error.contains("build failed"));
+    }
+
+    @Test void repeatedCodexPolicyMetadataDoesNotTruncateTheExactCommandOrAccessScope() {
+        Wire wire = new Wire(); CodexAgentProtocol protocol = new CodexAgentProtocol(wire, workspace, null);
+        String command = "python inspect_and_build.py\n" + "# operation detail\n".repeat(260);
+        JsonObject permissions = AgentJson.object("network", AgentJson.object("enabled", true));
+        JsonObject params = AgentJson.object("command", command, "reason", "Inspect and build the selected workspace", "cwd", workspace.toString(),
+                "additionalPermissions", permissions, "commandActions", AgentJson.array(AgentJson.object("command", command)),
+                "proposedExecpolicyAmendment", AgentJson.array(new JsonPrimitive(command)),
+                "availableDecisions", AgentJson.array(new JsonPrimitive("accept"), new JsonPrimitive("cancel"),
+                        AgentJson.object("acceptWithExecpolicyAmendment", AgentJson.object("execpolicy_amendment", AgentJson.array(new JsonPrimitive(command))))));
+        assertTrue(params.toString().length() > 12000);
+        protocol.receive(AgentJson.object("id", 99, "method", "item/commandExecution/requestApproval", "params", params));
+        JsonObject presented = JsonParser.parseString(wire.approvals.getFirst().detail()).getAsJsonObject();
+        assertEquals(command, AgentJson.string(presented, "command"));
+        assertEquals(permissions, presented.get("additionalPermissions"));
+        assertEquals(workspace.toString(), AgentJson.string(presented, "cwd"));
+        assertFalse(presented.has("commandActions"));
+        wire.approvals.getFirst().answer().accept("accept");
+        assertEquals("accept", AgentJson.string(AgentJson.child(wire.sent.getLast(), "result"), "decision"));
+        assertTrue(params.has("commandActions"), "The native request must stay unchanged");
     }
 
     @Test void claudeApprovalIsARealMatchedControlReplyAndPreservesOriginalInput() {

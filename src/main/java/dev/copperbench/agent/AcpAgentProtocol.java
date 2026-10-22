@@ -29,11 +29,26 @@ final class AcpAgentProtocol implements AgentProtocol {
     private boolean newMessage = true;
     private volatile boolean denied;
     private volatile String clientError;
+    private String selectedModel;
+    private AgentTurnOptions options = AgentTurnOptions.DEFAULT;
+    private List<AgentAttachments.Item> attachments = List.of();
+    private boolean imagePrompt;
     AcpAgentProtocol(Backend backend, Channel channel, Path workspace, String sessionId) {
         this.backend = backend; this.channel = channel; this.workspace = workspace; this.sessionId = sessionId;
     }
     private String label() { return AgentProvider.label(backend.id); }
-    @Override public List<String> arguments() { return backend.arguments; }
+    @Override public void useModel(String model) { selectedModel = AgentModels.id(model); }
+    @Override public void configure(AgentTurnOptions options, List<AgentAttachments.Item> attachments) {
+        this.options = options; this.attachments = attachments;
+    }
+    @Override public List<String> arguments() {
+        if (backend != Backend.GROK) return backend.arguments;
+        List<String> args = new ArrayList<>(List.of("agent", "--no-leader"));
+        if (selectedModel != null) args.addAll(List.of("--model", selectedModel));
+        if (options.effort() != null) args.addAll(List.of("--reasoning-effort", options.effort()));
+        if (options.autoApprove()) args.add("--always-approve");
+        args.add("stdio"); return args;
+    }
 
     @Override public boolean stdoutDiagnostic(String line) {
         // dsh 0.2.1-rc.2's account catalog calls console.info while constructing session config options.
@@ -42,27 +57,61 @@ final class AcpAgentProtocol implements AgentProtocol {
         return true;
     }
 
-    @Override public void start(String text, String instructions) throws Exception {
+    @Override public void check() throws Exception {
         JsonObject initialized = channel.rpc("initialize", AgentJson.object("protocolVersion", 1,
                 "clientCapabilities", new JsonObject(), "clientInfo", AgentJson.object("name", "copperbench", "title", "Copperbench", "version", "1.0")));
         if (!new JsonPrimitive(1).equals(initialized.get("protocolVersion")))
             throw new IOException(label() + " 的 ACP 版本不兼容，请更新 CLI 后重试。");
+        JsonObject capabilities = AgentJson.child(AgentJson.child(initialized, "agentCapabilities"), "sessionCapabilities");
+        imagePrompt = AgentJson.bool(AgentJson.child(AgentJson.child(initialized, "agentCapabilities"), "promptCapabilities"), "image");
+        closeSession = capabilities.has("close");
         if (backend == Backend.DEEPSEEK) {
-            JsonObject capabilities = AgentJson.child(AgentJson.child(initialized, "agentCapabilities"), "sessionCapabilities");
-            closeSession = capabilities.has("close");
             if (sessionId != null && !capabilities.has("resume"))
                 throw new IOException("此版本的 DeepSeek Harness 不支持恢复会话，请更新 dsh 或新建对话。");
         }
+    }
+    private JsonObject openSession() throws Exception {
+        check();
         JsonObject params = AgentJson.object("cwd", workspace.toString(), "mcpServers", new JsonArray());
         String method = "session/new";
         if (sessionId != null) { method = backend.resumeMethod; params.addProperty("sessionId", sessionId); }
         JsonObject session = channel.rpc(method, params);
         if (sessionId == null) sessionId = AgentJson.required(session, "sessionId");
+        return session;
+    }
+    @Override public JsonObject models() throws Exception { return AgentModels.acpCatalog(openSession()); }
+
+    @Override public void start(String text, String instructions) throws Exception {
+        JsonObject session = openSession();
+        if (!imagePrompt && attachments.stream().anyMatch(AgentAttachments.Item::image))
+            throw new IOException("此 CLI 或当前模型未声明图片支持，请移除图片或切换助手与模型");
+        if (selectedModel != null) {
+            JsonObject option = AgentModels.modelOption(session);
+            if (!option.isEmpty()) {
+                String value = AgentModels.acpValue(option, selectedModel);
+                JsonObject updated = channel.rpc("session/set_config_option", AgentJson.object("sessionId", sessionId,
+                        "configId", AgentJson.required(option, "id"), "value", value));
+                if (!value.equals(AgentJson.string(AgentModels.modelOption(updated), "currentValue")))
+                    throw new IOException("CLI 未确认所选模型，本轮未发送");
+                session = updated;
+            } else if (session.has("models")) {
+                channel.rpc("session/set_model", AgentJson.object("sessionId", sessionId, "modelId", selectedModel));
+            } else if (backend == Backend.DEEPSEEK) throw new IOException("此 CLI 版本未提供模型选择，请更新后重试");
+        }
+        if (options.effort() != null && backend == Backend.DEEPSEEK) {
+            JsonObject option = AgentModels.option(session, "thought_level");
+            if (option.isEmpty()) throw new IOException("此 CLI 或所选模型未提供思考强度设置，请换用支持的模型");
+            JsonObject updated = channel.rpc("session/set_config_option", AgentJson.object("sessionId", sessionId,
+                    "configId", AgentJson.required(option, "id"), "value", options.effort()));
+            if (!options.effort().equals(AgentJson.string(AgentModels.option(updated, "thought_level"), "currentValue")))
+                throw new IOException("CLI 未确认所选思考强度，请选择该模型支持的档位");
+        }
         channel.remoteId(sessionId); prompting = true;
         channel.ready();
+        JsonArray prompt = AgentJson.array(AgentJson.object("type", "text", "text", instructions + "\nPlayer request:\n" + AgentAttachments.prompt(text, attachments)));
+        for (AgentAttachments.Item item : attachments) if (item.image()) prompt.add(AgentJson.object("type", "image", "mimeType", item.mediaType(), "data", item.base64()));
         channel.send(AgentJson.object("jsonrpc", "2.0", "id", "copperbench-prompt", "method", "session/prompt",
-                "params", AgentJson.object("sessionId", sessionId, "prompt",
-                        AgentJson.array(AgentJson.object("type", "text", "text", instructions + "\nPlayer request:\n" + text)))));
+                "params", AgentJson.object("sessionId", sessionId, "prompt", prompt)));
     }
 
     private void completed(JsonObject frame) {
@@ -128,6 +177,14 @@ final class AcpAgentProtocol implements AgentProtocol {
         }
         if (choices.isEmpty()) {
             cancelPermission(wireId, "未提供可选择的批准选项，该请求已取消。"); return;
+        }
+        if (options.autoApprove()) {
+            String allow = kinds.entrySet().stream().filter(entry -> entry.getValue().equals("allow_once")).map(Map.Entry::getKey).findFirst().orElse(null);
+            if (allow != null) {
+                channel.send(AgentJson.object("jsonrpc", "2.0", "id", wireId, "result",
+                        AgentJson.object("outcome", AgentJson.object("outcome", "selected", "optionId", allow))));
+                return;
+            }
         }
         String title = AgentJson.string(tool, "title");
         channel.approval(backend.id + ":" + wireId, title.isBlank() ? label() + " 请求执行操作" : title, toolDetail(tool), choices, choice -> {

@@ -67,6 +67,10 @@ final class AgentProcess implements AutoCloseable {
     }
 
     static void lines(InputStream stream, Consumer<String> consumer) throws IOException {
+        lines(stream, consumer, MAX_LINE);
+    }
+
+    static void lines(InputStream stream, Consumer<String> consumer, int maxLine) throws IOException {
         try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
             StringBuilder line = new StringBuilder();
             char[] buffer = new char[4096];
@@ -76,7 +80,7 @@ final class AgentProcess implements AutoCloseable {
                     char next = buffer[i];
                     if (next == '\n') { consumer.accept(line.toString()); line.setLength(0); }
                     else if (next != '\r') {
-                        if (line.length() >= MAX_LINE) throw new IOException("CLI 消息超过 2 Mi 字符限制");
+                        if (line.length() >= maxLine) throw new IOException("CLI 消息超过读取上限");
                         line.append(next);
                     }
                 }

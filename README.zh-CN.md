@@ -2,9 +2,13 @@
   <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
   <h1>Copperbench</h1>
   <p><strong>让可视化编辑、手写 Java 和本地 Agent 在同一个 Minecraft 模组工程中协作。</strong></p>
+
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
   <p><a href="docs/releases/current.md">下载</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
+
+普通玩家可从[简洁创作首作路线](docs/user/simple-creation.md)开始；也可使用[专业模式手动路线](docs/user/first-creation.md)。
+
 
 Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 

@@ -12,21 +12,55 @@ final class CodexAgentProtocol implements AgentProtocol {
     private final Path workspace;
     private volatile String threadId;
     private volatile String turnId;
+    private String selectedModel;
+    private AgentTurnOptions options = AgentTurnOptions.DEFAULT;
+    private List<AgentAttachments.Item> attachments = List.of();
     CodexAgentProtocol(Channel channel, Path workspace, String threadId) { this.channel = channel; this.workspace = workspace; this.threadId = threadId; }
     @Override public List<String> arguments() { return List.of("app-server"); }
+    @Override public void useModel(String model) { selectedModel = AgentModels.id(model); }
+    @Override public void configure(AgentTurnOptions options, List<AgentAttachments.Item> attachments) {
+        this.options = options; this.attachments = attachments;
+    }
 
-    @Override public void start(String text, String instructions) throws Exception {
+    @Override public JsonObject models() throws Exception {
+        check(); JsonArray models = new JsonArray(); String cursor = null, preferred = null; Set<String> cursors = new HashSet<>();
+        for (int page = 0; page < 10; page++) {
+            JsonObject params = AgentJson.object("limit", 100, "includeHidden", false);
+            if (cursor != null) params.addProperty("cursor", cursor);
+            JsonObject result = channel.rpc("model/list", params);
+            for (JsonElement value : AgentJson.list(result, "data")) {
+                JsonObject row = value.getAsJsonObject(); String model = AgentJson.required(row, "model");
+                AgentModels.add(models, model, AgentJson.string(row, "displayName"));
+                if (AgentJson.bool(row, "isDefault")) preferred = model;
+            }
+            cursor = AgentJson.string(result, "nextCursor");
+            if (cursor.isBlank()) return AgentModels.catalog(models, preferred, "cli", false);
+            if (!cursors.add(cursor)) throw new java.io.IOException("模型列表分页无效");
+        }
+        throw new java.io.IOException("模型列表超过读取上限");
+    }
+
+    @Override public void check() throws Exception {
         channel.rpc("initialize", AgentJson.object("clientInfo", AgentJson.object("name", "copperbench", "title", "Copperbench", "version", "1.0")));
         channel.send(AgentJson.object("method", "initialized", "params", new JsonObject()));
-        JsonObject params = AgentJson.object("cwd", workspace.toString(), "approvalPolicy", "on-request", "sandbox", "workspace-write", "developerInstructions", instructions);
+    }
+    @Override public void start(String text, String instructions) throws Exception {
+        check();
+        JsonObject params = AgentJson.object("cwd", workspace.toString(), "approvalPolicy", options.autoApprove() ? "never" : "on-request",
+                "sandbox", options.autoApprove() ? "danger-full-access" : "workspace-write", "developerInstructions", instructions);
+        if (selectedModel != null) params.addProperty("model", selectedModel);
         String method = "thread/start";
         if (threadId != null) { method = "thread/resume"; params.addProperty("threadId", threadId); }
         JsonObject response = channel.rpc(method, params);
         threadId = AgentJson.required(AgentJson.child(response, "thread"), "id"); channel.remoteId(threadId);
-        channel.ready();
-        JsonObject turn = channel.rpc("turn/start", AgentJson.object("threadId", threadId, "input",
-                AgentJson.array(AgentJson.object("type", "text", "text", text))));
+        JsonArray input = AgentJson.array(AgentJson.object("type", "text", "text", AgentAttachments.prompt(text, attachments)));
+        for (AgentAttachments.Item item : attachments) if (item.image()) input.add(AgentJson.object("type", "localImage", "path", item.path().toString()));
+        JsonObject request = AgentJson.object("threadId", threadId, "input", input);
+        if (selectedModel != null) request.addProperty("model", selectedModel);
+        if (options.effort() != null) request.addProperty("effort", options.effort());
+        JsonObject turn = channel.rpc("turn/start", request);
         turnId = AgentJson.required(AgentJson.child(turn, "turn"), "id");
+        channel.ready();
     }
 
     @Override public void receive(JsonObject frame) {
@@ -76,7 +110,13 @@ final class CodexAgentProtocol implements AgentProtocol {
                 case "accept" -> "允许这次"; case "acceptForSession" -> "允许本次 CLI 会话"; case "decline" -> "拒绝"; default -> "停止本轮";
             }));
             if (choices.isEmpty()) { reject(wireId, "当前 CLI 批准类型尚不可呈现；请停止后检查 CLI 配置"); return; }
-            channel.approval(id, method.contains("commandExecution") ? "允许运行命令？" : "允许修改文件？", AgentJson.detail(params), choices,
+            JsonObject detail = params.deepCopy();
+            if (method.contains("commandExecution") && params.has("command")) {
+                // The command is repeated in parsed actions and policy proposals. Decisions are rendered separately;
+                // this client never offers persistent policy amendments. Keep the exact command and access scope.
+                detail.remove("commandActions"); detail.remove("proposedExecpolicyAmendment"); detail.remove("availableDecisions");
+            }
+            channel.approval(id, method.contains("commandExecution") ? "允许运行命令？" : "允许修改文件？", AgentJson.detail(detail), choices,
                     choice -> respond(wireId, AgentJson.object("decision", choice)));
         } else if (method.equals("item/permissions/requestApproval")) {
             JsonObject requested = AgentJson.child(params, "permissions");

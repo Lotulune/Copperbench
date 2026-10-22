@@ -2,6 +2,8 @@
 
 [简体中文](first-creation.md) · [Installation](getting-started.en.md) · [Build recovery and export](build-and-export.en.md)
 
+
+This page is the manual Professional route. For Simple mode, use [the conversational route](simple-creation.en.md).
 The goal is to obtain 16 **Trail Blocks**, place one, quit Minecraft normally and find it in the same world from a **new client process**, then export a JAR. Use **Fabric 1.21.1** and the built-in stone texture; no image, Blockbench or Java is needed.
 
 This tutorial provides both the creation-tour and manual routes. If your installed version lacks a guide control, use the ordinary workspace, block, build and client entries. [Current downloads](../releases/current.md) records platform versions and package acceptance; [current status](../status.md) describes source capabilities. The [Agent example](../ai/trail-block.en.md) is a separate public API route.

@@ -48,7 +48,7 @@ async function installFirstCreationFixture(page: Page, options: { missingElement
     fixtureWindow.__FIRST_CREATION_READS__ = 0;
     fixtureWindow.__FIRST_CREATION_SAVES__ = [];
     fixtureWindow.__COPPERBENCH_WORKSPACE_OPEN_HOST__ = { available: true, buildFolderAvailable: true, verifiedExportFolderAvailable: true,
-      open: async (file: string) => { fixtureWindow.__OPENED_WORKSPACE__ = file; }, openBuildFolder: async () => {},
+      open: async (file: string) => { fixtureWindow.__OPENED_WORKSPACE__ = file; }, openBuildFolder: async () => { fixtureWindow.__BUILD_FOLDER_OPENED__ = true; },
       openVerifiedExportFolder: async (taskId: string) => { fixtureWindow.__OPENED_VERIFIED_TASK__ = taskId; } };
     let releaseRead!: () => void;
     const readGate = options.delayedRead ? new Promise<void>(resolve => { releaseRead = resolve; }) : Promise.resolve();
@@ -114,6 +114,20 @@ test('workspace overview has no startup cards or permanent first-creation option
   }
   await page.getByTestId('compact-run-menu').click();
   await expect(page.getByTestId('compact-export-btn')).toBeDisabled();
+});
+
+test('native first creation enters the simple spotlight route without creating a manual block', async ({ page }) => {
+  await installFirstCreationFixture(page);
+  await page.addInitScript(() => localStorage.setItem('copperbench.workbench.mode', 'simple'));
+  await page.goto('/');
+  await expect(page.getByTestId('workbench-tour')).toHaveAttribute('data-mode', 'simple');
+  await expect(page.getByTestId('first-creation-overlay')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__)).toEqual([]);
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('workbench-tour')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId('workbench-tour')).toHaveCount(0);
+  await expect(page.getByTestId('simple-agent-setup')).toBeVisible();
 });
 
 test('ordinary native workspaces do not offer a separate first-creation project', async ({ page }) => {
@@ -194,6 +208,26 @@ test('exact export folders are opened by the recorded task UUID while historical
   await expect(page.getByTestId('delivery-verified-export')).toContainText('历史已验收产物导出回执');
   await page.getByTestId('delivery-open-verified-folder').click();
   expect(await page.evaluate(() => (window as any).__OPENED_VERIFIED_TASK__)).toBe(taskId);
+  expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
+});
+
+test('output folder stays to the right of the new-path action at desktop and compact widths', async ({ page }, info) => {
+  await installFirstCreationFixture(page, { withoutBinding: true });
+  await page.goto('/');
+  await page.getByTestId('compact-run-menu').click();
+  await page.getByTestId('compact-export-btn').click();
+  for (const width of [900, 500]) {
+    await page.setViewportSize({ width, height: 850 });
+    await page.getByTestId('delivery-open-folder').scrollIntoViewIfNeeded();
+    const path = await page.getByTestId('delivery-new-path').boundingBox(), folder = await page.getByTestId('delivery-open-folder').boundingBox();
+    expect(folder!.y).toBeCloseTo(path!.y, 1);
+    expect(folder!.height).toBeCloseTo(path!.height, 1);
+    expect(folder!.x).toBeGreaterThan(path!.x + path!.width);
+    expect(await page.getByTestId('delivery-dialog').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+    await page.getByTestId('delivery-dialog').screenshot({ path: info.outputPath(`delivery-actions-${width}.png`) });
+  }
+  await page.getByTestId('delivery-open-folder').click();
+  expect(await page.evaluate(() => (window as any).__BUILD_FOLDER_OPENED__)).toBe(true);
   expect(await page.evaluate(() => (window as any).__FIRST_CREATION_COMMANDS__.length)).toBe(0);
 });
 

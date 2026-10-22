@@ -2,6 +2,8 @@
 
 [English](first-creation.en.md) · [安装](getting-started.md) · [构建失败与导出](build-and-export.md)
 
+
+本页是专业模式手动路线。简洁模式请使用[对话创作路线](simple-creation.md)。
 目标：在 Minecraft 中取得 16 个 **Trail Block**，放置一个，正常退出客户端后用**新的客户端进程**打开同一个世界，确认方块仍在；最后导出 JAR。本教程使用 **Fabric 1.21.1** 和内置石头纹理，不需要图片、Blockbench 或 Java。
 
 本教程同时提供首作引导和手动操作路径；安装版本没有某个引导控件时，可沿普通新建、方块编辑、构建和客户端入口完成。各平台发布版本与包级验收见[当前下载](../releases/current.md)，源码能力见[状态总览](../status.md)。Agent 的同一作品例子在[公开 API 指南](../ai/trail-block.md)，不是本页前提。

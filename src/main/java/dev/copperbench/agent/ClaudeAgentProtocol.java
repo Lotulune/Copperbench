@@ -15,20 +15,49 @@ final class ClaudeAgentProtocol implements AgentProtocol {
     private final String resume;
     private String messageId = "response";
     private volatile boolean denied;
+    private String selectedModel;
+    private AgentTurnOptions options = AgentTurnOptions.DEFAULT;
+    private List<AgentAttachments.Item> attachments = List.of();
     ClaudeAgentProtocol(Channel channel, String resume) { this.channel = channel; this.resume = resume; }
+    @Override public void useModel(String model) { selectedModel = AgentModels.id(model); }
+    @Override public void configure(AgentTurnOptions options, List<AgentAttachments.Item> attachments) {
+        this.options = options; this.attachments = attachments;
+    }
 
     @Override public List<String> arguments() {
         List<String> result = new ArrayList<>(List.of("-p", "--input-format", "stream-json", "--output-format", "stream-json",
-                "--verbose", "--include-partial-messages", "--permission-prompt-tool", "stdio", "--permission-mode", "default"));
+                "--verbose", "--include-partial-messages", "--permission-prompt-tool", "stdio", "--permission-mode", options.autoApprove() ? "bypassPermissions" : "default"));
         if (resume != null) result.addAll(List.of("--resume", resume));
+        if (selectedModel != null) result.addAll(List.of("--model", selectedModel));
+        if (options.effort() != null) result.addAll(List.of("--effort", options.effort()));
         return result;
     }
 
-    @Override public void start(String text, String instructions) throws Exception {
+    @Override public void check() throws Exception {
         channel.control(AgentJson.object("subtype", "initialize", "hooks", JsonNull.INSTANCE));
+    }
+    @Override public JsonObject models() throws Exception {
+        JsonObject initialized = channel.control(AgentJson.object("subtype", "initialize", "hooks", JsonNull.INSTANCE));
+        JsonArray models = new JsonArray();
+        for (JsonElement value : AgentJson.list(initialized, "models")) {
+            JsonObject row = value.getAsJsonObject();
+            AgentModels.add(models, AgentJson.required(row, "value"), AgentJson.string(row, "displayName"));
+        }
+        return AgentModels.catalog(models, null, "cli", false);
+    }
+    @Override public void start(String text, String instructions) throws Exception {
+        check();
         channel.ready();
+        String prompt = instructions + "\nPlayer request:\n" + AgentAttachments.prompt(text, attachments);
+        JsonElement content = new JsonPrimitive(prompt);
+        if (attachments.stream().anyMatch(AgentAttachments.Item::image)) {
+            JsonArray blocks = AgentJson.array(AgentJson.object("type", "text", "text", prompt));
+            for (AgentAttachments.Item item : attachments) if (item.image()) blocks.add(AgentJson.object("type", "image",
+                    "source", AgentJson.object("type", "base64", "media_type", item.mediaType(), "data", item.base64())));
+            content = blocks;
+        }
         channel.send(AgentJson.object("type", "user", "session_id", resume == null ? "" : resume,
-                "message", AgentJson.object("role", "user", "content", instructions + "\nPlayer request:\n" + text)));
+                "message", AgentJson.object("role", "user", "content", content)));
     }
 
     @Override public void receive(JsonObject frame) {

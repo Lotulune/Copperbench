@@ -1,5 +1,6 @@
 import { confirmAction } from '../feedback/feedback';
 import { LanguageSelector } from './LanguageSelector';
+import { WorkbenchModeSwitch } from './WorkbenchModeSwitch';
 import React, { useEffect, useRef } from 'react';
 import {
   Sun,
@@ -35,7 +36,7 @@ const toBounds = (rect: DOMRect): WindowChromeRegion['bounds'] => ({
 
 export const FramelessTitlebar: React.FC = () => {
   const locale = useUiLocale();
-  const { mode, setMode } = useWorkbenchMode();
+  const { mode } = useWorkbenchMode();
   const titlebarRef = useRef<HTMLElement>(null);
   const reportSequence = useRef(0);
   const {
@@ -223,11 +224,7 @@ export const FramelessTitlebar: React.FC = () => {
         </div>
 
       </div>
-      <div className="workbench-mode-switch" role="group" aria-label={uiText('工作模式', 'Workbench mode')}
-        data-window-chrome-kind="client" data-window-chrome-id="workbench-mode">
-        <button type="button" data-testid="mode-simple" aria-pressed={mode === 'simple'} onClick={() => setMode('simple')}>{uiText('简洁创作', 'Simple creation')}</button>
-        <button type="button" data-testid="mode-professional" aria-pressed={mode === 'professional'} onClick={() => setMode('professional')}>{uiText('专业工作台', 'Professional')}</button>
-      </div>
+      <WorkbenchModeSwitch />
 
       {/* Right: Tools & Window Controls */}
       <div className="titlebar-tools">

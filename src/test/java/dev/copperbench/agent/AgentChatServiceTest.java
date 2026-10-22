@@ -18,6 +18,39 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgentChatServiceTest {
     @TempDir Path workspace;
 
+    @Test void attachmentsAndTurnSettingsPersistAndDeletionReclaimsOnlyUnreferencedCopies() throws Exception {
+        String key = "copperbench.agent.codex", old = System.getProperty(key);
+        System.setProperty(key, wrapper("codex").toString());
+        String attachmentId, conversation; Path copied;
+        try {
+            try (AgentChatService service = service()) {
+                var begin = service.handleAttachment(AgentJson.object("operation", "attachmentBegin", "name", "note.txt", "size", 4));
+                attachmentId = AgentJson.required(begin, "id");
+                service.handleAttachment(AgentJson.object("operation", "attachmentChunk", "id", attachmentId, "offset", 0, "data", "bm90ZQ=="));
+                assertTrue(service.handleAttachment(AgentJson.object("operation", "attachmentCommit", "id", attachmentId)).get("ok").getAsBoolean());
+                copied = new AgentAttachments(workspace).read(attachmentId).path();
+                service.handle(AgentJson.object("operation", "send", "provider", "codex", "model", "fixture-model", "text", "Read the note",
+                        "effort", "xhigh", "permission", "default", "attachments", AgentJson.array(new JsonPrimitive(attachmentId))));
+                JsonObject waiting = await(service, snapshot -> AgentJson.string(snapshot, "state").equals("waiting_approval"));
+                conversation = AgentJson.string(waiting, "conversationId");
+                assertEquals("xhigh", AgentJson.string(waiting, "effort"));
+                assertEquals(1, waiting.getAsJsonArray("messages").get(0).getAsJsonObject().getAsJsonArray("attachments").size());
+                service.handleAttachment(AgentJson.object("operation", "attachmentDiscard", "id", attachmentId));
+                assertTrue(Files.exists(copied));
+                String approval = AgentJson.string(waiting.getAsJsonArray("approvals").get(0).getAsJsonObject(), "id");
+                service.handle(AgentJson.object("operation", "approve", "id", approval, "choice", "choice-0"));
+                await(service, snapshot -> AgentJson.string(snapshot, "state").equals("idle"));
+            }
+            try (AgentChatService reopened = service()) {
+                JsonObject snapshot = reopened.handle(AgentJson.object("operation", "status"));
+                assertEquals("xhigh", AgentJson.string(snapshot, "effort"));
+                assertEquals("default", AgentJson.string(snapshot, "permission"));
+                reopened.handle(AgentJson.object("operation", "deleteConversation", "conversationId", conversation, "confirmed", true));
+                assertFalse(Files.exists(copied));
+            }
+        } finally { restore(key, old); }
+    }
+
     @Test void newConversationDoesNotRequireInstallationAndDoesNotLaunchAProcess() throws Exception {
         String key = "copperbench.agent.codex", old = System.getProperty(key);
         System.setProperty(key, workspace.resolve("missing-cli.exe").toString());
@@ -259,6 +292,83 @@ class AgentChatServiceTest {
             @Override void setup(AgentProvider provider) { fail("Tests must never open external setup"); }
             @Override void login(AgentProvider provider, Path root) { fail("Tests must never launch real authentication"); }
         });
+    }
+
+    @Test void handshakeNeverCreatesOrResumesAConversationOrMutatesWorkspaceFiles() throws Exception {
+        for (String id : List.of("codex", "claude", "grok", "deepseek")) {
+            String key = "copperbench.agent." + id, old = System.getProperty(key);
+            System.setProperty(key, wrapper(id).toString());
+            Path content = workspace.resolve("user-creation.txt"); Files.writeString(content, "unchanged");
+            try (AgentChatService service = service()) {
+                service.handle(AgentJson.object("operation", "checkConnection", "provider", id));
+                JsonObject done = await(service, snapshot -> !AgentJson.bool(snapshot, "checking"));
+                JsonObject provider = done.getAsJsonArray("providers").asList().stream().map(JsonElement::getAsJsonObject)
+                        .filter(item -> AgentJson.string(item, "id").equals(id)).findFirst().orElseThrow();
+                assertEquals("verified", AgentJson.string(AgentJson.child(provider, "connection"), "state"), done.toString());
+                assertEquals("protocol", AgentJson.string(AgentJson.child(provider, "connection"), "scope"));
+                assertTrue(done.getAsJsonArray("sessions").isEmpty());
+                assertFalse(Files.exists(workspace.resolve("fixture-frames.jsonl")));
+                assertEquals("unchanged", Files.readString(content));
+            } finally { restore(key, old); }
+        }
+    }
+
+    @Test void liveApprovalSnapshotHasLocalizedMetadataAndActiveHistoryCannotBeDeleted() throws Exception {
+        String key = "copperbench.agent.codex", old = System.getProperty(key);
+        System.setProperty(key, wrapper("codex").toString());
+        try (AgentChatService service = service()) {
+            service.handle(AgentJson.object("operation", "send", "provider", "codex", "text", "新创作"));
+            JsonObject waiting = await(service, snapshot -> AgentJson.string(snapshot, "state").equals("waiting_approval"));
+            JsonObject approval = waiting.getAsJsonArray("approvals").get(0).getAsJsonObject();
+            assertEquals("agent.commandApproval", AgentJson.string(AgentJson.child(approval, "titleText"), "key"));
+            assertTrue(AgentJson.string(AgentJson.child(approval.getAsJsonArray("choices").get(0).getAsJsonObject(), "labelText"), "en").contains("Allow"));
+            assertFalse(waiting.getAsJsonArray("messages").get(0).getAsJsonObject().has("textText"), "User input stays unchanged");
+            assertFalse(waiting.getAsJsonArray("sessions").get(0).getAsJsonObject().has("titleText"), "A user-derived title stays unchanged");
+            Path fixture = Path.of("build/agent-runtime-ui.json"); Files.createDirectories(fixture.getParent()); Files.writeString(fixture, waiting.toString());
+            JsonObject denied = service.handle(AgentJson.object("operation", "deleteConversation", "conversationId", AgentJson.string(waiting, "conversationId"), "confirmed", true));
+            assertEquals(1, denied.getAsJsonArray("sessions").size());
+            assertEquals("agent.activeDelete", AgentJson.string(AgentJson.child(denied, "errorText"), "key"));
+            service.handle(AgentJson.object("operation", "stop"));
+            JsonObject stopped = await(service, snapshot -> AgentJson.string(snapshot, "state").equals("idle"));
+            assertTrue(stopped.getAsJsonArray("messages").asList().stream().map(JsonElement::getAsJsonObject)
+                    .anyMatch(message -> AgentJson.string(AgentJson.child(message, "textText"), "key").equals("agent.stopped")));
+        } finally { restore(key, old); }
+    }
+
+    @Test void discoveredModelsDoNotSendPromptsAndTheSelectedModelSurvivesReopen() throws Exception {
+        String key = "copperbench.agent.codex", old = System.getProperty(key);
+        System.setProperty(key, wrapper("codex").toString());
+        String session;
+        try {
+            try (AgentChatService service = service()) {
+                service.handle(AgentJson.object("operation", "models", "provider", "codex"));
+                JsonObject done = await(service, snapshot -> snapshot.getAsJsonArray("providers").asList().stream()
+                        .map(JsonElement::getAsJsonObject).anyMatch(provider -> AgentJson.string(AgentJson.child(provider, "modelCatalog"), "state").equals("ready")));
+                JsonObject catalog = AgentJson.child(done.getAsJsonArray("providers").get(0).getAsJsonObject(), "modelCatalog");
+                assertEquals(2, catalog.getAsJsonArray("models").size());
+                assertEquals("fixture-model-a", AgentJson.string(catalog, "defaultModel"));
+                assertTrue(done.getAsJsonArray("sessions").isEmpty());
+                assertTrue(done.getAsJsonArray("messages").isEmpty());
+                assertFalse(Files.exists(workspace.resolve("fixture-frames.jsonl")));
+                JsonObject created = service.handle(AgentJson.object("operation", "new", "provider", "codex", "model", "fixture-model-b"));
+                session = AgentJson.string(created, "conversationId");
+                JsonObject rejected = service.handle(AgentJson.object("operation", "send", "provider", "codex", "conversationId", session, "model", "fixture-model-a", "text", "keep my draft"));
+                assertEquals("agent.modelFixed", AgentJson.string(AgentJson.child(rejected, "errorText"), "key"));
+                assertTrue(rejected.getAsJsonArray("messages").isEmpty());
+            }
+            try (AgentChatService service = service()) {
+                assertEquals("fixture-model-b", AgentJson.string(service.handle(new JsonObject()), "model"));
+                service.handle(AgentJson.object("operation", "send", "provider", "codex", "conversationId", session, "model", "fixture-model-b", "text", "create"));
+                await(service, snapshot -> AgentJson.string(snapshot, "state").equals("waiting_approval"));
+                var frames = Files.readAllLines(workspace.resolve("fixture-frames.jsonl")).stream().map(JsonParser::parseString).map(JsonElement::getAsJsonObject).toList();
+                for (String method : List.of("thread/start", "turn/start")) {
+                    JsonObject frame = frames.stream().filter(row -> AgentJson.string(row, "method").equals(method)).findFirst().orElseThrow();
+                    assertEquals("fixture-model-b", AgentJson.string(AgentJson.child(frame, "params"), "model"));
+                }
+                service.handle(AgentJson.object("operation", "stop"));
+                await(service, snapshot -> AgentJson.string(snapshot, "state").equals("idle"));
+            }
+        } finally { restore(key, old); }
     }
 
     private Path wrapper(String mode) throws Exception {
