@@ -3,6 +3,13 @@
   <h1>Copperbench</h1>
   <p><strong>Visual editing, manual Java and local Agent collaboration in one Minecraft mod project.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
+  <p>
+    <a href="https://github.com/Lotulune/Copperbench/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lotulune/Copperbench/test.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="Build and test status on main"></a>
+    <a href="docs/releases/current.md"><img src="https://img.shields.io/badge/App-Windows%20%7C%20Linux-7289da?style=flat-square" alt="App: Windows and Linux"></a>
+    <a href="docs/user/README.md"><img src="https://img.shields.io/badge/Loaders-Fabric%20%7C%20NeoForge-c77d48?style=flat-square" alt="Loaders: Fabric and NeoForge"></a>
+    <a href="#development"><img src="https://img.shields.io/badge/JDK-25-437a54?style=flat-square" alt="Development JDK: 25"></a>
+    <a href="LICENSE.txt"><img src="https://img.shields.io/badge/License-GPL--3.0--only-2ea44f?style=flat-square" alt="License: GPL-3.0-only"></a>
+  </p>
   <p><a href="docs/releases/current.md">Download</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
