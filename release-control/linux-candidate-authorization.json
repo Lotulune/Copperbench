@@ -2,32 +2,32 @@
   "schemaVersion": "1.0",
   "kind": "linux-release-authorization",
   "status": "approved",
-  "releaseTag": "v0.1.16-linux-stable",
+  "releaseTag": "v0.1.17-linux-stable",
   "releaseEligible": true,
   "formalSupportClaim": false,
-  "candidateId": "sha256:efae25788a134e82951fb8fea4eef612af79113322cacb5b2bff6bbeae54812f",
-  "candidateSourceCommit": "c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0",
-  "candidateWorkflowRunId": "39723695135",
-  "debSha256": "96cd39fba71273981e6b8accea18ba73b67f5c2213077b3a0aba1bc9fcd08ebb",
-  "portableSha256": "b27084b1a7875ba50a6c4e11306892a0e1f932624ba4d6b8b435b99dc5a1bf2b",
-  "validationReportPath": "docs/testing/maintenance-linux-0.1.16.md",
-  "validationReportSha256": "6fa140132774873c1488cc586ba725617e924d6188f9a923f98812392c9c9b59",
-  "acceptancePolicy": "maintenance-ci-0.1.16",
+  "candidateId": "sha256:bb277f99e8dc002eccdc427cad11d61f85ba2a29f1ac6f5b6af125c94fe40483",
+  "candidateSourceCommit": "81563c9bc6ae4371b662a65b1b0bbf5ce9e5e4cb",
+  "candidateWorkflowRunId": "39764178724",
+  "debSha256": "1ca009b4084868c12b79d7fd6d6341897ef696a62e49ca1d81b80978a01d117a",
+  "portableSha256": "9e4062ecdd57ddc7ff954befd60212d0ded123e20f84615e89c9ddec97fab3fc",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.17.md",
+  "validationReportSha256": "49ed132c28ef292faff8bfe0a8d10ce4db077b5e8189a659b4ac6abebeffde66",
+  "acceptancePolicy": "maintenance-ci-0.1.17",
   "fullInstalledAcceptance": "not-repeated",
   "maintenanceApproval": {
     "approved": true,
-    "releaseTag": "v0.1.16-linux-stable",
+    "releaseTag": "v0.1.17-linux-stable",
     "date": "2026-10-22",
-    "scope": "The user requested publication of new installers after committing the reviewed changes and processing the open PRs. Authorize only this exact main candidate after independent consumer run 39725586361 verified all 17 files, signed provenance and packaged content including the source-identical UI dependency license notices. Full installed/player acceptance was not repeated; formalSupportClaim remains false. Preserve signed latest-main tags, production review, source-delta restrictions and exact downloaded-draft comparison."
+    "scope": "The user requested merging the reviewed fixes and publishing new version packages with updated README/documentation. Authorize only this exact main candidate after independent consumer 39766634528 verified every frozen file, signed provenance and package content. Full installed/player acceptance was not repeated; formalSupportClaim remains false. Preserve signed latest-main tags, production review, allowed source delta and complete downloaded-draft comparison."
   },
   "candidateCi": {
     "run": {
-      "path": "evidence/maintenance/2026-10-22/linux-0116/candidate-run.json",
-      "sha256": "f3221443df5da8244bea8d86ec1633dc387558b98bc1fd823a73d31779df21e1"
+      "path": "evidence/maintenance/2026-10-22/linux-0117/candidate-run.json",
+      "sha256": "71d6a7fea1c797d1c5f8b57f476c5740c047e4e3698f24c51edbcc089a46a3ce"
     },
     "jobs": {
-      "path": "evidence/maintenance/2026-10-22/linux-0116/candidate-jobs.json",
-      "sha256": "143bb80b7c21337737e94d5628f096f7494e011d0121b0d94eca6ca8b6675727"
+      "path": "evidence/maintenance/2026-10-22/linux-0117/candidate-jobs.json",
+      "sha256": "d0ac74eca18dccdc3b85827d296040e76109edfd78c475a460c7548ad91e0604"
     }
   }
 }

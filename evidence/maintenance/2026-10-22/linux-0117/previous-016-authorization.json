@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.16-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:efae25788a134e82951fb8fea4eef612af79113322cacb5b2bff6bbeae54812f",
+  "candidateSourceCommit": "c87d2e0f0e924adc6ad31575aa5b06fe6da9dcf0",
+  "candidateWorkflowRunId": "39723695135",
+  "debSha256": "96cd39fba71273981e6b8accea18ba73b67f5c2213077b3a0aba1bc9fcd08ebb",
+  "portableSha256": "b27084b1a7875ba50a6c4e11306892a0e1f932624ba4d6b8b435b99dc5a1bf2b",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.16.md",
+  "validationReportSha256": "6fa140132774873c1488cc586ba725617e924d6188f9a923f98812392c9c9b59",
+  "acceptancePolicy": "maintenance-ci-0.1.16",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.16-linux-stable",
+    "date": "2026-10-22",
+    "scope": "The user requested publication of new installers after committing the reviewed changes and processing the open PRs. Authorize only this exact main candidate after independent consumer run 39725586361 verified all 17 files, signed provenance and packaged content including the source-identical UI dependency license notices. Full installed/player acceptance was not repeated; formalSupportClaim remains false. Preserve signed latest-main tags, production review, source-delta restrictions and exact downloaded-draft comparison."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-10-22/linux-0116/candidate-run.json",
+      "sha256": "f3221443df5da8244bea8d86ec1633dc387558b98bc1fd823a73d31779df21e1"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-10-22/linux-0116/candidate-jobs.json",
+      "sha256": "143bb80b7c21337737e94d5628f096f7494e011d0121b0d94eca6ca8b6675727"
+    }
+  }
+}

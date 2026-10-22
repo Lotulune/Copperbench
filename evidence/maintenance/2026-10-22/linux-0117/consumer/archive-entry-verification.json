@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "archive": "Copperbench 0.1.17 Linux x86_64.tar.gz",
+  "sourceCommit": "81563c9bc6ae4371b662a65b1b0bbf5ce9e5e4cb",
+  "productVersion": "0.1.17",
+  "entries": {
+    "docs/build/development-setup.md": {
+      "entry": "Copperbench0117/docs/build/development-setup.md",
+      "size": 6283,
+      "sha256": "dc4e8ad6c616d4bf4a81b2504c3df0867aaaca8cb86e0724c715aee14e403cdb"
+    },
+    "docs/releases/current.md": {
+      "entry": "Copperbench0117/docs/releases/current.md",
+      "size": 3089,
+      "sha256": "554aa1c9e8bd20ab28caf2312ca3d92cef8504ec8311d6fe51f26e24ec824991"
+    },
+    "docs/user/linux-installation.md": {
+      "entry": "Copperbench0117/docs/user/linux-installation.md",
+      "size": 5026,
+      "sha256": "1c607f709a3945f25384ee9dc03483493e8cb25013d4be460b983bc5a9d2bd29"
+    },
+    "lib/copperbench.jar": {
+      "entry": "Copperbench0117/lib/copperbench.jar",
+      "size": 8538062,
+      "sha256": "4ae79d0a7bcb73db14dd282a8a32904c46e51347edf766166d2f7126bb7ebe71",
+      "productVersion": "0.1.17",
+      "archiveRequestClassSha256": "04024d0c1363a3a9422148f6a3af9c442c234189bc2a90fcccf0758180a03e65",
+      "dataPackGatewayClassSha256": "13125e8172c5d61af0b08803a4f5fcbd2a5bdd1070b5b6f0d65afdc4ad534d26"
+    },
+    "license/Copperbench UI Dependency Licenses.txt": {
+      "entry": "Copperbench0117/license/Copperbench UI Dependency Licenses.txt",
+      "size": 69123,
+      "sha256": "e0bf667519d677902d6aa3ccde353a79e6bfad80f7bd1c410f98fafa2b1312b5"
+    },
+    "plugins/generator-1.20.1.zip": {
+      "entry": "Copperbench0117/plugins/generator-1.20.1.zip",
+      "size": 1076574,
+      "sha256": "e36787de48e1d510fcc1fadf3c491652f9f174084f56b89ba85f517f787cfc5b",
+      "sourceEntries": {
+        "datapack-1.20.1/generator.yaml": "525fff7a7b1bb6503a479e68e364ee1f4232bcb54e18334645d0c17cc6397200",
+        "datapack-1.20.1/workspacebase/gradle/wrapper/gradle-wrapper.properties": "fe7efbcfecf51c6f046eeb53d5543e103215db4c160babfc98d6bafef0662e02"
+      }
+    }
+  },
+  "scope": "Selected source-bound documents and UI license notices, packaged application version, legacy fix markers and template bytes; no installed or gameplay acceptance."
+}
