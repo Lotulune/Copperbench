@@ -7,8 +7,8 @@ ten SDK cases against a real loopback HTTP MCP transport. Their test host is
 transport reconnection or Minecraft gameplay.
 
 The scope clarification originally proposed in PRs #98/#99 is retained alongside
-the current [independent Nightly gates](agent-readiness-m2.md) and
-[real M1 delivery](agent-readiness-m1.md). Those gates retain their separate
+the current [independent Nightly gates](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-readiness-m2.md) and
+[real M1 delivery](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-readiness-m1.md). Those gates retain their separate
 execution and evidence; the older five-job Nightly proposal is not substituted
 for the current implementation.
 
@@ -59,4 +59,4 @@ original Core `WORKSPACE_REVISION_CONFLICT` diagnostic independently.
 Reports preserve nonzero failure exits and explicit scope. Output retention
 copies reports and server logs, not the connection file containing the token.
 The consolidated PR's actual results are in the
-[integration record](pr-consolidation-2026-10-11.md).
+[integration record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/pr-consolidation-2026-10-11.md).

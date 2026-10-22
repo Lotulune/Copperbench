@@ -50,7 +50,7 @@ build. The second is the Public Beta promotion gate and fails until 5/5 valid
 records exist for the explicitly selected commit and installer hash. That exact
 candidate EXE is subsequently reused byte-for-byte by the Beta publication
 contract rather than replaced by a fresh rebuild; see
-[Public Beta exact-binary promotion contract](./beta-exact-binary-promotion-2026-08-30.md).
+[Public Beta exact-binary promotion contract](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/beta-exact-binary-promotion-2026-08-30.md).
 The signed Beta release-source gate invokes this verifier again with
 `--require-complete` and the declared candidate commit/EXE hash, so changing a
 record or pointing the release at a different candidate closes the gate again.

@@ -1,6 +1,6 @@
 # Blockbench M4：安装版实际验证（首轮完成）
 
-整理提交时已将关键截图和哈希结果归档到[版本化验收证据](../../evidence/blockbench/2026-09-14/README.md)。本文的 `.tmp/` 路径仍指原始本机完整记录；后续分支整理和重新验证见[提交前检查](modeling-scripting-closeout-2026-09-14.md)。
+整理提交时已将关键截图和哈希结果归档到[版本化验收证据](../../evidence/blockbench/2026-09-14/README.md)。本文的 `.tmp/` 路径仍指原始本机完整记录；后续分支整理和重新验证见[提交前检查](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/modeling-scripting-closeout-2026-09-14.md)。
 
 截至 2026-09-14，R7 Windows 安装版与 Ubuntu TAR 解包安装版已完成真实社区 MCP 建模、原生编辑保存、编辑器开启时回导、绑定、构建、JAR 字节核对及游戏视觉验收，首轮 PRD 范围完成。历史章节保留各阶段失败与当时待办，最终结论见末尾 R7 两平台记录；不将历史“进行中”描述当作当前状态。测试范围已获用户授权，包括候选和独立编辑器、插件安装及本轮必要权限。Windows 临时内存调整已恢复 4 GiB，临时 Mesa 已移除。
 

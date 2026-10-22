@@ -1,6 +1,6 @@
 # Simple creation mode
 
-Status: implemented. Scoped validation and environment limits are recorded in [the verification report](../testing/simple-creation-2026-10-21.md).
+Status: implemented. Scoped validation and environment limits are recorded in [the verification report](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/simple-creation-2026-10-21.md).
 
 ## User flow
 

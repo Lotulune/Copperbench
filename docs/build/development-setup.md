@@ -115,4 +115,4 @@ Gradle 缓存目录；该选项只阻止跨目录借用，保留所选目录自�
 `get_workspace_environment.execution.gradle` 会报告 `userHome`、`userHomeSource`
 和 `reuseExternalDistributions`，doctor 使用同一后端事实。它们说明实际配置，
 不证明缓存内容完整或下载已经通过摘要校验。冷/热缓存安装回放及记录方式见
-[M3 固定任务卡](../testing/agent-readiness-m3-task-card.md#cold-and-warm-gradle-cache-runs)。
+[M3 固定任务卡](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/agent-readiness-m3-task-card.md#cold-and-warm-gradle-cache-runs)。

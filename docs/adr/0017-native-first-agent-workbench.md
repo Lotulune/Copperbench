@@ -9,7 +9,7 @@
 
 The user approved a general-Agent-first direction after the `eaf18606` source audit and requested a plain-Fabric comparison. Copperbench already has structured elements, multi-file `codeFiles`, Desktop MCP, plans, build tasks and local history. Those features do not by themselves establish an advantage over a coding Agent using a normal Gradle project.
 
-The source-runtime audit reproduced two content-integrity defects: two managed elements can claim/overwrite the same Java path; and a display-name-only update can overwrite an external edit with metadata-held code. Preview and recovery metadata are insufficient if the actual file boundary is wrong. See the [comparison and evidence](../testing/native-agent-survey-pulse-comparison-2026-09-07.md).
+The source-runtime audit reproduced two content-integrity defects: two managed elements can claim/overwrite the same Java path; and a display-name-only update can overwrite an external edit with metadata-held code. Preview and recovery metadata are insufficient if the actual file boundary is wrong. See the [comparison and evidence](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/native-agent-survey-pulse-comparison-2026-09-07.md).
 
 The later paired server bootstrap also found a generator-owned `ServerPlayerMixin` injection failure in the Fabric 1.21.1 fixture while the native fixture initialized and stopped at the unaccepted EULA boundary. This is a scoped, unrepaired functional defect (CB-AUDIT-03), not proof every supported generator or published binary fails. It must be investigated alongside 14A instead of deferred until the richer 14C verification UI exists.
 

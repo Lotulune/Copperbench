@@ -35,4 +35,4 @@
 
 Agent 应读取整个 `diagnostics` 数组，按字段修正后重试。计划预检也执行相同规则；计划可能只返回第一条阻断诊断，但其 `missingFields` 保留该元素的全部已知缺失字段。更新／预览使用 `/elements/{id}/…` 路径，返回第一个阻断问题。不要解析异常堆栈来猜字段，也不要用空字符串绕过纹理要求。
 
-预检失败不写入元素、不递增 revision；无法预检的后期失败仍通过原有事务回滚处理。对应回归检查及范围见[验证记录](../testing/first-success-2026-10-14.md)。
+预检失败不写入元素、不递增 revision；无法预检的后期失败仍通过原有事务回滚处理。对应回归检查及范围见[验证记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/first-success-2026-10-14.md)。

@@ -41,7 +41,7 @@ Debian 包可用 `sudo apt remove copperbench` 卸载；用户设置和自行选
 
 ## 0.1.17 发布与验证
 
-0.1.17 修复旧会话原位续聊、附件错误语言切换、长会话附件回收及窄窗口模式名称截断。13 项候选门禁、独立消费者核验、来源证明和草稿下载字节比对通过，18 项公开资产及 8 个更新组件的大小与 SHA-256 已核对；未重复完整 GNOME 安装、升级、卸载或玩家操作验收，详见[发布记录](../testing/linux-publication-0.1.17.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)和[0.1.4 记录](../testing/product-shell-linux-publication-0.1.4.md)保留原范围。
+0.1.17 修复旧会话原位续聊、附件错误语言切换、长会话附件回收及窄窗口模式名称截断。13 项候选门禁、独立消费者核验、来源证明和草稿下载字节比对通过，18 项公开资产及 8 个更新组件的大小与 SHA-256 已核对；未重复完整 GNOME 安装、升级、卸载或玩家操作验收，详见[发布记录](../testing/linux-publication-0.1.17.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)和[0.1.4 记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/product-shell-linux-publication-0.1.4.md)保留原范围。
 
 该版本变更见 [0.1.17 Linux 说明](../releases/v0.1.17-linux.md)；各平台当前版本见[当前下载](../releases/current.md)。
 
@@ -55,6 +55,6 @@ Debian 包可用 `sudo apt remove copperbench` 卸载；用户设置和自行选
 
 GitHub 将候选包文件名中的空格规范化为点；0.1.7 原候选清单使用 `Copperbench 0.1.7 Linux x86_64.tar.gz`，对应公开文件字节和 SHA-256 不变。
 
-0.1.7 包含双语离线安装器、输入诊断、首作教程及编辑器和生成器修复。候选 CI 通过包结构、隔离启动、双语安装器、JCEF X11 与 Fabric／NeoForge 1.21.1 渲染预检；经明确授权发布，未重做完整 GNOME 安装、偏好迁移或游戏验收，详见[发布记录](../testing/maintenance-release-0.1.7.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)仅适用于当时的包；[0.1.4 记录](../testing/product-shell-linux-publication-0.1.4.md)同样保留原范围。
+0.1.7 包含双语离线安装器、输入诊断、首作教程及编辑器和生成器修复。候选 CI 通过包结构、隔离启动、双语安装器、JCEF X11 与 Fabric／NeoForge 1.21.1 渲染预检；经明确授权发布，未重做完整 GNOME 安装、偏好迁移或游戏验收，详见[发布记录](../testing/maintenance-release-0.1.7.md)。[0.1.2 安装验收报告](../testing/maintenance-012-linux-installed-2026-09-28.md)仅适用于当时的包；[0.1.4 记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/product-shell-linux-publication-0.1.4.md)同样保留原范围。
 
 该版本变更见[历史 0.1.7 Linux 说明](../releases/v0.1.7-linux.md)。

@@ -16,7 +16,7 @@ Windows SmartScreen 的“已保护你的电脑”与安全软件给出的具体
 
 `copperbench-update-host.exe` 是 Windows 更新助手，会从本次更新的准备目录启动，参与系统授权、生成卸载程序和更新安装登记。替换程序文件是更新的必要操作；“入侵防护”“修改关键应用程序文件”等告警的具体判定仍需要检测规则或日志，不能只凭提示标题断定已经发生入侵或一定属于误报。
 
-0.1.12 的更新路径也会重新创建桌面和开始菜单快捷方式，与已报告的“修改快捷方式”提示对应。从 0.1.13 起，应用内更新保留现有快捷方式（包括用户修改或删除的选择），并避免失败回滚时重写未变化的文件。完整安装器仍创建开始菜单入口，并按用户选择创建桌面快捷方式。[修复验证记录](../testing/update-helper-2026-10-19.md)覆盖代码检查和实际弹窗显示；这是减少不必要的文件操作，不是安全软件复核结论。
+0.1.12 的更新路径也会重新创建桌面和开始菜单快捷方式，与已报告的“修改快捷方式”提示对应。从 0.1.13 起，应用内更新保留现有快捷方式（包括用户修改或删除的选择），并避免失败回滚时重写未变化的文件。完整安装器仍创建开始菜单入口，并按用户选择创建桌面快捷方式。[修复验证记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/update-helper-2026-10-19.md)覆盖代码检查和实际弹窗显示；这是减少不必要的文件操作，不是安全软件复核结论。
 
 2026-10-19 核查的已安装 0.1.12 助手 SHA-256 为 `cf3a00e602ce7fc4805f934f3abd0d57c07cf00d22d4babeb4926158410aa210`，与公开更新清单一致，签名状态为 `NotSigned`。截图所指临时缓存文件当时已清理，因此这项核对只覆盖已安装副本。助手的文件说明也会明确其更新与卸载维护职责；文件名、图标和说明不代替签名校验。
 
@@ -38,7 +38,7 @@ Windows SmartScreen reputation prompts differ from a specific malware detection.
 
 `copperbench-update-host.exe` runs from the prepared update directory and participates in elevation, uninstaller creation and installation registration. Replacing application files is necessary for an update. The precise reason for an intrusion or protected-file alert requires the vendor's rule or log; its title alone establishes neither an intrusion nor a false positive.
 
-The 0.1.12 update path also recreated desktop and Start menu shortcuts, matching the reported shortcut-modification prompt. Starting with 0.1.13, in-app updates preserve existing shortcuts, including user modifications or deletions, and avoid rewriting unchanged integration files during rollback. The full installer still creates Start menu entries and offers the desktop shortcut choice. The [validation record](../testing/update-helper-2026-10-19.md) covers source checks and the displayed dialogs. This removes unnecessary writes; it is not an antivirus review result.
+The 0.1.12 update path also recreated desktop and Start menu shortcuts, matching the reported shortcut-modification prompt. Starting with 0.1.13, in-app updates preserve existing shortcuts, including user modifications or deletions, and avoid rewriting unchanged integration files during rollback. The full installer still creates Start menu entries and offers the desktop shortcut choice. The [validation record](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/update-helper-2026-10-19.md) covers source checks and the displayed dialogs. This removes unnecessary writes; it is not an antivirus review result.
 
 The installed 0.1.12 helper inspected on 2026-10-19 has SHA-256 `cf3a00e602ce7fc4805f934f3abd0d57c07cf00d22d4babeb4926158410aa210`, matching the public update inventory, with Authenticode status `NotSigned`. The temporary file in the screenshots had already been cleaned up, so this comparison covers the installed copy only. Updated version resources identify its update/uninstall maintenance role; names, icons and descriptions do not replace signature verification.
 

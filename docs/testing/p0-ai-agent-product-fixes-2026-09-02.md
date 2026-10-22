@@ -2,7 +2,7 @@
 
 ## Scope and claim boundary
 
-This record covers the local implementation and pre-candidate replay for the four P0 items reopened by the external Agent installed-product evaluation in [`docs/handoffs/ai-agent-experience-fixes.md`](../handoffs/ai-agent-experience-fixes.md).
+This record covers the local implementation and pre-candidate replay for the four P0 items reopened by the external Agent installed-product evaluation in [`docs/handoffs/ai-agent-experience-fixes.md`](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/handoffs/ai-agent-experience-fixes.md).
 
 It is **not** a release-gate promotion record. The working tree is ahead of the last verified commit, and the repository policy requires commit-bound code/evidence plus a replay on the selected install/release candidate before a blocked product gate can become `passed`.
 

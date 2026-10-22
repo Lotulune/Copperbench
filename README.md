@@ -79,12 +79,9 @@ See the [user guide](docs/user/README.md) for feature and generator coverage. Be
 
 ## Documentation
 
-The key installation, first-creation, build/export and Agent routes have paired English and Simplified Chinese pages with same-topic language links.
-
-- [Documentation index](docs/README.md) · [First creation](docs/user/first-creation.en.md) · [Build recovery and export](docs/user/build-and-export.en.md)
-- [Agent onboarding](docs/ai/getting-started.en.md) · [The same Trail Block through public APIs](docs/ai/trail-block.en.md) · [SDK](sdk/README.md)
-- [Development setup](docs/build/development-setup.en.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
-- [Current status: downloads, source, preview and unverified](docs/status.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
+- [User guide](docs/user/README.md) · [Downloads](docs/releases/current.md) · [Troubleshooting](docs/user/troubleshooting.md)
+- [Agent setup](docs/ai/getting-started.en.md) · [SDK](sdk/README.md)
+- [Development setup](docs/build/development-setup.en.md) · [Contributing](CONTRIBUTING.md) · [Documentation index](docs/README.md)
 
 <a id="development"></a>
 
