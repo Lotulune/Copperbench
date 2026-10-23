@@ -111,5 +111,52 @@ class SafetyTest(unittest.TestCase):
             self.assertFalse(owned.exists())
 
 
+class UpgradeCleanupTest(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        root = Path(self.folder.name)
+        self.target, self.payload = root / "installed", root / "payload"
+        for directory in [self.target, self.payload]:
+            (directory / "lib").mkdir(parents=True)
+        (self.target / "lib/copperbench.jar").write_bytes(b"old application")
+        (self.payload / "lib/copperbench.jar").write_bytes(b"published new application")
+        self.previous_sha = runner.sha256(self.target / "lib/copperbench.jar")
+        self.receipt = {"backup": None, "backupCleanup": "confirmed"}
+        self.checkpoints = []
+        self.acceptance = runner.Acceptance.__new__(runner.Acceptance)
+        self.acceptance.bundles = {"v0.1.18": {"payload": self.payload, "manifest": root / "manifest",
+            "jar": root / "setup.jar", "registrar": root / "registrar"}}
+        def install(*args):
+            (self.target / "lib/copperbench.jar").write_bytes((self.payload / "lib/copperbench.jar").read_bytes())
+            return dict(self.receipt)
+        self.acceptance.probe = install
+        self.acceptance.registration = lambda target, version: {"version": version}
+        self.acceptance.checkpoint = lambda name, **data: self.checkpoints.append(data)
+
+    def test_cleaned_upgrade_records_old_and_new_application_hashes(self):
+        self.acceptance.install("v0.1.18", self.target, upgrade=True)
+        receipt = self.checkpoints[0]
+        self.assertEqual(receipt["result"]["previousApplicationSha256"], self.previous_sha)
+        self.assertEqual(receipt["applicationSha256"], runner.sha256(self.payload / "lib/copperbench.jar"))
+        self.assertNotEqual(receipt["applicationSha256"], self.previous_sha)
+
+    def test_retained_backup_is_a_cleanup_failure(self):
+        self.receipt["backup"] = str(self.target.parent / "Copperbench-previous-unremoved")
+        with self.assertRaisesRegex(AssertionError, "cleanup was not confirmed"):
+            self.acceptance.install("v0.1.18", self.target, upgrade=True)
+        self.assertEqual(self.checkpoints, [])
+
+    def test_missing_cleanup_receipt_cannot_pass(self):
+        self.receipt.pop("backupCleanup")
+        with self.assertRaisesRegex(AssertionError, "cleanup was not confirmed"):
+            self.acceptance.install("v0.1.18", self.target, upgrade=True)
+
+    def test_unchanged_application_cannot_pass_as_an_upgrade(self):
+        (self.payload / "lib/copperbench.jar").write_bytes(b"old application")
+        with self.assertRaisesRegex(AssertionError, "did not replace"):
+            self.acceptance.install("v0.1.18", self.target, upgrade=True)
+
+
 if __name__ == "__main__":
     unittest.main()
