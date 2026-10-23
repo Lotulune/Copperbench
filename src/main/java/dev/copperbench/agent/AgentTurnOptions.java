@@ -9,8 +9,9 @@ record AgentTurnOptions(String effort, String permission) {
     static final Set<String> EFFORTS = Set.of("low", "medium", "high", "xhigh", "max");
 
     AgentTurnOptions {
-        if (effort != null && !EFFORTS.contains(effort)) throw new IllegalArgumentException("思考强度无效");
-        if (!Set.of("default", "auto-approve").contains(permission)) throw new IllegalArgumentException("权限选项无效");
+        // Catalogs advertise non-empty effort identifiers; the Codex adapter validates per-model membership.
+        if (effort != null && !effort.matches("[a-z][a-z0-9_-]{0,63}")) throw new IllegalArgumentException("思考强度无效");
+        if (!Set.of("default", "auto-approve", "read-only", "full-access").contains(permission)) throw new IllegalArgumentException("权限选项无效");
     }
 
     static AgentTurnOptions from(JsonObject request, AgentTurnOptions fallback) {

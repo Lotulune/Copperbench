@@ -108,6 +108,13 @@ final class AgentProcess implements AutoCloseable {
 
     /** Captured before any owned process is terminated; distinguishes genuine failure from our teardown. */
     Integer exitBeforeTeardown() { return exitBeforeTeardown; }
+    com.google.gson.JsonArray resourceEvidence() {
+        com.google.gson.JsonArray result = new com.google.gson.JsonArray();
+        result.add(AgentJson.object("pid", process.pid(), "role", "launcher", "alive", process.isAlive()));
+        descendants.forEach((child, started) -> result.add(AgentJson.object("pid", child.pid(), "role", "descendant",
+                "startedAt", started.map(Instant::toString).orElse(null), "alive", sameLiveProcess(child, started))));
+        return result;
+    }
 
     @Override public void close() {
         if (!closing.compareAndSet(false, true)) {

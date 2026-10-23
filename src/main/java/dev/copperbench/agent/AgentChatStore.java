@@ -22,6 +22,7 @@ final class AgentChatStore {
         String remoteId;
         String model;
         AgentTurnOptions options = AgentTurnOptions.DEFAULT;
+        AgentRunSettings runSettings;
         long updatedAt;
         final JsonArray messages;
         // Native CLI history can still read attachments after their visible messages expire.
@@ -42,7 +43,8 @@ final class AgentChatStore {
             JsonObject result = summary(); result.addProperty("remoteId", remoteId);
             JsonArray retained = new JsonArray(); retainedAttachmentIds.forEach(retained::add);
             result.add("retainedAttachmentIds", retained);
-            result.addProperty("interrupted", interrupted); result.add("messages", messages); return result;
+            result.addProperty("interrupted", interrupted); result.add("messages", messages);
+            if (runSettings != null) result.add("runSettings", runSettings.json()); return result;
         }
         void retainAttachments(JsonObject message) {
             for (JsonElement item : AgentJson.list(message, "attachments"))
@@ -63,6 +65,9 @@ final class AgentChatStore {
         if (Files.size(file) > MAX_FILE_BYTES) { unreadable = true; throw new IOException("创作记录超过读取上限，请保留并整理 " + file); }
         try {
             JsonObject data = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+            String savedRoot = AgentJson.string(data, "canonicalRoot");
+            if (!savedRoot.isEmpty() && !savedRoot.equals(file.getParent().getParent().getParent().toRealPath().toString()))
+                throw new IOException("Agent history belongs to a different project directory; original history was preserved");
             if (!"1".equals(AgentJson.string(data, "schemaVersion"))) throw new JsonParseException("Unknown history schema");
             JsonArray saved = AgentJson.list(data, "sessions");
             if (saved.size() > 100) throw new JsonParseException("Too many conversations");
@@ -112,6 +117,7 @@ final class AgentChatStore {
                 }
                 conversation.interrupted = AgentJson.bool(session, "interrupted");
                 conversation.options = AgentTurnOptions.from(session, AgentTurnOptions.DEFAULT);
+                if (session.has("runSettings")) conversation.runSettings = AgentRunSettings.parse(session.get("runSettings"));
                 conversation.defaultTitle = AgentJson.bool(session, "defaultTitle");
                 if (sessions.putIfAbsent(id, conversation) != null) throw new JsonParseException("Duplicate conversation");
             }
@@ -138,7 +144,8 @@ final class AgentChatStore {
 
     private String serialized() {
         JsonArray entries = new JsonArray(); sessions.values().forEach(session -> entries.add(session.json()));
-        return AgentJson.object("schemaVersion", "1", "selectedConversationId", selected, "sessions", entries).toString();
+        return AgentJson.object("schemaVersion", "1", "canonicalRoot", file.getParent().getParent().getParent().toString(),
+                "selectedConversationId", selected, "sessions", entries).toString();
     }
 
     JsonObject capacity() {

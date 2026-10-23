@@ -1,4 +1,5 @@
 import { elementLabel } from '../i18n/labels';
+import { ElementVisualPreview } from './ElementVisualPreview';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   X,
@@ -1136,7 +1137,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           >
             {uiText("正在加载…", "Loading…")}</div>
         ) : (
-          editor.sections.map((section) => (
+          <>
+          {state.workbench?.workspace.id && <ElementVisualPreview workspaceId={state.workbench.workspace.id} element={editor.element} changes={pending.changes} />}
+          {editor.sections.map((section) => (
             <section className="element-editor-section" key={section.id}>
               <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sub)', letterSpacing: '0.5px' }}>
                 {t(section.title)}
@@ -1284,7 +1287,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 );
               })}
             </section>
-          ))
+          ))}
+          </>
         )}
       </div>
 

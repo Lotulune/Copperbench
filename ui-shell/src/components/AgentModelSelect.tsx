@@ -5,9 +5,10 @@ import { agentText, validModelId, type AgentModelCatalog } from '../bridge/agent
 import { uiText } from '../i18n';
 import './agentModels.css';
 
-export function AgentModelSelect({ value, usesSessionModel = false, catalog, disabled, active, onChange, onRefresh }: {
+export function AgentModelSelect({ value, usesSessionModel = false, catalog, disabled, active, onChange, onRefresh, testId = 'simple-model' }: {
   value: string; usesSessionModel?: boolean; catalog?: AgentModelCatalog; disabled: boolean; active: boolean;
   onChange: (model: string) => void; onRefresh: () => void;
+  testId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -56,7 +57,7 @@ export function AgentModelSelect({ value, usesSessionModel = false, catalog, dis
   };
   useEffect(() => { if (open) document.getElementById(`${id}-option-${highlight}`)?.scrollIntoView({ block: 'nearest' }); }, [open, highlight, id]);
   return <>
-    <button type="button" ref={trigger} className="creation-select-trigger creation-model-trigger" data-testid="simple-model" data-model-value={value}
+    <button type="button" ref={trigger} className="creation-select-trigger creation-model-trigger" data-testid={testId} data-model-value={value}
       aria-label={`${uiText('模型', 'Model')}: ${value || emptyLabel}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined}
       title={value || undefined} disabled={disabled} onClick={() => open ? setOpen(false) : expand()}>
       <span>{chosen?.label || value || emptyLabel}</span><ChevronDown size={13} aria-hidden="true" />

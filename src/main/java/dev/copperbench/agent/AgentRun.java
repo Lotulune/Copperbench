@@ -18,6 +18,7 @@ final class AgentRun implements AgentProtocol.Channel {
         void question(String id, String title, String detail, JsonArray choices, boolean multiSelect, boolean allowCustom, Consumer<List<String>> answer);
         void removeApproval(String id);
         void running();
+        default void execution(JsonObject evidence) { }
         void finished(boolean success, boolean stopped, String error);
     }
     record Outcome(boolean success, boolean interrupted, String error) { }
@@ -34,6 +35,7 @@ final class AgentRun implements AgentProtocol.Channel {
     private volatile boolean shuttingDown;
     private volatile boolean outputClosed;
     private final StringBuilder stderr = new StringBuilder();
+    private final JsonObject evidence = AgentJson.object("cleanup", "pending");
 
     AgentRun(AgentProvider provider, AgentWorkspaceContext context, String remoteId, Listener listener) {
         this(provider, context, remoteId, null, listener);
@@ -43,10 +45,17 @@ final class AgentRun implements AgentProtocol.Channel {
     }
     AgentRun(AgentProvider provider, AgentWorkspaceContext context, String remoteId, String model,
              AgentTurnOptions options, List<AgentAttachments.Item> attachments, Listener listener) {
+        this(provider, context, remoteId, model, options, attachments, listener, null);
+    }
+    AgentRun(AgentProvider provider, AgentWorkspaceContext context, String remoteId, String model,
+             AgentTurnOptions options, List<AgentAttachments.Item> attachments, Listener listener, AgentRunSettings settings) {
         this.provider = provider; this.context = context; this.listener = listener;
+        if (!provider.id().equals("codex") && !Set.of("default", "auto-approve").contains(options.permission()))
+            throw new IllegalArgumentException("This permission profile is only supported by Codex");
         protocol = AgentProtocol.create(provider.id(), this, context.root(), remoteId);
         protocol.useModel(model);
         protocol.configure(options, attachments);
+        if (settings != null) protocol.runSettings(settings);
         // Streaming CLIs can replay the submitted image blocks. Keep the bound tied to admitted input.
         outputLimit = AgentProcess.MAX_LINE + (int) attachments.stream().filter(AgentAttachments.Item::image).mapToLong(item -> (item.size() + 2) / 3 * 4).sum();
     }
@@ -73,6 +82,9 @@ final class AgentRun implements AgentProtocol.Channel {
             if (stopped.get()) throw new CancellationException();
             AgentProcess launched = new AgentProcess(provider.executable(), protocol.arguments(), context.root());
             process = launched;
+            evidence.addProperty("pid", launched.process.pid());
+            launched.process.info().startInstant().ifPresent(start -> evidence.addProperty("processStartedAt", start.toString()));
+            listener.execution(evidence.deepCopy());
             if (stopped.get()) throw new CancellationException();
             outputReader = Thread.startVirtualThread(() -> readOutput(launched));
             errorReader = Thread.startVirtualThread(() -> readErrors(launched));
@@ -104,17 +116,24 @@ final class AgentRun implements AgentProtocol.Channel {
                 // after its SUCCESS frame, and its installed streaming process can remain alive after EOF.
                 joinReader(outputReader); joinReader(errorReader);
                 Integer naturalExit = current.exitBeforeTeardown();
+                if (naturalExit != null) evidence.addProperty("exitCode", naturalExit);
                 if (naturalExit != null && naturalExit != 0 && result != null && !result.interrupted())
                     result = new Outcome(false, false, "CLI 退出码 " + naturalExit + diagnosticTail());
                 String protocolError = protocol.completionError();
                 if (protocolError != null && result != null && !result.interrupted())
                     result = new Outcome(false, false, protocolError);
-                if (current.process.isAlive() || current.hasLiveChildren())
+                boolean live = current.process.isAlive() || current.hasLiveChildren();
+                evidence.addProperty("cleanup", live ? "unconfirmed" : "confirmed");
+                evidence.add("resources", current.resourceEvidence());
+                evidence.addProperty("stopMethod", stopped.get() ? "protocol_then_owned_process_tree" : "owned_process_tree_teardown");
+                if (live)
                     result = new Outcome(false, false, "CLI 子进程未能完全停止，请在系统进程管理器中检查 " + provider.label());
-            }
+            } else evidence.addProperty("cleanup", "not_needed");
             requests.values().forEach(request -> request.completeExceptionally(new IOException("CLI 连接已关闭")));
             requests.clear();
             if (result == null) result = new Outcome(false, stopped.get(), "CLI 未返回有效结果");
+            evidence.addProperty("endReason", result.success() ? "provider_completed" : result.interrupted() ? "interrupted" : "failed");
+            listener.execution(evidence.deepCopy());
             listener.finished(result.success(), result.interrupted(), result.error());
         }
     }
@@ -246,9 +265,10 @@ final class AgentRun implements AgentProtocol.Channel {
             AgentProcess target = process;
             if (target != null) target.close();
         });
-        protocol.stop();
+        Thread.startVirtualThread(() -> { try { protocol.stop(); } catch (RuntimeException failure) { fail(failure.getMessage()); } });
     }
 
+    boolean stopRequested() { return stopped.get(); }
     void forceClose() { stop(); AgentProcess target = process; if (target != null) target.close(); }
     private void fail(String error) {
         outcome.complete(new Outcome(false, stopped.get(), AgentJson.bounded(error, 4000)));
@@ -268,4 +288,5 @@ final class AgentRun implements AgentProtocol.Channel {
         outcome.complete(new Outcome(success, interrupted, error));
     }
     @Override public void ready() { listener.running(); }
+    @Override public void effectiveSettings(JsonObject settings) { evidence.add("settings", AgentJson.redactedTree(settings)); listener.execution(evidence.deepCopy()); }
 }

@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -270,6 +272,30 @@ class BlockbenchProcessServiceTest {
 		first.close();
 		assertEquals(BlockbenchProcessService.State.RUNNING, second.openAsset(model.id()).state());
 		second.close();
+	}
+
+	@Test void closingDuringOsProcessCreationDestroysTheLateProcessAndReleasesItsLease() throws Exception {
+		Path executable = Files.write(temp.resolve("Blockbench.exe"), new byte[] { 1 });
+		CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);
+		FakeProcess lateProcess = new FakeProcess(303);
+		try (var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable, command -> {
+			entered.countDown();
+			try {
+				if (!release.await(10, TimeUnit.SECONDS)) throw new IOException("Test did not release process creation");
+			} catch (InterruptedException exception) { Thread.currentThread().interrupt(); throw new IOException(exception); }
+			return lateProcess;
+		}); var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+			var opened = executor.submit(() -> service.openAsset(model.id()));
+			try {
+				assertTrue(entered.await(2, TimeUnit.SECONDS));
+				executor.submit(service::closeAsync).get(2, TimeUnit.SECONDS);
+			} finally { release.countDown(); }
+			assertEquals(BlockbenchProcessService.State.FAILED, opened.get(2, TimeUnit.SECONDS).state());
+			assertTrue(lateProcess.destroyed);
+			try (var lease = AssetTaskLease.tryAcquire(workspace, model.id()).orElseThrow()) {
+				assertThrows(IllegalStateException.class, () -> service.openAsset(model.id()));
+			}
+		}
 	}
 
 	@Test void internalLeaseFilesAreNotIndexedAsAssets() throws IOException {

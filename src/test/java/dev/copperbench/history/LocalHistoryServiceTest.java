@@ -11,12 +11,15 @@ package dev.copperbench.history;
 
 import dev.copperbench.core.contract.UiCore.Actor;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -34,6 +37,84 @@ class LocalHistoryServiceTest {
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-17T00:00:00Z"), ZoneOffset.UTC);
 
 	@TempDir Path workspace;
+
+	@Test void checkpointCapturesContentRewrittenWithTheSameSizeAndTimestamp() throws Exception {
+		Path source = workspace.resolve("model.json");
+		Files.writeString(source, "{\"value\":1}");
+		// Keep the stat metadata well outside JGit's racy-index window before the first snapshot.
+		Files.setLastModifiedTime(source, FileTime.from(Instant.parse("2020-01-01T00:00:00Z")));
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			RecoveryPoint before = history.createRecoveryPoint(new RecoveryPointRequest("Before rewrite", Actor.UI, ""));
+			FileTime timestamp = Files.getLastModifiedTime(source);
+			Files.writeString(source, "{\"value\":2}");
+			Files.setLastModifiedTime(source, timestamp);
+			RecoveryPoint after = history.createRecoveryPoint(new RecoveryPointRequest("After rewrite", Actor.UI, ""));
+			assertEquals(after.id(), history.currentRecoveryPointId());
+			assertEquals(1, history.compare(before.id(), after.id()).size());
+			history.restore(before.id());
+			assertEquals("{\"value\":1}", Files.readString(source));
+			history.restore(after.id());
+			assertEquals("{\"value\":2}", Files.readString(source));
+		}
+	}
+
+	@Test void incrementalStagingPreservesTrackedIgnoredFilesAndFileDirectoryReplacements() throws Exception {
+		Path removed = workspace.resolve("removed/source.txt");
+		Path trackedIgnored = workspace.resolve("ignored/tracked.txt");
+		Path fileToDirectory = workspace.resolve("file_to_directory");
+		Path directoryToFile = workspace.resolve("directory_to_file");
+		Files.createDirectories(removed.getParent());
+		Files.createDirectories(trackedIgnored.getParent());
+		Files.createDirectories(directoryToFile);
+		Files.writeString(removed, "old removed file");
+		Files.writeString(trackedIgnored, "tracked before ignore");
+		Files.writeString(fileToDirectory, "old standalone file");
+		Files.writeString(directoryToFile.resolve("child.txt"), "old nested file");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			RecoveryPoint before = history.createRecoveryPoint(new RecoveryPointRequest("Before replacements", Actor.UI, ""));
+			Files.delete(removed);
+			Files.delete(fileToDirectory);
+			Files.createDirectory(fileToDirectory);
+			Files.writeString(fileToDirectory.resolve("new.txt"), "new nested file");
+			Files.delete(directoryToFile.resolve("child.txt"));
+			Files.delete(directoryToFile);
+			Files.writeString(directoryToFile, "new standalone file");
+			Files.writeString(workspace.resolve(".gitignore"), "/ignored/\n");
+			Files.writeString(trackedIgnored, "updated tracked content");
+			Path untrackedIgnored = workspace.resolve("ignored/untracked.txt");
+			Files.writeString(untrackedIgnored, "untracked ignored content");
+			RecoveryPoint after = history.createRecoveryPoint(new RecoveryPointRequest("After replacements", Actor.UI, ""));
+			assertEquals("updated tracked content", recoveryContent(after, "ignored/tracked.txt"));
+			assertNull(recoveryContent(after, "ignored/untracked.txt"));
+			assertEquals(after.id(), history.currentRecoveryPointId());
+			Files.writeString(untrackedIgnored, "ignored external rewrite");
+			assertEquals(after.id(), history.currentRecoveryPointId());
+			Files.writeString(trackedIgnored, "another tracked edit");
+			assertNull(history.currentRecoveryPointId());
+			RestoreResult restored = history.restore(after.id());
+			assertEquals("updated tracked content", Files.readString(trackedIgnored));
+			assertTrue(restored.changedPaths().contains("ignored/tracked.txt"));
+			assertFalse(Files.exists(removed));
+			assertEquals("new nested file", Files.readString(fileToDirectory.resolve("new.txt")));
+			assertEquals("new standalone file", Files.readString(directoryToFile));
+			assertEquals("ignored external rewrite", Files.readString(untrackedIgnored));
+			history.restore(before.id());
+			assertEquals("old removed file", Files.readString(removed));
+			assertEquals("old standalone file", Files.readString(fileToDirectory));
+			assertEquals("old nested file", Files.readString(directoryToFile.resolve("child.txt")));
+			assertEquals("tracked before ignore", Files.readString(trackedIgnored));
+			assertEquals("ignored external rewrite", Files.readString(untrackedIgnored));
+		}
+	}
+
+	private String recoveryContent(RecoveryPoint point, String path) throws Exception {
+		try (var repository = new FileRepositoryBuilder()
+				.setGitDir(workspace.resolve(".copperbench/local-history.git").toFile())
+				.setWorkTree(workspace.toFile()).build();
+				var tree = TreeWalk.forPath(repository, path, repository.resolve(point.id() + "^{tree}"))) {
+			return tree == null ? null : new String(repository.open(tree.getObjectId(0)).getBytes(), StandardCharsets.UTF_8);
+		}
+	}
 
 	@Test void recoveryStatusIsReadOnlyEvenWhileTheIndexIsLocked() throws Exception {
 		Path source = workspace.resolve("workspace.mcreator");

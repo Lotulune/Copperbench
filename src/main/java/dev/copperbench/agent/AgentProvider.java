@@ -28,6 +28,9 @@ record AgentProvider(String id, String label, Path executable, String version, S
                 "executable", executable == null ? null : executable.toString(), "setupUrl", setupUrl,
                 "loginAvailable", executable != null && !id.equals("deepseek"));
         result.addProperty("checkAvailable", !id.equals("antigravity"));
+        result.add("capabilities", AgentJson.object("structuredEvents", true, "interactivePermission", !id.equals("antigravity"),
+                "sessionResume", true, "cancellation", "both", "usageReporting", false,
+                "runSettings", id.equals("codex"), "permissionProfile", id.equals("codex") ? "workspace-write / on-request" : "provider configuration"));
         if (version != null && !version.isBlank()) result.addProperty("version", version);
         if (discoveryError != null) AgentCopy.put(result, "error", AgentJson.bounded(discoveryError, 512));
         result.addProperty("detection", executable == null ? "missing" : discoveryError != null ? "version_failed" : version == null ? "found" : "ready");

@@ -6,6 +6,14 @@ import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 export interface DraftAttachment { key: string; name: string; size: number; state: 'uploading' | 'ready' | 'failed'; item?: AgentAttachment; error?: UiMessage }
 const MAX_COUNT = 8, MAX_FILE = 10 * 1024 * 1024, MAX_TOTAL = 20 * 1024 * 1024, CHUNK = 256 * 1024;
 const message = attachmentErrorMessage;
+let nativeTargetOwner: string | null = null;
+let nativeTargetUpdates: Promise<void> = Promise.resolve();
+function updateNativeTarget(target: string, host: Parameters<typeof attachmentRequest>[1]) {
+  nativeTargetUpdates = nativeTargetUpdates.catch(() => {}).then(async () => {
+    await attachmentRequest({ operation: 'attachmentTarget', target }, host);
+  });
+  return nativeTargetUpdates;
+}
 
 /** Draft ownership survives conversation changes; uploads never submit a model request. */
 export function useAgentAttachments(workspaceId: string | undefined, draftKey: string, active: boolean) {
@@ -14,6 +22,7 @@ export function useAgentAttachments(workspaceId: string | undefined, draftKey: s
   const [selecting, setSelecting] = useState(false);
   const current = useRef(drafts); current.current = drafts;
   const generation = useRef(0);
+  const nativeOwner = useRef(safeRandomUUID());
   const transfers = useRef(new Map<string, { cancelled: boolean; id?: string }>());
   const update = useCallback((key: string, change: (files: DraftAttachment[]) => DraftAttachment[]) => {
     setDrafts(previous => { const next = { ...previous, [key]: change(previous[key] ?? []) }; current.current = next; return next; });
@@ -33,9 +42,16 @@ export function useAgentAttachments(workspaceId: string | undefined, draftKey: s
   }, [workspaceId]);
 
   useEffect(() => {
-    if (!window.__COPPERBENCH_AGENT_HOST__ || !workspaceId) return;
-    void attachmentRequest({ operation: 'attachmentTarget', target: active ? draftKey : '' }).catch(failure => { if (active) setError(message(failure)); });
-    return () => { void attachmentRequest({ operation: 'attachmentTarget', target: '' }).catch(() => {}); };
+    const host = window.__COPPERBENCH_AGENT_HOST__;
+    if (!host || !workspaceId || !active) return;
+    const owner = nativeOwner.current;
+    nativeTargetOwner = owner;
+    void updateNativeTarget(`${draftKey}:${owner}`, host).catch(failure => { if (nativeTargetOwner === owner) setError(message(failure)); });
+    return () => {
+      if (nativeTargetOwner !== owner) return;
+      nativeTargetOwner = null;
+      void updateNativeTarget('', host).catch(() => {});
+    };
   }, [active, draftKey, workspaceId]);
 
   const addFiles = useCallback(async (files: File[]) => {
@@ -104,8 +120,9 @@ export function useAgentAttachments(workspaceId: string | undefined, draftKey: s
     const dropped = (event: Event) => {
       try {
         const result = parseAttachmentReply((event as CustomEvent).detail);
-        if (!result.target?.startsWith(`${workspaceId}:`) || !result.attachments) return;
-        admitSelected(result.target, result.attachments);
+        const suffix = `:${nativeOwner.current}`;
+        if (!result.target?.startsWith(`${workspaceId}:`) || !result.target.endsWith(suffix) || !result.attachments) return;
+        admitSelected(result.target.slice(0, -suffix.length), result.attachments);
       } catch (failure) { setError(message(failure)); }
     };
     window.addEventListener('copperbench:agent-attachments', dropped);

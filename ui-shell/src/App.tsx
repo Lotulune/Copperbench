@@ -33,6 +33,8 @@ import { FeedbackHost } from './components/FeedbackHost';
 import { WorkbenchModeProvider, useWorkbenchMode } from './context/WorkbenchModeContext';
 import { WorkbenchTourProvider } from './onboarding/WorkbenchTour';
 import { SimpleCreationView } from './components/SimpleCreationView';
+import { AgentProvider } from './context/AgentContext';
+import { ProfessionalAgentPanel, AgentPanelToggle } from './components/ProfessionalAgentPanel';
 import './styles/global.css';
 import './styles/workbench.css';
 import './styles/motion.css';
@@ -73,7 +75,7 @@ const ShellContent: React.FC = () => {
         {!simple && <NavRail />}
 
         <main className="app-content-canvas" data-active-view={activeView}>
-          {!simple && <WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} />}
+          {!simple && <div className="professional-navigation"><WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} /><AgentPanelToggle /></div>}
           <SimpleCreationView active={simple}>
           <div className="workbench-view-content" ref={contentRef}>
           {activeView === 'hub' && <WorkspaceHub />}
@@ -96,6 +98,8 @@ const ShellContent: React.FC = () => {
 
           <TaskDrawer />
         </main>
+        <ProfessionalAgentPanel />
+        <AgentPanelToggle activity />
       </div>
 
       {/* Global Status Footer */}
@@ -122,7 +126,7 @@ const ShellContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <WorkbenchProvider>
-      <WorkbenchModeProvider><FirstCreationProvider><WorkbenchTourProvider><ShellContent /></WorkbenchTourProvider></FirstCreationProvider></WorkbenchModeProvider>
+      <WorkbenchModeProvider><AgentProvider><FirstCreationProvider><WorkbenchTourProvider><ShellContent /></WorkbenchTourProvider></FirstCreationProvider></AgentProvider></WorkbenchModeProvider>
     </WorkbenchProvider>
   );
 };

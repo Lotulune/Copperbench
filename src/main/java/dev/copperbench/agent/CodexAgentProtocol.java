@@ -14,6 +14,7 @@ final class CodexAgentProtocol implements AgentProtocol {
     private volatile String turnId;
     private String selectedModel;
     private AgentTurnOptions options = AgentTurnOptions.DEFAULT;
+    private AgentRunSettings explicitSettings;
     private List<AgentAttachments.Item> attachments = List.of();
     CodexAgentProtocol(Channel channel, Path workspace, String threadId) { this.channel = channel; this.workspace = workspace; this.threadId = threadId; }
     @Override public List<String> arguments() { return List.of("app-server"); }
@@ -21,6 +22,7 @@ final class CodexAgentProtocol implements AgentProtocol {
     @Override public void configure(AgentTurnOptions options, List<AgentAttachments.Item> attachments) {
         this.options = options; this.attachments = attachments;
     }
+    @Override public void runSettings(AgentRunSettings settings) { explicitSettings = settings; }
 
     @Override public JsonObject models() throws Exception {
         check(); JsonArray models = new JsonArray(); String cursor = null, preferred = null; Set<String> cursors = new HashSet<>();
@@ -31,6 +33,14 @@ final class CodexAgentProtocol implements AgentProtocol {
             for (JsonElement value : AgentJson.list(result, "data")) {
                 JsonObject row = value.getAsJsonObject(); String model = AgentJson.required(row, "model");
                 AgentModels.add(models, model, AgentJson.string(row, "displayName"));
+                JsonObject projected = models.asList().stream().map(JsonElement::getAsJsonObject)
+                        .filter(item -> model.equals(AgentJson.string(item, "id"))).findFirst().orElseThrow();
+                JsonArray efforts = new JsonArray();
+                for (JsonElement level : AgentJson.list(row, "supportedReasoningEfforts")) {
+                    String effort = AgentJson.string(level.getAsJsonObject(), "reasoningEffort");
+                    if (effort.matches("[a-z][a-z0-9_-]{0,63}")) efforts.add(effort);
+                }
+                projected.add("efforts", efforts); projected.addProperty("defaultEffort", AgentJson.string(row, "defaultReasoningEffort"));
                 if (AgentJson.bool(row, "isDefault")) preferred = model;
             }
             cursor = AgentJson.string(result, "nextCursor");
@@ -46,8 +56,13 @@ final class CodexAgentProtocol implements AgentProtocol {
     }
     @Override public void start(String text, String instructions) throws Exception {
         check();
-        JsonObject params = AgentJson.object("cwd", workspace.toString(), "approvalPolicy", options.autoApprove() ? "never" : "on-request",
-                "sandbox", options.autoApprove() ? "danger-full-access" : "workspace-write", "developerInstructions", instructions);
+        AgentRunSettings settings = explicitSettings == null ? AgentRunSettings.from(selectedModel, options) : explicitSettings;
+        String effort = options.effort();
+        if (explicitSettings != null || Set.of("read-only", "full-access").contains(options.permission())) {
+            JsonObject catalog = CodexModelCatalog.read(channel::rpc); settings.validate(catalog); effort = settings.effectiveEffort(catalog);
+        }
+        JsonObject params = AgentJson.object("cwd", workspace.toString(), "approvalPolicy", settings.approval(),
+                "sandbox", settings.sandbox(), "developerInstructions", instructions);
         if (selectedModel != null) params.addProperty("model", selectedModel);
         String method = "thread/start";
         if (threadId != null) { method = "thread/resume"; params.addProperty("threadId", threadId); }
@@ -57,9 +72,11 @@ final class CodexAgentProtocol implements AgentProtocol {
         for (AgentAttachments.Item item : attachments) if (item.image()) input.add(AgentJson.object("type", "localImage", "path", item.path().toString()));
         JsonObject request = AgentJson.object("threadId", threadId, "input", input);
         if (selectedModel != null) request.addProperty("model", selectedModel);
-        if (options.effort() != null) request.addProperty("effort", options.effort());
+        if (effort != null && !effort.isEmpty()) request.addProperty("effort", effort);
         JsonObject turn = channel.rpc("turn/start", request);
         turnId = AgentJson.required(AgentJson.child(turn, "turn"), "id");
+        channel.effectiveSettings(AgentJson.object("model", response.get("model"), "effort", effort == null || effort.isEmpty() ? response.get("reasoningEffort") : effort,
+                "permissionProfile", settings.permissionProfile(), "sandbox", response.get("sandbox"), "approvalPolicy", response.get("approvalPolicy")));
         channel.ready();
     }
 
@@ -100,6 +117,11 @@ final class CodexAgentProtocol implements AgentProtocol {
 
     private void request(JsonElement wireId, String method, JsonObject params) {
         String id = "codex:" + wireId;
+        if (options.permission().equals("read-only") && method.endsWith("requestApproval")) {
+            if (method.equals("item/permissions/requestApproval")) respond(wireId, AgentJson.object("scope", "turn", "permissions", new JsonObject()));
+            else respond(wireId, AgentJson.object("decision", "decline"));
+            channel.diagnostic("Read-only sandbox: the requested permission was not granted."); return;
+        }
         if (method.equals("item/commandExecution/requestApproval") || method.equals("item/fileChange/requestApproval")) {
             JsonArray choices = new JsonArray();
             JsonArray available = AgentJson.list(params, "availableDecisions");

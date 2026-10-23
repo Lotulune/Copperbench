@@ -167,4 +167,11 @@ final class DependencyResourceIndex {
         if (!selected.sha256().equals(WorkspaceExecutionSnapshot.sha256(selected.path()))) throw new IOException("Dependency changed");
         return model;
     }
+
+    byte[] readResource(String resource, int limit, PreviewArchiveReads reads) throws IOException {
+        var candidates = entries.getOrDefault(resource, List.of());
+        if (candidates.size() != 1 || uncertain.contains(resource)) return null;
+        Archive selected = candidates.getFirst();
+        return reads.read(selected.path(), selected.sha256(), resource, limit);
+    }
 }

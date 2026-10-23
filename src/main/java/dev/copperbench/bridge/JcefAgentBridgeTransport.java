@@ -40,7 +40,8 @@ public final class JcefAgentBridgeTransport extends CefMessageRouterHandlerAdapt
 	public static final String QUERY_PREFIX = "copperbench:agent:";
 	static final int MAX_REQUEST_CHARS = 2 * 1024 * 1024;
 	private static final Set<String> OPERATIONS = Set.of("status", "detect", "new", "select", "send", "stop", "checkConnection", "models", "exportConversation", "deleteConversation", "deleteConversations", "recoverHistory", "retryHistory", "openLink",
-			"approve", "login", "openSetup", "attachmentTarget", "attachmentSelect", "attachmentBegin", "attachmentChunk", "attachmentCommit", "attachmentDiscard", "attachmentPreview");
+			"approve", "login", "openSetup", "attachmentTarget", "attachmentSelect", "attachmentBegin", "attachmentChunk", "attachmentCommit", "attachmentDiscard", "attachmentPreview",
+			"settingsCatalog", "selectRun", "verify", "stopVerification", "refreshRun", "exportRun");
 
 	private final WebView webView;
 	private final AgentChatService service;

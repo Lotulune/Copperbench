@@ -66,11 +66,53 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 	}
 
 	private ObjectId currentWorkTree(ObjectInserter inserter) throws Exception {
-		git.add().addFilepattern(".").call();
-		git.add().setUpdate(true).addFilepattern(".").call();
+		stageCurrentWorkTree();
 		ObjectId tree = git.getRepository().readDirCache().writeTree(inserter);
 		inserter.flush();
 		return tree;
+	}
+
+	private void stageCurrentWorkTree() throws Exception {
+		List<String> changed = new ArrayList<>(), removed = new ArrayList<>();
+		try (TreeWalk walk = new TreeWalk(git.getRepository())) {
+			walk.addTree(new DirCacheIterator(git.getRepository().readDirCache()));
+			// Do not link this iterator to the index: equal size/mtime must not bypass content hashing.
+			FileTreeIterator working = new FileTreeIterator(git.getRepository());
+			// An unlinked iterator otherwise turns ignored directories into empty trees, even when
+			// they contain tracked files. The per-entry check below still excludes untracked content.
+			working.setWalkIgnoredDirectories(true);
+			walk.addTree(working);
+			while (walk.next()) {
+				FileMode indexed = walk.getFileMode(0), current = walk.getFileMode(1);
+				WorkingTreeIterator entry = walk.getTree(1, WorkingTreeIterator.class);
+				if (indexed == FileMode.MISSING && (current == FileMode.MISSING
+						|| entry != null && entry.isEntryIgnored())) continue;
+				if (walk.isSubtree()) {
+					if (indexed != FileMode.MISSING && indexed != FileMode.TREE) removed.add(walk.getPathString());
+					if (current != FileMode.MISSING && current != FileMode.TREE) changed.add(walk.getPathString());
+					walk.enterSubtree();
+				} else if (current == FileMode.MISSING) {
+					removed.add(walk.getPathString());
+				} else if ((indexed.getBits() & FileMode.TYPE_MASK) != (current.getBits() & FileMode.TYPE_MASK)
+						|| !walk.idEqual(0, 1)) {
+					changed.add(walk.getPathString());
+				}
+			}
+		}
+		// A full add followed by update recompresses every tracked blob, even when its content is unchanged.
+		// Stage only content changes, and remove deleted paths from the index without touching user files.
+		if (!removed.isEmpty()) {
+			var remove = git.rm().setCached(true);
+			removed.forEach(remove::addFilepattern);
+			remove.call();
+		}
+		if (!changed.isEmpty()) {
+			// Content was already compared above. Do not let AddCommand's index/stat filter skip a
+			// confirmed change (including tracked files beneath a subsequently ignored directory).
+			var add = git.add().setRenormalize(true);
+			changed.forEach(add::addFilepattern);
+			add.call();
+		}
 	}
 
 	@Override public synchronized String currentRecoveryPointId() throws LocalHistoryException {
@@ -92,7 +134,9 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 		// Stop at the first difference instead of compressing every unrelated workspace file.
 		try (TreeWalk walk = new TreeWalk(git.getRepository())) {
 			walk.addTree(commit.getTree());
+			// Deliberately leave the working iterator unlinked to the index so every comparison hashes content.
 			FileTreeIterator working = new FileTreeIterator(git.getRepository());
+			working.setWalkIgnoredDirectories(true);
 			walk.addTree(working);
 			int indexTree = walk.addTree(new DirCacheIterator(index));
 			while (walk.next()) {
@@ -134,8 +178,7 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 	@Override public synchronized RecoveryPoint createRecoveryPoint(RecoveryPointRequest request)
 			throws LocalHistoryException {
 		try {
-			git.add().addFilepattern(".").call();
-			git.add().setUpdate(true).addFilepattern(".").call();
+			stageCurrentWorkTree();
 			PersonIdent identity = new PersonIdent("Copperbench", "local-history@copperbench.invalid",
 					Date.from(clock.instant()), TimeZone.getTimeZone(ZoneOffset.UTC));
 			String message = "Copperbench recovery point\n\n" + LABEL_HEADER + request.label() + "\n"
@@ -211,8 +254,7 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			// workspace before checkout. Files introduced after the target point
 			// then become ordinary tracked removals instead of requiring a broad
 			// clean pass that could touch upstream/ignored workspace metadata.
-			git.add().addFilepattern(".").call();
-			git.add().setUpdate(true).addFilepattern(".").call();
+			stageCurrentWorkTree();
 			DirCache cache = git.getRepository().lockDirCache();
 			try {
 				DirCacheCheckout checkout = new DirCacheCheckout(git.getRepository(), cache, target.getTree());

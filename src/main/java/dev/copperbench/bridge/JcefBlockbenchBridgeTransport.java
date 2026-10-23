@@ -17,9 +17,11 @@ import org.cef.handler.CefMessageRouterHandlerAdapter;
 import java.io.Closeable;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
@@ -36,8 +38,13 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
-	private final ExecutorService requests = Executors.newSingleThreadExecutor(
+	private final ScheduledExecutorService requests = Executors.newSingleThreadScheduledExecutor(
 			Thread.ofVirtual().name("copperbench-blockbench-", 0).factory());
+	private ScheduledFuture<?> exitMonitor;
+
+	JcefBlockbenchBridgeTransport(BlockbenchProcessService service) {
+		this(null, service);
+	}
 
 	JcefBlockbenchBridgeTransport(@Nullable WebView webView, BlockbenchProcessService service) {
 		this.webView = webView;
@@ -115,6 +122,8 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 				case "open_task" -> service.openTask(java.util.UUID.fromString(requiredString(payload, "taskId")));
 				default -> throw new IllegalArgumentException("Unsupported Blockbench bridge operation");
 			};
+			if (snapshot.state() == BlockbenchProcessService.State.RUNNING && exitMonitor == null)
+				exitMonitor = requests.scheduleWithFixedDelay(this::checkEditorExit, 750, 750, TimeUnit.MILLISECONDS);
 			if (!closed.get()) callback.success(toWireJson(snapshot));
 		} catch (BlockbenchBridgeException exception) {
 			if (!closed.get()) callback.failure(exception.code().equals("BLOCKBENCH_ALREADY_RUNNING") ? 409 : 400,
@@ -122,6 +131,19 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 		} catch (RuntimeException exception) {
 			if (!closed.get()) callback.failure(400, exception.getMessage());
 		}
+	}
+
+	private void checkEditorExit() {
+		if (closed.get()) return;
+		try {
+			// Completion belongs to the desktop session even after the asset page is unmounted.
+			if (service.status().state() == BlockbenchProcessService.State.RUNNING) return;
+		} catch (RuntimeException exception) {
+			org.apache.logging.log4j.LogManager.getLogger(JcefBlockbenchBridgeTransport.class)
+					.warn("Could not finalize the Blockbench editor session", exception);
+		}
+		exitMonitor.cancel(false);
+		exitMonitor = null;
 	}
 
 	@Override public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
@@ -198,6 +220,6 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 			webView.removeCloseListener(closeListener);
 		}
 		try { if (router != null) router.removeHandler(this); } catch (Exception ignored) { }
-		service.close();
+		service.closeAsync();
 	}
 }

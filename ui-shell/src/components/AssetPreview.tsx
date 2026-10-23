@@ -8,12 +8,13 @@ import type { AssetRecord } from '../types/assets';
 import type { AssetPreviewImage, AssetPreviewProjection } from '../types/assetPreview';
 import { createTextureOrbit, type TextureOrbitController, type TextureOrbitState } from './textureOrbit.js';
 import './assetPreview.css';
+import { ModelScenePreview } from './ModelScenePreview';
 
 function reasonText(reason?: string, isModel = false): string {
   switch (reason) {
     case 'image_too_large': return uiText('图像超过 2 MiB，无法在此预览。', 'This image exceeds the 2 MiB preview limit.');
     case 'image_dimensions_exceeded': return uiText('图像尺寸超过 2048 × 2048。', 'Image dimensions exceed 2048 × 2048.');
-    case 'document_too_large': return uiText('模型 JSON 超过 256 KiB，无法在此预览。', 'This model JSON exceeds the 256 KiB preview limit.');
+    case 'document_too_large': return uiText('模型文件超过内嵌预览的容量，请在 Blockbench 中打开。', 'This model exceeds the inline preview limit. Open it in Blockbench.');
     case 'invalid_image': return uiText('无法解码此图像。', 'This image could not be decoded.');
     default: return isModel
       ? uiText('此模型暂无内嵌预览，可在 Blockbench 中打开。', 'This model has no inline preview. Open it in Blockbench.')
@@ -114,16 +115,18 @@ function ModelPreview({ preview }: { preview: AssetPreviewProjection }) {
   const [textureId, setTextureId] = useState(preview.textures[0]?.assetId);
   const selected = preview.textures.find(image => image.assetId === textureId) ?? preview.textures[0];
   return <>
+    {preview.scene && <ModelScenePreview scene={preview.scene} />}
     {selected && <div className="asset-model-textures">
       {preview.textures.length > 1 && <label className="asset-model-texture-choice"><span>{uiText('贴图', 'Texture')}</span>
         <select value={selected.assetId} aria-label={uiText('模型贴图', 'Model texture')} onChange={event => setTextureId(event.target.value)}>
           {preview.textures.map(image => <option key={image.assetId} value={image.assetId}>{image.relativePath.split('/').pop()}</option>)}
         </select></label>}
-      <ImagePreview key={selected.assetId} image={selected} initialMode="orbit" />
+      {!preview.scene && <ImagePreview key={selected.assetId} image={selected} initialMode="orbit" />}
+      {preview.scene && <details className="asset-model-json"><summary>{uiText('查看贴图', 'View texture')}</summary><ImagePreview key={selected.assetId} image={selected} /></details>}
     </div>}
-    <details className="asset-model-json" open={!selected}><summary>{uiText('模型 JSON', 'Model JSON')}</summary><pre tabIndex={0}>{preview.document}</pre>
+    {preview.document && <details className="asset-model-json" open={!selected && !preview.scene}><summary>{preview.kind === 'model_json' ? uiText('模型 JSON', 'Model JSON') : uiText('模型源文件', 'Model source')}</summary><pre tabIndex={0}>{preview.document}</pre>
       {selected?.rawValue && <code className="asset-model-texture-reference">{selected.rawValue}</code>}
-    </details>
+    </details>}
   </>;
 }
 
@@ -147,7 +150,7 @@ export function AssetPreview({ workspaceId, asset }: { workspaceId?: string; ass
         <button type="button" onClick={() => setReload(value => value + 1)}>{uiText('重试预览', 'Retry preview')}</button></div>
         : !preview ? <p className="asset-preview-note" role="status">{uiText('正在读取资产…', 'Loading asset…')}</p>
           : preview.kind === 'image' && preview.image ? <ImagePreview key={preview.sha256} image={preview.image} />
-            : preview.kind === 'model_json' ? <ModelPreview key={preview.sha256} preview={preview} />
+            : preview.kind === 'model_json' || preview.kind === 'model' ? <ModelPreview key={preview.sha256} preview={preview} />
               : <p className="asset-preview-note">{reasonText(preview.reason, asset.category === 'model')}</p>}
   </section>;
 }

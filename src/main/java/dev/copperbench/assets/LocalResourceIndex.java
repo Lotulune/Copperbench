@@ -123,4 +123,11 @@ final class LocalResourceIndex {
 
     boolean workspaceOverlap(String resource) { return dependencies.overlapsWorkspace(resource); }
     String unavailableDependencyContext() { return dependencies.invalidatesPreviousContext() ? dependencies.reason() : null; }
+
+    byte[] readTexture(String resource, int limit, PreviewArchiveReads reads) throws IOException {
+        var dependency = dependencies.resolve(resource);
+        if (dependency != null && dependency.state().equals("dependency_resolved")) return dependencies.readResource(resource, limit, reads);
+        if (archive == null || !resources.contains(resource)) return null;
+        return reads.read(archive, fingerprint, resource, limit);
+    }
 }

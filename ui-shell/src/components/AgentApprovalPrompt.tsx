@@ -25,8 +25,9 @@ function PermissionDetail({ detail }: { detail: string }) {
   </>;
 }
 
-export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
+export function AgentApprovalPrompt({ approval, disabled, onRespond, variant = 'simple' }: {
   approval: AgentApproval; disabled: boolean; onRespond: (answer: AgentApprovalAnswer) => void;
+  variant?: 'simple' | 'professional';
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [custom, setCustom] = useState('');
@@ -35,11 +36,11 @@ export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
   const allowCustom = approval.allowCustom ?? approval.choices.length === 0;
   const answer = custom.trim();
   const canSubmit = selected.length > 0 || (allowCustom && answer.length > 0);
-  const titleId = `approval-${approval.id}`;
-  return <section className="creation-approval" aria-labelledby={titleId} data-testid="simple-agent-approval">
+  const titleId = `${variant === 'simple' ? '' : 'professional-'}approval-${approval.id}`;
+  return <section className="creation-approval" aria-labelledby={titleId} data-testid={`${variant}-agent-approval`}>
     <h3 id={titleId}>{agentText(approval.title, approval.titleText)}</h3>
     {question ? <p>{approval.detail}</p> : <PermissionDetail detail={approval.detail} />}
-    {!question ? <div>{approval.choices.map(choice => <button type="button" key={choice.id} disabled={disabled}
+    {!question ? <div>{approval.choices.map(choice => <button type="button" className="btn-secondary" key={choice.id} disabled={disabled}
       onClick={() => onRespond({ choice: choice.id })}>{agentText(choice.label, choice.labelText)}</button>)}</div>
       : <form className="creation-approval-answer" onSubmit={event => {
         event.preventDefault();
@@ -48,7 +49,7 @@ export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
         {approval.choices.length > 0 && <fieldset className="creation-question-options" disabled={disabled}>
           <legend className="sr-only">{multiSelect ? uiText('可选择多项', 'Select one or more options') : uiText('选择一项', 'Select one option')}</legend>
           {approval.choices.map(choice => <label key={choice.id} className="creation-question-option">
-            <input type={multiSelect ? 'checkbox' : 'radio'} name={`question-${approval.id}`} value={choice.id} checked={selected.includes(choice.id)}
+            <input type={multiSelect ? 'checkbox' : 'radio'} name={`${variant}-question-${approval.id}`} value={choice.id} checked={selected.includes(choice.id)}
               onChange={() => {
                 setSelected(current => multiSelect ? current.includes(choice.id) ? current.filter(id => id !== choice.id) : [...current, choice.id] : [choice.id]);
                 if (!multiSelect) setCustom('');
@@ -56,13 +57,13 @@ export function AgentApprovalPrompt({ approval, disabled, onRespond }: {
             <span>{agentText(choice.label, choice.labelText)}{choice.description && <small>{choice.description}</small>}</span>
           </label>)}
         </fieldset>}
-        {allowCustom && <label className="creation-question-custom" htmlFor={`answer-${approval.id}`}>
+        {allowCustom && <label className="creation-question-custom" htmlFor={`${variant}-answer-${approval.id}`}>
           <span>{approval.choices.length ? uiText('其他回答', 'Custom answer') : uiText('你的回答', 'Your answer')}</span>
-          <input id={`answer-${approval.id}`} data-testid="simple-approval-answer" maxLength={4000} autoComplete="off" value={custom} disabled={disabled}
+          <input id={`${variant}-answer-${approval.id}`} data-testid={`${variant}-approval-answer`} maxLength={4000} autoComplete="off" value={custom} disabled={disabled}
             onChange={event => { setCustom(event.target.value); if (!multiSelect && event.target.value) setSelected([]); }}
             onKeyDown={event => { if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault(); }} />
         </label>}
-        <button type="submit" disabled={!canSubmit || disabled}>{uiText('提交回答', 'Send answer')}</button>
+        <button type="submit" className="btn-secondary" disabled={!canSubmit || disabled}>{uiText('提交回答', 'Send answer')}</button>
       </form>}
   </section>;
 }
