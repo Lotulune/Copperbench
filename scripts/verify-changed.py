@@ -251,7 +251,8 @@ def make_plan(paths, environment, allow_downloads=False, windows=None):
                 ["node", "ui-shell-dependencies", "playwright"], "Reuse CI's connection-file security checks, which do not launch Chromium.", cwd="ui-shell")
     if checks["windows"]:
         if not (windows and java and java["status"] == "planned"):
-            add("windows-filesystem", [wrapper, "--no-daemon", "test", "--tests", "dev.copperbench.core.workspace.WorkspaceFilesTest",
+            add("windows-filesystem", [wrapper, "--no-daemon", "test", "--tests", "dev.copperbench.agent.*",
+                                       "--tests", "dev.copperbench.core.workspace.WorkspaceFilesTest",
                                        "--tests", "dev.copperbench.core.application.PreviewAccessTest",
                                        "--tests", "dev.copperbench.core.workspace.mcreator.VersionCopyExecutionTest",
                                        "--tests", "dev.copperbench.shell.Stage9NativeJcefAccessibilityTest",

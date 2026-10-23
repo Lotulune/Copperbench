@@ -153,7 +153,7 @@ class ProfessionalAgentServiceTest {
             JsonObject result = service.handle(AgentJson.object("operation", "exportRun", "runId", id));
             Path file = Path.of(AgentJson.string(AgentJson.child(result, "exportedRun"), "path"));
             assertEquals(file, opened.get(5, java.util.concurrent.TimeUnit.SECONDS));
-            assertTrue(file.startsWith(root.resolve(".copperbench/agent-chat/exports")));
+            assertTrue(file.startsWith(root.toRealPath().resolve(".copperbench/agent-chat/exports")));
             assertFalse(Files.readString(file).contains("private-value"));
             assertEquals(id, AgentJson.string(JsonParser.parseString(Files.readString(file)).getAsJsonObject(), "runId"));
         }
