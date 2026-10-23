@@ -62,8 +62,12 @@ export function validateHeader(auth, tag) {
       && tag === 'v0.1.17-linux-stable'
       && auth.candidateSourceCommit === '81563c9bc6ae4371b662a65b1b0bbf5ce9e5e4cb'
       && auth.candidateWorkflowRunId === '39764178724';
-    requireValue(approved013 || approved014 || approved015 || approved016 || approved017 || approved019 || approved0113 || approved0115 || approved0116 || approved0117,
-      'Maintenance authorization is limited to the approved 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.9, 0.1.13, 0.1.15, 0.1.16 and 0.1.17 candidates');
+    const approved0118 = auth.acceptancePolicy === 'maintenance-ci-0.1.18'
+      && tag === 'v0.1.18-linux-stable'
+      && auth.candidateSourceCommit === '28b912e94b7bf271e91bafeaef7a02daf1abde98'
+      && auth.candidateWorkflowRunId === '39956381252';
+    requireValue(approved013 || approved014 || approved015 || approved016 || approved017 || approved019 || approved0113 || approved0115 || approved0116 || approved0117 || approved0118,
+      'Maintenance authorization is limited to the approved 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.9, 0.1.13, 0.1.15, 0.1.16, 0.1.17 and 0.1.18 candidates');
     requireValue(auth.formalSupportClaim === false && auth.fullInstalledAcceptance === 'not-repeated'
       && auth.maintenanceApproval?.approved === true && auth.maintenanceApproval?.releaseTag === tag,
       'Maintenance publication requires explicit approval and an honest installed-acceptance classification');
@@ -139,7 +143,7 @@ function validateMaintenanceCi(auth, root, tag) {
     'Verify deb candidate layout', 'Freeze Linux candidate metadata',
     'Attest Linux candidate provenance', 'Upload Linux candidate artifacts'
   ];
-  if (['maintenance-ci-0.1.5', 'maintenance-ci-0.1.6', 'maintenance-ci-0.1.7', 'maintenance-ci-0.1.9', 'maintenance-ci-0.1.13', 'maintenance-ci-0.1.15', 'maintenance-ci-0.1.16', 'maintenance-ci-0.1.17'].includes(auth.acceptancePolicy))
+  if (['maintenance-ci-0.1.5', 'maintenance-ci-0.1.6', 'maintenance-ci-0.1.7', 'maintenance-ci-0.1.9', 'maintenance-ci-0.1.13', 'maintenance-ci-0.1.15', 'maintenance-ci-0.1.16', 'maintenance-ci-0.1.17', 'maintenance-ci-0.1.18'].includes(auth.acceptancePolicy))
     requiredSteps.push('Verify graphical installer package and render its bilingual wizard');
   for (const name of requiredSteps) requireValue(job.steps?.some(step => step.name === name
     && step.status === 'completed' && step.conclusion === 'success'), `Maintenance candidate CI step did not pass: ${name}`);
