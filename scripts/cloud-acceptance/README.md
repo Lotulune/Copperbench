@@ -1,7 +1,7 @@
 # Public release cloud acceptance
 
 Dispatch the existing **Agent readiness M1 gates** workflow with `release_tag`
-and `previous_release_tag` (for example `v0.1.9` and `v0.1.7`). Empty inputs keep
+and `previous_release_tag` (for example `v0.1.18` and `v0.1.17`). Empty inputs keep
 the original source-level M1 gates. The reusable workflow tests public assets on
 Windows Server 2025 and Ubuntu 24.04; it does not rebuild Copperbench.
 
@@ -26,7 +26,7 @@ legacy fix and template checks remain required. This supports the 0.1.13 candida
 substituting current-checkout documentation. See the
 [Linux 0.1.13 preparation record](../../docs/testing/maintenance-linux-0.1.13.md).
 
-`windows_release_source` similarly checks every public 0.1.9
+`windows_release_source` similarly derives the version from the exact source and checks every public
 Windows asset against API digests, checksums and signed provenance and inspects
 the packaged fix classes/templates. These read-only byte checks do not replace
 installed-product acceptance.
@@ -43,6 +43,13 @@ registration code; Windows uses the original EXE registrar and uninstaller.
 Linux user uninstall calls the same installed engine and registration removal
 used by the wizard. The DEB case uses the system package manager. Unmanaged
 files, preferences sentinels and external workspace/export bytes must survive.
+
+The current installer removes its temporary rollback copy after successful
+activation and registration. Acceptance requires a null backup result and no
+new previous-version directories, records the old application hash before
+upgrading, and verifies that the installed application changed to the published
+payload. The runner does not remove leftover installer backups on the product's
+behalf. Historical receipts retain their original harness and package scope.
 
 `native.py` prepares new workspaces with the existing test-only
 `Stage15GraphicalWorkspaceFixture`, compiled against the installed libraries.

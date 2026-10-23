@@ -241,11 +241,12 @@ class Acceptance:
         require(sha256(target / "lib/copperbench.jar") == sha256(bundle["payload"] / "lib/copperbench.jar"),
                 "Installed application differs from published payload")
         registration = self.registration(target, release_version(tag))
+        require(result.get("backup") is None and result.get("backupCleanup") == "confirmed",
+                "Temporary installer backup cleanup was not confirmed")
         if upgrade:
-            backup = Path(result["backup"])
-            require(sha256(backup / "lib/copperbench.jar") == previous_sha, "Upgrade backup lost the old application")
-            result["backupApplicationSha256"] = previous_sha
-            remove_owned_tree(backup, self.root)
+            require(sha256(target / "lib/copperbench.jar") != previous_sha,
+                    "Upgrade did not replace the old application")
+            result["previousApplicationSha256"] = previous_sha
         self.checkpoint(tag + "-install-" + target.parent.name, result=result, registration=registration,
                         applicationSha256=sha256(target / "lib/copperbench.jar"))
 
