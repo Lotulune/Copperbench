@@ -13,15 +13,15 @@
 | **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
 | **包级验收边界** | 最终包安装／升级／卸载、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开按各包记录确认；旧性能和缓存结论保留原范围 | [平台验证范围](releases/current.md) |
 
-## 0.1.17 发布快照
+## 0.1.18 发布快照
 
-Windows 与 Linux **0.1.17** 已公开，下载链接与核验见[当前下载](releases/current.md)。两平台二进制源码为 `81563c9bc6ae4371b662a65b1b0bbf5ce9e5e4cb`；Linux 签名发布标签指向 `7be632956b05e9d5a87e85ba527bd5e7a86dd300`。
+Windows 与 Linux **0.1.18** 已公开，下载链接与核验见[当前下载](releases/current.md)。两平台二进制源码为 `28b912e94b7bf271e91bafeaef7a02daf1abde98`；Linux 签名发布标签指向 `d46e5daed141a1154a44cea4db3890fa69bd3c8e`。
 
 | 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **0.1.17 修复** | 旧会话原位续聊、附件错误即时翻译、截断消息后的附件回收、窄窗模式名称完整显示 | [Windows 变更](releases/v0.1.17.md) · [Linux 变更](releases/v0.1.17-linux.md) |
-| **发布验证** | Windows 公开资产与更新组件核验；Linux 候选、独立消费者、签名授权及完整草稿比对 | [Windows 记录](testing/maintenance-release-0.1.17.md) · [Linux 记录](testing/linux-publication-0.1.17.md) |
-| **验证范围** | 旧格式、可控 CLI 子进程、浏览器与构建检查通过；真实账号完整升级和玩家流程未复验，Linux `formalSupportClaim=false` | [源码回归](testing/assessment-0.1.16-fixes.md) · [Linux 固定授权](testing/maintenance-linux-0.1.17.md) |
+| **0.1.18 更新** | 模型/元素静态预览、专业工作台 Agent、Blockbench 响应与保存同步 | [Windows 变更](releases/v0.1.18.md) · [Linux 变更](releases/v0.1.18-linux.md) |
+| **发布验证** | Windows 公开资产与更新组件核验；Linux 候选、独立消费者、签名授权及完整草稿比对 | [Windows 记录](testing/maintenance-release-0.1.18.md) · [Linux 记录](testing/linux-publication-0.1.18.md) |
+| **验证范围** | 源码原生流程、发布校验和云端安装验收分别记录；完整桌面与玩家认证未扩展，Linux `formalSupportClaim=false` | [包级验收](testing/installed-release-0.1.18.md) · [Linux 固定授权](testing/maintenance-linux-0.1.18.md) |
 
 ## 支持范围
 

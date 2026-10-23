@@ -8,28 +8,28 @@ Open the Release linked from the Linux row in [current downloads](../releases/cu
 
 Use the same release's `linux-candidate-sha256.txt`, candidate metadata, provenance and `LINUX-RELEASE-AUTHORIZATION.json`. Verify against your downloaded version's manifest; the hashes below apply only to their named versions.
 
-The [Linux 0.1.17 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.17-linux-stable) published these hashes, which apply only to that version:
+The [Linux 0.1.18 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.18-linux-stable) published these hashes, which apply only to that version:
 
-- `copperbench_0.1.17_amd64.deb`: `1ca009b4084868c12b79d7fd6d6341897ef696a62e49ca1d81b80978a01d117a`.
-- `Copperbench.0.1.17.Linux.x86_64.tar.gz`: `9e4062ecdd57ddc7ff954befd60212d0ded123e20f84615e89c9ddec97fab3fc`.
-- `Copperbench.0.1.17.Linux.x86_64.Setup.tar.gz`: `8170a6cb157f50a25a16873862d36c503de50b38343aa1b4f55ba3bd7f5880c8`.
+- `copperbench_0.1.18_amd64.deb`: `fca5a3706d279a02f78e3c12c78dde8dbceb3c9c61c810f720ebb4b5a90e16fa`.
+- `Copperbench.0.1.18.Linux.x86_64.tar.gz`: `c1c1c0496b9257ab36ef8d986b665bde0157918ccb49f0778f088da468001874`.
+- `Copperbench.0.1.18.Linux.x86_64.Setup.tar.gz`: `4b24c5b8ba333ab396a4f0bc6e497828610bc5b56ccdb9e7d1e7fdfd48943081`.
 
 For the graphical wizard, extract `Setup.tar.gz` and run `Install Copperbench`. Follow the [English wizard instructions](graphical-installation.md#english).
 
-The commands below use 0.1.17; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
+The commands below use 0.1.18; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
 
 ```sh
-sudo apt install ./copperbench_0.1.17_amd64.deb
+sudo apt install ./copperbench_0.1.18_amd64.deb
 ```
 
-For the 0.1.17 portable package:
+For the 0.1.18 portable package:
 
 ```sh
-tar -xzf Copperbench.0.1.17.Linux.x86_64.tar.gz
-./Copperbench0117/copperbench.sh
+tar -xzf Copperbench.0.1.18.Linux.x86_64.tar.gz
+./Copperbench0118/copperbench.sh
 ```
 
-GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.17 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
+GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.18 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
 
 ## Settings, scope and removal
 
@@ -39,11 +39,11 @@ GNOME automatic login can require unlocking the keyring through the normal syste
 
 Uninstall the Debian package with `sudo apt remove copperbench`; preferences and user workspaces remain. Continue with [Trail Block](first-creation.en.md). If your installed version has no first-launch tour, follow the tutorial's manual Fabric 1.21.1 workspace route.
 
-## 0.1.17 publication and verification
+## 0.1.18 publication and verification
 
-Version 0.1.17 restores legacy conversations, localizes attachment errors, retains attachment cleanup references and fixes compact mode labels. The [publication record](../testing/linux-publication-0.1.17.md) records 13 candidate gates, independent consumer verification, signed provenance, complete downloaded-draft byte comparison and matching sizes/hashes for all 18 public assets and 8 update components. Full GNOME installation, upgrade, uninstall and player-controlled gameplay acceptance were not repeated. The [0.1.4 publication](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing/product-shell-linux-publication-0.1.4.md) and [0.1.2 installed acceptance](../testing/maintenance-012-linux-installed-2026-09-28.md) retain their original package scope.
+Version 0.1.18 adds static previews, the professional Agent workflow and Blockbench responsiveness/save synchronization. Thirteen candidate gates, the independent consumer, provenance and complete downloaded-draft comparison passed. See the [publication record](../testing/linux-publication-0.1.18.md) for public-package and installation/upgrade/removal checks. Full GNOME/Wayland desktop and player-controlled gameplay certification remain outside this release's new claims; `formalSupportClaim=false`.
 
-Changes for that version are in the [Linux 0.1.17 notes](../releases/v0.1.17-linux.md); current platform versions remain in [current downloads](../releases/current.md).
+Changes for that version are in the [Linux 0.1.18 notes](../releases/v0.1.18-linux.md); current platform versions remain in [current downloads](../releases/current.md).
 
 ## Historical 0.1.7 package verification
 
