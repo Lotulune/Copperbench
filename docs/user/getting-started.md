@@ -8,7 +8,7 @@
 
 从[当前下载](../releases/current.md)选择对应平台的稳定包，并查看该版本的验证范围。Windows 与 Linux 的版本分别列出。目标平台为 Windows 11 x64（build 22000 及以上）与 Ubuntu 24.04 LTS x86_64；其他 Linux 发行版与架构未验证。
 
-0.1.17 修复旧会话原位续聊、附件错误语言切换、长会话附件回收及窄窗口模式名称截断。具体平台变更见 [Windows 版本说明](../releases/v0.1.17.md)、[Linux 版本说明](../releases/v0.1.17-linux.md)和[状态页](../status.md)。
+0.1.18 新增模型与元素静态预览、专业工作台 Agent，并修复 Blockbench 打开响应和保存同步。具体平台变更见 [Windows 版本说明](../releases/v0.1.18.md)、[Linux 版本说明](../releases/v0.1.18-linux.md)和[状态页](../status.md)。
 
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 
