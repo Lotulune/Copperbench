@@ -17,6 +17,31 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class WorkspaceSourceServiceTest {
 	@TempDir Path root;
 
+	@Test void caseAliasesKeepGeneratedFileAndDirectoryOwnership() throws Exception {
+		write("src/main/java/example/Generated.java", "class Generated {}");
+		write("src/main/resources/assets/example/lang/en_us.json", "{}");
+		String alias = "src/main/java/example/generated.java";
+		assumeTrue(Files.exists(root.resolve(alias)) && Files.isSameFile(root.resolve(alias), root.resolve("src/main/java/example/Generated.java")),
+				"Requires a case-insensitive filesystem");
+		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of(
+				"src/main/java/example/Generated.java", "generated", "src/main/resources/assets/example/lang/", "generated"), true);
+		for (String path : new String[]{alias, "src/main/resources/assets/example/LANG/en_us.json"}) {
+			JsonObject read = service.read(path);
+			assertFalse(read.get("editable").getAsBoolean(), path);
+			assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> service.prepare(path, "overwritten", read.get("sha256").getAsString())).code);
+		}
+		assertEquals("class Generated {}", Files.readString(root.resolve(alias)));
+	}
+
+	@Test void distinctCaseSensitiveFilesDoNotShareOwnership() throws Exception {
+		write("src/main/java/Generated.java", "class Generated {}");
+		assumeTrue(!Files.exists(root.resolve("src/main/java/generated.java")), "Requires a case-sensitive filesystem");
+		write("src/main/java/generated.java", "class generated {}");
+		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of("src/main/java/Generated.java", "generated"), true);
+		assertTrue(service.read("src/main/java/generated.java").get("editable").getAsBoolean());
+	}
+
 	@Test void listsPagesAndProtectsGeneratorOwnedFilesWithoutPromotingJavaToElements() throws Exception {
 		write("src/main/java/example/Entry.java", "class Entry {}");
 		write("src/main/java/example/Generated.java", "class Generated {}");

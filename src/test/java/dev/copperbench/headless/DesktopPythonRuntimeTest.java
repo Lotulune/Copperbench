@@ -63,7 +63,8 @@ class DesktopPythonRuntimeTest {
         UUID id = UUID.randomUUID();
         var core = service(id);
         List<Event> events = new CopyOnWriteArrayList<>();
-        try (var subscription = core.subscribeEvents(id, 0, events::add);
+        var delivered = new java.util.concurrent.CountDownLatch(1);
+        try (var subscription = core.subscribeEvents(id, 0, event -> { events.add(event); delivered.countDown(); });
              var runtime = DesktopPythonRuntime.start(file, id, new HeadlessWorkspaceEntryAdapter(core, PermissionProfile.WORKSPACE))) {
             var metadata = connection(file);
             assertFalse(Files.exists(root.resolve(".copperbench/mcp-connection.json")));
@@ -74,6 +75,7 @@ class DesktopPythonRuntimeTest {
                 var created = first.call("command", "create_registry_entry", 0,
                         "{\"registry\":\"variables\",\"entry\":{\"name\":\"python_score\",\"dataType\":\"number\",\"scope\":\"global\"}}");
                 assertEquals("committed", created.get("status").getAsString(), created.toString());
+                assertTrue(delivered.await(5, java.util.concurrent.TimeUnit.SECONDS));
                 assertEquals(1, events.size(), "Desktop receives one mutation event");
                 assertTrue(second.call("query", "list_workspace_registries", 0, "{}").toString().contains("python_score"));
                 assertEquals("rejected", second.call("command", "validate_workspace", 0, "{}").get("status").getAsString());

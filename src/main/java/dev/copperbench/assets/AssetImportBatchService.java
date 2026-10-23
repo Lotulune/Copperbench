@@ -82,26 +82,30 @@ public final class AssetImportBatchService {
 				String suffix = item.sourceFileName().contains(".")
 						? item.sourceFileName().substring(item.sourceFileName().lastIndexOf('.')) : ".bin";
 				Path snapshot = Files.createTempFile("copperbench-asset-batch-", suffix);
-				Files.copy(item.source(), snapshot, StandardCopyOption.REPLACE_EXISTING);
 				staged.add(new StagedItem(item, snapshot));
+				Files.copy(item.source(), snapshot, StandardCopyOption.REPLACE_EXISTING);
+				if (!AssetImportService.sha256(snapshot).equals(item.sourceSha256()))
+					throw new AssetImportException("ASSET_IMPORT_BATCH_PLAN_STALE", "An asset source changed while staging the reviewed batch");
 			}
 		} catch (Exception stagingFailure) {
 			staged.forEach(StagedItem::deleteQuietly);
+			if (stagingFailure instanceof AssetImportException stale) throw stale;
 			throw new AssetImportException("ASSET_IMPORT_BATCH_SOURCE_STAGE_FAILED",
 					"Asset batch sources could not be snapshotted before writing", stagingFailure);
 		}
 
-		RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
-				"Before asset batch import: " + current.changedCount() + " assets", actor, taskId,
-				RecoveryPointSource.ASSET));
 		List<AssetDescriptor> imported = new ArrayList<>(current.changedCount());
+		RecoveryPoint recovery = null;
 		try {
+			recovery = history.createRecoveryPoint(new RecoveryPointRequest(
+					"Before asset batch import: " + current.changedCount() + " assets", actor, taskId,
+					RecoveryPointSource.ASSET));
 			for (StagedItem item : staged)
-				imported.add(importer.writeSourceToTarget(item.snapshot(), item.plan().targetRelativePath()));
+				imported.add(importer.writeSourceToTarget(item.snapshot(), item.plan().targetRelativePath(), item.plan().sourceSha256()));
 			return new ApplyResult(imported, recovery, current.createCount(), current.replaceCount(), current.identicalCount());
 		} catch (Exception failure) {
 			try {
-				history.restore(recovery.id());
+				if (recovery != null) history.restore(recovery.id());
 			} catch (Exception rollbackFailure) {
 				failure.addSuppressed(rollbackFailure);
 			}
