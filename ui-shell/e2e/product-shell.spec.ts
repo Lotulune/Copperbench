@@ -12,6 +12,26 @@ test('opening a view reveals its active tab in a narrow window', async ({ page }
   }).toBe(true);
 });
 
+test('a running Agent keeps its accessible control and active tab visible in a narrow window', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.addInitScript(() => {
+    localStorage.setItem('copperbench.ui.locale', 'en');
+    window.__COPPERBENCH_AGENT_HOST__ = { async invoke() { return { state: 'running', sequence: 1,
+      conversationId: 'narrow-agent', provider: 'codex', sessions: [], messages: [], approvals: [], providers: [] }; } };
+  });
+  await page.goto('/');
+  for (const view of ['assets', 'history', 'source']) await page.getByTestId(`nav-${view}`).click();
+  const toggle = page.getByTestId('professional-agent-toggle');
+  await expect(toggle).toHaveAccessibleName('Agent · Running');
+  await expect(toggle).toBeInViewport();
+  const list = page.getByRole('tablist', { name: 'Workspace views' });
+  await expect.poll(async () => {
+    const viewport = await list.boundingBox(), tab = await page.getByTestId('workbench-tab-source').boundingBox();
+    return !!viewport && !!tab && tab.x >= viewport.x - 1 && tab.x + tab.width <= viewport.x + viewport.width + 1;
+  }).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('navigation-running-320.png') });
+});
+
 test('project and tool navigation keeps existing workbenches reachable with source and settings', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

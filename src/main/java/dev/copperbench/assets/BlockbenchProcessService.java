@@ -14,7 +14,8 @@ public final class BlockbenchProcessService implements AutoCloseable {
 	private final BlockbenchInstallationDetector detector;
 	private java.util.function.Supplier<Path> executableResolver;
 	private final EditLifecycle lifecycle;
-	private Process process;
+	private volatile Process process;
+	private volatile boolean closed;
 	private AssetTaskLease lease;
 	private Snapshot snapshot;
 	private PreparedEdit preparedEdit;
@@ -99,6 +100,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 	}
 
 	public synchronized Snapshot openAsset(String assetId) {
+		if (closed) throw new IllegalStateException("Blockbench process service is closed");
 		Snapshot current = status();
 		if (current.state() == State.RUNNING)
 			throw new BlockbenchBridgeException("BLOCKBENCH_ALREADY_RUNNING", "A Blockbench asset task is already running");
@@ -122,7 +124,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 					new BlockbenchBridgeException("BLOCKBENCH_ASSET_LEASED",
 							"The requested asset is already open in another Blockbench task"));
 			preparedEdit = lifecycle.prepare(descriptor);
-			process = starter.start(List.of(executable.toString(), authorized.toString()));
+			startProcess(List.of(executable.toString(), authorized.toString()));
 			snapshot = new Snapshot(State.RUNNING, descriptor.id(), descriptor.relativePath(), process.pid(), null,
 				descriptor.sha256(), descriptor.sha256(), installation.version(), null,
 				preparedEdit == null ? null : preparedEdit.recoveryPointId(), null, false);
@@ -144,6 +146,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 
 	/** Launch only the editing copy of a durable task. Editor exit never freezes or imports it. */
 	public synchronized Snapshot openTask(java.util.UUID taskId) {
+		if (closed) throw new IllegalStateException("Blockbench process service is closed");
 		if (status().state() == State.RUNNING)
 			throw new BlockbenchBridgeException("BLOCKBENCH_ALREADY_RUNNING", "Blockbench is already running; open the task copy from its File menu");
 		Path file = lifecycle.modelingEdit(taskId);
@@ -160,7 +163,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 			lease = AssetTaskLease.tryAcquire(assets.workspaceRoot(), descriptor.id()).orElseThrow(() ->
 					new BlockbenchBridgeException("BLOCKBENCH_ASSET_LEASED", "This task copy is already open in Blockbench"));
 			modelingEdit = file;
-			process = starter.start(List.of(executable.toString(), file.toString()));
+			startProcess(List.of(executable.toString(), file.toString()));
 			return snapshot = new Snapshot(State.RUNNING, descriptor.id(), descriptor.relativePath(), process.pid(), null,
 					descriptor.sha256(), descriptor.sha256(), installation.version(), null, null, null, false);
 		} catch (IOException exception) {
@@ -179,6 +182,17 @@ public final class BlockbenchProcessService implements AutoCloseable {
 			if (!modelingEdit.toRealPath().equals(modelingEdit.toAbsolutePath().normalize())) return null;
 			return AssetDescriptor.fromFile(assets.workspaceRoot(), modelingEdit).sha256();
 		} catch (IOException | RuntimeException exception) { return null; }
+	}
+
+	private void startProcess(List<String> command) throws IOException {
+		if (closed) throw new IOException("Blockbench launch was cancelled because the workspace closed");
+		process = starter.start(command);
+		// closeAsync can run during OS process creation. Publish the handle before checking again.
+		if (closed) {
+			process.destroy();
+			process = null;
+			throw new IOException("Blockbench launch was cancelled because the workspace closed");
+		}
 	}
 
 	private boolean isAvailable() {
@@ -214,13 +228,24 @@ public final class BlockbenchProcessService implements AutoCloseable {
 		}
 	}
 
-	@Override public synchronized void close() {
-		if (process != null && process.isAlive()) process.destroy();
-		process = null;
-		preparedEdit = null;
-		modelingEdit = null;
-		releaseLease();
-		snapshot = availabilitySnapshot();
+	/** Stops launches immediately and releases resources without waiting on the desktop event thread. */
+	public void closeAsync() {
+		closed = true;
+		Process active = process;
+		if (active != null && active.isAlive()) active.destroy();
+		Thread.ofVirtual().name("blockbench-close").start(this::close);
+	}
+
+	@Override public void close() {
+		closed = true;
+		synchronized (this) {
+			if (process != null && process.isAlive()) process.destroy();
+			process = null;
+			preparedEdit = null;
+			modelingEdit = null;
+			releaseLease();
+			snapshot = availabilitySnapshot();
+		}
 	}
 
 	public enum State { UNAVAILABLE, READY, RUNNING, EXITED, FAILED }

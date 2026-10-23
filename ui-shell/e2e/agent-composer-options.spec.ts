@@ -397,3 +397,81 @@ for (const dark of [false, true]) test(`compact composer and manual model input 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('composer-options.png') });
 });
+
+test('native drops belong to the selected composer across mode changes', async ({ page }) => {
+  await fixture(page, { english: true });
+  await expect.poll(() => page.evaluate(() => (window as any).composerFixture.target())).not.toBe('');
+  const simpleTarget = await page.evaluate(() => (window as any).composerFixture.target());
+  await page.evaluate(() => (window as any).composerFixture.nativeDrop());
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(1);
+  await page.getByTestId('workbench-mode-control').hover(); await page.getByTestId('mode-professional').click();
+  await page.getByTestId('professional-agent-toggle').click();
+  const professional = page.getByTestId('professional-agent-panel');
+  await expect(professional.locator('[data-state="ready"]')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => (window as any).composerFixture.target())).not.toBe(simpleTarget);
+  await expect.poll(() => page.evaluate(() => (window as any).composerFixture.target())).not.toBe('');
+  await page.evaluate(() => (window as any).composerFixture.nativeDrop());
+  await expect(professional.locator('[data-state="ready"]')).toHaveCount(1);
+  await page.getByTestId('workbench-mode-control').hover(); await page.getByTestId('mode-simple').click();
+  await expect.poll(() => page.evaluate(() => (window as any).composerFixture.target())).toBe(simpleTarget);
+  await page.evaluate(() => (window as any).composerFixture.nativeDrop());
+  await expect(page.locator('.creation-composer [data-state="ready"]')).toHaveCount(2);
+  await page.getByTestId('workbench-mode-control').hover(); await page.getByTestId('mode-professional').click();
+  await expect(professional.locator('[data-state="ready"]')).toHaveCount(1);
+});
+
+test('simple composer uses model efforts and Codex permission profiles from the shared session', async ({ page }) => {
+  await fixture(page, { english: true });
+  await page.evaluate(() => {
+    const { snapshot } = (window as any).composerFixture;
+    Object.assign(snapshot.providers[0].modelCatalog.models[0], { efforts: ['low', 'high'], defaultEffort: 'high' });
+    snapshot.modelCatalogs = { codex: { state: 'ready', models: [{ id: 'fixture-model', label: 'Fixture model', efforts: ['low', 'high'], defaultEffort: 'high' }], permissionProfiles: ['workspace', 'read-only', 'full-access', 'auto-approve'] } };
+    snapshot.sequence++;
+  });
+  await expect(page.getByTestId('simple-effort')).toHaveAttribute('aria-label', 'Reasoning effort: high');
+  await page.getByTestId('simple-effort').click();
+  await expect(page.getByRole('listbox', { name: 'Reasoning effort' }).getByRole('option')).toHaveCount(2);
+  await page.getByRole('option', { name: 'low', exact: true }).click();
+  await page.getByTestId('simple-permission').click();
+  await page.getByRole('option', { name: 'Full access', exact: true }).click();
+  await page.getByTestId('simple-prompt').fill('Keep the chosen model settings');
+  await page.getByTestId('simple-send').click();
+  await expect.poll(() => page.evaluate(() => (window as any).composerFixture.calls.find((call: any) => call.operation === 'send')))
+    .toMatchObject({ model: 'fixture-model', effort: 'low', permission: 'full-access' });
+});
+
+test('simple composer stops the shared verification and preserves final result collection', async ({ page }) => {
+  await fixture(page, { english: true });
+  await page.evaluate(() => {
+    const { snapshot } = (window as any).composerFixture;
+    snapshot.activeVerification = { runId: 'verification-run', cancelling: false };
+    snapshot.sequence++;
+  });
+  await expect(page.getByTestId('simple-stop')).toHaveAttribute('aria-label', 'Stop verification');
+  await page.getByTestId('simple-stop').click();
+  await expect.poll(() => page.evaluate(() => (window as any).composerFixture.calls.some((call: any) => call.operation === 'stopVerification' && call.runId === 'verification-run'))).toBe(true);
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.some((call: any) => call.operation === 'stop'))).toBe(false);
+  await page.evaluate(() => {
+    const { snapshot } = (window as any).composerFixture;
+    delete snapshot.activeVerification;
+    snapshot.state = 'running'; snapshot.activeRunPhase = 'finalizing'; snapshot.sequence++;
+  });
+  await expect(page.getByTestId('simple-stop')).toHaveAttribute('aria-label', 'Saving results');
+  await expect(page.getByTestId('simple-stop')).toBeDisabled();
+  await expect(page.getByTestId('creation-shell')).toContainText('Saving results…');
+});
+
+test('simple composer respects shared cleanup and execution-disable gates without dropping drafts', async ({ page }) => {
+  await fixture(page, { english: true });
+  await page.getByTestId('simple-prompt').fill('Preserve this draft until execution is allowed');
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  await page.evaluate(() => { const { snapshot } = (window as any).composerFixture; snapshot.writeBlocked = true; snapshot.sequence++; });
+  await expect(page.getByTestId('simple-send')).toBeDisabled();
+  await page.getByTestId('simple-prompt').press('Enter');
+  expect(await page.evaluate(() => (window as any).composerFixture.calls.some((call: any) => call.operation === 'send'))).toBe(false);
+  await page.evaluate(() => { const { snapshot } = (window as any).composerFixture; snapshot.writeBlocked = false; snapshot.enabled = false; snapshot.sequence++; });
+  await expect(page.getByTestId('simple-send')).toBeDisabled();
+  await page.evaluate(() => { const { snapshot } = (window as any).composerFixture; snapshot.enabled = true; snapshot.sequence++; });
+  await expect(page.getByTestId('simple-send')).toBeEnabled();
+  await expect(page.getByTestId('simple-prompt')).toHaveValue('Preserve this draft until execution is allowed');
+});

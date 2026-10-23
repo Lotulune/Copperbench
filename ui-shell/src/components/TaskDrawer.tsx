@@ -20,9 +20,12 @@ import { ExportCompatibility } from './ExportCompatibility';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview, WorkspacePlan, WorkspacePlanStep } from '../types/contract';
 import './taskAuthorization.css';
+import { useAgent } from '../context/AgentContext';
+import { agentAttachment } from './agentEvidence';
 import { AcceptanceSummary } from './AcceptanceSummary';
 
 export const TaskDrawer: React.FC = () => {
+  const agent = useAgent();
   const {
     isTaskDrawerOpen,
     setIsTaskDrawerOpen,
@@ -363,6 +366,11 @@ export const TaskDrawer: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {activeTask && <button type="button" className="btn-secondary" data-testid="task-analyze-agent" onClick={() => {
+            agent.openPanel(agentAttachment(`task:${activeTask.id}`, 'task-log', JSON.stringify({ task: activeTask, logs, diagnostics }, null, 2)),
+              uiText('请分析这次任务的结果并修复问题。', 'Analyze this task result and fix the problem.'));
+            setIsTaskDrawerOpen(false);
+          }}>{uiText('让 Agent 分析', 'Analyze with Agent')}</button>}
           {activeTask?.kind === 'run_gametest' && activeTask.state === 'failed' &&
             <button type="button" className="btn-secondary" onClick={() => void prepareGameTests()}>{uiText("准备测试模板", "Prepare test templates")}</button>}
           {activeTask?.kind === 'prepare_game_tests' && activeTask.state === 'succeeded' &&

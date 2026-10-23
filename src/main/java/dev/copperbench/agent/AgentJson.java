@@ -79,6 +79,18 @@ final class AgentJson {
     }
 
     static String detail(JsonElement value) { return bounded(value == null ? "" : value.toString(), 12_000); }
+    static JsonElement redactedTree(JsonElement value) {
+        if (value == null || value.isJsonNull()) return JsonNull.INSTANCE;
+        if (value.isJsonObject()) {
+            JsonObject safe = new JsonObject(); value.getAsJsonObject().entrySet().forEach(entry -> {
+                String key = entry.getKey();
+                safe.add(key, key.toLowerCase(java.util.Locale.ROOT).matches(".*(?:password|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|authorization).*")
+                        ? new JsonPrimitive("[redacted]") : redactedTree(entry.getValue()));
+            }); return safe;
+        }
+        if (value.isJsonArray()) { JsonArray safe = new JsonArray(); value.getAsJsonArray().forEach(item -> safe.add(redactedTree(item))); return safe; }
+        return value.getAsJsonPrimitive().isString() ? new JsonPrimitive(redacted(value.getAsString())) : value.deepCopy();
+    }
 
     static String remoteId(String value) {
         if (!value.matches("[A-Za-z0-9_.:-]{1,256}"))

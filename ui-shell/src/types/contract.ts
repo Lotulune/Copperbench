@@ -1049,6 +1049,7 @@ export type QueryOperation =
   | 'preview_asset_move'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
+  | 'get_element_visual_preview'
   | 'preview_mod_element_change'
   | 'get_procedure_editor'
   | 'preview_procedure_change'

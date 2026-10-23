@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ChevronRight, FileCode2, Folder, RefreshCw, Save, Search, X } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useAgent } from '../context/AgentContext';
+import { agentAttachment } from './agentEvidence';
 import { sourceBridge } from '../bridge/sourceBridge';
 import { OperationFailure, operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
 import { windowBridge, type AppPreferencesSnapshot } from '../bridge/windowBridge';
@@ -90,6 +92,7 @@ export const SourceWorkbench: React.FC<{ active?: boolean; focusRequest?: Source
 };
 
 function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: string; active: boolean; focusRequest?: SourceFocusRequest | null }) {
+  const agent = useAgent();
   const current = useSyncExternalStore(listener => { listeners.add(listener); return () => { listeners.delete(listener); }; }, () => session(workspaceId));
   const tab = current.tabs.find(item => item.path === current.activePath);
   const [mobilePanel, setMobilePanel] = useState<'files' | 'editor'>(current.activePath ? 'editor' : 'files');
@@ -344,6 +347,8 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
         <button type="button" onClick={() => setCloseCandidate(null)}>{uiText('继续编辑', 'Keep editing')}</button></div></div>}
       {tab ? <>
         <header className="source-editor-toolbar"><span title={tab.path}>{tab.path}</span>
+          <button type="button" data-testid="source-analyze-agent" onClick={() => agent.openPanel(agentAttachment(tab.path, dirty(tab) ? 'editor-draft' : 'source-file', tab.content),
+            uiText('请分析这个文件并说明需要修改的地方。', 'Analyze this file and explain the changes needed.'))}>{uiText('让 Agent 分析', 'Analyze with Agent')}</button>
           <button type="button" onClick={() => { changeTab(workspaceId, tab.path, old => ({ ...old, loading: true })); void read(tab.path); }} disabled={tab.loading || tab.saving} data-testid="source-reload">
             <RefreshCw size={14} aria-hidden="true" />{uiText('读取最新版本', 'Read latest version')}</button>
           <button type="button" onClick={() => void save()} disabled={!tab.file?.editable || !dirty(tab) || tab.loading || tab.saving || tab.conflict || tab.saveUnknown} data-testid="source-save">

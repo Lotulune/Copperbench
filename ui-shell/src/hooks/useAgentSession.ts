@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { agentBridge, agentIsActive, type AgentRequest, type AgentSnapshot } from '../bridge/agentBridge';
 
-/** Owned by the mounted creation surface, independent of its current visibility. */
+/** One workspace owner shared by both creation modes. */
 export function useAgentSession(visible: boolean, workspaceId?: string) {
   const [snapshot, setSnapshot] = useState<AgentSnapshot | null>(null);
   const [loading, setLoading] = useState(agentBridge.available);
@@ -11,6 +11,7 @@ export function useAgentSession(visible: boolean, workspaceId?: string) {
   const isVisible = useRef(visible);
   const commandPending = useRef(false);
   const generation = useRef(0);
+  const wakeRead = useRef<() => void>(() => {});
   isVisible.current = visible;
   const accept = useCallback((next: AgentSnapshot) => {
     if (current.current && next.sequence < current.current.sequence) return;
@@ -42,21 +43,24 @@ export function useAgentSession(visible: boolean, workspaceId?: string) {
           if (!cancelled) setLoading(false);
         }
       }
-      if (!cancelled) timer = window.setTimeout(() => void read(), agentIsActive(current.current?.state) || current.current?.detecting
+      if (!cancelled) timer = window.setTimeout(() => void read(), agentIsActive(current.current?.state) || current.current?.detecting || current.current?.checking || current.current?.activeVerification
+        || Object.values(current.current?.modelCatalogs ?? {}).some(catalog => catalog?.state === 'loading')
         ? document.hidden ? 1500 : 650 : isVisible.current && !document.hidden ? 3000 : 10000);
     };
     const wake = () => { if (!document.hidden && !reading) { window.clearTimeout(timer); void read(); } };
+    wakeRead.current = wake;
     document.addEventListener('visibilitychange', wake);
     void read(true);
-    return () => { cancelled = true; ++generation.current; window.clearTimeout(timer); document.removeEventListener('visibilitychange', wake); };
+    return () => { cancelled = true; ++generation.current; wakeRead.current = () => {}; window.clearTimeout(timer); document.removeEventListener('visibilitychange', wake); };
   }, [accept, workspaceId]);
+  useEffect(() => { if (visible) wakeRead.current(); }, [visible]);
 
   const invoke = useCallback(async (request: AgentRequest): Promise<AgentSnapshot | null> => {
     if (commandPending.current) return null;
     const ownGeneration = generation.current;
     commandPending.current = true; setPending(request.operation); setError(null);
     try {
-      const next = await agentBridge.invoke(request);
+      const next = await agentBridge.invoke({ ...request, ...(current.current?.project ? { projectId: current.current.project.id } : {}) });
       if (generation.current !== ownGeneration) return null;
       accept(next);
       return next;
@@ -65,7 +69,7 @@ export function useAgentSession(visible: boolean, workspaceId?: string) {
       return null;
     } finally {
       commandPending.current = false;
-      if (generation.current === ownGeneration) setPending(null);
+      if (generation.current === ownGeneration) { setPending(null); wakeRead.current(); }
     }
   }, [accept]);
   return { snapshot, loading, error, pending, invoke, available: agentBridge.available };

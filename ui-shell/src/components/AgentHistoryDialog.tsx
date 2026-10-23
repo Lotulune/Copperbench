@@ -13,6 +13,7 @@ export function AgentHistoryDialog({ snapshot, busy, pending, invoke, onClose, d
 }) {
   const [feedback, setFeedback] = useState<UiMessage | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [includeRuns, setIncludeRuns] = useState(false);
   const capacity = snapshot?.history;
   const act = async (request: AgentRequest) => {
     setFeedback(null);
@@ -34,12 +35,18 @@ export function AgentHistoryDialog({ snapshot, busy, pending, invoke, onClose, d
   return <Dialog open title={uiText('整理对话记录', 'Manage conversation history')} testId="agent-history-dialog" onClose={onClose}
     footer={<button type="button" className="btn-secondary" onClick={onClose}>{uiText('完成', 'Done')}</button>}>
     <p>{uiText('导出包含对话原文、助手名称和时间。分享前请检查其中的个人内容。', 'Exports include conversation text, assistant and timestamps. Review personal content before sharing.')}</p>
+    {snapshot?.runHistoryCapacity && <div className="agent-history-capacity" role="status">
+      <span>{snapshot.runHistoryCapacity.count} / {snapshot.runHistoryCapacity.maxCount} {uiText('次运行', 'runs')}</span>
+      {snapshot.runHistoryCapacity.level !== 'ok' && <strong>{uiText('运行证据空间不足。导出所需记录后，删除已结束的会话以释放运行名额。', 'Run evidence storage is nearly full. Export the records you need, then delete finished conversations to free run capacity.')}</strong>}
+      <p>{uiText('删除会话会同时删除其已结束的运行记录和基线；停止尚未确认的记录不能删除。', 'Deleting a conversation also deletes its finished run records and baselines. Records with unconfirmed cleanup cannot be deleted.')}</p>
+      <label><input type="checkbox" checked={includeRuns} onChange={event => setIncludeRuns(event.target.checked)} />{uiText('导出时包含运行记录与文件差异', 'Include run records and file changes in exports')}</label>
+    </div>}
     {capacity && <p className="agent-history-capacity" role="status">{capacity.count} / {capacity.maxCount} {uiText('个会话', 'conversations')} · {(capacity.bytes / 1048576).toFixed(1)} / {(capacity.maxBytes / 1048576).toFixed(0)} {uiText('MiB', 'MiB')}
       {capacity.level !== 'ok' && <strong>{capacity.level === 'unreadable' ? uiText('历史无法加载，原文件已保留。', 'History could not be loaded. The original file is retained.')
         : uiText('请导出并删除不再需要的会话以释放空间。', 'Export and delete conversations you no longer need to free space.')}</strong>}</p>}
     {capacity?.level === 'unreadable' ? <button type="button" className="btn-danger" disabled={busy || pending} onClick={async () => {
       if (await confirmAction({ title: uiMessage('备份并重新开始对话', 'Back up and restart history'),
-        message: uiMessage('原历史将完整备份到当前工作区，然后创建空的 Copperbench 对话记录。备份可能含原始敏感信息；工作区作品和 CLI 原生记录不会改变。', 'The original history will be backed up in this workspace, then Copperbench will start an empty history. The backup may contain sensitive original content. Your creation and native CLI history remain unchanged.'),
+        message: uiMessage('对话、已结束的运行记录和基线将归档到当前工作区，然后创建空记录。未确认停止的运行不能重置。归档保留原始内容，附件副本保留在原路径。', 'Conversations, finished run records and baselines will be archived in this workspace before starting empty history. Runs with unconfirmed cleanup cannot be reset. Archives retain original content; attachment copies stay at their existing paths.'),
         confirmLabel: uiMessage('备份并重新开始', 'Back up and restart'), danger: true })) await act({ operation: 'recoverHistory', confirmed: true });
     }}>{uiText('备份并重新开始', 'Back up and restart')}</button> : <>
       {snapshot?.storageBlocked && <button type="button" className="btn-secondary" disabled={busy || pending} onClick={() => void act({ operation: 'retryHistory' })}>{uiText('重试保存历史', 'Retry saving history')}</button>}
@@ -54,7 +61,7 @@ export function AgentHistoryDialog({ snapshot, busy, pending, invoke, onClose, d
         <input type="checkbox" aria-label={`${uiText('选择', 'Select')} ${agentText(session.title, session.titleText)}`} checked={selected.includes(session.id)} disabled={pending || busy && snapshot.conversationId === session.id}
           onChange={event => setSelected(current => event.target.checked ? [...current, session.id] : current.filter(id => id !== session.id))} />
         <AgentProviderIcon provider={session.provider} /><div><strong>{agentText(session.title, session.titleText)}</strong><small>{new Date(session.updatedAt).toLocaleString()}</small></div>
-        <button type="button" className="btn-secondary" disabled={pending} aria-label={`${uiText('导出', 'Export')} ${agentText(session.title, session.titleText)}`} onClick={() => void act({ operation: 'exportConversation', conversationId: session.id })}><Download size={15} aria-hidden="true" /></button>
+        <button type="button" className="btn-secondary" disabled={pending} aria-label={`${uiText('导出', 'Export')} ${agentText(session.title, session.titleText)}`} onClick={() => void act({ operation: 'exportConversation', conversationId: session.id, ...(includeRuns ? { includeRuns: true } : {}) })}><Download size={15} aria-hidden="true" /></button>
         <button type="button" className="btn-danger" disabled={pending || busy && snapshot.conversationId === session.id} aria-label={`${uiText('删除', 'Delete')} ${agentText(session.title, session.titleText)}`} onClick={async () => {
           if (await confirmAction({ title: uiMessage('删除此对话？', 'Delete this conversation?'),
             message: deletionMessage([session.id]),

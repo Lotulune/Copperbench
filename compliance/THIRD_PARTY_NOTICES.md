@@ -36,6 +36,10 @@ MCreator 插件页面曾显示 LGPLv3，与固定仓库文件不一致。产品�
 
 范围依据实际生产 bundle 的模块清单；包版本由 `ui-shell/package-lock.json` 固定。各上游许可文件及汇总正文的 SHA-256 保存在 `evidence/maintenance/2026-10-22/ui-runtime-licenses.json`。Windows、Linux 和 macOS 的现有导出任务复制整个 `license/` 目录，许可正文随包提供；这项记录不扩大各平台的支持或验收声明。
 
+## 内嵌模型预览（2026-10-23）
+
+内嵌模型预览使用锁定版本 `three@0.186.1`。上游 MIT 许可及版权正文保存在 `license/Three.js License.txt`，随现有 `license/` 导出流程分发；未修改上游库。开发期的 `@types/three` 只提供类型检查，不进入运行时产物。
+
 ## 可选外部建模工具（2026-09-13）
 
 - [Blockbench](https://github.com/JannisX11/blockbench)：GPLv3；官方说明允许插件/主题采用独立许可，原创输出归创作者所有。

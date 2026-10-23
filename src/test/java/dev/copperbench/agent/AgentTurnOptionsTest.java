@@ -21,7 +21,9 @@ class AgentTurnOptionsTest {
             protocol.configure(new AgentTurnOptions(effort, "auto-approve"), List.of());
             assertTrue(protocol.arguments().contains(switch (provider) { case "grok" -> "--always-approve"; case "claude" -> "bypassPermissions"; default -> "--dangerously-skip-permissions"; }));
         }
-        assertThrows(IllegalArgumentException.class, () -> new AgentTurnOptions("ultra", "default"));
+        assertEquals("ultra", new AgentTurnOptions("ultra", "default").effort());
+        assertThrows(IllegalArgumentException.class, () -> new AgentTurnOptions("invalid effort", "default"));
+        assertThrows(IllegalArgumentException.class, () -> new AgentTurnOptions("x".repeat(65), "default"));
         assertThrows(IllegalArgumentException.class, () -> new AgentTurnOptions("high", "never"));
     }
 

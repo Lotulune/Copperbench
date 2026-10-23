@@ -4,6 +4,7 @@
 
 
 默认简洁界面请从[简洁创作首作路线](simple-creation.md)开始（[English](simple-creation.en.md)），包括 CLI 安装检测、动画教程、失败恢复和对话整理。
+当前源码新增的专业工作台对话、模型与权限选择、文件差异和独立验证见[专业版 Agent](professional-agent.md)。
 0.1.17 修复旧会话原位续聊、附件错误语言切换、长会话附件回收及窄窗口模式名称截断。新用户可跟随简洁模式的对话首作路线；手动编辑教程使用顶部的专业工作台。聊天使用主机上已安装并配置的 CLI。旧安装包保留原功能与验收范围。
 
 第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。源码能力、26.3 预览和支持边界见[当前状态](../status.md)。
@@ -32,6 +33,8 @@
 资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。维护事项见[剩余完善清单](../remaining-work.md)。各平台版本的变更与验证范围从[当前下载](../releases/current.md)进入；0.1.17 的记录见 [Windows 说明](../releases/v0.1.17.md)和 [Linux 说明](../releases/v0.1.17-linux.md)。
 
 ## 模组元素
+
+当前源码中的元素编辑面板和简洁创作页提供静态立体预览，可旋转、平移和缩放，并反映尚未保存的外观字段。资产页也可查看支持的模型几何；修改模型时使用 [Blockbench](blockbench-setup.md)。Java 实体模型显示可解析的默认姿态，游戏内动画、光照和自定义渲染仍以实际客户端为准。
 
 应用内脚本编辑、持久控制台与当前工程 Python 对象接口见 [Python 工作台](./python-workbench.md)。
 

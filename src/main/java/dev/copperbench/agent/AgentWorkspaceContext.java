@@ -5,6 +5,12 @@ import java.util.Comparator;
 
 /** Public paths only: native Workspace.connect owns private desktop-session discovery. */
 record AgentWorkspaceContext(Path root, Path workspaceFile, Path sdkDirectory) {
+    AgentWorkspaceContext {
+        try {
+            root = root.toRealPath();
+            if (workspaceFile != null) workspaceFile = workspaceFile.getParent().toRealPath().resolve(workspaceFile.getFileName());
+        } catch (java.io.IOException failure) { throw new IllegalArgumentException("Workspace directory is inaccessible", failure); }
+    }
     static AgentWorkspaceContext discover(Path root) {
         Path file = null;
         try (var paths = Files.list(root)) {

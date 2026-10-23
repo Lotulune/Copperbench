@@ -86,6 +86,7 @@ public final class UiCore {
 		@SerializedName("preview_asset_move") PREVIEW_ASSET_MOVE,
 		@SerializedName("list_mod_elements") LIST_MOD_ELEMENTS,
 		@SerializedName("get_mod_element_editor") GET_MOD_ELEMENT_EDITOR,
+		@SerializedName("get_element_visual_preview") GET_ELEMENT_VISUAL_PREVIEW,
 		@SerializedName("preview_mod_element_change") PREVIEW_MOD_ELEMENT_CHANGE,
 		@SerializedName("get_procedure_editor") GET_PROCEDURE_EDITOR,
 		@SerializedName("preview_procedure_change") PREVIEW_PROCEDURE_CHANGE,

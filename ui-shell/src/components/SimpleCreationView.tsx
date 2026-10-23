@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowLeft, ArrowUp, Box, Brain, Check, ChevronDown, ExternalLink, FileArchive, FolderOpen, HelpCircle, History, Image, LoaderCircle, Paperclip, Plus, RefreshCw, Settings, ShieldCheck, Square, Play } from 'lucide-react';
 import { AGENT_EFFORTS, AGENT_PROVIDERS, agentIsActive, agentText, validModelId, type AgentEffort, type AgentPermission, type AgentProviderId, type AgentTurnOptions } from '../bridge/agentBridge';
-import { useAgentSession } from '../hooks/useAgentSession';
+import { useAgent } from '../context/AgentContext';
 import { useAgentAttachments } from '../hooks/useAgentAttachments';
 import { hasUnsavedDrafts, setUnsavedDraftCount } from '../hooks/unsavedDraftGuard';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -13,6 +13,7 @@ import { elementShortLabel } from '../i18n/labels';
 import { renderUiMessage, t, uiMessage, uiText, useUiLocale } from '../i18n';
 import { confirmAction } from '../feedback/feedback';
 import { AssetPreview } from './AssetPreview';
+import { ElementVisualPreview, hasElementVisualPreview } from './ElementVisualPreview';
 import { workbenchNavigation } from './workbenchNavigation';
 import { newestTasks } from './taskPresentation';
 import { AgentProviderIcon, AGENT_PROVIDER_NAMES as providerNames } from './AgentProviderIcon';
@@ -70,10 +71,11 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const workspaceId = workspace?.id;
   const revision = workspace?.revision ?? 0;
   const home = activeView === 'hub';
-  const agent = useAgentSession(active && home, workspaceId);
+  const agent = useAgent();
   const snapshot = agent.snapshot;
-  const running = agentIsActive(snapshot?.state);
-  const busy = running || Boolean(snapshot?.checking);
+  const running = agentIsActive(snapshot?.state) || Boolean(snapshot?.activeVerification);
+  const finalizing = snapshot?.activeRunPhase === 'finalizing';
+  const busy = running || Boolean(snapshot?.checking) || finalizing;
   const [provider, setProvider] = useState<AgentProviderId>(() => savedProvider() ?? 'codex');
   const [modelPreferences, setModelPreferences] = useState(savedModels);
   const requestedCatalogs = useRef(new Set<string>());
@@ -90,6 +92,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const [previewTab, setPreviewTab] = useState<'appearance' | 'settings'>('appearance');
   const [assets, setAssets] = useState<AssetRecord[]>([]);
   const [assetId, setAssetId] = useState('');
+  const [appearanceSource, setAppearanceSource] = useState<'element' | 'asset'>('element');
   const [assetsLoading, setAssetsLoading] = useState(false);
   const [assetsError, setAssetsError] = useState<string | null>(null);
   const [reloadAssets, setReloadAssets] = useState(0);
@@ -122,16 +125,32 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   const draftKey = `${workspaceId ?? ''}:${snapshot?.conversationId ?? 'new'}`;
   const draft = drafts[draftKey] ?? '';
   const attached = useAgentAttachments(workspaceId, draftKey, active && home);
-  const effort = turnPreferences[draftKey]?.effort ?? snapshot?.effort ?? 'medium';
   const permission = turnPreferences[draftKey]?.permission ?? snapshot?.permission ?? 'default';
   const effectiveProvider = snapshot?.provider ?? provider;
   const providerInfo = snapshot?.providers.find(item => item.id === effectiveProvider);
   const modelCatalog = providerInfo?.modelCatalog;
   const effectiveModel = snapshot?.conversationId ? snapshot.model ?? '' : modelPreferences[effectiveProvider] ?? modelCatalog?.defaultModel ?? '';
+  const selectedModel = modelCatalog?.models.find(model => model.id === effectiveModel);
+  const efforts: readonly string[] = effectiveProvider === 'codex' && selectedModel?.efforts?.length ? selectedModel.efforts : AGENT_EFFORTS;
+  const preferredEffort = turnPreferences[draftKey]?.effort ?? snapshot?.effort;
+  const effort = preferredEffort && efforts.includes(preferredEffort) ? preferredEffort
+    : selectedModel?.defaultEffort && efforts.includes(selectedModel.defaultEffort) ? selectedModel.defaultEffort
+    : efforts.includes('medium') ? 'medium' : efforts[0];
+  const permissionCatalog = snapshot?.modelCatalogs?.[effectiveProvider];
+  const permissionOptions: { value: AgentPermission; label: string }[] = [
+    { value: 'default', label: uiText('默认权限', 'Default permissions') },
+    { value: 'auto-approve', label: uiText('自动批准', 'Automatic approval') }
+  ];
+  if (effectiveProvider === 'codex') for (const profile of ['read-only', 'full-access'] as const) {
+    if (permission === profile || permissionCatalog?.state === 'ready' && permissionCatalog.permissionProfiles.includes(profile))
+      permissionOptions.push({ value: profile, label: profile === 'read-only' ? uiText('只读沙箱', 'Read-only sandbox') : uiText('完全访问', 'Full access') });
+  }
   const usesSessionModel = Boolean(snapshot?.usesSessionModel);
   const needsModel = !effectiveModel && !usesSessionModel;
   const visibleAssets = assets.filter(asset => asset.category === 'texture' || asset.category === 'model');
   const previewAsset = visibleAssets.find(asset => asset.id === assetId);
+  const previewElement = selected && hasElementVisualPreview(selected.type) ? selected : null;
+  useEffect(() => { setAppearanceSource('element'); }, [selected?.id]);
   const recentTask = newestTasks(Object.values(state.tasks))[0];
   const taskRunning = Object.values(state.tasks).some(task => task.state === 'queued' || task.state === 'running');
   // Keep session/draft/task ownership mounted across modes, but do not build thousands
@@ -159,6 +178,11 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
     }
     previousAgentState.current = snapshot?.state;
   }, [snapshot?.state]);
+  useEffect(() => {
+    if (active && home && workspaceId && effectiveProvider === 'codex' && providerInfo?.installed && providerInfo.capabilities?.runSettings
+      && !permissionCatalog && !agent.pending && !agent.loading && !busy)
+      void agent.invoke({ operation: 'settingsCatalog', provider: 'codex' });
+  }, [active, home, workspaceId, effectiveProvider, providerInfo?.installed, providerInfo?.capabilities?.runSettings, permissionCatalog, agent.pending, agent.loading, busy, agent.invoke]);
   useEffect(() => {
     const list = messagesRef.current;
     if (list && following.current && active && home) list.scrollTop = list.scrollHeight;
@@ -235,7 +259,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   };
   const send = async () => {
     const text = draft.trim();
-    if ((!text && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || busy || needsModel || agent.pending || snapshot?.storageBlocked || hasParameterDrafts) return;
+    if ((!text && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || busy || needsModel || agent.pending || snapshot?.storageBlocked || snapshot?.writeBlocked || snapshot?.enabled === false || hasParameterDrafts) return;
     const submittedKey = draftKey;
     const previousMessages = new Set(snapshot?.messages.map(message => message.id) ?? []);
     const attachmentIds = attached.files.flatMap(file => file.item ? [file.item.id] : []);
@@ -334,7 +358,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
     if (!workspace || playPending || taskRunning || running || hasParameterDrafts) return;
     setPlayPending(true); setPlayError(null);
     try {
-      if (hasUnsavedDrafts(['simple-chat']) && !await confirmAction({
+      if (hasUnsavedDrafts(['simple-chat', 'professional-agent']) && !await confirmAction({
         title: uiMessage('还有未保存的作品修改', 'Unsaved creation changes'),
         message: uiMessage('试玩只会使用已保存的内容。你可以取消并应用修改，或继续试玩已保存内容。', 'Playtesting uses saved content. Cancel to apply your changes, or continue with the saved content.'),
         confirmLabel: uiMessage('试玩已保存内容', 'Playtest saved content')
@@ -353,6 +377,8 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
   };
   const showCompactChat = () => { if (homeRef.current) homeRef.current.scrollTop = 0; composerRef.current?.focus({ preventScroll: true }); };
   const status = agent.loading || snapshot?.detecting ? uiText('正在检测创作助手…', 'Detecting creation assistants…')
+    : finalizing ? uiText('正在保存结果…', 'Saving results…')
+    : snapshot?.activeVerification ? snapshot.activeVerification.cancelling ? uiText('正在停止验证…', 'Stopping verification…') : uiText('正在验证…', 'Verifying…')
     : snapshot?.state === 'starting' ? uiText('正在启动…', 'Starting…')
       : snapshot?.state === 'waiting_approval' ? uiText('等待你的选择', 'Waiting for your choice')
         : snapshot?.state === 'stopping' ? uiText('正在停止…', 'Stopping…')
@@ -486,20 +512,19 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                 <div className="creation-model-settings"><AgentModelSelect value={effectiveModel} usesSessionModel={usesSessionModel} catalog={modelCatalog} active={active && home}
                   disabled={busy || attached.uploading || Boolean(agent.pending && agent.pending !== 'models') || agent.loading || !agent.available || !workspaceId}
                   onChange={model => void chooseModel(model)} onRefresh={() => void agent.invoke({ operation: 'models', provider: effectiveProvider })} />
-                  <AgentOptionSelect<AgentEffort> value={effort} options={AGENT_EFFORTS.map(level => ({ value: level, label: level }))}
+                  <AgentOptionSelect<AgentEffort> value={effort} options={efforts.map(level => ({ value: level, label: level }))}
                     icon={<Brain size={14} aria-hidden="true" />} label={uiText('思考强度', 'Reasoning effort')} testId="simple-effort"
                     describedBy="creation-effort-hint" active={active && home} disabled={busy || Boolean(agent.pending)}
                     onChange={next => setTurnPreferences(current => ({ ...current, [draftKey]: { effort: next, permission } }))} />
                 </div>
-                <AgentOptionSelect<AgentPermission> value={permission} options={[
-                  { value: 'default', label: uiText('默认权限', 'Default permissions') },
-                  { value: 'auto-approve', label: uiText('自动批准', 'Automatic approval') }
-                ]} icon={<ShieldCheck size={14} aria-hidden="true" />} label={uiText('执行权限', 'Execution permissions')} testId="simple-permission"
-                  title={uiText('默认权限沿用 CLI 的审批规则，需要批准时在对话中确认。', 'Default permissions follow CLI rules. Confirm requests in the conversation when approval is needed.')}
+                <AgentOptionSelect<AgentPermission> value={permission} options={permissionOptions} icon={<ShieldCheck size={14} aria-hidden="true" />} label={uiText('执行权限', 'Execution permissions')} testId="simple-permission"
+                  title={effectiveProvider === 'codex'
+                    ? uiText('默认权限允许工作区写入并按需批准；只读沙箱限制文件写入；完全访问仍按需批准；自动批准跳过确认。', 'Default permissions allow workspace writes with approval when needed. Read-only restricts file writes. Full access still requests approval; automatic approval skips confirmation.')
+                    : uiText('默认权限沿用 CLI 的审批规则，需要批准时在对话中确认。', 'Default permissions follow CLI rules. Confirm requests in the conversation when approval is needed.')}
                   active={active && home} disabled={busy || Boolean(agent.pending)} onChange={next => void choosePermission(next)} />
                 {/* A fast stop reply can reuse this node as Submit before the click default action. */}
-                {running ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={uiText('停止当前任务', 'Stop current task')} disabled={snapshot?.state === 'stopping' || Boolean(agent.pending)} onClick={event => { event.preventDefault(); void agent.invoke({ operation: 'stop' }); }}><Square size={15} fill="currentColor" /></button>
-                  : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={(!draft.trim() && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || busy || needsModel || Boolean(snapshot?.storageBlocked) || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
+                {running || finalizing ? <button type="button" className="creation-stop" data-testid="simple-stop" aria-label={finalizing ? uiText('正在保存结果', 'Saving results') : snapshot?.activeVerification ? uiText('停止验证', 'Stop verification') : uiText('停止当前任务', 'Stop current task')} disabled={finalizing || snapshot?.state === 'stopping' || snapshot?.activeVerification?.cancelling || Boolean(agent.pending)} onClick={event => { event.preventDefault(); void agent.invoke(snapshot?.activeVerification ? { operation: 'stopVerification', runId: snapshot.activeVerification.runId } : { operation: 'stop' }); }}>{finalizing ? <LoaderCircle size={15} className="creation-spinner" /> : <Square size={15} fill="currentColor" />}</button>
+                  : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={(!draft.trim() && !attached.files.length) || attached.blocked || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || busy || needsModel || Boolean(snapshot?.storageBlocked || snapshot?.writeBlocked) || snapshot?.enabled === false || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
               </div>
             </form>
             <p id="creation-effort-hint" className="creation-effort-hint">{uiText('请按模型选择思考强度，并非所有模型都支持全部档位；CLI 或当前源可能拒绝或调整所选强度。', 'Choose an effort supported by your model. Not all models support every level; the CLI or service may reject or adjust it.')}</p>
@@ -517,11 +542,18 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
           </div>
           <div className="creation-preview-scroll">
             <section id="creation-appearance" role="tabpanel" aria-labelledby="creation-appearance-tab" hidden={previewTab !== 'appearance'}>
+              {previewElement && <div className="creation-appearance-source" role="group" aria-label={uiText('外观来源', 'Appearance source')}>
+                <button type="button" aria-pressed={appearanceSource === 'element'} onClick={() => setAppearanceSource('element')}>{uiText('作品外观', 'Element appearance')}</button>
+                <button type="button" aria-pressed={appearanceSource === 'asset'} onClick={() => setAppearanceSource('asset')}>{uiText('纹理与模型', 'Textures and models')}</button>
+              </div>}
+              {previewElement && appearanceSource === 'element' && workspaceId ? active && home && previewTab === 'appearance' &&
+                <ElementVisualPreview workspaceId={workspaceId} element={previewElement} changes={changes} /> : <>
               <label className="creation-asset-label" htmlFor="creation-asset">{uiText('工作区纹理与模型', 'Workspace textures and models')}</label>
               <select id="creation-asset" value={previewAsset?.id ?? ''} disabled={assetsLoading || !visibleAssets.length} onChange={event => setAssetId(event.target.value)}><option value="">{uiText('选择要查看的资产', 'Choose an asset to view')}</option>{visibleAssets.map(asset => <option key={asset.id} value={asset.id}>{asset.name} · {asset.format}</option>)}</select>
               {assetsLoading && <p className="creation-panel-note" role="status">{uiText('正在读取素材…', 'Loading assets…')}</p>}
               {assetsError && <div className="creation-panel-error" role="alert"><p>{assetsError}</p><button type="button" onClick={() => setReloadAssets(value => value + 1)}>{uiText('重试', 'Retry')}</button></div>}
               {previewAsset ? <AssetPreview workspaceId={workspaceId} asset={previewAsset} /> : !assetsLoading && <div className="creation-preview-empty"><Image size={35} strokeWidth={1.25} aria-hidden="true" /><p>{visibleAssets.length ? uiText('选择资产，查看实际纹理。', 'Choose an asset to see its texture.') : uiText('添加纹理后，在这里查看外观。', 'Add a texture to preview its appearance here.')}</p><button type="button" onClick={() => setActiveView('assets')}>{uiText('打开素材', 'Open assets')}</button></div>}
+              </>}
             </section>
             <section id="creation-settings" role="tabpanel" aria-labelledby="creation-settings-tab" hidden={previewTab !== 'settings'}>
               {!selected ? <p className="creation-panel-note">{uiText('从左侧选择内容，调整它的设置。', 'Select content on the left to adjust its settings.')}</p>

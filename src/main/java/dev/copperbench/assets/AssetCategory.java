@@ -16,7 +16,7 @@ public enum AssetCategory {
 	public static AssetCategory fromRelativePath(String relativePath) {
 		String path = relativePath.replace('\\', '/').toLowerCase(Locale.ROOT);
 		String extension = extension(path);
-		if (extension.equals(".bbmodel") || path.contains("/models/"))
+		if (extension.equals(".bbmodel") || path.startsWith("models/") || path.contains("/models/"))
 			return MODEL;
 		if (path.contains("/textures/") || extension.equals(".png") || extension.equals(".jpg")
 				|| extension.equals(".jpeg"))

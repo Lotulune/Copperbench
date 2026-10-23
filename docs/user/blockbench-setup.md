@@ -10,6 +10,10 @@ Blockbench 是独立的可选建模工具。Copperbench 不捆绑或自动安装
 2. 未安装时，复制 [Blockbench 官方下载地址](https://www.blockbench.net/)，在浏览器中下载适合系统的桌面版。完成安装后重新检测。
 3. 对已导入并索引的 `.bbmodel` 或模型目录中的 `.json` 选择“在 Blockbench 打开”。按钮旁会显示准备进度、启动结果或失败原因；未配置时可从提示直接打开设置。编辑前创建恢复点，编辑器退出后处理已保存文件变化。
 
+恢复点准备和编辑器启动在后台执行，等待时可以切换页面、查看元素和读取资产。大型项目首次备份可能需要更长时间。关闭工作区会取消尚未完成的启动，避免稍后突然打开编辑器。
+
+在 Blockbench 保存并退出后，Copperbench 会自动登记模型变化并刷新资产，即使已经离开资产页也会完成同步。只关闭模型标签而未退出 Blockbench 时，可先返回资产页检查文件；需要在编辑器保持打开时完成候选审核与回导，请使用[建模任务](blockbench-modeling-tasks.md)。
+
 非标准安装位置可点击“选择安装位置”，在系统文件选择器中选择 `Blockbench.exe`、官方便携启动器（如 `Blockbench_5.1.6_portable.exe`）、`blockbench` 或 Blockbench AppImage。不要选择尚未运行安装的安装包。位置保存在 Copperbench 用户配置目录的 `blockbench.json`，取消选择不会改变原设置。产品会在打开模型时重新检查安装，无需重开工作区。
 
 解析优先级：启动 JVM 的 `copperbench.blockbench.executable` 属性 → 用户保存的位置 → 平台默认位置。已保存的程序丢失时应重新选择，避免悄悄启动另一份安装。高级 JVM 参数 `-Dcopperbench.blockbench.executable=完整路径` 并非直接传给任意 EXE 启动器都生效；通常优先使用产品内选择器。

@@ -8,6 +8,13 @@ import java.util.*;
 
 /** Opens official setup/sign-in surfaces. A launched login window is not evidence of authentication. */
 class AgentDesktopActions {
+    void reveal(java.nio.file.Path file) throws IOException {
+        if (!Desktop.isDesktopSupported()) throw new IOException("The record was saved; open its displayed directory manually");
+        Desktop desktop = Desktop.getDesktop();
+        if (desktop.isSupported(Desktop.Action.BROWSE_FILE_DIR)) desktop.browseFileDirectory(file.toFile());
+        else if (desktop.isSupported(Desktop.Action.OPEN)) desktop.open(file.getParent().toFile());
+        else throw new IOException("The record was saved; open its displayed directory manually");
+    }
     void setup(AgentProvider provider) throws IOException {
         browse(provider.setupUrl());
     }

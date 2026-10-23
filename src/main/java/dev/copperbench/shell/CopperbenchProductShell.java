@@ -92,6 +92,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		try {
 			createdAgentChat = new AgentChatService(workspaceRoot,
 					workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot.resolve("sdk/python"));
+			createdAgentChat.setVerification(new dev.copperbench.agent.AgentVerification(createdSession.uiEntry(), createdSession.workspaceId()));
 			AgentChatService workspaceAgentChat = createdAgentChat;
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
