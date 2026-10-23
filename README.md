@@ -46,40 +46,42 @@ The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge
 
 Additional bundled **26.3 preview** targets require explicit opt-in and expose bounded operation/field capabilities. See [current status](docs/status.md); this does not expand the published generator support claim.
 
-Windows packages remain unsigned for Authenticode; first builds need network access and Blockbench is installed separately. [Current downloads](docs/releases/current.md) records source/asset verification and the installed/gameplay checks not repeated on final packages.
+Windows packages remain unsigned for Authenticode; first builds need network access. Blockbench and creation-assistant CLIs are installed and configured separately; the Python workbench needs Python 3.11 or later. [Current downloads](docs/releases/current.md) records source/asset verification and the installed/gameplay checks not repeated on final packages.
 
 <a id="showcase"></a>
 
 ## Workbench
 
-![Copperbench 0.1.4 workspace overview](assets/screenshots/v0.1.4/en/workbench.png)
+| Simple creation | Professional workbench |
+| :---: | :---: |
+| ![Light-theme Simple creation: content, conversation and element settings](assets/screenshots/2026-10-24/en/simple-creation-light.png) | ![Light-theme professional workbench: project overview and navigation](assets/screenshots/2026-10-24/en/workbench-light.png) |
+| Project content, assistant conversation and common settings in one view. | Open editors, inspect project status, and build or run from the overview. |
+| **Mod Element editing** | **Java source** |
+| ![Light-theme Mod Element editor: element list and block properties](assets/screenshots/2026-10-24/en/elements-light.png) | ![Light-theme Java source editor](assets/screenshots/2026-10-24/en/source-light.png) |
+| Browse elements and edit their fields in the inspector. | Browse, search and edit manual files; generated files carry a read-only label. |
+| **Python workbench** | **Relationships** |
+| ![Light-theme Python workbench: built-in script, console and current context](assets/screenshots/2026-10-24/en/python-light.png) | ![Light-theme workspace relationship graph](assets/screenshots/2026-10-24/en/relations-light.png) |
+| Script editor, console and current workspace context. | Browse, search and locate workspace elements and assets by category. |
 
-<table>
-  <tr>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/en/source.png" alt="Source editor" width="480"></td>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/en/relations.png" alt="Workspace relationship graph" width="480"></td>
-  </tr>
-  <tr>
-    <td><strong>Source</strong><br>File tree, search, editor tabs and read-only generated files.</td>
-    <td><strong>Relationships</strong><br>Browse elements and assets, expand groups and locate related content.</td>
-  </tr>
-</table>
-
-<sub>Browser captures of the 0.1.4 frontend with the bundled Copper Trails example data. [Current promotional images and capture details](assets/screenshots/README.md)</sub>
+Captured on 2026-10-24 from this checkout's light-theme browser preview with bundled Copper Trails example data. [Source and capture instructions](assets/screenshots/README.md)
 
 ## What you can do
 
-| One engineering workflow | In practice |
+| Feature | In practice |
 | --- | --- |
-| Create visually | Save a Trail Block with its item and texture; inspect element and asset relationships. |
-| Extend and collaborate | Open manual Java from Source, or connect an Agent to the same live workspace. Review field diagnostics and external-change conflicts before saving. Generated files remain read-only. |
-| Repair and deliver | Follow a failed build's diagnostic to its source, rerun the affected task, confirm the behavior in Minecraft and export the artifact. Exact verified export uses the selected acceptance record's JAR/report hashes. |
+| Simple creation and Agent | Switch between Simple creation and the professional workbench, sharing assistant conversations. Current source integrates Codex CLI, Claude Code, Grok Build, Google Antigravity CLI and DeepSeek Harness. |
+| Visual editors | Create blocks, items, entities and other Mod Elements; arrange logic with Blockly and follow field diagnostics to the relevant control. |
+| Source and Python | Edit manual Java with draft and conflict protection; use the [Python workbench](docs/user/python-workbench.md) for scripts and a persistent console connected to the current workspace. Generated files remain read-only. |
+| Assets and models | Inspect textures, static model geometry and element appearance; open models in Blockbench and synchronize saved changes. |
+| Workspace tools | Browse relationships, edit variables/tags/translations, and review local history and migration previews. |
+| Build and deliver | Build, launch a test client or server, follow diagnostics to source, and export a mod. Exact verified export binds the artifact to the selected acceptance record. |
 
 See the [user guide](docs/user/README.md) for feature and generator coverage. Bedrock Add-ons are outside the current first-party Java editing scope.
 
 ## Documentation
 
 - [User guide](docs/user/README.md) · [Downloads](docs/releases/current.md) · [Troubleshooting](docs/user/troubleshooting.md)
+- [Simple creation](docs/user/simple-creation.en.md) · [Professional Agent（简体中文）](docs/user/professional-agent.md) · [Python workbench（简体中文）](docs/user/python-workbench.md)
 - [Agent setup](docs/ai/getting-started.en.md) · [SDK](sdk/README.md)
 - [Development setup](docs/build/development-setup.en.md) · [Contributing](CONTRIBUTING.md) · [Documentation index](docs/README.md)
 

@@ -681,7 +681,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	@Override public void persistWorkspaceData(WorkspaceState before, WorkspaceState after, Operation operation)
 			throws Exception {
-		FileSnapshot snapshot = FileSnapshot.capture(workspace, "__workspace_registry__", null);
+		FileSnapshot snapshot = FileSnapshot.capturePlan(workspace, before, after, workspaceId,
+				plannedRollbackPaths(before, after));
 		try {
 			MCreatorWorkspaceRegistryMapper.synchronize(workspace, after.registries());
 			for (Element element : after.elements()) {

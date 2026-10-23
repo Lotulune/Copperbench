@@ -86,6 +86,9 @@ public final class AssetImportService {
 			AssetDescriptor imported = writeValidated(current);
 			return new ApplyResult(imported, recovery, current.conflict());
 		} catch (Exception writeFailure) {
+			// A stale staged source is rejected before replacing any destination.
+			if (writeFailure instanceof AssetImportException stale && stale.code().equals("ASSET_IMPORT_PLAN_STALE"))
+				throw stale;
 			try {
 				history.restore(recovery.id());
 			} catch (Exception rollbackFailure) {
@@ -108,15 +111,21 @@ public final class AssetImportService {
 	AssetDescriptor writeValidated(AssetImportPlan current) throws IOException {
 		if (!current.canApply())
 			throw new AssetImportException("ASSET_IMPORT_NOT_APPLICABLE", "The approved asset import has no changes");
-		return writeSourceToTarget(current.source(), current.targetRelativePath());
+		return writeSourceToTarget(current.source(), current.targetRelativePath(), current.sourceSha256());
 	}
 
 	AssetDescriptor writeSourceToTarget(Path source, String targetRelativePath) throws IOException {
+		return writeSourceToTarget(source, targetRelativePath, sha256(source));
+	}
+
+	AssetDescriptor writeSourceToTarget(Path source, String targetRelativePath, String expectedSha256) throws IOException {
 		Path target = assets.workspaceRoot().resolve(targetRelativePath).normalize();
 		Files.createDirectories(target.getParent());
 		Path temporary = Files.createTempFile(target.getParent(), ".copperbench-asset-import-", ".tmp");
 		try {
 			Files.copy(source, temporary, StandardCopyOption.REPLACE_EXISTING);
+			if (!sha256(temporary).equals(expectedSha256))
+				throw new AssetImportException("ASSET_IMPORT_PLAN_STALE", "The source changed after the asset import preview");
 			try {
 				Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 			} catch (java.nio.file.AtomicMoveNotSupportedException exception) {
@@ -218,7 +227,7 @@ public final class AssetImportService {
 		}
 	}
 
-	private static String sha256(Path file) {
+	static String sha256(Path file) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			try (InputStream input = Files.newInputStream(file)) {

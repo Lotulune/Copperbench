@@ -103,9 +103,17 @@ final class WorkspaceSourceService {
 	}
 
 	private JsonObject describe(String relative, long size) {
-		String mode = ownership.getOrDefault(relative, "manual");
-		if (ownership.entrySet().stream().anyMatch(entry -> entry.getKey().endsWith("/")
-				&& relative.startsWith(entry.getKey()) && entry.getValue().equals("generated"))) mode = "generated";
+		// Path equality follows the filesystem provider's casing rules; String keys do not on Windows.
+		Path source = root.resolve(relative).normalize();
+		String mode = "manual";
+		for (var entry : ownership.entrySet()) {
+			if (!entry.getValue().equals("generated")) continue;
+			Path owned = root.resolve(entry.getKey()).normalize();
+			if (entry.getKey().endsWith("/") ? source.startsWith(owned) : source.equals(owned)) {
+				mode = "generated";
+				break;
+			}
+		}
 		JsonObject result = new JsonObject(); result.addProperty("relativePath", relative);
 		result.addProperty("name", relative.substring(relative.lastIndexOf('/') + 1)); result.addProperty("language", extension(relative));
 		result.addProperty("size", size); result.addProperty("ownership", mode);

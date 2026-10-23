@@ -29,6 +29,7 @@ public final class JcefBridgeEndpoint {
 	private final WorkspaceEntryAdapter adapter;
 	private final SchemaNegotiator schemas = new SchemaNegotiator(List.of(UiCore.SCHEMA_VERSION));
 	private final Consumer<String> eventSink;
+	private final java.util.concurrent.atomic.AtomicInteger subscriptions = new java.util.concurrent.atomic.AtomicInteger();
 
 	public JcefBridgeEndpoint(WorkspaceEntryAdapter adapter, Consumer<String> eventSink) {
 		this.adapter = Objects.requireNonNull(adapter);
@@ -59,14 +60,26 @@ public final class JcefBridgeEndpoint {
 	/** Registers a listener and replays retained asynchronous task events. */
 	public AutoCloseable subscribeEvents(java.util.UUID workspaceId, long afterSequence,
 			Consumer<String> listener) {
-		return adapter.subscribeEvents(workspaceId, afterSequence,
+		AutoCloseable subscription = adapter.subscribeEvents(workspaceId, afterSequence,
 				event -> listener.accept(UiCore.wireGson().toJson(event)));
+		subscriptions.incrementAndGet();
+		var closed = new java.util.concurrent.atomic.AtomicBoolean();
+		return () -> {
+			if (closed.compareAndSet(false, true)) {
+				try { subscription.close(); }
+				finally { subscriptions.decrementAndGet(); }
+			}
+		};
 	}
 
 	private String handleCommand(JsonObject envelope) {
 		requireSchema(envelope);
-		var outcome = adapter.execute(UiCore.wireGson().fromJson(envelope, Command.class));
-		for (Event event : outcome.events()) eventSink.accept(UiCore.wireGson().toJson(event));
+		Command command = UiCore.wireGson().fromJson(envelope, Command.class);
+		// Attached browsers consume one ordered stream for commands and background tasks.
+		boolean streaming = subscriptions.get() > 0;
+		var outcome = streaming ? adapter.executeAndPublish(command) : adapter.execute(command);
+		if (!streaming)
+			for (Event event : outcome.events()) eventSink.accept(UiCore.wireGson().toJson(event));
 		return UiCore.wireGson().toJson(outcome.result());
 	}
 

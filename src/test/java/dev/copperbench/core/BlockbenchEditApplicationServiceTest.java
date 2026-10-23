@@ -68,8 +68,13 @@ class BlockbenchEditApplicationServiceTest {
 					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())),
 					WorkspaceMutationGateway.noOp(), history, null, ignored -> workspace, CLOCK,
 					() -> uuid(ids.incrementAndGet()));
-			List<Event> events = new ArrayList<>();
-			try (AutoCloseable ignored = service.subscribeEvents(WORKSPACE_ID, 0, events::add)) {
+			List<Event> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+			CountDownLatch preparedEvent = new CountDownLatch(1), committedEvent = new CountDownLatch(1);
+			try (AutoCloseable ignored = service.subscribeEvents(WORKSPACE_ID, 0, event -> {
+				events.add(event);
+				if (event.event().equals("recovery_point_created")) preparedEvent.countDown();
+				if (event.event().equals("asset_external_edit_committed")) committedEvent.countDown();
+			})) {
 				var descriptor = new AssetWorkspaceService(workspace).list().getFirst();
 				var lifecycle = service.blockbenchEditLifecycle(WORKSPACE_ID);
 				var prepared = lifecycle.prepare(descriptor);
@@ -77,6 +82,7 @@ class BlockbenchEditApplicationServiceTest {
 				assertEquals(0, prepared.openedRevision());
 				assertEquals(1, history.listRecoveryPoints().size());
 				assertEquals(prepared.recoveryPointId(), history.listRecoveryPoints().getFirst().id());
+				assertTrue(preparedEvent.await(5, TimeUnit.SECONDS));
 				assertEquals("recovery_point_created", events.getFirst().event());
 
 				Files.writeString(modelFile, "{\"edited\":true}");
@@ -86,6 +92,7 @@ class BlockbenchEditApplicationServiceTest {
 
 				assertEquals(1, completion.workspaceRevision());
 				assertEquals(1, store.read(WORKSPACE_ID).orElseThrow().revision());
+				assertTrue(committedEvent.await(5, TimeUnit.SECONDS));
 				Event committed = events.getLast();
 				assertEquals("asset_external_edit_committed", committed.event());
 				assertEquals(1, committed.revision());

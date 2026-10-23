@@ -88,12 +88,10 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.ArrayDeque;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -104,7 +102,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -148,8 +145,7 @@ public final class WorkspaceApplicationService {
 	private final TaskAuthorizationStore taskAuthorizations;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 	private final AssetProjectionService assetProjections = new AssetProjectionService(references);
-	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
-	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
+	private final Map<UUID, WorkspaceEventStream> eventStreams = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
 	private final Map<String, ModelingImportGrant> modelingImportGrants = new ConcurrentHashMap<>();
 	private record ModelingImportGrant(UUID workspaceId, dev.copperbench.assets.BlockbenchImportService.Plan plan, Instant expiresAt) {}
@@ -329,13 +325,11 @@ public final class WorkspaceApplicationService {
 
 	private JsonArray recentFailedTasks(UUID workspaceId) {
 		JsonArray failed = new JsonArray();
-		Deque<Event> retained = taskEventHistory.get(workspaceId);
+		WorkspaceEventStream retained = eventStreams.get(workspaceId);
 		if (retained == null) return failed;
 		Set<String> seenTaskIds = new HashSet<>();
-		synchronized (retained) {
-			var iterator = retained.descendingIterator();
-			while (iterator.hasNext() && failed.size() < 5) {
-				Event event = iterator.next();
+			for (Event event : retained.history().reversed()) {
+				if (failed.size() >= 5) break;
 				if (!"task_completed".equals(event.event()) || !event.payload().has("task")) continue;
 				JsonObject task = event.payload().getAsJsonObject("task");
 				if (!task.has("state") || !"failed".equals(task.get("state").getAsString())) continue;
@@ -345,7 +339,6 @@ public final class WorkspaceApplicationService {
 				item.addProperty("observedAt", event.occurredAt());
 				failed.add(item);
 			}
-		}
 		return failed;
 	}
 
@@ -413,6 +406,8 @@ public final class WorkspaceApplicationService {
 				AssetImportBatchService.ApplyResult applied = importer.apply(approved.plan(), context.actor(),
 						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
 								: command.requestId().toString());
+				Diagnostic revisionFailure = persistAssetRevision(state, command, applied.recoveryPoint());
+				if (revisionFailure != null) return Decision.abort(AssetImportBatchMutation.rejected(revisionFailure));
 				return Decision.commit(AssetImportBatchMutation.success(applied, state.nextEventSequence()),
 						applied.assets().stream().map(asset -> "/" + asset.relativePath()).toList());
 			} catch (AssetImportException exception) {
@@ -717,6 +712,8 @@ public final class WorkspaceApplicationService {
 				AssetMoveService.ApplyResult applied = mover.apply(approved.plan(), context.actor(),
 						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
 								: command.requestId().toString());
+				Diagnostic revisionFailure = persistAssetRevision(state, command, applied.recoveryPoint());
+				if (revisionFailure != null) return Decision.abort(AssetMoveMutation.rejected(revisionFailure));
 				return Decision.commit(AssetMoveMutation.success(applied, state.nextEventSequence()),
 						List.of("/" + approved.plan().sourceRelativePath(), "/" + applied.asset().relativePath()));
 			} catch (AssetMoveException exception) {
@@ -821,6 +818,8 @@ public final class WorkspaceApplicationService {
 				AssetImportService.ApplyResult applied = importer.apply(approved.plan(), context.actor(),
 						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
 								: command.requestId().toString());
+				Diagnostic revisionFailure = persistAssetRevision(state, command, applied.recoveryPoint());
+				if (revisionFailure != null) return Decision.abort(AssetImportMutation.rejected(revisionFailure));
 				return Decision.commit(AssetImportMutation.success(applied, state.nextEventSequence()),
 						List.of("/" + applied.asset().relativePath()));
 			} catch (AssetImportException exception) {
@@ -853,6 +852,23 @@ public final class WorkspaceApplicationService {
 		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_imported", data.deepCopy());
 		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
 				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	/** The file transaction and its durable revision must succeed before the store commits. */
+	private Diagnostic persistAssetRevision(WorkspaceState state, Command command, RecoveryPoint recoveryPoint) {
+		try {
+			mutations.persistRestoredRevision(state, state.revision() + 1);
+			return null;
+		} catch (Exception failure) {
+			try {
+				history.restore(recoveryPoint.id());
+				if (reloader != null) reloader.reload(state.id());
+			} catch (Exception rollback) {
+				failure.addSuppressed(rollback);
+			}
+			return failureDiagnostic(command, "WORKSPACE_PERSISTENCE_FAILED", "diagnostic.workspace_persistence_failed",
+					"The asset change could not be committed. Inspect the recovery point and logs.", null, null, failure);
+		}
 	}
 
 	private static boolean isElementReferenceField(String elementType, String fieldName) {
@@ -1143,21 +1159,7 @@ public final class WorkspaceApplicationService {
 			throw new NullPointerException("listener");
 		if (store.read(workspaceId).isEmpty())
 			throw new IllegalArgumentException("Workspace not found: " + workspaceId);
-		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(workspaceId,
-				ignored -> new CopyOnWriteArrayList<>());
-		Deque<Event> history = taskEventHistory.computeIfAbsent(workspaceId, ignored -> new ArrayDeque<>());
-		synchronized (history) {
-			listeners.add(listener);
-			try {
-				for (Event event : history)
-					if (event.sequence() > afterSequence)
-						listener.accept(event);
-			} catch (RuntimeException exception) {
-				listeners.remove(listener);
-				throw exception;
-			}
-		}
-		return () -> listeners.remove(listener);
+		return eventStream(workspaceId).subscribe(afterSequence, listener);
 	}
 
 	/** Managed lifecycle used by the desktop Blockbench bridge without giving the bridge direct history access. */
@@ -1214,8 +1216,14 @@ public final class WorkspaceApplicationService {
 			if (!current.sha256().equals(asset.sha256()))
 				throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
 						"The selected Blockbench asset changed while its recovery point was being prepared");
-			coordinated = store.coordinate(workspaceId, state.revision(), candidate ->
-					new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence()));
+			coordinated = store.coordinate(workspaceId, state.revision(), candidate -> {
+				BlockbenchPreparation preparation = new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence());
+				JsonObject payload = new JsonObject();
+				payload.add("recoveryPoint", recoveryPoint(recovery));
+				publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, preparation.revision(),
+						preparation.sequence(), clock.instant().toString(), "recovery_point_created", null, payload));
+				return preparation;
+			});
 			if (coordinated.status() == TransactionResult.Status.COORDINATED) break;
 			if (coordinated.status() != TransactionResult.Status.CONFLICT) break;
 		}
@@ -1224,10 +1232,6 @@ public final class WorkspaceApplicationService {
 					"Could not prepare the Blockbench edit against a stable workspace revision");
 
 		BlockbenchPreparation preparation = coordinated.value();
-		JsonObject payload = new JsonObject();
-		payload.add("recoveryPoint", recoveryPoint(preparation.recoveryPoint()));
-		publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, preparation.revision(),
-				preparation.sequence(), clock.instant().toString(), "recovery_point_created", null, payload));
 		return new BlockbenchProcessService.PreparedEdit(preparation.recoveryPoint().id(), preparation.revision(), asset.id(),
 				asset.relativePath(), asset.sha256());
 	}
@@ -1256,20 +1260,6 @@ public final class WorkspaceApplicationService {
 			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
 					"The edited asset changed again while its Blockbench result was being finalized");
 
-		TransactionResult<Long> committed = null;
-		for (int attempt = 0; attempt < 3; attempt++) {
-			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
-					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
-							"The workspace closed before the Blockbench edit could be finalized"));
-			committed = store.transact(workspaceId, state.revision(), candidate ->
-					Decision.commit(candidate.nextEventSequence(), List.of("/" + current.relativePath())));
-			if (committed.status() == TransactionResult.Status.COMMITTED) break;
-			if (committed.status() != TransactionResult.Status.CONFLICT) break;
-		}
-		if (committed == null || committed.status() != TransactionResult.Status.COMMITTED)
-			throw new BlockbenchBridgeException("BLOCKBENCH_REVISION_COMMIT_FAILED",
-					"Could not register the external Blockbench edit as a workspace revision");
-
 		AssetReferenceGraph refreshed = assetProjections.scan(root);
 		AssetHealthReport health = assetProjections.health(refreshed, store.read(workspaceId).orElseThrow());
 		AssetDescriptor refreshedAsset = refreshed.assets().stream()
@@ -1282,8 +1272,32 @@ public final class WorkspaceApplicationService {
 		payload.addProperty("recoveryPointId", prepared.recoveryPointId());
 		payload.add("asset", asset(refreshedAsset, health.findById(refreshedAsset.id()).orElseThrow()));
 		payload.add("health", GSON.toJsonTree(health.summary()));
-		publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, committed.revision(),
-				committed.value(), clock.instant().toString(), "asset_external_edit_committed", null, payload));
+		TransactionResult<Long> committed = null;
+		for (int attempt = 0; attempt < 3; attempt++) {
+			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
+					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
+							"The workspace closed before the Blockbench edit could be finalized"));
+			committed = store.transact(workspaceId, state.revision(), candidate -> {
+				try { mutations.persistRestoredRevision(candidate, candidate.revision() + 1); }
+				catch (Exception failure) {
+					try { mutations.persistRestoredRevision(candidate, candidate.revision()); }
+					catch (Exception rollback) { failure.addSuppressed(rollback); }
+					LOG.warn("Could not persist external asset edit revision", failure);
+					throw new BlockbenchBridgeException("BLOCKBENCH_REVISION_COMMIT_FAILED",
+							"Could not persist the external edit revision; the edited asset was preserved");
+				}
+				long sequence = candidate.nextEventSequence();
+				publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, candidate.revision() + 1,
+						sequence, clock.instant().toString(), "asset_external_edit_committed", null, payload));
+				return Decision.commit(sequence, List.of("/" + current.relativePath()));
+			});
+			if (committed.status() == TransactionResult.Status.COMMITTED) break;
+			if (committed.status() != TransactionResult.Status.CONFLICT) break;
+		}
+		if (committed == null || committed.status() != TransactionResult.Status.COMMITTED)
+			throw new BlockbenchBridgeException("BLOCKBENCH_REVISION_COMMIT_FAILED",
+					"Could not register the external Blockbench edit as a workspace revision");
+
 		return new BlockbenchProcessService.Completion(prepared.recoveryPointId(), committed.revision());
 	}
 
@@ -1360,52 +1374,22 @@ public final class WorkspaceApplicationService {
 				return;
 			}
 		}
-		WorkspaceState state = store.read(taskEvent.workspaceId()).orElse(null);
-		if (state == null)
-			return;
-		RevisionedWorkspaceStore.TransactionResult<Long> coordinated = null;
-		for (int attempt = 0; attempt < 3; attempt++) {
-			state = store.read(taskEvent.workspaceId()).orElse(null);
-			if (state == null)
-				return;
-			coordinated = store.coordinate(taskEvent.workspaceId(), state.revision(), WorkspaceState::nextEventSequence);
-			if (coordinated.status() == RevisionedWorkspaceStore.TransactionResult.Status.COORDINATED)
-				break;
-		}
-		if (coordinated == null || coordinated.status() != RevisionedWorkspaceStore.TransactionResult.Status.COORDINATED)
-			return;
-		Event event = new Event("event", UiCore.SCHEMA_VERSION, ids.get(), taskEvent.workspaceId(),
-				coordinated.revision(), coordinated.value(), clock.instant().toString(), taskEvent.event(), null, payload);
-		publishRetainedEvent(event);
+		store.nextEventSequence(taskEvent.workspaceId(), (revision, sequence) ->
+				publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), taskEvent.workspaceId(),
+						revision, sequence, clock.instant().toString(), taskEvent.event(), null, payload)));
+	}
+
+	private WorkspaceEventStream eventStream(UUID workspaceId) {
+		return eventStreams.computeIfAbsent(workspaceId, ignored -> new WorkspaceEventStream(TASK_EVENT_HISTORY_LIMIT));
 	}
 
 	private void publishRetainedEvent(Event event) {
-		Deque<Event> history = taskEventHistory.computeIfAbsent(event.workspaceId(), ignored -> new ArrayDeque<>());
-		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(event.workspaceId(),
-				ignored -> new CopyOnWriteArrayList<>());
-		List<Consumer<Event>> recipients;
-		synchronized (history) {
-			history.addLast(event);
-			while (history.size() > TASK_EVENT_HISTORY_LIMIT)
-				history.removeFirst();
-			// Snapshot live recipients while replay history is locked. A subscriber is
-			// therefore either in this live snapshot or replays this event, never both.
-			recipients = List.copyOf(listeners);
-		}
-		for (Consumer<Event> listener : recipients) {
-			try {
-				listener.accept(event);
-			} catch (RuntimeException exception) {
-				LOG.debug("Workspace event listener disconnected", exception);
-			}
-		}
+		eventStream(event.workspaceId()).publish(event);
 	}
 
 	/** External scripting commands must notify existing desktop event subscribers too. */
 	public CommandOutcome executeAndPublish(Command command, RequestContext context) {
-		CommandOutcome outcome = execute(command, context);
-		outcome.events().forEach(this::publishRetainedEvent);
-		return outcome;
+		return execute(command, context, true);
 	}
 
 	/** Separate required-case contract; commands retain the caller's permission and authorization checks. */
@@ -1433,6 +1417,10 @@ public final class WorkspaceApplicationService {
 	}
 
 	public CommandOutcome execute(Command command, RequestContext context) {
+		return execute(command, context, false);
+	}
+
+	private CommandOutcome execute(Command command, RequestContext context, boolean publishEvents) {
 		if (!context.acceptanceExtension() && (command.payload().has("requiredCases") || command.payload().has("requireRequiredCases"))) {
 			JsonObject args = new JsonObject(); args.addProperty("detail", "Use the negotiated required_cases extension.");
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("ACCEPTANCE_NEGOTIATION_REQUIRED",
@@ -1459,12 +1447,15 @@ public final class WorkspaceApplicationService {
 						"Preview operation rejected: " + reason, null, null));
 			// Cancellation waits for a worker which may still need the workspace store.
 			// Keep access checks coordinated, but release the store before waiting for cleanup.
-			return command.operation() == Operation.CANCEL_TASK ? null : executeAllowed(command, context);
+			if (command.operation() == Operation.CANCEL_TASK) return null;
+			CommandOutcome outcome = executeAllowed(command, context);
+			if (publishEvents) outcome.events().forEach(this::publishRetainedEvent);
+			return outcome;
 		});
 		CommandOutcome failure = checkFailure(command, coordinated);
 		if (failure != null) return failure;
 		return coordinated.value() == null && command.operation() == Operation.CANCEL_TASK
-				? cancelTask(command) : coordinated.value();
+				? cancelTask(command, publishEvents) : coordinated.value();
 	}
 
 	private CommandOutcome executeAllowed(Command command, RequestContext context) {
@@ -2317,6 +2308,10 @@ public final class WorkspaceApplicationService {
 	}
 
 	private CommandOutcome cancelTask(Command command) {
+		return cancelTask(command, false);
+	}
+
+	private CommandOutcome cancelTask(Command command, boolean publishEvents) {
 		UUID taskId;
 		try {
 			taskId = UUID.fromString(requiredString(command.payload(), "taskId"));
@@ -2332,14 +2327,18 @@ public final class WorkspaceApplicationService {
 				return failed(command, check.revision(), diagnostic("TASK_NOT_FOUND", "diagnostic.task_not_found",
 						"The requested task does not exist.", "/taskId", null));
 			// Content may advance while process cleanup runs. Observe its current revision atomically.
-			var observation = store.nextEventSequence(command.workspaceId());
-			rejected = checkFailure(command, observation);
-			if (rejected != null) return rejected;
 			JsonObject eventPayload = new JsonObject();
 			eventPayload.add("task", task.deepCopy());
-			Event event = event(command, observation.revision(), observation.value(), "task_completed", eventPayload);
+			AtomicReference<Event> completed = new AtomicReference<>();
+			var observation = store.nextEventSequence(command.workspaceId(), (revision, sequence) -> {
+				Event event = event(command, revision, sequence, "task_completed", eventPayload);
+				completed.set(event);
+				if (publishEvents) publishRetainedEvent(event);
+			});
+			rejected = checkFailure(command, observation);
+			if (rejected != null) return rejected;
 			return new CommandOutcome(result(command, "cancelled", observation.revision(), task, JsonNull.INSTANCE,
-					List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+					List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(completed.get()));
 		} catch (RuntimeException exception) {
 			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command, "TASK_CANCEL_FAILED",
 					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null,

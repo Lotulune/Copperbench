@@ -45,13 +45,13 @@ public final class UpstreamWorkspaceImportService {
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
 	public MigrationReport preview(Path sourceRoot) throws IOException {
-		Path workspaceFile = requireWorkspaceFile(sourceRoot);
+		Path workspaceFile = WorkspaceDescriptor.find(sourceRoot);
 		String hash = WorkspaceTreeHasher.hash(sourceRoot);
 		return buildReport(workspaceFile, hash, null, true);
 	}
 
 	public MigrationReport execute(Path sourceRoot, Path targetRoot) throws IOException {
-		requireWorkspaceFile(sourceRoot);
+		Path workspaceFile = WorkspaceDescriptor.find(sourceRoot);
 		Path origin = WorkspaceFiles.requireDirectory(sourceRoot);
 		Path destination = WorkspaceFiles.canonicalPath(Objects.requireNonNull(targetRoot));
 		if (destination.startsWith(origin) || origin.startsWith(destination))
@@ -64,7 +64,7 @@ public final class UpstreamWorkspaceImportService {
 		}
 		String before = WorkspaceTreeHasher.hash(origin);
 		WorkspaceFiles.copyTree(origin, destination, relative -> WorkspaceTreeHasher.excluded(origin, origin.resolve(relative)));
-		MigrationReport preview = buildReport(destination.resolve("workspace.mcreator"), before,
+		MigrationReport preview = buildReport(destination.resolve(workspaceFile.getFileName()), before,
 				destination.toString().replace('\\', '/'), true);
 		WorkspaceFiles.writeAtomically(destination, destination.resolve(".copperbench/import/report.json"),
 				output -> output.write(JSON.toJson(preview.toJson()).getBytes(StandardCharsets.UTF_8)));
@@ -82,7 +82,7 @@ public final class UpstreamWorkspaceImportService {
 				.getAsJsonObject();
 		String generatorId = readGeneratorId(document);
 		List<MigrationItem> items = new ArrayList<>();
-		items.add(new MigrationItem("/workspace.mcreator", "workspace", "workspace", Disposition.SUPPORTED,
+		items.add(new MigrationItem("/" + workspaceFile.getFileName(), "workspace", "workspace", Disposition.SUPPORTED,
 				"UPSTREAM_WORKSPACE_COPIED", "The upstream workspace is copied; the source directory is left untouched."));
 		if (generatorId.isBlank()) {
 			items.add(new MigrationItem("/workspaceSettings/currentGenerator", "generator", "generator",
@@ -97,7 +97,7 @@ public final class UpstreamWorkspaceImportService {
 			if (KNOWN_ROOT_KEYS.contains(key))
 				continue;
 			items.add(new MigrationItem("/" + key, key, "unknown_field", Disposition.MANUAL, "UNKNOWN_FIELD_PRESERVED",
-					"Unknown upstream field kept in the copied workspace.mcreator."));
+					"Unknown upstream field kept in the copied workspace document."));
 		}
 		Path elementsDir = workspaceFile.getParent().resolve("elements");
 		if (Files.isDirectory(elementsDir)) {
@@ -142,13 +142,4 @@ public final class UpstreamWorkspaceImportService {
 		return "";
 	}
 
-	private static Path requireWorkspaceFile(Path sourceRoot) throws IOException {
-		if (sourceRoot == null || !Files.isDirectory(sourceRoot))
-			throw new IllegalArgumentException("Upstream workspace directory is required");
-		Path root = WorkspaceFiles.requireDirectory(sourceRoot);
-		Path workspaceFile = WorkspaceFiles.requireWithin(root, root.resolve("workspace.mcreator"));
-		if (!Files.isRegularFile(workspaceFile, LinkOption.NOFOLLOW_LINKS))
-			throw new IllegalArgumentException("Upstream workspace must contain workspace.mcreator");
-		return workspaceFile;
-	}
 }
