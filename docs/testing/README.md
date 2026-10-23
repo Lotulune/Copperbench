@@ -15,6 +15,8 @@
 
 测试源码位于 [Java](../../src/test/)、[UI](../../ui-shell/e2e/)、[UI-Core](../../ui-core/tests/)、[脚本](../../scripts/tests/)和 [SDK](../../sdk/python/)。
 
+0.1.18 的源码验证与发布进度见[发布记录](maintenance-release-0.1.18.md)。
+
 ## 保留记录与历史
 
 本目录保留当前发布记录、`product-status.json` 使用的门禁依据，以及发布授权绑定的报告和其直接引用。摘要绑定的报告保持原路径和原始字节；底层日志、截图和回执继续保存在 [evidence](../../evidence/)。

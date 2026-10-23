@@ -34,7 +34,7 @@ on:
         required: false
         default: ''
       windows_release_source:
-        description: 'Optional exact source SHA for an independent public Windows 0.1.9 asset verification'
+        description: 'Optional exact source SHA for an independent public Windows asset verification'
         type: string
         required: false
         default: ''
