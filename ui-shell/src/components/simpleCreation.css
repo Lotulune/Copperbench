@@ -1,7 +1,6 @@
 .creation-shell:not(.is-simple), .creation-shell:not(.is-simple) > .creation-content,
 .creation-shell:not(.is-simple) .creation-existing-view { display: contents; }
 .creation-shell [hidden], .professional-navigation[hidden], .professional-toolbar[hidden] { display: none !important; }
-.professional-navigation { display: flex; flex-shrink: 0; min-height: 0; }
 .professional-toolbar { flex-shrink: 0; }
 .creation-shell.is-simple { display: grid; grid-template-columns: 210px minmax(0, 1fr); flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
 .creation-content { display: flex; flex-direction: column; min-width: 0; min-height: 0; }

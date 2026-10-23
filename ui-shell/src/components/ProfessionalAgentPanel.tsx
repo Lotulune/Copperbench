@@ -52,10 +52,12 @@ export function AgentPanelToggle({ activity = false }: { activity?: boolean }) {
   const { mode } = useWorkbenchMode();
   const busy = agentIsActive(agent.snapshot?.state) || Boolean(agent.snapshot?.activeVerification) || Boolean(agent.snapshot?.checking);
   if (activity && (!busy || agent.panelOpen && mode === 'professional')) return null;
+  const label = busy ? uiText('Agent · 运行中', 'Agent · Running') : 'Agent';
   return <button type="button" className={activity ? 'agent-activity btn-secondary' : 'agent-panel-toggle btn-secondary'}
     data-testid={activity ? 'agent-activity' : 'professional-agent-toggle'} disabled={!state.workbench}
+    aria-label={label} title={label}
     aria-expanded={agent.panelOpen && mode === 'professional'} aria-controls="professional-agent-panel" onClick={() => agent.panelOpen && mode === 'professional' ? agent.closePanel() : agent.openPanel()}>
-    <Bot size={16} aria-hidden="true" />{busy ? uiText('Agent · 运行中', 'Agent · Running') : 'Agent'}
+    <Bot size={16} aria-hidden="true" /><span className="agent-toggle-label">{label}</span>
   </button>;
 }
 
