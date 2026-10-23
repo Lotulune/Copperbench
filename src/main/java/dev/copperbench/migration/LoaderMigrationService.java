@@ -70,6 +70,7 @@ public final class LoaderMigrationService {
 		if (!catalog.migratable(generatorId(source), targetGeneratorId))
 			return new MigrationReport("loader", generatorId(source), targetGeneratorId, before, null, true, false,
 					preview.items());
+		Path descriptorName = origin == null ? null : WorkspaceDescriptor.find(origin).getFileName();
 		Path destination = WorkspaceFiles.canonicalPath(targetRoot);
 		if (origin != null && (destination.startsWith(origin) || origin.startsWith(destination)))
 			throw new IllegalArgumentException("Migration target must be outside the source workspace");
@@ -82,7 +83,7 @@ public final class LoaderMigrationService {
 		if (origin != null) {
 			WorkspaceFiles.copyTree(origin, destination,
 					relative -> WorkspaceTreeHasher.excluded(origin, origin.resolve(relative)));
-			rewriteGenerator(destination, targetGeneratorId, source.generator());
+			rewriteGenerator(destination, descriptorName, targetGeneratorId, source.generator());
 		} else {
 			writeProjection(destination, source, targetGeneratorId);
 		}
@@ -91,17 +92,17 @@ public final class LoaderMigrationService {
 		boolean complete = unchanged && preview.items().stream()
 				.noneMatch(item -> item.disposition() == Disposition.BLOCKED);
 		SemanticComparison comparison = origin == null ? null
-				: semanticComparison(origin, destination, generatorId(source), targetGeneratorId);
+				: semanticComparison(origin, destination, descriptorName, generatorId(source), targetGeneratorId);
 		MigrationReport result = new MigrationReport("loader", generatorId(source), targetGeneratorId, before,
 				destination.toString().replace('\\', '/'), unchanged, complete, preview.items(), comparison);
 		writeReport(destination, result);
 		return result;
 	}
 
-	private static SemanticComparison semanticComparison(Path sourceRoot, Path targetRoot, String sourceGeneratorId,
+	private static SemanticComparison semanticComparison(Path sourceRoot, Path targetRoot, Path descriptorName, String sourceGeneratorId,
 			String targetGeneratorId) throws IOException {
-		JsonObject sourceWorkspace = readJsonObject(sourceRoot.resolve("workspace.mcreator"));
-		JsonObject targetWorkspace = readJsonObject(targetRoot.resolve("workspace.mcreator"));
+		JsonObject sourceWorkspace = readJsonObject(sourceRoot.resolve(descriptorName));
+		JsonObject targetWorkspace = readJsonObject(targetRoot.resolve(descriptorName));
 		String actualTargetGenerator = workspaceGeneratorId(targetWorkspace);
 		boolean generatorChanged = !sourceGeneratorId.equals(actualTargetGenerator)
 				&& targetGeneratorId.equals(actualTargetGenerator);
@@ -118,7 +119,7 @@ public final class LoaderMigrationService {
 		changes.add(new SemanticChange("/generator", sourceGeneratorId + " -> " + actualTargetGenerator,
 				"generator", generatorChanged ? "changed" : "unexpected"));
 		if (!workspaceMetadataPreserved)
-			changes.add(new SemanticChange("/workspace", "workspace.mcreator", "workspace_metadata", "changed"));
+			changes.add(new SemanticChange("/workspace", descriptorName.toString(), "workspace_metadata", "changed"));
 
 		int preserved = 0;
 		int changed = 0;
@@ -299,12 +300,10 @@ public final class LoaderMigrationService {
 		}
 	}
 
-	private static void rewriteGenerator(Path targetRoot, String targetGeneratorId, JsonObject sourceGenerator)
+	private static void rewriteGenerator(Path targetRoot, Path descriptorName, String targetGeneratorId, JsonObject sourceGenerator)
 			throws IOException {
-		Path workspaceFile = WorkspaceFiles.requireWithin(targetRoot, targetRoot.resolve("workspace.mcreator"));
-		JsonObject document = Files.isRegularFile(workspaceFile, LinkOption.NOFOLLOW_LINKS)
-				? JsonParser.parseString(Files.readString(workspaceFile, StandardCharsets.UTF_8)).getAsJsonObject()
-				: new JsonObject();
+		Path workspaceFile = WorkspaceFiles.requireRegularFile(targetRoot, targetRoot.resolve(descriptorName));
+		JsonObject document = JsonParser.parseString(Files.readString(workspaceFile, StandardCharsets.UTF_8)).getAsJsonObject();
 		JsonObject settings = document.has("workspaceSettings") && document.get("workspaceSettings").isJsonObject()
 				? document.getAsJsonObject("workspaceSettings") : new JsonObject();
 		settings.addProperty("currentGenerator", targetGeneratorId);

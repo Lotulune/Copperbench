@@ -53,7 +53,7 @@ class WorkspaceTaskEventTest {
 		SequentialIds ids = new SequentialIds();
 		InMemoryWorkspaceTaskGateway tasks = new InMemoryWorkspaceTaskGateway(CLOCK, ids);
 		WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
-		List<UiCore.Event> received = new ArrayList<>();
+		List<UiCore.Event> received = new CopyOnWriteArrayList<>();
 		AutoCloseable subscription = service.subscribeEvents(WORKSPACE_ID, 0, received::add);
 		try {
 			JsonObject startPayload = new JsonObject();
@@ -70,15 +70,17 @@ class WorkspaceTaskEventTest {
 					cancelPayload), new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
 
 			assertEquals("cancelled", cancelled.result().status());
+			awaitEvent(received, "task_completed", taskId);
 			assertEquals(1, received.size());
 			UiCore.Event event = received.getFirst();
 			assertEquals("task_completed", event.event());
 			assertEquals("cancelled", event.payload().getAsJsonObject("task").get("state").getAsString());
 			assertTrue(event.sequence() > 0);
 
-			List<UiCore.Event> replayed = new ArrayList<>();
+			List<UiCore.Event> replayed = new CopyOnWriteArrayList<>();
 			try (AutoCloseable reconnect = service.subscribeEvents(WORKSPACE_ID, event.sequence() - 1,
 					replayed::add)) {
+				awaitEvent(replayed, "task_completed", taskId);
 				assertEquals(1, replayed.size());
 				assertEquals(event.eventId(), replayed.getFirst().eventId());
 			}

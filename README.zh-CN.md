@@ -46,40 +46,42 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 另有需显式启用的 **26.3 预览**轨道，操作与字段范围以能力查询为准。见[当前状态](docs/status.md)，不扩大已发布生成器的支持声明。
 
-Windows 安装包未做 Authenticode 签名，首次构建需要联网，Blockbench 单独安装。最终包的来源、资产核验及未重复的安装／玩法范围见[当前下载](docs/releases/current.md)。
+Windows 安装包未做 Authenticode 签名，首次构建需要联网。Blockbench 和创作助手 CLI 需单独安装与配置；Python 工作台需要 Python 3.11 或更新版本。最终包的来源、资产核验及未重复的安装／玩法范围见[当前下载](docs/releases/current.md)。
 
 <a id="showcase"></a>
 
 ## 工作台
 
-![Copperbench 0.1.4 工作台概览](assets/screenshots/v0.1.4/zh-CN/workbench.png)
+| 简洁创作 | 专业工作台 |
+| :---: | :---: |
+| ![亮色简洁创作：作品内容、对话与元素设置](assets/screenshots/2026-10-24/zh-CN/simple-creation-light.png) | ![亮色专业工作台：项目总览与导航](assets/screenshots/2026-10-24/zh-CN/workbench-light.png) |
+| 作品内容、助手对话和常用设置集中在一个界面。 | 从总览进入编辑器，查看项目状态并执行构建与运行。 |
+| **模组元素编辑** | **Java 源码** |
+| ![亮色模组元素编辑器：元素列表与方块属性](assets/screenshots/2026-10-24/zh-CN/elements-light.png) | ![亮色 Java 源码编辑器](assets/screenshots/2026-10-24/zh-CN/source-light.png) |
+| 浏览元素，在检查器中编辑字段。 | 浏览、搜索和编辑手写文件，生成文件带有只读标识。 |
+| **Python 工作台** | **关系图** |
+| ![亮色 Python 工作台：内置脚本示例、控制台与当前上下文](assets/screenshots/2026-10-24/zh-CN/python-light.png) | ![亮色工作区关系图](assets/screenshots/2026-10-24/zh-CN/relations-light.png) |
+| 脚本编辑器、控制台和当前工程上下文。 | 按分类浏览、搜索并定位工作区中的元素与资产。 |
 
-<table>
-  <tr>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/zh-CN/source.png" alt="源码编辑器" width="480"></td>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/zh-CN/relations.png" alt="工作区关系图" width="480"></td>
-  </tr>
-  <tr>
-    <td><strong>源码</strong><br>文件树、搜索、编辑标签页与生成文件只读标识。</td>
-    <td><strong>关系图</strong><br>浏览元素与资产，展开分组并定位相关内容。</td>
-  </tr>
-</table>
-
-<sub>0.1.4 前端的浏览器截图，使用内置 Copper Trails 示例数据。 [当前宣传素材与截图来源](assets/screenshots/README.md)</sub>
+2026-10-24 从当前检出的亮色浏览器预览截取，使用内置 Copper Trails 示例数据。[截图来源与复拍方法](assets/screenshots/README.md)
 
 ## 能做什么
 
-| 一条工程工作流 | 用法 |
+| 功能 | 用法 |
 | --- | --- |
-| 可视化创建 | 保存步道方块、方块物品和纹理，查看元素与资产的关系。 |
-| 源码扩展与协作 | 从「源码」编辑手写 Java，或把 Agent 接到同一桌面工作区；保存前审阅字段诊断与外部修改冲突，生成文件保持只读。 |
-| 修复与交付 | 从构建诊断定位源码，修复后重跑相关任务，在 Minecraft 确认行为并导出；精确已验证导出绑定所选验收任务的 JAR／报告 hash。 |
+| 简洁创作与 Agent | 在简洁创作和专业工作台之间切换、共享助手会话；当前源码接入 Codex CLI、Claude Code、Grok Build、Google Antigravity CLI 和 DeepSeek Harness。 |
+| 可视化编辑 | 创建方块、物品、实体等模组元素，用 Blockly 编排逻辑，并从字段诊断定位到编辑控件。 |
+| 源码与 Python | 编辑手写 Java，保留草稿并检查修改冲突；通过 [Python 工作台](docs/user/python-workbench.md)运行脚本和持久控制台，访问当前工程。生成文件保持只读。 |
+| 资产与模型 | 查看纹理、静态模型几何和元素外观，打开 Blockbench 编辑模型并同步保存结果。 |
+| 工作区工具 | 浏览关系图，编辑变量、标签和翻译，查看本地历史及迁移预览。 |
+| 构建与交付 | 构建、启动测试客户端或服务端，从诊断定位源码并导出模组；精确已验证导出绑定所选验收记录的产物。 |
 
 具体功能与生成器范围见[使用说明](docs/user/README.md)。Bedrock Add-on 不属于当前第一方 Java 模组编辑范围。
 
 ## 文档
 
 - [使用指南](docs/user/README.md) · [下载](docs/releases/current.md) · [故障排查](docs/user/troubleshooting.md)
+- [简洁创作](docs/user/simple-creation.md) · [专业版 Agent](docs/user/professional-agent.md) · [Python 工作台](docs/user/python-workbench.md)
 - [Agent 接入](docs/ai/getting-started.md) · [SDK](sdk/README.md)
 - [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [全部文档](docs/README.md)
 
@@ -87,7 +89,7 @@ Windows 安装包未做 Authenticode 签名，首次构建需要联网，Blockbe
 
 ## 从源码运行
 
-需要 JDK 25（桌面运行推荐带 JCEF 的 JetBrains Runtime）、Node.js 22、npm 和 Git；Windows 命令使用 PowerShell 7。先按[开发环境说明](docs/build/development-setup.md)配置 JDK。
+需要 JDK 25（原生桌面运行需带 JCEF 的 JetBrains Runtime）、Node.js 22、npm 和 Git；Windows 命令使用 PowerShell 7。先按[开发环境说明](docs/build/development-setup.md)配置 JDK。
 
 ```powershell
 git clone https://github.com/Lotulune/Copperbench.git

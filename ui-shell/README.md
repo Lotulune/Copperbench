@@ -1,92 +1,82 @@
-# @mod-creator/ui-shell (Copperbench UI Product Shell)
+# Copperbench UI Shell
 
-这是基于 React 19 + TypeScript + Vite 构建的 Copperbench 桌面产品外壳与自适应工作台工程（阶段 U1 产物）。
+Copperbench 的 React 19、TypeScript 与 Vite 前端，同时用于原生 JCEF 桌面宿主和浏览器开发预览。产品功能见[项目 README](../README.zh-CN.md)，运行环境见[开发说明](../docs/build/development-setup.md)。
 
-## 架构原则与边界
+## 架构与运行边界
 
-- **CoreBridge 接口 + 单一绑定点（U2 准备）**：组件只依赖 `src/bridge/CoreBridge.ts` 接口（`sendCommand` / `sendQuery` / `negotiateHandshake` / 事件订阅），U1 绑定内存 Mock（`src/bridge/index.ts`），U2 换绑 JCEF 实现时组件与状态层零改动；**严格不直接连接真实 JCEF Bridge 或本机文件系统**。
-- **启动协议协商**：UI 以 `supportedSchemaVersions: ['0.1']` 执行 handshake，不兼容时渲染结构化启动错误（NFR-UI-10 / ui-core handshake schema），不回退无类型 JSON。
-- **i18n 中文为主**：产品决策（2026-08-17）界面主语言为中文；合同 LocalizedText 经 `t()` + `src/i18n/zh.ts` 词典渲染，缺词条回退英文 fallback；技术标识（元素名、枚举、日志原文、MCP 档位）保留英文。
-- **场景数据单一事实源**：`src/mock/scenarios.ts` 直接 import `ui-core/fixtures/v0.1/scenarios/*.json`，不手工复制场景数据，保证 mock 回放与 JSON Schema 校验器消费同一份合同（含 `expectedUi` 焦点/播报契约）。
-- **Schema 驱动编辑器**：`ElementInspector` 完全由 `get_mod_element_editor` 投影（sections/fields/controls/constraints/capabilities）驱动渲染，UI 不硬编码任何字段或加载器能力规则。
-- **设计系统**：定制 Vanilla CSS 语义令牌（`tokens.css` / `global.css`），覆盖暗色 (Dark) 与亮色 (Light) 双主题、WCAG AA 对比度、自适应无边框窗口与系统框架回退。
-- **13 个官方场景全量覆盖**：对 `ui-core/fixtures/v0.1/scenarios` 的全部 13 种状态（就绪、空白、加载中、校验失败、权限拒绝、版本冲突、加载器差异、离线、构建中、外部进程退出、渲染崩溃恢复、协议不兼容、元素创建）均有 Playwright 断言。
-- **可访问性基线（NFR-UI-08）**：对话框焦点陷阱 + Esc 关闭 + 焦点归还（`useDialogA11y`）、`expectedUi.focusTarget` 契约焦点、`expectedUi.announcement` 经 aria-live 播报、任务进度与日志流使用非打断 live region、`role="alert"` 顶层诊断横幅。
-- **窗口桥桩（NFR-UI-05/06）**：`src/mock/windowBridge.ts` 定义最小化/最大化/关闭接口形状；真实原生窗口行为由阶段 4 的 Java 宿主桥实现，异常时回退系统窗口框架。
+- **CoreBridge**：`src/bridge/index.ts` 是绑定入口。检测到原生宿主时使用 `JcefCoreBridge`；仅 Vite 开发模式可以使用 `MockCoreBridge`。生产构建缺失宿主时使用 `UnavailableCoreBridge`，不会静默展示模拟工作区。
+- **共享合同**：UI 与 Java Core 通过握手、Command、Query 和事件交换数据；当前操作使用 Core `1.0`。版本协商失败显示启动错误。Schema 驱动的字段、约束和能力以宿主返回的编辑器合同为准。
+- **两种创作模式**：简洁创作集中显示作品、助手对话和常用设置；专业工作台提供元素、源码、关系图、资产、数据与历史等视图。二者使用同一工作区，专业 Agent 面板共享助手会话。
+- **专用宿主桥**：窗口控制、工作区选择、文件操作、Blockbench、Agent 和 Python 通过各自桥接口访问桌面能力。普通浏览器预览不能运行本机 CLI 或 CPython；对应入口显示不可用状态。
+- **语言与主题**：支持简体中文／英文、亮色／暗色／跟随系统主题。语言与主题偏好保存在本地；原生宿主提供相应设置同步。
+- **示例数据**：`src/mock/scenarios.ts` 导入 `ui-core/fixtures/v1.0/scenarios/` 的合同场景。浏览器开发模式提供场景选择器，原生宿主不显示它。
+- **交互保护**：修订与文件哈希冲突、未保存草稿、字段诊断、键盘焦点和可访问名称由组件及共享 Hook 处理；验证范围以对应测试和原生验收记录为准。
 
 ## 目录结构
 
 ```text
 ui-shell/
-├── bridge/                          # CoreBridge 接口、握手类型与绑定入口
-├── e2e/                             # Playwright 端到端基线测试套件
-│   ├── accessibility.spec.ts          # 焦点陷阱、Esc、live region、阻断恢复
-│   ├── adaptive-and-frameless.spec.ts # 自适应、无边框与主题测试
-│   ├── commands.spec.ts               # Command / Query 交互与变异测试
-│   └── scenarios.spec.ts              # 13 个契约场景回放与断言测试
 ├── src/
-│   ├── components/                  # 设计系统核心组件（中文为主文案）
-│   │   ├── BridgeRecoveryView.tsx      # JCEF 崩溃恢复界面 (NFR-UI-10)
-│   │   ├── CreateElementModal.tsx      # 元素创建模态框
-│   │   ├── ElementInspector.tsx        # Schema 驱动的元素检查器
-│   │   ├── FramelessTitlebar.tsx       # 无边框标题栏与窗口控制 (NFR-UI-05/06)
-│   │   ├── ModElementsWorkbench.tsx    # 模组元素工作台 (网格/表格/过滤)
-│   │   ├── NavRail.tsx                 # 左侧主导航轨
-│   │   ├── RevisionConflictModal.tsx   # 版本冲突仲裁弹窗 (FR-WS-05)
-│   │   ├── ScenarioSwitcher.tsx        # 13 场景即时切换托盘
-│   │   ├── SchemaIncompatibleView.tsx  # 协议版本协商失败屏
-│   │   ├── SecondaryViews.tsx          # 资产/历史/AI/插件扩展占位
-│   │   ├── StatusFooter.tsx            # 全局连接、权限与任务底栏
-│   │   ├── TaskDrawer.tsx              # 构建/运行长任务流式日志抽屉
-│   │   └── WorkspaceHub.tsx            # 工作区总览、健康看板与顶层诊断横幅
-│   ├── context/
-│   │   └── WorkbenchContext.tsx        # 状态管理、调度 Hook 与启动握手
-│   ├── i18n/
-│   │   ├── index.ts                    # t() 渲染机制（中文为主）
-│   │   └── zh.ts                       # 中文词条表
-│   ├── hooks/
-│   │   └── useDialogA11y.ts            # 对话框焦点陷阱 / Esc / 焦点归还
-│   ├── mock/
-│   │   ├── mockBridge.ts               # 内存级 Command/Query/Event 模拟适配器
-│   │   ├── scenarios.ts                # ui-core 官方 fixtures 导出（单一事实源）
-│   │   └── windowBridge.ts             # 原生窗口桥桩（阶段 4 接真实实现）
-│   ├── styles/
-│   │   ├── global.css                  # 全局样式、响应式网格与 sr-only
-│   │   └── tokens.css                  # 明暗主题设计令牌
-│   ├── types/
-│   │   └── contract.ts                 # UI-Core v0.1 强类型定义
-│   ├── App.tsx                         # 外壳根组件与全局播报 live region
-│   └── main.tsx                        # React 入口
-├── playwright.config.ts             # Playwright 双视口 (1920x1080 / 1366x768) 配置
+│   ├── bridge/         # Core、窗口、Agent、Python、源码和资产等桥接口
+│   ├── components/     # 两种创作模式、专业编辑器、预览与导航
+│   ├── context/        # 工作区、模式和 Agent 会话状态
+│   ├── hooks/          # 草稿、主题、焦点与交互逻辑
+│   ├── i18n/           # 中英文词条、语言选择与显示标签
+│   ├── mock/           # 浏览器开发适配器与合同场景入口
+│   ├── onboarding/     # 首作引导状态
+│   ├── styles/         # 语义令牌、工作台布局与动效
+│   └── types/          # UI 合同与专用能力类型
+├── e2e/                # Playwright 场景、编辑器和布局检查
+├── tests/              # Node 单元测试与服务辅助工具
+├── scripts/            # i18n 检查和 README 截图工具
+├── playwright.config.ts
 └── package.json
 ```
 
-## 运行与测试
+## 开发预览
 
-```bash
-# 启动本地开发服务 (http://localhost:5173)
-cd ui-shell
-npm run dev
+在仓库根目录安装依赖并启动前端：
 
-# 构建生产版本 (TypeScript 编译 + Vite 打包)
+```sh
+npm ci --prefix ui-core
+npm ci --prefix ui-shell
+npm run dev --prefix ui-shell
+```
+
+Vite 默认使用 `http://localhost:5173`；以终端实际打印的地址为准。原生桌面入口是仓库根目录的 `./gradlew runProductShell`，Windows 使用 `.\gradlew.bat runProductShell`，需要带 JCEF 的 JBR 25。
+
+## 构建与检查
+
+以下命令在 `ui-shell` 目录执行；按改动选择所需检查，命令不代表本次已经通过：
+
+```sh
+# i18n、TypeScript 与生产打包
 npm run build
 
-# 运行 Playwright 全量自动化测试基线 (50/50 tests = 25 用例 × 2 视口，含中文文案断言)
+# Node 单元测试 / TypeScript SDK 测试
+npm test
+npm run test:sdk
+
+# 首次准备浏览器，再运行受影响的用例
+npx playwright install chromium
+npx playwright test e2e/source-workbench.spec.ts --project=chromium
+
+# 需要完整浏览器回归时
 npm run test:e2e
 ```
 
-## 需求映射
+默认 Chromium 项目覆盖 1920 × 1080 与 1366 × 768；`visual-matrix.spec.ts` 另有四组缩放视口。普通工作台用例预设专业模式，简洁创作用例自行覆盖首访状态。测试数量以实际运行结果为准。
 
-| 能力 | 需求编号 |
-| --- | --- |
-| 修订冲突结构化拒绝与仲裁 | FR-WS-05 |
-| Schema 驱动编辑器与加载器差异保留 | FR-MOD-04 / FR-MOD-05 |
-| 任务进度、日志与取消反馈 | FR-BUILD-02 |
-| 结构化诊断与可执行动作 | FR-BUILD-03 |
-| 权限拒绝解释与提升路径 | FR-SEC-01 / FR-MCP-03 |
-| 崩溃恢复不伪造已保存 | NFR-UI-10 |
-| 无边框窗口与系统框架回退 | NFR-UI-05 / NFR-UI-06 |
-| 键盘导航、焦点与 live region | NFR-UI-08 |
-| 启动协议版本协商与结构化失败 | NFR-UI-10 / §8.2 |
-| 界面主语言中文（LocalizedText 消费） | NFR-UI-08（本地化） |
-| 离线分发（无 CDN） | NFR-UI-09 |
+Playwright 从当前 `ui-shell` 启动独立的 `http://127.0.0.1:5183` 服务；端口占用时失败，不复用其他进程。可通过 `COPPERBENCH_E2E_PORT` 选择 `1024–65535` 范围内的端口。性能工具使用独立的 `COPPERBENCH_PERF_PORT`（默认 `5179`）。
+
+`npm test` 包含 Vite 监听、HMR 握手和 Playwright 服务冲突回归；SSR 单元测试只加载生产模块，不创建 HTTP 或 WebSocket 监听。普通 `npm run dev` 保留 HMR。
+
+## README 截图
+
+在仓库根目录运行以下命令，用实际拍摄日期替换参数：
+
+```sh
+node ui-shell/scripts/capture-readme.mjs YYYY-MM-DD
+```
+
+脚本使用独立端口 5197，生成简洁创作、专业工作台、元素编辑、源码、Python 和关系图的中英文亮色截图，以及输入／图片哈希清单。截图使用内置示例数据，原生能力仍按实际状态显示。README 在两列 Markdown 表格中展示三排截图，每张配有名称和简短说明。完整范围与更新步骤见[截图说明](../assets/screenshots/README.md)。

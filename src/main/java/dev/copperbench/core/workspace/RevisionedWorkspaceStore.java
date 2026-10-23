@@ -85,11 +85,19 @@ public final class RevisionedWorkspaceStore {
 
 	/** Allocates an observation event after asynchronous work, without changing the current content revision. */
 	public TransactionResult<Long> nextEventSequence(UUID workspaceId) {
+		return nextEventSequence(workspaceId, (revision, sequence) -> {});
+	}
+
+	/** Allocates and enqueues an observation atomically. The observer must not invoke external listeners. */
+	public TransactionResult<Long> nextEventSequence(UUID workspaceId,
+			java.util.function.BiConsumer<Long, Long> observer) {
 		Entry entry;
 		synchronized (this) { entry = workspaces.get(workspaceId); }
 		if (entry == null) return TransactionResult.notFound();
 		synchronized (entry) {
-			return TransactionResult.coordinated(entry.state.revision(), entry.state.nextEventSequence());
+			long sequence = entry.state.nextEventSequence();
+			observer.accept(entry.state.revision(), sequence);
+			return TransactionResult.coordinated(entry.state.revision(), sequence);
 		}
 	}
 

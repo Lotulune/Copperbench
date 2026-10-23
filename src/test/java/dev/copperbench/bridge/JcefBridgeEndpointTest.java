@@ -43,6 +43,28 @@ class JcefBridgeEndpointTest {
 	private static final UUID WORKSPACE_ID = UUID.fromString("11111111-1111-4111-8111-111111111111");
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-17T05:00:00Z"), ZoneOffset.UTC);
 
+	@Test void attachedCommandEventsUseTheRetainedStreamExactlyOnce() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore(); store.register(workspace());
+		var service = new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, UUID::randomUUID), CLOCK, UUID::randomUUID);
+		List<String> direct = new java.util.concurrent.CopyOnWriteArrayList<>(), streamed = new java.util.concurrent.CopyOnWriteArrayList<>();
+		var endpoint = new JcefBridgeEndpoint(new WorkspaceEntryAdapter(service,
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)), direct::add);
+		var delivered = new java.util.concurrent.CountDownLatch(1);
+		try (var subscription = endpoint.subscribeEvents(WORKSPACE_ID, 0, value -> { streamed.add(value); delivered.countDown(); })) {
+			JsonObject payload = JsonParser.parseString("{\"registry\":\"variables\",\"entry\":{\"name\":\"stream_counter\"}}").getAsJsonObject();
+			String response = endpoint.handle(UiCore.wireGson().toJson(Command.of(UUID.randomUUID(), WORKSPACE_ID, 0,
+					Operation.CREATE_REGISTRY_ENTRY, payload)));
+			assertEquals("committed", JsonParser.parseString(response).getAsJsonObject().get("status").getAsString());
+			org.junit.jupiter.api.Assertions.assertTrue(delivered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+			assertEquals(1, streamed.size());
+			assertEquals(0, direct.size(), "The immediate sink must not duplicate or overtake subscribed task events");
+		}
+		var replayed = new java.util.concurrent.CountDownLatch(1);
+		try (var subscription = endpoint.subscribeEvents(WORKSPACE_ID, 0, value -> replayed.countDown())) {
+			org.junit.jupiter.api.Assertions.assertTrue(replayed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+		}
+	}
+
 	@Test void handshakeQueryCommandAndEventsUseFrozenV1WireEnvelopes() {
 		AtomicLong sequence = new AtomicLong(1_000);
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
