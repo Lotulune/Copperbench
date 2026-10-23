@@ -60,7 +60,7 @@ class AgentChatServiceTest {
                 JsonObject params = AgentJson.child(frame, "params");
                 assertEquals("codex-fixture", AgentJson.string(params, "threadId"));
                 assertFalse(params.has("model"), "Resume must not substitute the catalog or configured default model");
-                if (params.has("cwd")) assertEquals(workspace.toString(), AgentJson.string(params, "cwd"));
+                if (params.has("cwd")) assertEquals(workspace.toRealPath().toString(), AgentJson.string(params, "cwd"));
             }
             assertEquals("Keep the original workspace", Files.readString(work));
             try (AgentChatService service = service()) {

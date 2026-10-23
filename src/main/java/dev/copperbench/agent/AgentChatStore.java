@@ -58,7 +58,10 @@ final class AgentChatStore {
         }
     }
 
-    AgentChatStore(Path root) { file = root.resolve(".copperbench/agent-chat/history.json"); }
+    AgentChatStore(Path root) {
+        try { file = root.toRealPath().resolve(".copperbench/agent-chat/history.json"); }
+        catch (IOException failure) { throw new IllegalArgumentException("Workspace directory is inaccessible", failure); }
+    }
 
     void load() throws IOException {
         if (!Files.exists(file)) return;

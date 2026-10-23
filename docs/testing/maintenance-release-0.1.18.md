@@ -12,6 +12,12 @@ Windows source-candidate runtime validation exercised native JCEF previews, real
 
 ## Package and publication boundary
 
+The first Windows release run, [39946764142](https://github.com/Lotulune/Copperbench/actions/runs/39946764142), stopped before packaging: 18 of 1,626 tests failed (65 skipped). Agent fixtures passed Windows 8.3 paths into the history store, which serialized those aliases as `canonicalRoot` but compared them with real paths when loading. Normalize the store root before both reading and writing, assert canonical CLI/export paths, and add dot-segment and real Windows short-path regressions. Windows PR checks now include the Agent suite so this boundary is checked before the release job. No installer from this failed attempt was published.
+
+The first Linux consumer [39946437202](https://github.com/Lotulune/Copperbench/actions/runs/39946437202) timed out while `gh run download` was retrieving the frozen artifact, before byte verification. Its replacement was superseded by the Windows repair. The consumer now uses the repository's existing `actions/download-artifact@v8` client in a separate step, preserving source identity, every-file hashes, provenance and package-content checks. Both platforms require new source-bound candidates after the repair.
+
+The repair passed all 103 local Windows Agent tests with no skips, including actual Windows short paths, dot-segment aliases, history recovery, independent Core verification and native export. The twelve package-verifier tests, product-status and Markdown checks also passed. Cloud checks and the rebuilt release remain separate gates.
+
 Release preparation passed ReleaseManifestTest, the production UI build, 81 UI unit tests, 50 UI-Core contracts, the Chromium workbench/help navigation case, product status and Markdown checks. Twelve package-verifier tests and five public-asset verifier tests cover source-bound license files, version selection, update components, missing downloads and altered bytes. The public Windows verifier now derives the release from the exact source instead of hardcoding 0.1.9.
 
 Official 0.1.18 packages are not published at this source snapshot. The signed Windows latest-main build and the frozen Linux producer/consumer/promotion must pass before [current downloads](../releases/current.md) advances from 0.1.17. Package metadata, checksums, provenance and post-publication receipts will identify the actual bytes; earlier source runtime evidence does not establish installer acceptance.
