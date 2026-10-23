@@ -1,0 +1,89 @@
+{
+  "status": "merged_with_all_ci_passed",
+  "date": "2026-10-23",
+  "pullRequest": "https://github.com/Lotulune/Copperbench/pull/159",
+  "testedCommit": "87fe452c27f03ea552583cdb2de16c3addb6fbb3",
+  "latestReviewedCommit": "368323142efdad004f12c3e1bdc3502b0562bcca",
+  "mergeCommit": "6b248bc21315e3165b421b01b7e5400344ca32a6",
+  "scope": "Source-candidate verification before 0.1.18 packaging; not installer acceptance.",
+  "checks": {
+    "java": {
+      "passed": 243,
+      "skipped": 1
+    },
+    "uiUnit": 81,
+    "uiCore": 50,
+    "chromium": 130,
+    "compactPreview": 12,
+    "navigationFollowup": 72,
+    "nativeJcef": "passed",
+    "realCodex": "passed",
+    "realBlockbench": "passed"
+  },
+  "ci": [
+    {
+      "runId": 39903242316,
+      "jobs": [
+        {
+          "name": "Select checks for changed layers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Java tests and Javadoc",
+          "conclusion": "success"
+        },
+        {
+          "name": "MCP conformance",
+          "conclusion": "success"
+        },
+        {
+          "name": "UI contract, build, and smoke tests",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "runId": 39903242322,
+      "jobs": [
+        {
+          "name": "M1 real Fabric delivery",
+          "conclusion": "success"
+        },
+        {
+          "name": "M1 protocol and adapter contracts",
+          "conclusion": "success"
+        },
+        {
+          "name": "linux-candidate-verification",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "windows-source",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "published-release",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "public-windows-verification",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    {
+      "runId": 39903242387,
+      "jobs": [
+        {
+          "name": "Ubuntu 24.04 package candidate smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Qualify NeoForge 26.3 Linux dependency graph",
+          "conclusion": "skipped"
+        }
+      ]
+    }
+  ],
+  "localSummarySha256": "ef0f49cd0e7a51c9f65c3e9a5d1cc6757119e02c39f7c369dbb3dd174b96beec"
+}

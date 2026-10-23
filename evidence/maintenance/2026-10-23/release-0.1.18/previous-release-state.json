@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-10-23",
+  "sourceCommit": "6b248bc21315e3165b421b01b7e5400344ca32a6",
+  "product": {
+    "id": "dev.copperbench.studio",
+    "name": "Copperbench",
+    "version": "0.1.17",
+    "stage": 17,
+    "channel": "stable",
+    "targetPlatforms": [
+      "windows-11-x64",
+      "ubuntu-24.04-x86_64"
+    ],
+    "license": "GPL-3.0-only",
+    "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
+    "betaEligible": true
+  },
+  "stableRelease": {
+    "tag": "v0.1.17",
+    "linuxTag": "v0.1.16-linux-stable",
+    "status": "ready",
+    "linuxStatus": "public-stable",
+    "decision": "approved",
+    "decisionDate": "2026-10-22",
+    "scope": "Prepare Windows and Linux 0.1.17 with legacy native-session continuation without model overrides, locale-reactive attachment errors, retained attachment cleanup after message truncation, and complete compact mode labels. Public downloads remain 0.1.16 until each platform is verified and published.",
+    "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+    "developmentEvidence": "docs/testing/assessment-0.1.16-fixes.md",
+    "integrationReport": "docs/testing/maintenance-release-0.1.17.md",
+    "previousReleaseState": "evidence/maintenance/2026-10-22/release-0.1.17/previous-release-state.json",
+    "sourceVerification": {
+      "requiredCi": {
+        "status": "pending"
+      },
+      "documentation": {
+        "status": "pending"
+      },
+      "installedPackageAcceptance": "not-repeated; deterministic native CLI subprocesses and source browser regressions passed",
+      "fullGameplayAcceptance": "not-repeated; no Minecraft gameplay code changed",
+      "nativeUiEvidence": "docs/testing/assessment-0.1.16-fixes.md"
+    }
+  },
+  "publicWindowsTag": "v0.1.17",
+  "publicLinuxTag": "v0.1.17-linux-stable"
+}

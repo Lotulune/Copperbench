@@ -2,6 +2,10 @@
 
 This distribution is based on MCreator `2026.2.33518` at commit `361429609b772039a3eb9ab81662c25b225f1d0d`. The built-in Fabric generator is based on `26.1.2-2026.2-2.8` at commit `abfe19329126b679a26baafe5cade5a75d455528`.
 
+## 2026-10-23 previews, professional Agent and Blockbench
+
+- Added static model/element previews and the shared professional Agent workflow; kept Blockbench recovery preparation responsive and saved-model synchronization active after navigation. Added the Three.js license to distributions for 0.1.18.
+
 ## 2026-10-22 creator guidance and assistant workflow
 
 - Restored legacy native CLI conversation continuation without a model override; retained attachment cleanup ownership after message truncation, kept attachment failures bilingual during locale changes, and corrected compact mode-label spacing for 0.1.17.

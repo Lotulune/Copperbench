@@ -36,9 +36,9 @@ def verify_package(archive_path, source):
         documents += ['docs/releases/v0.1.9.md', 'docs/releases/v0.1.9-linux.md',
                       'docs/testing/maintenance-release-0.1.9.md']
     source_paths = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', source]).decode('utf-8').splitlines()
-    ui_licenses = 'license/Copperbench UI Dependency Licenses.txt'
-    if ui_licenses in source_paths:
-        documents.append(ui_licenses)
+    for ui_licenses in ['license/Copperbench UI Dependency Licenses.txt', 'license/Three.js License.txt']:
+        if ui_licenses in source_paths:
+            documents.append(ui_licenses)
     originals = {path: source_bytes(source, path) for path in documents}
     targets = [*documents, 'lib/copperbench.jar', 'plugins/generator-1.20.1.zip']
     found = {}
