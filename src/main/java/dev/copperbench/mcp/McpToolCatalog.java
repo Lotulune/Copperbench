@@ -77,7 +77,7 @@ final class McpToolCatalog {
 				List.of("elementType", "name", "initialValues", "expectedRevision"));
 		return McpServerFeatures.SyncToolSpecification.builder()
 				.tool(Tool.builder("create_mod_element", authorizationSchema(schema))
-						.description("Create a mod element; code elements also schedule a real Gradle compile verification task")
+						.description("Create a mod element using the active generator. Inspect get_workspace_environment fieldContracts; incomplete input returns field paths, expected types and repair hints where preflight is available. Code elements also schedule a real Gradle compile verification task")
 						.build())
 				.callHandler((exchange, request) -> {
 					try {
@@ -369,11 +369,11 @@ final class McpToolCatalog {
 						List.of("elementId", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("validate_workspace", "Validate the workspace", Operation.VALIDATE_WORKSPACE,
 				revisionSchema(), McpToolCatalog::workspacePayload));
-		tools.add(commandTool("generate_workspace", "Generate Fabric 1.21.1 sources", Operation.GENERATE_WORKSPACE,
+		tools.add(commandTool("generate_workspace", "Generate sources using the workspace's active generator; inspect get_workspace_environment for loader, version and field contracts", Operation.GENERATE_WORKSPACE,
 				revisionSchema(), McpToolCatalog::workspacePayload));
-		tools.add(commandTool("build_workspace", "Build the Fabric 1.21.1 mod", Operation.BUILD_WORKSPACE,
+		tools.add(commandTool("build_workspace", "Build using the workspace's active generator and toolchain; inspect get_workspace_environment first", Operation.BUILD_WORKSPACE,
 				revisionSchema(), McpToolCatalog::workspacePayload));
-		tools.add(commandTool("export_workspace", "Build and export the Fabric artifact", Operation.EXPORT_WORKSPACE,
+		tools.add(commandTool("export_workspace", "Build and export the active generator's artifact", Operation.EXPORT_WORKSPACE,
 				requiredSchema(Map.of("output", Map.of("type", "string", "minLength", 1), "expectedRevision",
 						Map.of("type", "integer", "minimum", 0)), List.of("output", "expectedRevision")),
 				McpToolCatalog::workspaceArgumentsPayload));
@@ -381,7 +381,7 @@ final class McpToolCatalog {
 				Operation.EXPORT_WORKSPACE, requiredSchema(Map.of("verifiedTaskId", Map.of("type", "string", "format", "uuid"),
 						"allowHistorical", Map.of("type", "boolean"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("verifiedTaskId", "expectedRevision")), McpToolCatalog::workspaceArgumentsPayload));
-		tools.add(commandTool("run_client", "Run the Fabric client smoke test", Operation.RUN_CLIENT,
+		tools.add(commandTool("run_client", "Launch the active generator's test client; inspect get_task for lifecycle status and confirm gameplay in the client", Operation.RUN_CLIENT,
 				revisionSchema(), McpToolCatalog::workspacePayload));
 		tools.add(commandTool("run_server", "Run an isolated dedicated server after desktop EULA approval",
 				Operation.RUN_SERVER,

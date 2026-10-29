@@ -4,6 +4,7 @@ import { useWorkbench } from '../context/WorkbenchContext';
 import { uiText } from '../i18n';
 import { workbenchNavigation } from './workbenchNavigation';
 import { WorkspaceIconChooser } from './WorkspaceIconChooser';
+import { ProductUpdateNotice } from './ProductUpdateNotice';
 
 export const NavRail: React.FC = () => {
   const { activeView, setActiveView, state } = useWorkbench();
@@ -46,9 +47,12 @@ export const NavRail: React.FC = () => {
         <button type="button" className="nav-tools-toggle" data-testid="nav-tools-toggle" aria-expanded={toolsOpen} aria-controls="workbench-tools"
           aria-label={uiText('展开或收起工具', 'Expand or collapse tools')}
           onClick={() => setToolsOpen(open => !open)}><span>{uiText('工具', 'Tools')}</span><ChevronDown size={13} aria-hidden="true" /></button>
-        <div id="workbench-tools" hidden={!toolsOpen}>{navigation.filter(item => item.group === 'tools').map(renderItem)}</div>
+        <div id="workbench-tools" className="nav-tools-disclosure" data-expanded={toolsOpen} inert={!toolsOpen} aria-hidden={!toolsOpen}>
+          <div className="nav-tools-disclosure-content">{navigation.filter(item => item.group === 'tools').map(renderItem)}</div>
+        </div>
       </div>
     </nav>
     <div className="nav-utilities">{navigation.filter(item => item.id === 'help' || item.id === 'settings').map(renderItem)}</div>
+    <ProductUpdateNotice />
   </aside>;
 };

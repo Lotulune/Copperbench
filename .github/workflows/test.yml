@@ -122,6 +122,22 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+      - name: Test performance tooling and source identity without a browser
+        if: needs.changes.outputs.ui == 'true' || needs.changes.outputs.contract == 'true'
+        run: >-
+          node --experimental-strip-types --test
+          scripts/tests/performance-statistics.tests.mjs
+          scripts/tests/performance-fixtures.tests.mjs
+          scripts/tests/performance-runner.tests.mjs
+          scripts/tests/source-identity.tests.mjs
+          scripts/tests/native-observation.tests.mjs
+          scripts/tests/task-evaluation.tests.mjs
+      - name: Test contributor verification planning and reporting
+        if: needs.changes.outputs.python == 'true'
+        run: python -m unittest discover -s scripts/tests -p 'test_verify_changed.py'
+      - name: Test acceptance measurement planning and collection
+        if: needs.changes.outputs.python == 'true'
+        run: python -m unittest discover -s scripts/tests -p 'test_acceptance_measurement.py'
       - name: Install UI contract dependencies
         if: needs.changes.outputs.contract == 'true'
         working-directory: ui-core

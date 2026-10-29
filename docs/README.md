@@ -1,13 +1,27 @@
-# 项目文档导航
+# Documentation / 项目文档导航
 
-当前公开稳定版为 Windows **0.1.4** 与 Linux **0.1.4**。下载、安装格式与验证范围统一见[当前下载](./releases/current.md)；后续工作见[持续维护清单](./remaining-work.md)。历史需求与验收保留各自日期、候选和验证范围。
+先看[当前下载](./releases/current.md)获取 Windows／Linux 安装包，再从下方选择使用或开发路线。[当前状态与发布能力](./status.md)区分官方发布、本地源码和历史验证记录；历史需求与验收保留各自身份和范围。
 
 ## 从这里开始
 
-1. 使用产品：[用户指南](./user/README.md)、[Windows 0.1.4](./releases/v0.1.4.md)、[Linux 0.1.4](./releases/v0.1.4-linux.md)。
+本轮维护：[复评优化 spec](./roadmap/review-optimization-spec-2026-10-16.md) · [决策看板](./maintenance/review-improvement-board-2026-10-16.md)。贡献代码可先看[一页入口](./build/contributor-quickstart.md)，历史证据仍在原测试索引中。
+
+1. 使用产品：[第一件作品](./user/first-creation.md)、[用户指南](./user/README.md)、[当前下载](./releases/current.md)。
 2. 开发与维护：[开发环境](./build/development-setup.md)、[剩余完善清单](./remaining-work.md)、[测试与证据索引](./testing/README.md)。
 3. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
 4. 只有遇到专项问题时，才从本页选择对应附件。
+
+Choose a route below. Each key guide links directly to the same topic in the other language. Published/source/preview limits are maintained only in [current status](./status.md); historical records keep their original scope.
+
+| Route / 路线 | 简体中文 | English |
+| --- | --- | --- |
+| Install / 安装 | [快速开始](./user/getting-started.md) · [Ubuntu](./user/linux-installation.md) | [Quick start](./user/getting-started.en.md) · [Ubuntu](./user/linux-installation.en.md) |
+| First creation / 首作 | [步道方块](./user/first-creation.md) | [Trail Block](./user/first-creation.en.md) |
+| Simple creation / 简洁创作 | [助手、作品与试玩](./user/simple-creation.md) | [Guide in Simplified Chinese](./user/simple-creation.md) |
+| Python workbench / 脚本 | [编辑器与持久控制台](./user/python-workbench.md) | [Guide in Simplified Chinese](./user/python-workbench.md) |
+| Build failure → export / 失败到导出 | [修复与交付](./user/build-and-export.md) | [Recovery and delivery](./user/build-and-export.en.md) |
+| Agent / 自动化 | [选择接入](./ai/getting-started.md) · [同一作品](./ai/trail-block.md) | [Choose an entry](./ai/getting-started.en.md) · [The same creation](./ai/trail-block.en.md) |
+| Contribute / 源码贡献 | [开发环境](./build/development-setup.md) | [Development setup](./build/development-setup.en.md) · [Contributing](../CONTRIBUTING.md) |
 
 ## 决策记录
 

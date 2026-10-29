@@ -133,6 +133,22 @@ class JcefCoreBridgeTransportTest {
 		transport.close();
 	}
 
+	@Test void historyAndAssetQueriesDoNotOccupyTheBrowserCallbackThread() throws Exception {
+		Thread caller = Thread.currentThread();
+		for (Operation operation : List.of(Operation.GET_WORKSPACE_HEALTH, Operation.GET_HISTORY,
+				Operation.GET_DIFF, Operation.PREVIEW_RECOVERY_RESTORE, Operation.LIST_ASSETS)) {
+			var completed = new java.util.concurrent.CompletableFuture<Thread>();
+			CefQueryCallback callback = new CefQueryCallback() {
+				@Override public void success(String response) { completed.complete(Thread.currentThread()); }
+				@Override public void failure(int code, String message) { completed.complete(Thread.currentThread()); }
+			};
+			String envelope = UiCore.wireGson().toJson(Query.of(idSupplier.get(), WORKSPACE_ID, operation, new JsonObject()));
+			assertTrue(transport.onQuery(null, null, 100, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, callback));
+			assertNotSame(caller, completed.get(5, java.util.concurrent.TimeUnit.SECONDS), operation.name());
+		}
+		transport.close();
+	}
+
 	@Test
 	void mapsExceptionsToQueryFailures() {
 		TestQueryCallback callback = new TestQueryCallback();

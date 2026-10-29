@@ -4,6 +4,7 @@
  * 新增合同 key 时必须同步补齐词条，缺失时 UI 回退英文 fallback。
  */
 export const zh: Record<string, string> = {
+  'diagnostic.input_preflight': '{field}：需要 {expectedType} 类型。{repairHint}',
   'diagnostic.workspace_source_failed': '源码操作失败：{detail}',
   'diagnostic.workspace_source_not_found': '找不到源码文件。',
   'diagnostic.workspace_source_conflict': '文件已在外部修改，请读取最新版本后继续。',
@@ -68,7 +69,7 @@ export const zh: Record<string, string> = {
   'diagnostic.resource_pack_client_failed': '资源包测试客户端准备失败。',
   'diagnostic.task_cancel_failed': '无法取消请求的任务。',
   'diagnostic.task_not_found': '请求的任务不存在或已结束。',
-  'diagnostic.task_source_not_found': '请求的任务生成源码预览不可用。',
+  'diagnostic.task_source_not_found': '请求的任务源码预览不可用。',
   'diagnostic.task_start_failed': '无法启动请求的任务。',
   'diagnostic.unsupported_operation': '当前版本不支持请求的操作。',
   'diagnostic.upstream_import_failed': '无法读取或复制上游工作区。',
@@ -129,7 +130,7 @@ export const zh: Record<string, string> = {
   /* ---- 诊断动作 (action.*) ---- */
   'action.open_field': '定位问题字段',
   'action.open_element': '定位到元素',
-  'action.open_source': '查看生成源码',
+  'action.open_source': '查看源码',
   'action.open_asset': '定位到资产',
   'action.add_list_item': '添加条目',
   'action.remove_list_item': '删除条目',

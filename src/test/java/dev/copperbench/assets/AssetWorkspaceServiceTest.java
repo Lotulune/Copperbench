@@ -64,6 +64,25 @@ class AssetWorkspaceServiceTest {
 		assertTrue(service.search("missing", null).isEmpty());
 	}
 
+	@Test void scansAllSupportedRootsButIgnoresResourcesInsideBuildAndScratchWorkspaces() throws IOException {
+		List<String> supported = List.of("models/source.bbmodel", "resourcepacks/example/pack.mcmeta",
+				"src/main/resources/assets/example/models/item.json", "src/main/assets/example/model.json",
+				"pack.mcmeta", "pack.png", "src/main/pack.mcmeta", "src/main/pack.png");
+		for (String path : supported) {
+			Path file = workspace.resolve(path);
+			Files.createDirectories(file.getParent());
+			Files.writeString(file, "{}");
+		}
+		for (String prefix : List.of(".scratch/nested", ".copperbench", ".gradle", "build", "run", "src/test")) {
+			Path file = workspace.resolve(prefix + "/assets/example/models/ignored.json");
+			Files.createDirectories(file.getParent());
+			Files.writeString(file, "{}");
+		}
+		List<String> paths = new AssetWorkspaceService(workspace).list().stream().map(AssetDescriptor::relativePath).toList();
+		assertEquals(supported.size() + 3, paths.size());
+		assertTrue(paths.containsAll(supported));
+	}
+
 	@Test
 	void buildsReferencesAndReportsMissingTargets() {
 		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();

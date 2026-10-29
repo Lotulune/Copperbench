@@ -250,11 +250,11 @@ server.create_server(__import__('sys').argv[1]).run(transport='stdio')
                     await session.initialize()
                     a=await session.call_tool('mc_attach',{'window_id':'100'})
                     sid=a.structuredContent['session_id']
-                    entered=await session.call_tool('mc_menu_flow',{'session_id':sid,'action_id':'enter','flow':'enter_world','profile_path':profile,'world_name':'PRD17 Scene C v7'})
+                    entered=await session.call_tool('mc_menu_flow',{'session_id':sid,'action_id':'enter','flow':'enter_world','profile_path':profile,'world_name':'PRD17 Scene C v7','controller':'deterministic'})
                     self.assertEqual('world_visible',entered.structuredContent.get('terminal'),entered)
                     self.assertTrue(any(c.type=='image' for c in entered.content))
                     self.assertEqual(3,len(entered.structuredContent['steps']))
-                    running=asyncio.create_task(session.call_tool('mc_menu_flow',{'session_id':sid,'action_id':'save','flow':'save_and_quit','profile_path':profile}))
+                    running=asyncio.create_task(session.call_tool('mc_menu_flow',{'session_id':sid,'action_id':'save','flow':'save_and_quit','profile_path':profile,'controller':'deterministic'}))
                     await asyncio.sleep(.08)
                     await session.call_tool('mc_stop',{'session_id':sid})
                     interrupted=await running

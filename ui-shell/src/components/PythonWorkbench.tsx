@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { tr } from '../i18n/locale';
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Square, RotateCcw, FolderOpen, Save, Terminal, FileCode } from 'lucide-react';
@@ -128,7 +129,11 @@ export function PythonWorkbench({ visible }: { visible: boolean }) {
     requestAnimationFrame(() => { field.focus(); field.setSelectionRange(target.start + text.length, target.start + text.length); });
   };
   const chooseFile = async (operation: 'open_script' | 'save_script' | 'select_python') => {
-    if (operation === 'open_script' && source !== savedSource && !window.confirm(tr("打开脚本会替换当前未保存的草稿，是否继续？"))) return;
+    if (operation === 'open_script' && source !== savedSource && !await confirmAction({
+      title: { zh: '打开脚本', en: 'Open script' }, danger: true,
+      message: { zh: '打开脚本会替换当前未保存的草稿。继续打开？', en: 'Opening a script replaces the unsaved draft. Continue?' },
+      confirmLabel: { zh: '替换并打开', en: 'Replace and open' }
+    })) return;
     try {
       const result = await pythonBridge.invoke<{ cancelled: boolean; path: string; source?: string }>({ operation, source });
       if (result.cancelled) return;
@@ -194,7 +199,11 @@ export function PythonWorkbench({ visible }: { visible: boolean }) {
     </div><aside className="python-sidebar"><h2>{tr("当前上下文")}</h2><p>{state.workbench?.workspace.name}</p><p>{tr("选中元素：")}{selectedElement?.name ?? tr("无")}</p>
       <p className="python-hint">{tr("在模组元素页选择对象后回来，或通过 cb.context.active_element 设置选择。")}</p>
       <h2>{tr("脚本示例")}</h2>{([['inspect', tr("读取选中元素")], ['operator', tr("注册自定义操作")], ['timer', tr("注册定时器")], ['events', tr("订阅工程变化")]] as const).map(([key, label]) =>
-        <button key={key} onClick={() => { if (source !== savedSource && !window.confirm(tr("替换当前未保存的草稿？"))) return; setSource(examples[key]); }}>{label}</button>)}
+        <button key={key} onClick={async () => { if (source !== savedSource && !await confirmAction({
+          title: { zh: '载入示例', en: 'Load example' }, danger: true,
+          message: { zh: '用示例替换当前未保存的草稿？', en: 'Replace the unsaved draft with this example?' },
+          confirmLabel: { zh: '替换草稿', en: 'Replace draft' }
+        })) return; setSource(examples[key]); }}>{label}</button>)}
       <h2>{tr("已注册操作")}</h2>{status?.operators.length ? status.operators.map(operator => <button key={operator.idname} disabled={busy} onClick={() => runConsole(`cb.ops.${operator.idname}()`)}>{operator.label}</button>) : <p>{tr("运行注册脚本后，操作会显示在这里。")}</p>}
       <h2>{tr("接口帮助")}</h2><button disabled={!pythonBridge.available || busy} onClick={() => runConsole('print(cb.api_help())')}>{tr("显示接口概览")}</button>
       <p className="python-hint">{tr("cb.context：当前上下文")}<br />{tr("cb.data：工程对象")}<br />{tr("cb.ops：核心及自定义操作")}<br />{tr("cb.app：定时器与回调")}</p>

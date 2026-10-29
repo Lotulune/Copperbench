@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -135,11 +137,12 @@ class BlockbenchProcessServiceTest {
 		service.close();
 	}
 
-	@Test void rejectsAnIndexedNonBlockbenchAsset() throws IOException {
-		Path json = workspace.resolve("assets/copperbench/models/plain.json");
+	@Test void rejectsAnIndexedNonModelJsonAsset() throws IOException {
+		Path json = workspace.resolve("assets/copperbench/lang/en_us.json");
+		Files.createDirectories(json.getParent());
 		Files.writeString(json, "{}");
 		AssetDescriptor unsupported = new AssetWorkspaceService(workspace).findByRelativePath(
-				"assets/copperbench/models/plain.json").orElseThrow();
+				"assets/copperbench/lang/en_us.json").orElseThrow();
 		Path executable = temp.resolve("Blockbench.exe");
 		Files.write(executable, new byte[] { 1 });
 		var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable,
@@ -148,6 +151,21 @@ class BlockbenchProcessServiceTest {
 		BlockbenchBridgeException error = assertThrows(BlockbenchBridgeException.class,
 				() -> service.openAsset(unsupported.id()));
 		assertEquals("BLOCKBENCH_ASSET_UNSUPPORTED", error.code());
+	}
+
+	@Test void opensIndexedMinecraftJsonModelsWithTheSameManagedLifecycle() throws Exception {
+		Path json = workspace.resolve("src/main/resources/assets/copperbench/models/item/staff.json");
+		Files.createDirectories(json.getParent());
+		Files.writeString(json, "{\"parent\":\"minecraft:item/handheld\"}");
+		AssetDescriptor descriptor = new AssetWorkspaceService(workspace).findByRelativePath(
+				"src/main/resources/assets/copperbench/models/item/staff.json").orElseThrow();
+		Path executable = Files.write(temp.resolve("Blockbench.exe"), new byte[] { 1 });
+		AtomicReference<List<String>> command = new AtomicReference<>();
+		try (var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable,
+				arguments -> { command.set(arguments); return new FakeProcess(7790); })) {
+			assertEquals(BlockbenchProcessService.State.RUNNING, service.openAsset(descriptor.id()).state());
+			assertEquals(List.of(executable.toString(), json.toString()), command.get());
+		}
 	}
 
 	@Test
@@ -250,6 +268,30 @@ class BlockbenchProcessServiceTest {
 		first.close();
 		assertEquals(BlockbenchProcessService.State.RUNNING, second.openAsset(model.id()).state());
 		second.close();
+	}
+
+	@Test void closingDuringOsProcessCreationDestroysTheLateProcessAndReleasesItsLease() throws Exception {
+		Path executable = Files.write(temp.resolve("Blockbench.exe"), new byte[] { 1 });
+		CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);
+		FakeProcess lateProcess = new FakeProcess(303);
+		try (var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable, command -> {
+			entered.countDown();
+			try {
+				if (!release.await(10, TimeUnit.SECONDS)) throw new IOException("Test did not release process creation");
+			} catch (InterruptedException exception) { Thread.currentThread().interrupt(); throw new IOException(exception); }
+			return lateProcess;
+		}); var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+			var opened = executor.submit(() -> service.openAsset(model.id()));
+			try {
+				assertTrue(entered.await(2, TimeUnit.SECONDS));
+				executor.submit(service::closeAsync).get(2, TimeUnit.SECONDS);
+			} finally { release.countDown(); }
+			assertEquals(BlockbenchProcessService.State.FAILED, opened.get(2, TimeUnit.SECONDS).state());
+			assertTrue(lateProcess.destroyed);
+			try (var lease = AssetTaskLease.tryAcquire(workspace, model.id()).orElseThrow()) {
+				assertThrows(IllegalStateException.class, () -> service.openAsset(model.id()));
+			}
+		}
 	}
 
 	@Test void internalLeaseFilesAreNotIndexedAsAssets() throws IOException {

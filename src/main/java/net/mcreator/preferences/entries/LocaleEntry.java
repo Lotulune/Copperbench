@@ -41,7 +41,7 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 	}
 
 	@Override public JComponent getComponent(Window parent, Consumer<EventObject> fct) {
-		List<Locale> locales = new ArrayList<>(L10N.getSupportedLocales());
+		List<Locale> locales = new ArrayList<>(List.of(Locale.US, Locale.SIMPLIFIED_CHINESE));
 		locales.sort((a, b) -> {
 			if (a.equals(Locale.US))
 				return -1;
@@ -57,13 +57,20 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 		});
 		JComboBox<Locale> box = new JComboBox<>(locales.toArray(new Locale[0]));
 		box.setRenderer(new LocaleListRenderer());
-		box.setSelectedItem(this.value);
+		box.setSelectedItem(dev.copperbench.shell.UiLocalePreferences.javaLocale());
 		box.addActionListener(fct::accept);
 		return box;
 	}
 
 	@Override public void setValueFromComponent(JComponent component) {
-		this.value = (Locale) ((JComboBox<?>) component).getSelectedItem();
+		Locale selected = (Locale) ((JComboBox<?>) component).getSelectedItem();
+		try {
+			if (!selected.equals(dev.copperbench.shell.UiLocalePreferences.javaLocale()))
+				dev.copperbench.shell.UiLocalePreferences.save("zh".equals(selected.getLanguage()) ? "zh" : "en");
+		} catch (java.io.IOException exception) {
+			throw new java.io.UncheckedIOException(exception);
+		}
+		this.value = selected;
 	}
 
 	@Override public void setValueFromJsonElement(JsonElement object) {
@@ -83,8 +90,8 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 		public Component getListCellRendererComponent(JList<? extends Locale> list, Locale value, int index,
 				boolean isSelected, boolean cellHasFocus) {
 			setOpaque(isSelected);
-			setBackground(Theme.current().getInterfaceAccentColor());
-			setForeground(Color.white);
+			setBackground(list.getSelectionBackground());
+			setForeground(isSelected ? list.getSelectionForeground() : list.getForeground());
 			setBorder(new EmptyBorder(0, 1, 0, 0));
 
 			setText(getLanguageLabelText(value));
@@ -99,9 +106,9 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 			if (locale.equals(Locale.US)) {
 				return "English";
 			} else if (locale.equals(Locale.SIMPLIFIED_CHINESE) || "CN".equalsIgnoreCase(locale.getCountry())) {
-				return "Simplified Chinese";
+				return "简体中文";
 			} else if (locale.equals(Locale.TRADITIONAL_CHINESE) || "TW".equalsIgnoreCase(locale.getCountry())) {
-				return "Traditional Chinese";
+				return "繁體中文";
 			} else if (locale.getCountry().toLowerCase(Locale.ROOT).equals(locale.getLanguage())) {
 				return locale.getDisplayLanguage(Locale.ROOT);
 			} else {
@@ -134,8 +141,8 @@ public class LocaleEntry extends PreferencesEntry<Locale> {
 			g.setColor(Color.darkGray);
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			g.drawString("Texts: " + uiTextsPercent + "%", 2, getHeight() - 2);
-			g.drawString("Tips: " + helpTipsPercent + "%", getWidth() / 2 + 2 + 2, getHeight() - 2);
+			g.drawString(dev.copperbench.shell.UiLocalePreferences.text("界面：", "Texts: ") + uiTextsPercent + "%", 2, getHeight() - 2);
+			g.drawString(dev.copperbench.shell.UiLocalePreferences.text("提示：", "Tips: ") + helpTipsPercent + "%", getWidth() / 2 + 2 + 2, getHeight() - 2);
 		}
 
 	}

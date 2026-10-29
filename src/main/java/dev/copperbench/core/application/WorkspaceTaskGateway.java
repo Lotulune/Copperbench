@@ -15,6 +15,10 @@ public interface WorkspaceTaskGateway {
 	@FunctionalInterface interface GenerationPreparation {
 		void prepare(dev.copperbench.core.workspace.WorkspaceState state, java.nio.file.Path executionRoot,
 				Operation operation, Consumer<String> output) throws Exception;
+
+		/** Actual generator-associated paths captured for this execution; unknown paths have no element owner. */
+		default java.util.Map<String, UUID> sourceElementOwners(dev.copperbench.core.workspace.WorkspaceState state,
+				java.nio.file.Path executionRoot) { return java.util.Map.of(); }
 	}
 
 	default void setGenerationPreparation(GenerationPreparation preparation) { }

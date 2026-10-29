@@ -1,5 +1,8 @@
 /** Known editor labels. Older hosts may supply bilingual fallbacks for these keys. */
 export const en: Record<string, string> = {
+  'action.open_source': 'View source',
+  'diagnostic.task_source_not_found': 'The requested task source preview is unavailable.',
+  'diagnostic.input_preflight': '{field}: expected {expectedType}. {repairHint}',
   'diagnostic.workspace_source_failed': 'Source operation failed: {detail}',
   'diagnostic.workspace_source_not_found': 'Source file not found.',
   'diagnostic.workspace_source_conflict': 'The file changed externally. Read the latest version to continue.',

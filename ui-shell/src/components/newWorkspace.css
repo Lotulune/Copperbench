@@ -5,6 +5,11 @@
   align-items: stretch;
 }
 
+.new-workspace-advanced { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.new-workspace-advanced[hidden] { display: none; }
+.new-workspace-advanced-toggle { align-self: flex-start; }
+.new-workspace-simple-hint { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-sub); overflow-wrap: anywhere; }
+
 .new-workspace-card,
 .new-workspace-card input,
 .new-workspace-generator-options > button {

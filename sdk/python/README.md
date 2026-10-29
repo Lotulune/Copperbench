@@ -2,6 +2,8 @@
 
 Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作区，也可独立打开工作区；`CopperbenchClient` 提供可选的 MCP 调用方式。
 
+按[公开调用路线](../agent-workflows.md)选择入口；W1 字段失败修复、W2 revision／源码 hash 冲突、W3 原任务恢复与真实验收精确导出都有可执行示例。最低合同与不兼容行为见[兼容表](../compatibility.md)。
+
 字段能力、内部名称与游戏注册 ID、冷工程准备、模型回导和可信产物导出见[结构化编辑与验收产物](../../docs/stage-17-agent-workflow.md)。发行包同时提供该文档，以及 [Fabric / NeoForge 1.21.1 Code 生命周期示例](../../examples/agent-native/lifecycle-1.21.1/README.md)。
 
 通用 `workspace.command` / `workspace.query` 的操作参数可查随包 [Core 命令 schema](../../ui-core/schemas/v1.0/command.schema.json) 与 [Core 查询 schema](../../ui-core/schemas/v1.0/query.schema.json)：各 operation 对应的 `payload` 就是关键字参数结构，SDK负责协议封装；跨文件引用的定义也在同一目录。MCP工具的参数以服务端 `tools/list` 为准，不能直接照搬 Core 请求封装。
@@ -64,6 +66,8 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 
 `Workspace.open` 启动一个持续运行的本地 Java 核心进程，通过私有 stdin/stdout 管道直接调用 Core。它不创建 HTTP 端口，不启动 MCP，不读取 MCP 连接文件，也不要求 MCP token。Java 仍使用 Copperbench 自带的运行时；这不是把整个 Java 引擎嵌入 CPython 内存空间。
 
+正常空闲时，`close()` 或退出 `with` 会发送 EOF，最多等待 30 秒让独立宿主完成保存和本地历史关闭；超时仍会终止该进程。启动或传输故障、请求仍在进行时的关闭继续使用较短的中断预算，不延长请求超时，也不重放操作。`Workspace.connect(...)` 的关闭仍只断开脚本连接。
+
 独立打开采用独占写锁。如果桌面编辑器或另一个脚本已打开该工作区，会返回 `WORKSPACE_WRITE_LOCKED`。需要操作桌面当前工作区时，使用上面的 `Workspace.connect(...)`，也可选择 MCP 客户端。
 
 ## 修改与任务
@@ -86,6 +90,10 @@ if accepted["status"] == "accepted":
 以上调用须放在 `Workspace.open(...)` 或 `Workspace.connect(...)` 的会话内部。`build()` / `generate()` / `validate()` / `run_client()` / `run_server()` / `run_game_tests()` 返回任务受理结果；受理不等于成功。`get_task()`、`wait_task()` 和 `cancel_task()` 用于跟进任务；取消成功返回 `cancelled`。`wait_task()` 返回终态及等待期间收集的日志，其超时只结束等待，任务仍可查询或取消。独立会话关闭时会释放工作区并关闭其任务执行器，需运行客户端时应保持独立会话存活；连接桌面的脚本断开不关闭桌面任务。
 
 所有 Core 操作还可以通过统一入口访问：
+
+断线恢复时传入原 taskId 和最后保存的日志序列，不重新调用 `build()`。例如 `workspace.wait_task(task_id, after_log_sequence=last_sequence, on_update=save_increment)`；`on_update` 在下一次查询前接收本次原始增量回执。超时 `NativeApiError.details` 保留本次全部已收到日志与任务身份／状态，任务不会自动取消。传输错误保留原始 details，使用上次成功保存的回执重连。`wait_task()` 返回的 `failed`／`cancelled` 终态仍须由调用者判定业务结果。
+
+`workspace.require_schema()` 在写前确认 `1.0` 合同；`workspace.get_workspace_environment()` 返回生成器、工具链及 `data.fieldContracts`。可把该回执传给 `workspace.field_contract("block", environment=environment)`，避免再次完整读取。缺失合同以 `FIELD_CONTRACT_NOT_EXPOSED` 表达，格式错误与 Core 不可用诊断分别保留。SDK 不自动缓存 revision、hash 或合同。
 
 ```python
 registries = workspace.query("list_workspace_registries")
@@ -135,6 +143,12 @@ except NativeApiError as error:
 
 ## 开发验证
 
+在源码检出中运行以下开发回归：
+
 `python -m unittest discover -s sdk/python` 运行 Python 传输与兼容性测试。
 `gradlew runNativePythonSmoke` 创建隔离测试工作区，让真实外部 Python 进程通过产品启动器执行元素创建、校验任务、冲突和锁检查；随后连接仍持有写锁的产品会话，验证对象字段修改、跨连接冲突、桌面事件通知、重连和持久化，全程不开 MCP。桌面事件验证使用同一条 Core 订阅边界，未替代实际窗口的视觉验收。
 可用 `-PnativePythonExecutable=<python路径>` 指定 Python。Windows 可通过项目的 `scripts/run-gradle-external.ps1 runNativePythonSmoke` 运行。测试输出保留测试工作区路径供排查。
+
+真实构建回归：`gradlew test --tests dev.copperbench.headless.NativeBuildRecoveryTest -Dcopperbench.stage3.fabricBuild=true`。它通过产品启动器和 Python SDK 创建方块、物品、配方与空过程，执行不完整元素的失败探针，验证回滚后仍能生成、构建并检查 jar 内容；日志与哈希保存在 `build/native-build-recovery/`。Windows 可使用 `scripts/run-gradle-external.ps1` 执行同一组 Gradle 参数。
+
+Linux 候选包检查在 `verify-stage15-linux-runclient-ci-smoke.sh` 中用解压后的产品与随包 SDK 执行相同脚本，回执随 CI 归档。单纯 validate/generate 成功或 InMemory 任务模拟不能代替这项构建验证。配方 `recipeSlots` 的空槽使用 `""`，不接受 Python `None` / JSON `null`；空过程可以只提供名称，Core 会保存默认 Blockly 过程体。

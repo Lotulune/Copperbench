@@ -128,10 +128,10 @@ test('element guided modeling preserves its target across reopen and separates i
   await expect(panel.locator('.modeling-task-details')).toHaveJSProperty('open', false);
   await expect(panel.getByRole('button', { name: '在 Blockbench 打开副本' })).toBeInViewport();
   await panel.getByRole('button', { name: '在 Blockbench 打开副本' }).click();
-  await expect(panel).toContainText('已打开编辑副本');
+  await expect(panel.getByRole('status')).toContainText('已打开副本。');
   await page.evaluate(() => (window as any).saveModelWithoutFocus());
   await panel.getByRole('button', { name: '确认磁盘保存并生成候选' }).click();
-  await expect(panel).toContainText('源模型候选：已保存');
+  await expect(panel).toContainText('候选已保存，待回导');
   const finishCalls = await page.evaluate(() => (window as any).guidedCalls);
   const finish = finishCalls.filter((call: any) => call.operation === 'finish_blockbench_task');
   expect(finish).toHaveLength(1);
@@ -140,10 +140,11 @@ test('element guided modeling preserves its target across reopen and separates i
     .toBeLessThan(finishCalls.findIndex((call: any) => call.operation === 'finish_blockbench_task'));
   await page.reload();
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   const restored = page.getByTestId('blockbench-tasks');
   await restored.locator(':scope > summary').click();
   await expect(restored).toContainText('Guided Lamp');
-  await expect(restored).toContainText('源模型候选：已保存');
+  await expect(restored).toContainText('候选已保存，待回导');
   await restored.locator('.modeling-import-review summary').click();
   await expect(restored.getByLabel('目标元素')).toBeDisabled();
   await restored.getByRole('button', { name: '识别并预览回导' }).click();
@@ -162,9 +163,10 @@ test('element guided modeling preserves its target across reopen and separates i
   expect(await restored.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('guided-modeling-bound.png') });
   await page.reload(); await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await restored.locator(':scope > summary').click();
   await expect(restored.getByRole('button', { name: '构建工作区', exact: true })).toBeEnabled();
-  await expect(restored).toContainText('游戏效果仍需验证');
+  await expect(restored).toContainText('下一步：构建并在游戏内验证。');
 });
 
 test('handwritten element explains its restriction before creating or previewing a task', async ({ page }) => {
@@ -188,7 +190,7 @@ test('handwritten element explains its restriction before creating or previewing
   await page.getByTestId('filter-type-block').click(); await page.locator('[data-element-id]').first().click();
   const panel = page.getByTestId('element-inspector').getByTestId('blockbench-tasks');
   await panel.locator(':scope > summary').click();
-  await expect(panel.getByRole('alert')).toContainText('手写源码管理，无法自动关联模型');
+  await expect(panel.getByRole('alert')).toContainText('此元素由源码管理，需在源码中关联模型。');
   await expect(panel.getByRole('button', { name: '新建建模副本' })).toBeDisabled();
   await expect(panel.getByRole('button', { name: '识别并预览回导' })).toHaveCount(0);
 });

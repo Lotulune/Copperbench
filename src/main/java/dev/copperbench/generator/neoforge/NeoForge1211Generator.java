@@ -103,6 +103,8 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		return "NeoForge " + profile.minecraftVersion();
 	}
 
+	@Override public List<String> archiveTaskNames() { return List.of("jar"); }
+
 	@Override public String diagnosticPrefix() {
 		return "NEOFORGE";
 	}
@@ -176,7 +178,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 
 		List<String> paths = new ArrayList<>(generated);
 		paths.sort(Comparator.naturalOrder());
-		return new GenerationResult(profile.generatorId(), descriptor.modId(), paths);
+		return new GenerationResult(profile.generatorId(), descriptor.modId(), paths, common.sourceElementOwners());
 	}
 
 	private void writeBuildFiles(Path root, long revision, Descriptor descriptor, Set<String> generated)

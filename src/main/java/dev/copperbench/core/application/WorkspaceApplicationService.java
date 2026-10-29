@@ -504,7 +504,9 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("workspaceKind", state.kind());
 			projection.addProperty("revision", state.revision());
 			projection.add("generator", state.generator());
+			projection.add("versionTracks", versionTracks(state));
 			JsonObject fieldContracts = new JsonObject();
+			fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
 			fieldContracts.add("block", BlockFieldContract.capabilities(optionalString(state.generator(), "id")));
 			fieldContracts.add("loottable", LootTableFieldContract.capabilities());
 			fieldContracts.add("function", FunctionFieldContract.capabilities());
@@ -1153,21 +1155,24 @@ public final class WorkspaceApplicationService {
 			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
 					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
 							"The workspace closed before the Blockbench edit could be prepared"));
+			RecoveryPoint recovery;
 			try {
-				coordinated = store.coordinate(workspaceId, state.revision(), candidate -> {
-					try {
-						RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
-								"Before Blockbench edit: " + asset.relativePath(), UiCore.Actor.UI,
-								"blockbench:" + asset.id(), RecoveryPointSource.BLOCKBENCH));
-						return new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence());
-					} catch (LocalHistoryException exception) {
-						throw new BlockbenchPreparationException(exception);
-					}
-				});
-			} catch (BlockbenchPreparationException exception) {
+				// A full history snapshot can be slow. Revalidate the revision afterwards instead of blocking readers.
+				recovery = history.createRecoveryPoint(new RecoveryPointRequest(
+						"Before Blockbench edit: " + asset.relativePath(), UiCore.Actor.UI,
+						"blockbench:" + asset.id(), RecoveryPointSource.BLOCKBENCH));
+			} catch (LocalHistoryException exception) {
 				throw new BlockbenchBridgeException("BLOCKBENCH_RECOVERY_FAILED",
 						"Could not create the required pre-Blockbench recovery point");
 			}
+			AssetDescriptor current = new AssetWorkspaceService(root).findByRelativePath(asset.relativePath())
+					.orElseThrow(() -> new BlockbenchBridgeException("ASSET_NOT_FOUND",
+							"The selected Blockbench asset is no longer indexed"));
+			if (!current.sha256().equals(asset.sha256()))
+				throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
+						"The selected Blockbench asset changed while its recovery point was being prepared");
+			coordinated = store.coordinate(workspaceId, state.revision(), candidate ->
+					new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence()));
 			if (coordinated.status() == TransactionResult.Status.COORDINATED) break;
 			if (coordinated.status() != TransactionResult.Status.CONFLICT) break;
 		}
@@ -1453,6 +1458,7 @@ public final class WorkspaceApplicationService {
 				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
+				case GET_ELEMENT_VISUAL_PREVIEW -> elementVisualPreview(query, state);
 				case PREVIEW_MOD_ELEMENT_CHANGE -> preview(query, state);
 				case GET_PROCEDURE_EDITOR -> procedureEditor(query, state, context);
 				case PREVIEW_PROCEDURE_CHANGE -> previewProcedure(query, state);
@@ -1824,6 +1830,8 @@ public final class WorkspaceApplicationService {
 
 	private CommandOutcome create(Command command, RequestContext context) {
 		JsonObject payload = command.payload();
+		List<Diagnostic> inputIssues = ElementInputPreflight.createPayload(payload);
+		if (!inputIssues.isEmpty()) return failed(command, currentRevision(command.workspaceId()), inputIssues);
 		String type;
 		String name;
 		JsonObject initialValues;
@@ -1838,6 +1846,8 @@ public final class WorkspaceApplicationService {
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
 		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
+		List<Diagnostic> missingValues = ElementInputPreflight.requiredValues(type, normalizedValues, null);
+		if (!missingValues.isEmpty()) return failed(command, currentRevision(command.workspaceId()), missingValues);
 		if (type.equals("block")) {
 			for (String field : BlockFieldContract.merged(initialValues).keySet()) {
 				if (!BlockFieldContract.DEFINITION_FIELDS.contains(field) && !BlockFieldContract.PRODUCT_FIELDS.contains(field))
@@ -3426,6 +3436,42 @@ public final class WorkspaceApplicationService {
 						element.id())));
 	}
 
+	private QueryResult elementVisualPreview(Query query, WorkspaceState state) {
+		UUID elementId = UUID.fromString(requiredString(query.payload(), "elementId"));
+		Element element = state.element(elementId);
+		if (element == null) return queryFailure(query, state.revision(), elementNotFound(elementId));
+		try {
+			if (query.payload().has("expectedUpdatedAt") && !element.updatedAt().toString().equals(requiredString(query.payload(), "expectedUpdatedAt")))
+				throw new IllegalStateException("The element changed. Reload its editor before previewing it.");
+			Path root = workspaceRoot(query.workspaceId());
+			if (root == null) throw new IllegalArgumentException("Workspace root is unavailable.");
+			JsonObject configuration = mutations.elementConfiguration(element);
+			if ("unverified".equals(optionalString(configuration, "status"))) throw new IllegalStateException("The element definition could not be read.");
+			JsonObject values = configuration.has("effectiveValues") ? configuration.getAsJsonObject("effectiveValues").deepCopy() : element.values().deepCopy();
+			JsonArray changes = query.payload().has("changes") ? query.payload().getAsJsonArray("changes") : new JsonArray();
+			if (changes.size() > 32) throw new IllegalArgumentException("Too many visual changes.");
+			for (JsonElement raw : changes) {
+				JsonObject change = raw.getAsJsonObject(); String path = requiredString(change, "path");
+				if (!path.matches("/(?:fields/)?(?:texture(?:Top|Left|Front|Right|Back|Bottom|Base64)?|renderType|customModelName|modelResource|blockBase|plantType|mobModelName|mobModelTexture)"))
+					throw new IllegalArgumentException("Not an appearance field: " + path);
+				JsonPointerPatch.set(values, path, change.has("value") ? change.get("value") : JsonNull.INSTANCE);
+				if (path.startsWith("/fields/")) values.remove(path.substring(8));
+				else if (values.has("fields")) values.getAsJsonObject("fields").remove(path.substring(1));
+			}
+			JsonObject result = new JsonObject(); result.addProperty("schemaVersion", "1.0"); result.addProperty("elementId", elementId.toString());
+			var generatorConfig = net.mcreator.generator.Generator.GENERATOR_CACHE.get(optionalString(state.generator(), "id"));
+			JsonObject scene = element.ownership().equals("manual") ? dev.copperbench.assets.ModelPreviewService.unavailable("manually_managed")
+					: new dev.copperbench.assets.ModelPreviewService(root, new dev.copperbench.assets.AssetWorkspaceService(root).list(),
+						generatorConfig == null ? List.of() : generatorConfig.getCompatibleJavaModelKeys()).element(
+						element.type(), element.name(), dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(state), BlockFieldContract.merged(values));
+			result.add("scene", scene); return querySuccess(query, state.revision(), result);
+		} catch (java.io.IOException | IllegalArgumentException | IllegalStateException exception) {
+			JsonObject args = new JsonObject(); args.addProperty("detail", exception.getMessage());
+			return queryFailure(query, state.revision(), diagnostic("ELEMENT_PREVIEW_UNAVAILABLE", "diagnostic.asset_query_failed",
+					exception.getMessage(), args, null, elementId));
+		}
+	}
+
 	private QueryResult preview(Query query, WorkspaceState state) {
 		UUID elementId = UUID.fromString(requiredString(query.payload(), "elementId"));
 		Element element = state.element(elementId);
@@ -4769,6 +4815,22 @@ public final class WorkspaceApplicationService {
 		return List.copyOf(diagnostics);
 	}
 
+	/** Read-only fixed-workspace host extension; no new UI-Core operation or authority is introduced. */
+	public JsonObject observeTaskInputs(UUID workspaceId, List<UUID> taskIds) throws java.io.IOException {
+		if (taskIds.size() > 8) throw new IllegalArgumentException("Select at most eight task references");
+		store.read(workspaceId).orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+		Path root = workspaceRoot(workspaceId);
+		if (root == null) throw new IllegalStateException("The workspace input location is unavailable");
+		List<JsonObject> observations = new ArrayList<>();
+		for (UUID id : new LinkedHashSet<>(taskIds)) {
+			JsonObject task = tasks.find(workspaceId, id).orElseGet(() -> {
+				JsonObject missing = new JsonObject(); missing.addProperty("id", id.toString()); missing.addProperty("state", "unavailable"); return missing;
+			});
+			observations.add(task);
+		}
+		return dev.copperbench.generator.WorkspaceTaskInputIdentity.observe(root, workspaceId, observations, clock);
+	}
+
 	private QueryResult task(Query query, WorkspaceState state) {
 		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
 		long afterLogSequence = query.payload().has("afterLogSequence")
@@ -5583,6 +5645,10 @@ public final class WorkspaceApplicationService {
 	}
 
 	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
+		List<Diagnostic> shapeIssues = ElementInputPreflight.shape(values, elementId);
+		if (!shapeIssues.isEmpty()) return shapeIssues.getFirst();
+		List<Diagnostic> requiredIssues = ElementInputPreflight.requiredValues(elementType, values, elementId);
+		if (!requiredIssues.isEmpty()) return requiredIssues.getFirst();
 		if (elementType.equals("procedure")) {
 			var issue = ProcedureFieldContract.validate(values);
 			if (issue != null) return blockFieldDiagnostic(elementId, issue);
@@ -5665,8 +5731,12 @@ public final class WorkspaceApplicationService {
 	}
 
 	private CommandOutcome failed(Command command, long revision, Diagnostic diagnostic) {
+		return failed(command, revision, List.of(diagnostic));
+	}
+
+	private CommandOutcome failed(Command command, long revision, List<Diagnostic> diagnostics) {
 		return new CommandOutcome(result(command, "rejected", revision, JsonNull.INSTANCE, JsonNull.INSTANCE,
-				List.of(diagnostic), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+				diagnostics, JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
 	}
 
 	private CommandResult result(Command command, String status, long revision, JsonElement task, JsonElement data,
@@ -6173,12 +6243,6 @@ public final class WorkspaceApplicationService {
 	}
 
 	private record BlockbenchPreparation(RecoveryPoint recoveryPoint, long revision, long sequence) {
-	}
-
-	private static final class BlockbenchPreparationException extends RuntimeException {
-		private BlockbenchPreparationException(LocalHistoryException cause) {
-			super(cause);
-		}
 	}
 
 	private static final class RegistryValidationException extends RuntimeException {

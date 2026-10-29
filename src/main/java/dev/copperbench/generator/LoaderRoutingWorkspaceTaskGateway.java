@@ -54,15 +54,23 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 
 	public LoaderRoutingWorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids) {
+		this(store, workspaceRoots, distributionRoot, clock, ids,
+				new Fabric1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids),
+				new NeoForge1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids));
+	}
+
+	LoaderRoutingWorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
+			Path distributionRoot, Clock clock, Supplier<UUID> ids, Fabric1211WorkspaceTaskGateway fabric,
+			NeoForge1211WorkspaceTaskGateway neoForge) {
 		this.store = store;
-		this.fabric = new Fabric1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids);
+		this.fabric = fabric;
 		this.fabric261 = new Fabric1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids,
 				Fabric1211Generator.Profile.FABRIC_261);
 		this.fabric262 = new Fabric1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids,
 				Fabric1211Generator.Profile.FABRIC_262);
 		this.fabric1201 = new Fabric1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids,
 				Fabric1211Generator.Profile.FABRIC_1201);
-		this.neoForge = new NeoForge1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids);
+		this.neoForge = neoForge;
 		this.neoForge261 = new NeoForge1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids,
 				NeoForge1211Generator.Profile.NEOFORGE_261);
 		this.neoForge262 = new NeoForge1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids,
@@ -102,6 +110,20 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 				.or(() -> neoForge.find(workspaceId, taskId)).or(() -> neoForge261.find(workspaceId, taskId))
 				.or(() -> neoForge262.find(workspaceId, taskId)).or(() -> neoForge1201.find(workspaceId, taskId))
 				.or(() -> resourcePack.find(workspaceId, taskId)).or(() -> dataPack.find(workspaceId, taskId));
+	}
+
+	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
+		// Persisted task records are shared by loaders; find() does not identify the live capture owner.
+		return fabric.sourcePreview(workspaceId, taskId, sourcePath)
+				.or(() -> fabric261.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> fabric262.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> fabric1201.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> neoForge.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> neoForge261.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> neoForge262.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> neoForge1201.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> resourcePack.sourcePreview(workspaceId, taskId, sourcePath))
+				.or(() -> dataPack.sourcePreview(workspaceId, taskId, sourcePath));
 	}
 
 	@Override public List<JsonObject> active(UUID workspaceId) {

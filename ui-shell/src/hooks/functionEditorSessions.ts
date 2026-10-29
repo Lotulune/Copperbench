@@ -1,4 +1,5 @@
-import type { ModElementEditorProjection } from '../types/contract';
+import type { Diagnostic, ModElementEditorProjection } from '../types/contract';
+import type { UiMessage } from '../i18n';
 import { setUnsavedDraftCount } from './unsavedDraftGuard';
 
 export interface FunctionEditorSession {
@@ -10,7 +11,9 @@ export interface FunctionEditorSession {
   revision: number;
   loading: boolean;
   saving: boolean;
-  error: string | null;
+  error: UiMessage | null;
+  diagnostics: Diagnostic[];
+  saveUnknown: boolean;
 }
 
 const sessions = new Map<string, FunctionEditorSession>();
@@ -25,17 +28,17 @@ export function functionFields(editor: ModElementEditorProjection | null) {
   };
 }
 
-export function functionHasChanges(session: FunctionEditorSession): boolean {
+export function functionHasChanges(session: FunctionEditorSession, writableOnly = false): boolean {
   return Object.entries(functionFields(session.editor)).some(([key, field]) => {
     const baseline = key === 'tags' ? (Array.isArray(field?.value) ? field.value : [])
       : (typeof field?.value === 'string' ? field.value : '');
-    return field?.readOnly === false && JSON.stringify(baseline) !== JSON.stringify(session[key as 'code' | 'tags' | 'namespace']);
+    return Boolean(field) && (!writableOnly || field?.readOnly === false) && JSON.stringify(baseline) !== JSON.stringify(session[key as 'code' | 'tags' | 'namespace']);
   });
 }
 
 export function getFunctionSession(key: string): FunctionEditorSession {
   if (!sessions.has(key)) sessions.set(key, { editor: null, code: '', tags: [], namespace: '', newTag: '',
-    revision: 0, loading: false, saving: false, error: null });
+    revision: 0, loading: false, saving: false, error: null, diagnostics: [], saveUnknown: false });
   return sessions.get(key)!;
 }
 
@@ -55,5 +58,5 @@ export function loadedFunction(editor: ModElementEditorProjection, revision: num
   return { editor, revision, code: typeof fields.code?.value === 'string' ? fields.code.value : '',
     tags: Array.isArray(fields.tags?.value) ? fields.tags.value as string[] : [],
     namespace: typeof fields.namespace?.value === 'string' ? fields.namespace.value : '',
-    newTag: '', loading: false, saving: false, error: null };
+    newTag: '', loading: false, saving: false, error: null, diagnostics: [], saveUnknown: false };
 }

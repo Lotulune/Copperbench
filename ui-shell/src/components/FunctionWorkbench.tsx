@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
@@ -18,7 +19,9 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementSummary, FieldChange } from '../types/contract';
-import { t, uiText } from '../i18n';
+import { uiText, uiMessage, renderUiMessage, useUiLocale, type UiMessage } from '../i18n';
+import { EditorRecoveryNotice } from './EditorRecoveryNotice';
+import { confirmEditorRead } from '../bridge/editorRecovery';
 import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
 import { functionFields, functionHasChanges, getFunctionSession, loadedFunction, subscribeFunctionSessions, updateFunctionSession } from '../hooks/functionEditorSessions';
 
@@ -74,19 +77,21 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
 };
 
 const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
-  const { state, updateModElement, getModElementEditor } = useWorkbench();
+  const { state, updateModElement, getModElementEditor, refreshWorkspace } = useWorkbench();
   const current = useSyncExternalStore(subscribeFunctionSessions, () => getFunctionSession(sessionKey));
   const { code, tags, namespace, newTag, saving: isSaving, error: message } = current;
   const fields = functionFields(current.editor);
   const projectionLoaded = current.editor !== null && !current.loading;
   const isDirty = functionHasChanges(current);
+  const hasWritableChanges = functionHasChanges(current, true);
   const change = (values: Partial<typeof current>) => updateFunctionSession(sessionKey, old => ({ ...old, ...values }));
   const setCode = (value: React.SetStateAction<string>) => updateFunctionSession(sessionKey, old => ({ ...old,
     code: typeof value === 'function' ? value(old.code) : value }));
   const setTags = (value: string[]) => change({ tags: value });
   const setNamespace = (value: string) => change({ namespace: value });
   const setNewTag = (value: string) => change({ newTag: value });
-  const setMessage = (value: string | null) => change({ error: value });
+  const setMessage = (value: UiMessage | null) => change({ error: value });
+  const locale = useUiLocale();
 
   const [activeTab, setActiveTab] = useState<FunctionTab>('editor');
   const canEditCode = projectionLoaded && !isSaving && fields.code?.readOnly === false;
@@ -106,11 +111,22 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
       const editor = await getEditor.current(element.id);
       if (!editor || editor.element.id !== element.id) throw new Error('Editor projection unavailable');
       updateFunctionSession(sessionKey, () => loadedFunction(editor, observedRevision));
-    } catch { change({ loading: false, error: tr("无法加载函数编辑信息，请返回后重试。") }); }
+    } catch { change({ loading: false, error: uiMessage('无法加载函数编辑信息，请返回后重试。', 'Could not load the function editor. Return and try again.') }); }
+  };
+  const readLatest = async () => {
+    const existing = getFunctionSession(sessionKey);
+    if (existing.loading || existing.saving) return;
+    change({ loading: true });
+    try {
+      const { editor, revision: confirmedRevision } = await confirmEditorRead(state.workbench!.workspace.id, refreshWorkspace, () => getEditor.current(element.id));
+      if (!editor || editor.element.id !== element.id) throw new Error('Function editor projection unavailable');
+      change({ editor, revision: confirmedRevision, loading: false,
+        saveUnknown: false, error: uiMessage('已读取最新版本。请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.') });
+    } catch { change({ loading: false, error: uiMessage('无法读取最新版本，草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.') }); }
   };
   useEffect(() => {
     const existing = getFunctionSession(sessionKey);
-    if (functionHasChanges(existing) || existing.newTag || existing.saving) return;
+    if (functionHasChanges(existing) || existing.newTag || existing.saving || existing.saveUnknown) return;
     if (!existing.editor || existing.editor.element.updatedAt !== element.updatedAt || existing.revision !== revision.current) void load();
   }, [sessionKey, element.updatedAt, state.workbench?.workspace.revision]);
 
@@ -133,7 +149,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
     });
 
     return diagnostics;
-  }, [code]);
+  }, [code, locale]);
 
   const commandCount = useMemo(() => {
     return code
@@ -175,7 +191,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
       return line;
     });
     setCode(fixed.join('\n'));
-    setMessage(tr("已自动移除 {0} 处命令开头的 '/' 斜杠。", [fixCount]));
+    setMessage(uiMessage(`已移除 ${fixCount} 处命令开头的 '/'。`, `Removed ${fixCount} leading '/' characters from commands.`));
   };
 
   const handleAddTag = () => {
@@ -194,7 +210,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
   };
 
   const handleSave = async () => {
-    if (!projectionLoaded || isSaving || !isDirty) return;
+    if (!projectionLoaded || isSaving || current.saveUnknown || !hasWritableChanges) return;
     const submitted = getFunctionSession(sessionKey);
     change({ saving: true });
     setMessage(null);
@@ -210,7 +226,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
       const result = await updateModElement(element.id, changes, submitted.revision);
       if (result.status === 'committed') {
         // Update the shared session even if this editor was closed during save.
-        updateFunctionSession(sessionKey, old => ({ ...old, saving: false, revision: result.newRevision,
+        updateFunctionSession(sessionKey, old => ({ ...old, saving: false, revision: result.newRevision, diagnostics: result.diagnostics, saveUnknown: false,
           editor: { ...submitted.editor!, element: result.data?.element ?? submitted.editor!.element,
             sections: submitted.editor!.sections.map(section => ({ ...section, fields: section.fields.map(field => {
               const committed = changes.find(change => change.path === field.path);
@@ -220,11 +236,12 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
         change({ saving: false });
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存函数失败。"));
+        change({ diagnostics: result.diagnostics });
+        setMessage(result.diagnostics[0]?.message ?? uiMessage('保存函数被拒绝。草稿已保留。', 'Saving the function was rejected. Your draft is preserved.'));
       }
     } catch {
-      change({ saving: false });
-      setMessage(tr("保存函数时发生网络或宿主错误。"));
+      change({ saving: false, saveUnknown: true });
+      setMessage(uiMessage('未收到保存回执。', 'No save receipt was received.'));
     }
   };
 
@@ -419,14 +436,18 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
 
           {(isDirty || newTag || message) && <button type="button" className="btn-secondary"
             disabled={isSaving || current.loading} data-testid="function-reload"
-            onClick={() => {
-              if (!(isDirty || newTag) || window.confirm(uiText('放弃此函数的未保存修改并重新加载？', 'Discard unsaved changes to this function and reload?'))) void load();
+            onClick={async () => {
+              if (!(isDirty || newTag) || await confirmAction({
+                title: { zh: '重新加载函数', en: 'Reload function' }, danger: true,
+                message: { zh: '放弃此函数的未保存修改并重新加载？', en: 'Discard unsaved changes to this function and reload?' },
+                confirmLabel: { zh: '放弃并重新加载', en: 'Discard and reload' }
+              })) void load();
             }}><RotateCcw size={14} />{uiText('重新加载', 'Reload')}</button>}
           <button
             type="button"
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || !projectionLoaded || !isDirty || !(canEditCode || canEditTags || canEditNamespace)}
+            disabled={isSaving || current.saveUnknown || !projectionLoaded || !hasWritableChanges || !(canEditCode || canEditTags || canEditNamespace)}
             data-testid="function-save-btn"
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
@@ -451,16 +472,20 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
             justifyContent: 'space-between'
           }}
         >
-          <span>{message}</span>
+          <span>{renderUiMessage(message)}</span>
           <button
             type="button"
             onClick={() => setMessage(null)}
+            aria-label={uiText('关闭提示', 'Dismiss feedback')}
             style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
           >
             <X size={13} />
           </button>
         </div>
       )}
+
+      <EditorRecoveryNotice editor="function" saveUnknown={current.saveUnknown} diagnostics={current.diagnostics}
+        busy={isSaving || current.loading} needsRead={isDirty && !hasWritableChanges} onRead={() => void readLatest()} />
 
       {/* Main Content Body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>

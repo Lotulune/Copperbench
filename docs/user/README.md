@@ -1,6 +1,14 @@
 # Copperbench 使用说明（稳定版）
 
-本指南对应 Copperbench 0.1.4。Windows 与 Linux 安装包、发布说明和验证范围见[当前下载](../releases/current.md)。
+Windows／Linux 的最新安装包与实际发布范围统一见[当前下载](../releases/current.md)。本页随当前源码维护，运行时字段、插件与可用入口以实际宿主为准；本地检出和正式包身份见[状态页](../status.md)。
+
+第一次使用请从[第一件作品：步道方块](./first-creation.md)开始。下载版、源码新增、预览能力和未验证范围统一见[当前状态](../status.md)。
+
+[简洁创作](simple-creation.md)提供聊天、作品预览和常用设置，可与专业工作台切换并共享助手会话。当前源码接入 Codex CLI、Claude Code、Grok Build、Google Antigravity CLI 和 DeepSeek Harness。
+
+[首作一页路线](first-creation.md#一页路线)串起创建、保存输入校验失败、定位修复、游戏结果与精确导出；[连续原生演示协议](../testing/first-creation-demo.md)列出拍摄和证据要求，目前没有将其登记为已完成演示。
+
+关键路线：[安装](getting-started.md) → [首作](first-creation.md) → [构建失败与导出](build-and-export.md)；英文路线从 [Quick start](getting-started.en.md) 开始。请按安装中实际出现的入口选择步骤。
 
 ## 工作区
 
@@ -21,7 +29,7 @@
 
 八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.2 Linux 安装包的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/maintenance-012-linux-installed-2026-09-28.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部试用延期，不阻塞本轮维护；内部回归也不替代陌生用户可用性验证。
 
-资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。当前状态见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。当前版本的变更与验证范围见[Windows 0.1.4](../releases/v0.1.4.md)和[Linux 0.1.4](../releases/v0.1.4-linux.md)。
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。本地后续明细见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。当前官方范围见[下载与发布记录](../releases/current.md)；[Windows 0.1.4](../releases/v0.1.4.md)和[Linux 0.1.4](../releases/v0.1.4-linux.md)保留历史范围。
 
 ## 模组元素
 
@@ -41,6 +49,8 @@
 - **关系图**：按模组元素类型和资产类型浏览工作区，搜索定位、展开分组、平移、缩放或移动节点。点击元素进入原编辑器，点击资产打开检查器；移动节点只调整显示位置。
 - **资产与模型**：按类型筛选、搜索文件，查看引用和预览。支持的图片可平面查看或以纹理挤出方式观察；支持的模型 JSON 展示解析出的纹理与内容，其他格式可交给外部工具。
 - **设置**：调整主题、语言和源码编辑器偏好；低频工具位于侧栏的“工具”分组。
+
+「切页保留草稿」限于同一前端会话：元素和源码编辑器把未保存输入保留在内存中，不写成恢复点，也不提供跨进程草稿恢复。离开应用前应保存并回读。正常退出后重开、崩溃恢复、断电恢复分别[待实测登记](../testing/first-creation-demo.md#草稿恢复单独登记)，不能由会话内保留推断；已保存文件和本地历史另按各自规则恢复。
 
 ## 本地历史
 
@@ -77,7 +87,9 @@ Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设
 
 ## 安装与卸载
 
-0.1.4 的目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
+双语离线图形安装器的步骤见[图形安装指南](./graphical-installation.md)，360 等安全软件的具体检测见[安全告警处理](./security-alerts.md)；其中历史版本记录仍按原范围理解。
+
+目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64。其他 Linux 发行版和架构未验证；安装、升级、卸载及 GNOME／游戏的实际验证范围见[当前发布记录](../releases/current.md)。入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
 
 安装后默认打开新产品外壳（无边框 JCEF 工作台）。若要旧版 Swing 工作区，启动时加 `-Dcopperbench.productShell=false`。
 

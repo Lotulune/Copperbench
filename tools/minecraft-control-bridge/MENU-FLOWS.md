@@ -1,10 +1,12 @@
-# 本地菜单流程（0.2.0）
+# 本地菜单流程（0.3.0）
 
-`mc_menu_flow` 将已经校准的菜单导航留在本地输入 worker 中执行。一次 MCP 请求内完成截图匹配、短批次输入、等待下一界面；主 LLM 只需检查最终画面或异常，不再为每个按钮等待一轮模型。它不调用 Jev，不识别任意游戏画面，也不作玩法验收结论。
+`mc_menu_flow` 在本地 input worker 中完成截图匹配、短批次输入、等待下一界面，主 LLM 只看最终画面或异常。MCP 默认 `controller="jev"`：本地匹配结果转成带 frame_id、source=local_reviewed_profile、模板哈希和目标的结构化状态，Jev 只选 PROCEED/WAIT/STOP，不看图、不生成坐标。建议返回后重新截图、复核同样的状态和目标，才执行固定动作。网络等待期间不按住输入，继续检查 F8、焦点和断连。Jev 错误、超时或 WAIT 均停止，不静默回退。
+
+固定路线可显式用 `controller="deterministic"` 跳过网络开销。Python SDK 保持此默认值以兼容已有调用。两种路径都不识别任意游戏画面，也不作玩法验收结论。
 
 ## 调用
 
-先按 README 的既有约定 doctor → list_windows → attach。doctor 必须报告 `bridge_version=0.2.0` 和 `menu_flows`。源文件更新后需要重连 MCP；旧连接不会自动增加工具。
+先按 README 的既有约定 doctor → list_windows → attach。新版 doctor 应报告 bridge_version=0.3.0、menu_controllers 和 create_world。更新源码后需要重连 MCP。
 
 ```json
 {
@@ -21,7 +23,9 @@
 - `save_to_title`：起点为已校准的游戏 HUD、暂停菜单或标题。必要时按 Escape，匹配保存按钮，保存后等待标题。若已在标题，只返回当前位置，不声称发生了新保存。
 - `save_and_quit`：在上一流程后点击已确认的 Quit Game，等待目标窗口消失。`window_closed_unverified` 只说明窗口已关闭，仍须核对进程、游戏日志和 Copperbench 任务终态。
 
-每个流程最多六批输入，每批仍受 2,000 ms / 32 动作约束，总时间 1–25 秒（默认 20 秒，包含等待）。未识别的过渡画面只观察、不输入，直到匹配或超时；已识别但不符合预期的页面立即停止。不会处理创建世界、删除、转换版本、实验功能或备份确认弹窗。失焦、F8、窗口身份/几何变化、父进程断开继续中止控制，不自动抢焦点。
+进入/保存/退出最多六批输入，显式创建最多十二批。每批最多 2,000 ms / 32 动作，总时间 1–25 秒（默认 20 秒，含 Jev 等待）。未知画面只观察，不输入；不符合预期的已知页面立即停止。创建须使用下面的 v2 模板。不会处理删除、覆盖、转换版本、实验功能或备份确认弹窗。失焦、F8、窗口身份/几何变化及断连仍停止，不自动抢焦点。
+
+`wait_for_world` 只观察加载，不输入。创建提交后若加载超时，返回 `pending / creation_submitted_loading`、`creation_submitted=true` 和 `next_flow=wait_for_world`。随后只等待，不重发创建。
 
 流程不重发已经提交的点击。重复同一 `action_id` 和完全相同请求/模板只返回原回执；换目标或模板须新建 ID。失败后先看截图，不应不断换 ID 重试。
 
@@ -70,6 +74,39 @@
 输出目录必须不存在，避免覆盖已审查模板。`profile.json` 记录完整来源图片哈希和各标记哈希；加载时核对标记大小、路径边界及哈希。校准后复查四个状态唯一可识别及世界结果唯一。目录中的 PNG 是小范围界面标记；不要把世界存档、第三方 JAR 或凭据加入模板。
 
 ## 证据与效率
+
+### 创建世界的 v2 校准
+
+调用必须同时提供 `flow="create_world"`、精确 world_name、与模板完全相同的 creation_settings。设置只支持 game_mode=survival|creative、world_type=default|superflat、allow_commands 布尔、generate_structures 布尔，不由 Jev 自选。
+
+在校准 spec 中增加 creation、empty_world_list 和每个创建表单状态的真实已审查截图，脚本自动输出 schema 2。creation.steps 为 2–9 步固定路线：第一步 set_world_name，中间仅 click，最后且仅一次 submit。状态名唯一且以 create_ 开头，每个状态提供 2–8 个能区分界面的 markers。点击 role 必须是本状态 marker；第一步 name_box 来自实图。最终状态必须有完整预期世界名称的 world_name marker。
+
+结构示意（省略的 states 与所有区域须按实际截图填写，不可猜坐标）：
+
+```json
+{
+  "creation": {
+    "settings": {"game_mode":"creative", "world_type":"superflat", "allow_commands":true, "generate_structures":false},
+    "steps": [
+      {"state":"create_initial", "action":"set_world_name", "name_box":[218,96,415,40]},
+      {"state":"create_named", "action":"click", "role":"mode"},
+      {"state":"create_hardcore", "action":"click", "role":"mode"},
+      {"state":"create_creative", "action":"click", "role":"world_tab"},
+      {"state":"create_default", "action":"click", "role":"world_type"},
+      {"state":"create_flat", "action":"click", "role":"structures"},
+      {"state":"create_flat_no_structures", "action":"click", "role":"game_tab"},
+      {"state":"create_ready", "action":"submit", "role":"create"}
+    ]
+  },
+  "empty_world_list":[225,95,450,256]
+}
+```
+
+世界列表先筛选目标名，确认完整结果区域为空，才新建。首次启动可能从标题直接到创建表单，此时要求附带 game_dir 且 saves 中没有存档。创建专用模板可省略 world_entry（世界尚未存在），其列表源图必须是已审查的空筛选结果。以后自动进入该存档，须从真实保存后的列表补做 world_entry 校准，不伪造名字图片。
+
+模板设置是主 LLM 对实际截图的声明，不是 OCR 推断；语言、缩放、主题、布局或世界名改变需重新校准。首次观察仍必要，后续操作不再逐步返回主模型。
+
+新版回执另有 jev_calls 和 timings，分别记录总耗时、输入/截图/Jev 耗时及调用数。优先复用 step 图；Jev 网络等待后重新截图。模拟菜单耗时不代表真实游戏加载速度。
 
 `actions.jsonl` 保留 `menu_flow_started`、每张本地截图的 `menu_state`、原有逐动作回执及 `menu_flow_finished`。返回值包含 `states`、`steps`、`elapsed_ms`、最终 `observation`；`navigation_only=true` 和 `gameplay_verified=false` 始终保留。
 

@@ -56,9 +56,9 @@ test('native language overrides browser cache and failed persistence does not re
   await expect(page.getByTestId('nav-hub')).toHaveText('Overview');
   await page.getByTestId('nav-new-workspace').click();
   await page.getByTestId('new-workspace-mod-name-input').fill('Keep this draft');
-  page.on('dialog', dialog => dialog.accept());
   await page.getByTestId('ui-language-select').selectOption('zh');
   await expect(page.getByTestId('ui-language-select')).toHaveValue('en');
+  await expect(page.getByTestId('feedback-notice')).toContainText('Could not save the language preference');
   await expect(page.getByTestId('new-workspace-mod-name-input')).toHaveValue('Keep this draft');
 });
 

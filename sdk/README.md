@@ -1,5 +1,9 @@
 # Copperbench SDK and AI evals
 
+Start with the [entry examples and fixed public workflows](agent-workflows.md)
+or the [common-route compatibility table](compatibility.md). 公开路线、恢复、精确
+导出和兼容边界提供中英文说明。
+
 Python supports live desktop scripting with `Workspace.connect(...)`, and
 independent scripting with `Workspace.open(...)`. Both call the same Core
 without MCP; named element handles provide field reads and committed updates.
@@ -43,7 +47,7 @@ construct a client from that non-secret metadata plus the one-time token shown
 by the Copperbench UI. The connection file never contains the bearer token.
 
 The ten-case manifest in `sdk/evals/manifest.json` is the stable evaluation
-coverage contract. Validate its shape with:
+coverage contract. From a source checkout, validate its shape with:
 
 ```powershell
 node scripts/verify-ai-evals.mjs
@@ -54,6 +58,12 @@ it does not claim that a networkless checkout has run those live scenarios.
 
 Protocol retry, idempotency, revision-conflict, and preview-version rules are
 specified in [protocol.md](protocol.md).
+
+Both MCP clients provide actual catalog discovery (`list_tools` / `listTools`),
+environment and single-element reads, resumable task waiting and exact verified
+export. Opt-in `ClientMetrics` separates logical calls, HTTP/IPC attempts and
+response bytes without retaining payloads/credentials. Native Python shares
+the task waiting and cursor checks through its own transport.
 
 The source tree also provides user-issued task authorization and packaged-JAR
 GameTest acceptance. Both clients accept an optional task authorization ID and

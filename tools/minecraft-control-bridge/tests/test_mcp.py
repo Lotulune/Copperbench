@@ -34,6 +34,9 @@ if __name__ == "__main__":
                     await session.initialize()
                     catalog = await session.list_tools()
                     names = {t.name for t in catalog.tools}
+                    schemas = {t.name: t.inputSchema for t in catalog.tools}
+                    self.assertEqual("jev", schemas["mc_menu_flow"]["properties"]["controller"]["default"])
+                    self.assertEqual("english", schemas["mc_attach"]["properties"]["keyboard_policy"]["default"])
                     self.assertEqual({"mc_doctor", "mc_list_windows", "mc_attach", "mc_observe", "mc_step",
                                       "mc_read_logs", "mc_record_verification", "mc_stop", "mc_detach",
                                       "mc_jev_choose", "mc_menu_flow"}, names)

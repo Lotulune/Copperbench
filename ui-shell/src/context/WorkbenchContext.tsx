@@ -1,4 +1,5 @@
-import { safeRandomUUID } from '../bridge/JcefCoreBridge';
+import { newestTasks } from '../components/taskPresentation';
+import { safeRandomUUID, taskLogWatermark } from '../bridge/JcefCoreBridge';
 import { tr } from '../i18n/locale';
 import { useTheme, ThemePreference } from '../hooks/useTheme';
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
@@ -50,7 +51,8 @@ import {
 } from '../bridge';
 import { windowBridge } from '../bridge/windowBridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
-import { t } from '../i18n';
+import { t, uiMessage } from '../i18n';
+import { OperationFailure } from '../bridge/operationFailure';
 
 export type NavView = 'hub' | 'elements' | 'relations' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help' | 'python' | 'source' | 'settings';
 
@@ -62,9 +64,17 @@ export interface SourceFocusRequest {
 }
 
 export interface ProcedureFocusRequest {
+  workspaceId: UUID;
   elementId: UUID;
   nodeId: string;
   port: string | null;
+  requestId: UUID;
+}
+
+export interface FieldFocusRequest {
+  workspaceId: UUID;
+  elementId: UUID;
+  path: string;
   requestId: UUID;
 }
 
@@ -85,10 +95,17 @@ interface WorkbenchContextType {
   setAssetFocusId: (id: string | null) => void;
   procedureFocusRequest: ProcedureFocusRequest | null;
   clearProcedureFocusRequest: () => void;
+  fieldFocusRequest: FieldFocusRequest | null;
+  clearFieldFocusRequest: () => void;
   isTaskDrawerOpen: boolean;
   setIsTaskDrawerOpen: (open: boolean) => void;
   activeTaskId: UUID | null;
   setActiveTaskId: (id: UUID | null) => void;
+  openTask: (taskId: UUID, target?: 'logs' | 'diagnostics') => void;
+  taskFocusRequest: { taskId: UUID; target: 'logs' | 'diagnostics'; requestId: UUID } | null;
+  openDiagnostics: (severity?: 'error' | 'warning' | 'all') => void;
+  healthFocusRequest: { workspaceId: UUID | null; severity: 'error' | 'warning' | 'all'; requestId: UUID } | null;
+  consumeHealthFocus: (requestId: UUID) => void;
   isMaximized: boolean;
   toggleMaximize: () => void;
   systemFrameFallback: boolean;
@@ -101,11 +118,12 @@ interface WorkbenchContextType {
 
   // Bridge Actions
   loadScenario: (scenarioId: string) => void;
+  refreshWorkspace: () => Promise<void>;
   getModElementEditor: (elementId: UUID) => Promise<ModElementEditorProjection | null>;
   previewModElementChange: (elementId: UUID, changes: FieldChange[]) => Promise<ModElementChangePreview | null>;
   getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
   previewProcedureChange: (elementId: UUID, edits: ProcedureEdit[]) => Promise<ProcedureChangePreview | null>;
-  updateProcedure: (elementId: UUID, edits: ProcedureEdit[]) => Promise<CommandResult>;
+  updateProcedure: (elementId: UUID, edits: ProcedureEdit[], expectedRevision?: number) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
   createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
@@ -117,11 +135,12 @@ interface WorkbenchContextType {
   applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
-  createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
+  createModElement: (type: ModElementType, name: string, options?: { select?: boolean }) => Promise<CommandResult>;
   updateModElement: (elementId: UUID, changes: FieldChange[], expectedRevision?: number) => Promise<CommandResult>;
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   generateWorkspace: () => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
+  exportWorkspace: (output: string) => Promise<CommandResult>;
   exportVerifiedArtifact: (taskId: UUID, allowHistorical: boolean) => Promise<CommandResult>;
   runClient: () => Promise<CommandResult>;
   runServer: (userApproved: boolean) => Promise<CommandResult>;
@@ -192,11 +211,15 @@ function generateUUID(): UUID {
  */
 function focusByContractSelector(selector: string): void {
   if (selector.startsWith('/')) {
-    selector = `[data-field-path=${selector}]`;
+    const container = [...document.querySelectorAll<HTMLElement>('[data-field-path]')].find(element => element.dataset.fieldPath === selector);
+    const control = container?.matches('input, select, textarea, button') ? container : container?.querySelector<HTMLElement>('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+    (control ?? container)?.focus();
+    return;
   }
   const match = /^\[([A-Za-z0-9_-]+)=(.+)\]$/.exec(selector.trim());
   const query = match ? `[${match[1]}="${match[2]}"]` : selector;
-  const el = document.querySelector(query);
+  let el: Element | null;
+  try { el = document.querySelector(query); } catch { return; }
   if (el instanceof HTMLElement) {
     if (!el.hasAttribute('tabindex')) {
       el.setAttribute('tabindex', '-1');
@@ -220,8 +243,23 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
   const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
   const [procedureFocusRequest, setProcedureFocusRequest] = useState<ProcedureFocusRequest | null>(null);
+  const [fieldFocusRequest, setFieldFocusRequest] = useState<FieldFocusRequest | null>(null);
+  const clearFieldFocusRequest = useCallback(() => setFieldFocusRequest(null), []);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
+  const [taskFocusRequest, setTaskFocusRequest] = useState<WorkbenchContextType['taskFocusRequest']>(null);
+  const [healthFocusRequest, setHealthFocusRequest] = useState<WorkbenchContextType['healthFocusRequest']>(null);
+  const consumeHealthFocus = useCallback((requestId: UUID) => {
+    setHealthFocusRequest(current => current?.requestId === requestId ? null : current);
+  }, []);
+  const openTask = useCallback((taskId: UUID, target: 'logs' | 'diagnostics' = 'logs') => {
+    setActiveTaskId(taskId); setIsTaskDrawerOpen(true);
+    setTaskFocusRequest({ taskId, target, requestId: safeRandomUUID() });
+  }, []);
+  const openDiagnostics = useCallback((severity: 'error' | 'warning' | 'all' = 'all') => {
+    setHealthFocusRequest({ workspaceId: state.workbench?.workspace.id ?? null, severity, requestId: safeRandomUUID() });
+    setActiveView('hub');
+  }, [state.workbench?.workspace.id]);
   const [isMaximized, setIsMaximized] = useState(false);
   useEffect(() => {
     const updateWindowState = (event: Event) => {
@@ -245,12 +283,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const completedTaskHealthKey = Object.values(state.tasks)
     .filter(task => task.state !== 'queued' && task.state !== 'running')
     .map(task => `${task.id}:${task.state}:${task.completedAt ?? ''}`).sort().join('|');
-  const visibleTaskId = activeTaskId ?? Object.keys(state.tasks)[0] ?? null;
+  const visibleTaskId = activeTaskId ?? newestTasks(Object.values(state.tasks))[0]?.id ?? null;
   const taskWorkspaceId = state.workbench?.workspace.id;
   useEffect(() => {
     if (!isTaskDrawerOpen || !visibleTaskId || !taskWorkspaceId) return;
+    const afterLogSequence = taskLogWatermark(coreBridge.getState().taskLogs[visibleTaskId] ?? []);
     void coreBridge.sendQuery({ messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
-      workspaceId: taskWorkspaceId, operation: 'get_task', payload: { taskId: visibleTaskId, afterLogSequence: 0 } });
+      workspaceId: taskWorkspaceId, operation: 'get_task', payload: { taskId: visibleTaskId, afterLogSequence } })
+      .catch(() => { /* The bridge preserves the task and exposes the read failure. */ });
   }, [isTaskDrawerOpen, visibleTaskId, taskWorkspaceId]);
 
   useEffect(() => {
@@ -304,7 +344,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // can still be dismissed manually and will not force itself open again.
   useEffect(() => {
     // The source editor owns its file/hash conflict recovery and keeps its draft.
-    setIsConflictModalOpen(state.viewportState === 'conflict' && activeViewRef.current !== 'source');
+    if (state.viewportState === 'conflict' && activeViewRef.current !== 'source') setIsConflictModalOpen(true);
   }, [state.viewportState]);
 
 
@@ -350,6 +390,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const refreshWorkspace = useCallback(async () => {
+    // Keep editor selection and in-memory drafts while fetching the latest committed state.
+    const result = await coreBridge.negotiateHandshake({
+      messageType: 'handshake', requestId: generateUUID(),
+      supportedSchemaVersions: [...UI_SUPPORTED_SCHEMA_VERSIONS], client: { ...UI_CLIENT_IDENTITY }
+    });
+    if (result.status !== 'compatible') throw new Error('Workspace connection failed');
+  }, []);
+
   const selectedEditorElement = selectedElementId ? state.elementEditors[selectedElementId]?.element : undefined;
   const selectedElement = useMemo(() => {
     if (!selectedElementId) return null;
@@ -387,8 +436,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { items }
       });
       if (res.status !== 'succeeded' || !res.data) {
-        const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产批量导入预览失败。"));
+        throw new OperationFailure(res.diagnostics, uiMessage('资产批量导入预览失败。', 'Could not preview the asset batch import.'));
       }
       return res.data as AssetImportBatchPreview;
     },
@@ -424,8 +472,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { sourceAssetId, targetRelativePath }
       });
       if (res.status !== 'succeeded' || !res.data) {
-        const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产移动预览失败。"));
+        throw new OperationFailure(res.diagnostics, uiMessage('资产移动预览失败。', 'Could not preview this asset move.'));
       }
       return res.data as AssetMovePreview;
     },
@@ -560,14 +607,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     payload: { clientMutationId: generateUUID(), plan }
   }), [state.workbench]);
 
-  const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
+  const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[], expectedRevision?: number): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
     return coreBridge.sendCommand({
       messageType: 'command',
       schemaVersion: '1.0',
       requestId: generateUUID(),
       workspaceId,
-      expectedRevision: state.workbench?.workspace.revision ?? 0,
+      expectedRevision: expectedRevision ?? state.workbench?.workspace.revision ?? 0,
       operation: 'update_procedure',
       payload: { clientMutationId: generateUUID(), elementId, edits }
     });
@@ -637,7 +684,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }), [state.workbench]);
 
   const createModElement = useCallback(
-    async (type: ModElementType, name: string): Promise<CommandResult> => {
+    async (type: ModElementType, name: string, options?: { select?: boolean }): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
       const revision = state.workbench?.workspace.revision ?? 0;
       const res = await coreBridge.sendCommand({
@@ -654,7 +701,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           initialValues: {}
         }
       });
-      if (res.data?.element?.id) {
+      if (res.data?.element?.id && options?.select !== false && coreBridge.getState().workbench?.workspace.id === workspaceId) {
         setSelectedElementId(res.data.element.id);
         setActiveView('elements');
       }
@@ -724,8 +771,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench]);
@@ -746,8 +792,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench]);
@@ -768,8 +813,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench]);
@@ -778,7 +822,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const result = await coreBridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
       operation: 'export_workspace', payload: { verifiedTaskId: taskId, allowHistorical } });
-    if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
+    if (result.task?.id) openTask(result.task.id);
+    return result;
+  }, [state.workbench]);
+
+  const exportWorkspace = useCallback(async (output: string): Promise<CommandResult> => {
+    const result = await coreBridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'export_workspace', payload: { clientMutationId: generateUUID(), scope: 'workspace', output } });
+    if (result.task?.id) openTask(result.task.id);
     return result;
   }, [state.workbench]);
 
@@ -802,8 +854,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
     if (res.task?.id) {
-      setActiveTaskId(res.task.id);
-      setIsTaskDrawerOpen(true);
+      openTask(res.task.id);
     }
     return res;
   }, [state.workbench]);
@@ -866,7 +917,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       operation: 'get_task',
       payload: { taskId, afterLogSequence, sourcePath }
     });
-    return res.status === 'succeeded' ? res.data?.source ?? null : null;
+    if (res.status !== 'succeeded') {
+      throw new OperationFailure(res.diagnostics, uiMessage('源码预览不可用。', 'Source preview is unavailable.'));
+    }
+    return res.data?.source ?? null;
   }, [state.taskLogs, state.workbench]);
 
   const publishDatagenOutput = useCallback(async (
@@ -1161,8 +1215,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { sourceGrantId, targetRelativePath }
       });
       if (res.status !== 'succeeded' || !res.data) {
-        const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产导入预览失败。"));
+        throw new OperationFailure(res.diagnostics, uiMessage('资产导入预览失败。', 'Could not preview the asset import.'));
       }
       return res.data as AssetImportPreview;
     },
@@ -1297,8 +1350,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           break;
         case 'open_logs':
           if (action.target && state.tasks[action.target]) {
-            setActiveTaskId(action.target);
-            setIsTaskDrawerOpen(true);
+            openTask(action.target);
           } else {
             const failureId = action.target ?? String(diagnostic.message.args?.failureId ?? '');
             void diagnosticsBridge.openLogs(failureId)
@@ -1316,6 +1368,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             if (nodeId) {
               const port = typeof action.payload?.port === 'string' ? action.payload.port : null;
               setProcedureFocusRequest({
+                workspaceId: state.workbench?.workspace.id ?? '',
                 elementId: diagnostic.elementId,
                 nodeId,
                 port,
@@ -1332,21 +1385,28 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             setActiveView('assets');
           }
           break;
+        case 'open_source':
+          if (action.target) {
+            const line = action.payload?.line;
+            openSource(action.target, typeof line === 'number' && Number.isSafeInteger(line) && line > 0 ? line : undefined);
+          }
+          break;
         case 'open_field':
           if (diagnostic.elementId) {
             setSelectedElementId(diagnostic.elementId);
             setActiveView('elements');
-          }
-          if (action.target) {
-            const target = action.target;
-            window.setTimeout(() => focusByContractSelector(target), 80);
+            if (action.target && state.workbench) {
+              const prefix = `/elements/${diagnostic.elementId}`;
+              const path = action.target.startsWith(`${prefix}/`) ? action.target.slice(prefix.length) : action.target;
+              setFieldFocusRequest({ workspaceId: state.workbench.workspace.id, elementId: diagnostic.elementId, path, requestId: generateUUID() });
+            }
           }
           break;
         default:
           break;
       }
     },
-    [elevatePermission, state.tasks]
+    [elevatePermission, state.tasks, state.workbench?.workspace.id, openSource]
   );
 
   const value = useMemo(
@@ -1366,11 +1426,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       assetFocusId,
       procedureFocusRequest,
       clearProcedureFocusRequest,
+      fieldFocusRequest,
+      clearFieldFocusRequest,
       setAssetFocusId,
       isTaskDrawerOpen,
       setIsTaskDrawerOpen,
       activeTaskId,
       setActiveTaskId,
+      openTask, taskFocusRequest, openDiagnostics, healthFocusRequest, consumeHealthFocus,
       isMaximized,
       toggleMaximize,
       systemFrameFallback,
@@ -1381,6 +1444,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsConflictModalOpen,
       announcement,
       loadScenario,
+      refreshWorkspace,
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
@@ -1401,6 +1465,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteModElement,
       generateWorkspace,
       buildWorkspace,
+      exportWorkspace,
       exportVerifiedArtifact,
       runClient,
       runServer,
@@ -1455,9 +1520,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       assetFocusId,
       procedureFocusRequest,
       clearProcedureFocusRequest,
+      fieldFocusRequest,
+      clearFieldFocusRequest,
       isTaskDrawerOpen,
       activeTaskId,
       isMaximized,
+      openTask, taskFocusRequest, openDiagnostics, healthFocusRequest, consumeHealthFocus,
       toggleMaximize,
       systemFrameFallback,
       toggleSystemFrameFallback,
@@ -1465,6 +1533,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isConflictModalOpen,
       announcement,
       loadScenario,
+      refreshWorkspace,
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
@@ -1485,6 +1554,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteModElement,
       generateWorkspace,
       buildWorkspace,
+      exportWorkspace,
       exportVerifiedArtifact,
       runClient,
       runServer,

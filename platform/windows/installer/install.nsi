@@ -28,10 +28,14 @@ RequestExecutionLevel admin
 VIAddVersionKey ProductName      "Copperbench ${PRODUCT_VERSION} Installer"
 VIAddVersionKey Comments         "Installer for Copperbench ${PRODUCT_VERSION}"
 VIAddVersionKey CompanyName      "Copperbench Contributors"
-VIAddVersionKey FileVersion      "${PRODUCT_VERSION}.${BUILD}"
+VIAddVersionKey FileVersion      "${PRODUCT_VERSION}.0"
+VIAddVersionKey ProductVersion   "${PRODUCT_VERSION}"
+VIAddVersionKey InternalName     "CopperbenchSetup"
+VIAddVersionKey OriginalFilename "CopperbenchSetup.exe"
 VIAddVersionKey LegalCopyright   "Copyright %year% Copperbench Contributors"
 VIAddVersionKey FileDescription  "Installer for Copperbench ${PRODUCT_VERSION}"
-VIProductVersion                 "${PRODUCT_VERSION}.${BUILD}"
+; PE versions have four unsigned 16-bit fields; release timestamps do not fit.
+VIProductVersion                 "${PRODUCT_VERSION}.0"
 
 OutFile "Copperbench ${PRODUCT_VERSION} Windows ${BITS}bit.exe"
 
@@ -108,7 +112,7 @@ Section "Copperbench ${PRODUCT_VERSION}" Installation
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "DisplayIcon" "$INSTDIR\copperbench.exe"
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "EstimatedSize" ${INSTALLSIZE}
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}}" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "NoRepair" 1
 
   ;add .mcreator file association
@@ -197,9 +201,13 @@ Function UninstallPrevious
 
         ; Run the uninstaller, dynamically passing /S if the current installer is running silently
         ${If} ${Silent}
-            ExecWait '"$0" /S _?=$1'
+            ExecWait '"$0" /S _?=$1' $2
         ${Else}
-            ExecWait '"$0" _?=$1'
+            ExecWait '"$0" _?=$1' $2
+        ${EndIf}
+        ${If} $2 != 0
+            MessageBox MB_OK|MB_ICONSTOP "The previous version could not be removed. Installation has stopped."
+            Abort
         ${EndIf}
     ${EndIf}
 FunctionEnd

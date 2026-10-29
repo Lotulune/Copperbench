@@ -10,7 +10,7 @@ def jbr25_mac_x64 = 'jbrsdk_jcef-25.0.2-osx-x64-b329.117'
 def jbr25_mac_aarch64 = 'jbrsdk_jcef-25.0.2-osx-aarch64-b329.117'
 
 // Binaries needed on Windows for export (install them using Gradle since Windows does not have a package manager)
-def nsis_url = 'https://altushost-swe.dl.sourceforge.net/project/nsis/NSIS%203/3.12/nsis-3.12.zip'
+def nsis_url = 'https://downloads.sourceforge.net/project/nsis/NSIS%203/3.12/nsis-3.12.zip'
 def nsis_lockedlist_plugin_url = 'https://nsis.sourceforge.io/mediawiki/images/d/d3/LockedList.zip'
 def mkisofs_url = 'https://master.dl.sourceforge.net/project/mkisofs-md5/mkisofs-md5-v2.01/mkisofs-md5-2.01-Binary.zip'
 
@@ -157,24 +157,39 @@ tasks.register('downloadNSIS') {
     group = 'setup'
     doLast {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            if (!file('build/tools/nsis/').exists()) {
-                download.run {
-                    src nsis_url
-                    dest 'build/tmp/nsis'
-                    overwrite true
-                }
-                copy { from zipTree(file('build/tmp/nsis')) into file('build/tools/') }
-                file('build/tools/nsis-3.12').renameTo(file('build/tools/nsis'))
-                delete 'build/tmp/nsis'
-
-                download.run {
-                    src nsis_lockedlist_plugin_url
-                    dest 'build/tmp/nsis_lockedlist_plugin'
-                    overwrite true
-                }
-                copy { from zipTree(file('build/tmp/nsis_lockedlist_plugin')) into file('build/tools/nsis/') }
-                delete 'build/tmp/nsis_lockedlist_plugin'
+            def archive = file('build/tmp/nsis-3.12-pinned.zip')
+            download.run { src nsis_url; dest archive; overwrite false }
+            // SourceForge sometimes serves a download page with an expiring link instead of the archive.
+            if (archive.bytes.toList().take(4) != [80, 75, 3, 4]) {
+                def link = (archive.getText('UTF-8') =~ /<meta http-equiv="refresh" content="5; url=([^"]+)"/)
+                if (!link.find()) throw new GradleException('SourceForge did not return the NSIS ZIP or a download link.')
+                def uri = new URI(link.group(1).replace('&amp;', '&'))
+                if (uri.scheme != 'https' || uri.host != 'downloads.sourceforge.net'
+                        || uri.rawPath != '/project/nsis/NSIS%203/3.12/nsis-3.12.zip')
+                    throw new GradleException('Unexpected NSIS download link; refusing to follow it.')
+                download.run { src uri.toString(); dest archive; overwrite true }
             }
+            def actual = java.security.MessageDigest.getInstance('SHA-256').digest(archive.bytes).encodeHex().toString()
+            if (actual != '56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f')
+                throw new GradleException('NSIS 3.12 archive SHA-256 mismatch; refusing to build the installer.')
+            copy {
+                from zipTree(archive)
+                into file('build/tools/nsis')
+                eachFile { details -> details.path = details.path.replaceFirst('^nsis-3.12/', '') }
+                includeEmptyDirs = false
+            }
+        }
+    }
+}
+
+// Only the archived legacy UI needs this third-party plugin.
+tasks.register('downloadLegacyNsisPlugin') {
+    dependsOn downloadNSIS
+    doLast {
+        if (Os.isFamily(Os.FAMILY_WINDOWS) && !file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').exists()) {
+            download.run { src nsis_lockedlist_plugin_url; dest 'build/tmp/nsis_lockedlist_plugin'; overwrite true }
+            copy { from zipTree(file('build/tmp/nsis_lockedlist_plugin')) into file('build/tools/nsis/') }
+            delete 'build/tmp/nsis_lockedlist_plugin'
         }
     }
 }

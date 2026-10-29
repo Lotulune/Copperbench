@@ -7,21 +7,35 @@ import { englishCount, t, uiText } from '../i18n';
 import type { WorkspaceSourceIndex } from '../types/contract';
 import { BlockbenchOnboarding } from './BlockbenchOnboarding';
 import './workspaceHub.css';
+import { newestTasks } from './taskPresentation';
 
 export const WorkspaceHub = () => {
   const { state, workspaceHealth, setActiveView, setSelectedElementId, setIsCreateModalOpen,
-    buildWorkspace, cancelTask, setIsTaskDrawerOpen, runDiagnosticAction, openSource } = useWorkbench();
+    buildWorkspace, cancelTask, setIsTaskDrawerOpen, runDiagnosticAction, openSource, openTask, openDiagnostics, healthFocusRequest, consumeHealthFocus } = useWorkbench();
   const workspace = state.workbench?.workspace;
   const counts = state.workbench?.elementCounts;
   const recentElements = state.workbench?.recentElements ?? [];
   const activeTasks = state.workbench?.activeTasks ?? [];
   const activeTask = activeTasks[0];
-  const failedTask = Object.values(state.tasks).find(task => task.state === 'failed');
+  const failedTask = newestTasks(Object.values(state.tasks)).find(task => task.state === 'failed');
   const topLevelDiagnostics = state.diagnostics.filter(diagnostic => !diagnostic.elementId && !diagnostic.path);
   const [sourceIndex, setSourceIndex] = useState<WorkspaceSourceIndex | null>(null);
   const [sourceError, setSourceError] = useState<string | null>(null);
   const [sourceRefresh, setSourceRefresh] = useState(0);
   const [healthOpen, setHealthOpen] = useState(false);
+  useEffect(() => {
+    if (!workspaceHealth || !healthFocusRequest || healthFocusRequest.workspaceId !== workspace?.id) return;
+    setHealthOpen(true);
+    const frame = requestAnimationFrame(() => {
+      const panel = document.getElementById('workspace-health-panel');
+      const item = panel?.querySelector<HTMLElement>(healthFocusRequest.severity === 'all'
+        ? '[data-diagnostic-severity]' : `[data-diagnostic-severity="${healthFocusRequest.severity}"]`);
+      (item ?? panel)?.scrollIntoView({ block: 'nearest' });
+      (item ?? panel)?.focus({ preventScroll: true });
+      consumeHealthFocus(healthFocusRequest.requestId);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [healthFocusRequest?.requestId, Boolean(workspaceHealth), workspace?.id]);
   useEffect(() => {
     let current = true;
     setSourceIndex(null); setSourceError(null);
@@ -60,14 +74,14 @@ export const WorkspaceHub = () => {
         <span>{uiText('模组元素', 'Mod elements')} <strong>{counts?.total ?? 0}</strong></span>
         {assetCount !== undefined && <button type="button" onClick={() => setActiveView('assets')}>{uiText('资产', 'Assets')} <strong>{assetCount}</strong></button>}
         {!!counts?.draft && <span>{uiText('草稿', 'Drafts')} <strong>{counts.draft}</strong></span>}
-        {(workspaceHealth?.diagnostics.error ?? 0) > 0 && <button type="button" onClick={() => { setHealthOpen(true); document.getElementById('workspace-health-panel')?.scrollIntoView({ block: 'nearest' }); }}>
+        {(workspaceHealth?.diagnostics.error ?? 0) > 0 && <button type="button" onClick={() => openDiagnostics('error')}>
           <span>{uiText('错误诊断', 'Errors')}</span> <strong>{workspaceHealth?.diagnostics.error}</strong></button>}
       </div>
 
       {(topLevelDiagnostics.length > 0 || failedTask) && <section className="overview-alerts" role="alert" data-testid="global-diagnostics-banner">
         {failedTask && <div className="overview-alert-row" data-testid="task-failure"><AlertTriangle size={15} aria-hidden="true" />
           <span>{valueLabel(failedTask.kind)} {uiText('失败', 'failed')} · {t(failedTask.stage)}</span>
-          <button type="button" className="overview-link" data-testid="open-failed-task-logs-btn" onClick={() => setIsTaskDrawerOpen(true)}>{uiText('查看任务日志', 'View task logs')}<ArrowRight size={13} aria-hidden="true" /></button>
+          <button type="button" className="overview-link" data-testid="open-failed-task-logs-btn" onClick={() => openTask(failedTask.id)}>{uiText('查看任务日志', 'View task logs')}<ArrowRight size={13} aria-hidden="true" /></button>
         </div>}
         {topLevelDiagnostics.map((diagnostic, index) => <div className="overview-alert-row" key={`${diagnostic.code}-${index}`}><AlertTriangle size={15} aria-hidden="true" />
           <span>{t(diagnostic.message)}</span><div className="overview-inline-actions">{diagnostic.actions.map(action => <button type="button" className="overview-link" key={action.id}
@@ -76,8 +90,8 @@ export const WorkspaceHub = () => {
       </section>}
       {activeTask && <div className="overview-task" data-task-id={activeTask.id}>
         <Hammer size={15} aria-hidden="true" /><span>{t(activeTask.stage)}</span>
-        <progress max="1" value={activeTask.progress ?? 0} aria-label={uiText('任务进度', 'Task progress')} />
-        <button type="button" className="overview-link" onClick={() => setIsTaskDrawerOpen(true)}>{uiText('查看日志', 'View logs')}</button>
+        <progress max="1" value={activeTask.progress ?? undefined} aria-label={uiText('任务进度', 'Task progress')} />
+        <button type="button" className="overview-link" onClick={() => openTask(activeTask.id)}>{uiText('查看日志', 'View logs')}</button>
         {activeTask.cancellable && <button type="button" className="overview-task-cancel" onClick={() => cancelTask(activeTask.id)} aria-label={uiText('取消任务', 'Cancel task')}><X size={14} aria-hidden="true" /></button>}
       </div>}
 
@@ -120,7 +134,7 @@ export const WorkspaceHub = () => {
               { id: 'recovery', label: uiText('本地恢复', 'Recovery'), value: workspaceHealth.recovery.available ? uiText(`${workspaceHealth.recovery.recoveryPointCount} 个恢复点`, englishCount(workspaceHealth.recovery.recoveryPointCount, 'recovery point')) : uiText('不可用', 'Unavailable'), action: () => setActiveView('history') }
             ].map(item => <button type="button" key={item.id} data-testid={`workspace-health-${item.id}`} onClick={item.action}><span>{item.label}</span><strong>{item.value}</strong><ArrowRight size={12} aria-hidden="true" /></button>)}</div>
             <button type="button" className="overview-health-risk" data-testid="workspace-health-risk" onClick={() => setActiveView('tracks')}>{uiText('版本与变更', 'Versions & changes')}<span>{uiText(`${workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响`, `${englishCount(workspaceHealth.risk.loaderMigration.availableTargetCount, 'migration target')} · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ operations flagged as high impact`)}</span><ArrowRight size={12} aria-hidden="true" /></button>
-            {!!workspaceHealth.diagnostics.items?.length && <ul className="overview-diagnostic-list">{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`}><span>{t(diagnostic.message)}</span>
+            {!!workspaceHealth.diagnostics.items?.length && <ul className="overview-diagnostic-list">{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`} tabIndex={-1} data-diagnostic-severity={diagnostic.severity}><span>{t(diagnostic.message)}</span>
               <div className="overview-inline-actions">{diagnostic.actions.map(action => <button type="button" className="overview-link" key={`${action.id}-${action.target}`} onClick={() => runDiagnosticAction(action, diagnostic)}>{t(action.label)}</button>)}</div>
             </li>)}</ul>}
           </div>

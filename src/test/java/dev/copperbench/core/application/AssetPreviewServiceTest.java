@@ -87,8 +87,9 @@ class AssetPreviewServiceTest {
         Path file = root.resolve("assets/test/models/custom.bbmodel"); Files.createDirectories(file.getParent()); Files.writeString(file, "{}");
         var graph = graph(); var asset = descriptor(graph, file);
         var result = AssetPreviewService.preview(root, graph, asset.id(), asset.sha256());
-        assertEquals("unsupported", result.get("kind").getAsString());
-        assertEquals("format_not_supported", result.get("reason").getAsString());
-        assertFalse(result.has("image")); assertFalse(result.has("document"));
+        assertEquals("model", result.get("kind").getAsString());
+        assertEquals("unavailable", result.getAsJsonObject("scene").get("kind").getAsString());
+        assertEquals("model_invalid", result.getAsJsonObject("scene").get("reason").getAsString());
+        assertFalse(result.has("image")); assertFalse(result.getAsJsonObject("scene").has("meshes"));
     }
 }

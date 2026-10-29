@@ -1,3 +1,4 @@
+import { showNotice } from '../feedback/feedback';
 import { useSyncExternalStore } from 'react';
 import { enUi } from './enUi';
 
@@ -11,20 +12,20 @@ declare global {
   }
 }
 
-/** Keep the existing Chinese default; an explicit local preference takes priority. */
-export function readLocale(storage?: Pick<Storage, 'getItem'>): UiLocale {
+/** An explicit preference wins; all Chinese system locales use Simplified Chinese. */
+export function readLocale(storage?: Pick<Storage, 'getItem'>, systemLanguage = typeof navigator === 'undefined' ? 'en' : navigator.language): UiLocale {
   try {
-    return storage?.getItem(LOCALE_STORAGE_KEY) === 'en' ? 'en' : 'zh';
-  } catch {
-    return 'zh';
-  }
+    const saved = storage?.getItem(LOCALE_STORAGE_KEY);
+    if (saved === 'en' || saved === 'zh') return saved;
+  } catch { /* A blocked browser store still permits system-language matching. */ }
+  return /^zh(?:[-_]|$)/i.test(systemLanguage) ? 'zh' : 'en';
 }
 
 function browserLocale(): UiLocale {
   try {
     const native = window.__COPPERBENCH_UI_LOCALE__;
     return native === 'en' || native === 'zh' ? native : readLocale(window.localStorage);
-  } catch { return 'zh'; }
+  } catch { return readLocale(); }
 }
 
 export let UI_LOCALE: UiLocale = browserLocale();
@@ -38,8 +39,19 @@ function updateDocumentLanguage() {
   if (typeof document !== 'undefined') document.documentElement.lang = UI_LOCALE === 'zh' ? 'zh-CN' : 'en';
 }
 updateDocumentLanguage();
+function applyLocale(locale: UiLocale) {
+  if (locale === UI_LOCALE) return;
+  UI_LOCALE = locale;
+  if (typeof window !== 'undefined' && window.__COPPERBENCH_UI_LOCALE__ !== undefined) window.__COPPERBENCH_UI_LOCALE__ = locale;
+  updateDocumentLanguage();
+  subscribers.forEach(listener => listener());
+}
+if (typeof window !== 'undefined') window.addEventListener('copperbench:locale-changed', event => {
+  const locale: unknown = (event as CustomEvent).detail;
+  if (locale === 'zh' || locale === 'en') applyLocale(locale);
+});
 export function useUiLocale(): UiLocale {
-  return useSyncExternalStore(subscribe, snapshot, () => 'zh');
+  return useSyncExternalStore(subscribe, snapshot, () => readLocale());
 }
 export function uiText(chinese: string, english: string): string {
   return UI_LOCALE === 'en' ? english : chinese;
@@ -70,13 +82,10 @@ export async function setUiLocale(locale: UiLocale): Promise<boolean> {
       catch { /* Browser-only fallback: keep the preference for this session. */ }
     }
   } catch {
-    window.alert(uiText('无法保存语言设置，当前语言与草稿已保留。', 'Could not save the language preference. Your current language and drafts are unchanged.'));
+    showNotice({ tone: 'error', message: { zh: '无法保存语言设置，当前语言与草稿已保留。', en: 'Could not save the language preference. Your current language and drafts are unchanged.' } });
     return false;
   }
-  UI_LOCALE = locale;
-  if (window.__COPPERBENCH_UI_LOCALE__ !== undefined) window.__COPPERBENCH_UI_LOCALE__ = locale;
-  updateDocumentLanguage();
-  subscribers.forEach(listener => listener());
+  applyLocale(locale);
   return true;
 }
 

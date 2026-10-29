@@ -35,7 +35,11 @@ import {
   RegistryRenamePreview,
   WorkspacePlan
 } from '../types/contract';
-import { t, uiText } from '../i18n';
+import { t, uiText, uiMessage, renderUiMessage, type UiMessage } from '../i18n';
+import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
+import { getProcedureSession, nextProcedureReadToken, updateProcedureSession, useProcedureEditorSession } from '../hooks/procedureEditorSessions';
+import { EditorRecoveryNotice } from './EditorRecoveryNotice';
+import { confirmEditorRead } from '../bridge/editorRecovery';
 
 let blocksRegistered = false;
 const blocklyChineseMessages = Object.fromEntries(
@@ -368,7 +372,12 @@ function diagnosticNodeId(diagnostic: Diagnostic): string | null {
   return match?.[1] ?? null;
 }
 
-export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element, onClose }) => {
+export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = props => {
+  const { state } = useWorkbench();
+  const sessionKey = elementEditorDraftKey(state.workbench?.workspace.id ?? '', props.element.id);
+  return <ProcedureEditor key={sessionKey} sessionKey={sessionKey} {...props} />;
+};
+const ProcedureEditor: React.FC<ProcedureWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
   const {
     getProcedureEditor,
     previewProcedureChange,
@@ -378,14 +387,22 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     planWorkspaceChanges,
     applyWorkspacePlan,
     procedureFocusRequest,
-    clearProcedureFocusRequest
+    clearProcedureFocusRequest,
+    state,
+    refreshWorkspace
   } = useWorkbench();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
-  const [projection, setProjection] = useState<ProcedureEditorProjection | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
+  const current = useProcedureEditorSession(sessionKey);
+  const { projection, loading, saving, dirty, message } = current;
+  const patchSession = (patch: Partial<typeof current>) => updateProcedureSession(sessionKey, old => ({ ...old, ...patch }));
+  const setProjection = (projection: ProcedureEditorProjection | null) => patchSession({ projection });
+  const setLoading = (loading: boolean) => patchSession({ loading });
+  const setSaving = (saving: boolean) => patchSession({ saving });
+  const setDirty = (dirty: boolean) => patchSession({ dirty });
+  const setMessage = (message: UiMessage | null) => patchSession({ message });
+  const actions = useRef({ getProcedureEditor, previewProcedureChange });
+  actions.current = { getProcedureEditor, previewProcedureChange };
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [recentTypes, setRecentTypes] = useState<string[]>([]);
@@ -406,22 +423,27 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [semanticRefactorPlan, setSemanticRefactorPlan] = useState<WorkspacePlan | null>(null);
   const [refactorBusy, setRefactorBusy] = useState(false);
   const [panel, setPanel] = useState<ProcedurePanel>('source');
-  const [message, setMessage] = useState<string | null>(null);
   const [canvasError, setCanvasError] = useState<string | null>(null);
   const previewSequenceRef = useRef(0);
 
   const load = useCallback(async () => {
+    const existing = getProcedureSession(sessionKey);
+    if (existing.dirty || existing.saving || existing.loading || existing.saveUnknown) return;
+    const readToken = nextProcedureReadToken();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    patchSession({ loading: true, readToken });
     setLoading(true);
     setMessage(null);
     try {
-      const next = await getProcedureEditor(element.id);
-      setProjection(next);
+      const next = await actions.current.getProcedureEditor(element.id);
+      if (!next) throw new Error('Procedure editor projection unavailable');
+      updateProcedureSession(sessionKey, old => old.readToken !== readToken ? old : { ...old, projection: next, revision });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }
-  }, [element.id, getProcedureEditor]);
+  }, [sessionKey, element.id, element.updatedAt]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -431,7 +453,6 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     setLiveSourcePreview(null);
     setLiveCanGenerate(null);
     setCanvasError(null);
-    setDirty(false);
     setGraphNodes([]);
     registerProcedureBlocks();
     projection.ir.nodes.filter((node) => node.unknown).forEach(defineUnknownBlock);
@@ -488,6 +509,16 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
       } finally {
         Blockly.Events.enable();
       }
+      const draft = getProcedureSession(sessionKey);
+      if (draft.snapshot) {
+        Blockly.serialization.workspaces.load(draft.snapshot, workspace);
+        const trigger = workspace.getAllBlocks(false).find(block => block.type === 'event_trigger');
+        if (trigger) {
+          (trigger.getField('trigger') as Blockly.FieldDropdown).setOptions(() => procedureTriggerOptions(projection));
+          if (draft.trigger) trigger.setFieldValue(draft.trigger, 'trigger');
+          setSelectedTrigger(String(trigger.getFieldValue('trigger')));
+        }
+      }
     } catch (error) {
       workspace?.dispose();
       workspaceRef.current = null;
@@ -495,6 +526,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
       return;
     }
     const loadedWorkspace = workspace;
+    updateProcedureSession(sessionKey, old => ({ ...old, dirty: buildEdits(loadedWorkspace, projection).length > 0 }));
     setGraphNodes(snapshotGraph(workspace));
     const listener = (event: Blockly.Events.Abstract) => {
       if (event.type === 'selected') {
@@ -504,7 +536,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
       if (!event.isUiEvent) {
         const triggerBlock = loadedWorkspace.getAllBlocks(false).find(block => block.type === 'event_trigger');
         if (triggerBlock) setSelectedTrigger(String(triggerBlock.getFieldValue('trigger')));
-        setDirty(true);
+        updateProcedureSession(sessionKey, old => ({ ...old, snapshot: Blockly.serialization.workspaces.save(loadedWorkspace),
+          trigger: triggerBlock ? String(triggerBlock.getFieldValue('trigger')) : null, dirty: buildEdits(loadedWorkspace, projection).length > 0 }));
         setGraphNodes(snapshotGraph(loadedWorkspace));
       }
     };
@@ -513,13 +546,18 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     return () => {
       window.clearTimeout(resizeTimer);
       loadedWorkspace.removeChangeListener(listener);
+      const draft = getProcedureSession(sessionKey);
+      if (draft.projection === projection && buildEdits(loadedWorkspace, projection).length > 0) {
+        updateProcedureSession(sessionKey, old => ({ ...old, snapshot: Blockly.serialization.workspaces.save(loadedWorkspace), dirty: true }));
+      }
       loadedWorkspace.dispose();
       workspaceRef.current = null;
     };
   }, [projection]);
 
   useEffect(() => {
-    if (!procedureFocusRequest || procedureFocusRequest.elementId !== element.id || !projection) return;
+    if (!procedureFocusRequest || procedureFocusRequest.elementId !== element.id || !projection
+      || procedureFocusRequest.workspaceId !== state.workbench?.workspace.id) return;
     const workspace = workspaceRef.current;
     const block = workspace?.getBlockById(procedureFocusRequest.nodeId);
     if (!workspace || !block) return;
@@ -528,7 +566,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     setSelectedNodeId(procedureFocusRequest.nodeId);
     setPanel('diagnostics');
     clearProcedureFocusRequest();
-  }, [clearProcedureFocusRequest, element.id, procedureFocusRequest, projection]);
+  }, [clearProcedureFocusRequest, element.id, procedureFocusRequest, projection, state.workbench?.workspace.id]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;
@@ -547,7 +585,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     }
     const sequence = ++previewSequenceRef.current;
     const timer = window.setTimeout(() => {
-      void previewProcedureChange(element.id, edits).then((preview) => {
+      void actions.current.previewProcedureChange(element.id, edits).then((preview) => {
         if (sequence !== previewSequenceRef.current || !preview) return;
         setLiveDiagnostics(preview.diagnostics);
         setLiveSourcePreview(preview.sourcePreview);
@@ -559,8 +597,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
         setLiveCanGenerate(null);
       });
     }, 180);
-    return () => window.clearTimeout(timer);
-  }, [dirty, element.id, graphNodes, previewProcedureChange, projection]);
+    return () => { window.clearTimeout(timer); previewSequenceRef.current++; };
+  }, [dirty, element.id, graphNodes, projection]);
 
   const filteredCatalog = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -888,7 +926,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
 
   const save = async () => {
     const workspace = workspaceRef.current;
-    if (!workspace || !projection) return;
+    const submitted = getProcedureSession(sessionKey);
+    if (!workspace || !projection || submitted.saving || submitted.saveUnknown) return;
     const edits = buildEdits(workspace, projection);
     if (edits.length === 0) {
       setDirty(false);
@@ -897,21 +936,43 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     }
     setSaving(true);
     setMessage(null);
+    const submittedSnapshot = Blockly.serialization.workspaces.save(workspace);
+    patchSession({ snapshot: submittedSnapshot });
+    let result;
     try {
-      const result = await updateProcedure(element.id, edits);
-      if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("过程保存失败。"));
-        return;
-      }
-      setDirty(false);
-      setMessage(tr("已保存 {0} 项结构化变更，工作区修订为 r{1}。", [edits.length, result.newRevision]));
-      const refreshed = await getProcedureEditor(element.id);
-      if (refreshed) setProjection(refreshed);
+      result = await updateProcedure(element.id, edits, submitted.revision);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setSaving(false);
+      patchSession({ saving: false, saveUnknown: true });
+      setMessage(uiMessage(`未收到保存回执。${error instanceof Error ? error.message : String(error)}`,
+        `No save receipt was received. ${error instanceof Error ? error.message : String(error)}`));
+      return;
     }
+    if (result.status !== 'committed') {
+      patchSession({ saving: false, diagnostics: result.diagnostics,
+        message: result.diagnostics[0]?.message ?? uiMessage('过程保存被拒绝，草稿已保留。', 'Saving the procedure was rejected. Your draft is preserved.') });
+      return;
+    }
+    const latestSnapshot = workspaceRef.current === workspace ? Blockly.serialization.workspaces.save(workspace) : getProcedureSession(sessionKey).snapshot;
+    const newerDraft = latestSnapshot !== null && JSON.stringify(latestSnapshot) !== JSON.stringify(submittedSnapshot);
+    patchSession({ revision: result.newRevision, dirty: newerDraft, snapshot: newerDraft ? latestSnapshot : null,
+      diagnostics: result.diagnostics, saveUnknown: false,
+      message: uiMessage(`已保存 ${edits.length} 项结构化变更，工作区修订为 r${result.newRevision}。`, `Saved ${edits.length} structured changes at workspace revision r${result.newRevision}.`) });
+    try {
+      const refreshed = await actions.current.getProcedureEditor(element.id);
+      if (refreshed) updateProcedureSession(sessionKey, old => old.revision === result.newRevision ? { ...old, projection: refreshed } : old);
+    } catch { setMessage(uiMessage('过程已保存，但无法刷新编辑器。草稿已保留。', 'The procedure was saved, but the editor could not be refreshed. Your draft is preserved.')); }
+    finally { setSaving(false); }
+  };
+  const readLatestKeepingDraft = async () => {
+    if (getProcedureSession(sessionKey).saving || loading) return;
+    setLoading(true);
+    try {
+      const { editor: next, revision: confirmedRevision } = await confirmEditorRead(state.workbench!.workspace.id, refreshWorkspace, () => actions.current.getProcedureEditor(element.id));
+      if (!next) throw new Error('Procedure editor projection unavailable');
+      patchSession({ projection: next, revision: confirmedRevision,
+        saveUnknown: false, message: uiMessage('已读取最新版本。请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.') });
+    } catch { setMessage(uiMessage('无法读取最新版本，草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.')); }
+    finally { setLoading(false); }
   };
 
   const diagnostics: Diagnostic[] = liveDiagnostics
@@ -999,13 +1060,15 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.undo(false)} aria-label={tr("撤销")} title={tr("撤销")}><Undo2 size={15} /></button>
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.undo(true)} aria-label={tr("重做")} title={tr("重做")}><Redo2 size={15} /></button>
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.cleanUp()} aria-label={tr("自动布局")} title={tr("自动布局")}><AlignStartVertical size={15} /></button>
-          <button className="btn-primary procedure-save" onClick={() => void save()} disabled={!dirty || saving || projection?.readOnly || !!canvasError}>
+          <button className="btn-primary procedure-save" onClick={() => void save()} disabled={!dirty || saving || current.saveUnknown || projection?.readOnly || !!canvasError}>
             <Save size={14} /><span>{saving ? tr('保存中') : tr('保存')}</span>
           </button>
         </div>
       </header>
 
-      {message && <div className="procedure-message" role="status">{message}</div>}
+      {message && <div className="procedure-message" role="status">{renderUiMessage(message)}</div>}
+      <EditorRecoveryNotice editor="procedure" saveUnknown={current.saveUnknown} diagnostics={current.diagnostics}
+        busy={saving || loading} onRead={() => void readLatestKeepingDraft()} />
       {canvasError && <div className="procedure-message" role="alert" data-testid="procedure-render-error">
         {uiText('此过程暂时无法在可视化画布中打开，原始内容未修改。可查看源码和诊断，或返回元素列表。',
           'This procedure cannot be opened on the visual canvas. Its contents are unchanged. Review the source and diagnostics, or return to the element list.')}

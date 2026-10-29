@@ -119,4 +119,16 @@ final class LocalResourceIndex {
 
     boolean workspaceOverlap(String resource) { return dependencies.overlapsWorkspace(resource); }
     String unavailableDependencyContext() { return dependencies.invalidatesPreviousContext() ? dependencies.reason() : null; }
+
+    byte[] readTexture(String resource, int limit) throws IOException {
+        var dependency = dependencies.resolve(resource);
+        if (dependency != null && dependency.state().equals("dependency_resolved")) return dependencies.readResource(resource, limit);
+        if (archive == null || !resources.contains(resource)) return null;
+        if (!fingerprint.equals(dev.copperbench.generator.WorkspaceExecutionSnapshot.sha256(archive))) throw new IOException("Resource catalog changed");
+        byte[] bytes;
+        try (ZipFile zip = new ZipFile(archive.toFile()); var input = zip.getInputStream(zip.getEntry(resource))) { bytes = input.readNBytes(limit + 1); }
+        if (bytes.length > limit) throw new IOException("Texture exceeds the preview limit");
+        if (!fingerprint.equals(dev.copperbench.generator.WorkspaceExecutionSnapshot.sha256(archive))) throw new IOException("Resource catalog changed");
+        return bytes;
+    }
 }

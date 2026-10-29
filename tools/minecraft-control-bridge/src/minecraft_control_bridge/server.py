@@ -26,7 +26,7 @@ def create_server(evidence_dir="./evidence"):
                 await asyncio.to_thread(holder["bridge"].close)
 
     server = FastMCP("minecraft-control-bridge", lifespan=lifespan,
-                     instructions="The lead LLM owns goals, profile review, exceptions and acceptance. Start with mc_doctor and mc_list_windows; attach only the intended test client. Prefer mc_menu_flow for calibrated enter-world/save/quit navigation: local screenshots guard each transition, with no model/Jev call per button. Inspect the final image/receipt. Unknown menus use mc_observe/mc_step with bounded 2000 ms batches; reuse step images. Jev is optional only for unresolved choices. Keep foreground focus; F8 stops control. Navigation/input receipts never prove gameplay. Detach when finished.")
+                     instructions="The lead LLM owns goals, calibration, exceptions and acceptance. Start with mc_doctor and mc_list_windows; attach the intended client. Use ONE mc_menu_flow for reviewed create/enter/save/quit navigation. Its default Jev controller receives locally recognized textual states and chooses among bounded transitions inside the worker; do not call mc_jev_choose or the lead model for every menu button. A deterministic controller is also available. Creation requires exact world_name, explicit creation_settings and reviewed form markers. Inspect the final image/receipt. Unknown screens never receive guessed input. keyboard_policy=english temporarily closes target IME conversion or selects an already installed English layout before keys, verifies the change, and restores on detach when still owned. F8/focus guards stay active during Jev waits. Navigation/input receipts are not gameplay acceptance; detach on completion.")
 
     def choose(state, goal, candidates):
         try:
@@ -72,9 +72,10 @@ def create_server(evidence_dir="./evidence"):
         return await asyncio.to_thread(call, "list_windows")
 
     @server.tool()
-    async def mc_attach(window_id: str, game_dir: str | None = None, focus: bool = True) -> CallToolResult:
-        """Bind one window, reserve F8, and create an evidence session. game_dir is the actual Minecraft run directory."""
-        return await asyncio.to_thread(call, "attach", window_id=window_id, evidence_dir=str(Path(evidence_dir).resolve()), game_dir=game_dir, focus=focus)
+    async def mc_attach(window_id: str, game_dir: str | None = None, focus: bool = True,
+                        keyboard_policy: str = "english") -> CallToolResult:
+        """Attach the exact client. english prepares IME input reversibly before keys; preserve reports IME_ACTIVE without switching. No system defaults change."""
+        return await asyncio.to_thread(call, "attach", window_id=window_id, evidence_dir=str(Path(evidence_dir).resolve()), game_dir=game_dir, focus=focus, keyboard_policy=keyboard_policy)
 
     @server.tool()
     async def mc_observe(session_id: str, max_width: int = 1280) -> CallToolResult:
@@ -112,23 +113,27 @@ def create_server(evidence_dir="./evidence"):
 
     @server.tool()
     async def mc_menu_flow(session_id: str, action_id: str, flow: str, profile_path: str,
-                           world_name: str | None = None, timeout_ms: int = 20000) -> CallToolResult:
-        """Run enter_world, save_to_title or save_and_quit locally using a reviewed image profile.
+                           world_name: str | None = None, timeout_ms: int = 20000,
+                           controller: str = "jev", creation_settings: dict | None = None) -> CallToolResult:
+        """One call runs create_world/enter_world/save_to_title/save_and_quit/wait_for_world locally.
 
-        Preferred for known menu navigation: no per-button model or Jev calls. Screenshots are
-        captured/matched internally before each transition, with final image/receipt returned.
-        profile_path is an absolute local JSON path built from planner-reviewed screenshots;
-        its capture size, language/theme and world-name template must match the test client.
-        enter_world requires explicit world_name exactly equal to the profile. Filtered results
-        must match the target row with no additional rows. Never creates/deletes worlds.
-        At most six input batches (each <=2000 ms) and timeout_ms 1000..25000; same focus/F8 guards.
-        Unknown transition screens are observed without input until timeout; known wrong states stop.
-        Never retries a dispatched click. Reusing an identical action_id returns its old receipt.
-        Navigation completion is not gameplay acceptance. window_closed_unverified still needs
-        process/log/Copperbench terminal-state checks. Reconnect MCP after upgrading bridge code.
+        Default controller=jev: local exact image markers produce structured state for Jev;
+        each choice is rechecked on a fresh capture before bounded input. No lead-LLM round trip
+        per button. controller=deterministic skips network decisions. No silent fallback on Jev failure.
+        Use a planner-reviewed profile matching viewport/language/theme, never guessed coordinates.
+        Enter/create/wait requires world_name exactly matching the profile. Creation additionally
+        requires explicit creation_settings matching a v2 profile's game_mode, world_type,
+        allow_commands, generate_structures. It filters for duplicates, verifies each form state
+        and the final name, and submits once. No delete/overwrite/dialog approvals.
+        Maximum 6 batches (12 for create), <=2000 ms each, 25 seconds total. Slow creation returns
+        pending with next_flow=wait_for_world; never rerun create just because loading is slow.
+        F8/focus/disconnect checks also run during Jev waits. Unknown screens receive no input.
+        Reusing action_id retrieves the old receipt. Gameplay still needs separate acceptance.
+        Reconnect MCP after a bridge upgrade; doctor reports the running worker version.
         """
         return await asyncio.to_thread(call, "menu_flow", session_id=session_id, action_id=action_id, flow=flow,
-                                       profile_path=profile_path, world_name=world_name, timeout_ms=timeout_ms)
+                                       profile_path=profile_path, world_name=world_name, timeout_ms=timeout_ms,
+                                       controller=controller, creation_settings=creation_settings)
 
     @server.tool()
     async def mc_read_logs(session_id: str, cursor: str | None = None) -> CallToolResult:

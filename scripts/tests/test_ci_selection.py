@@ -156,6 +156,20 @@ class GitSelectionTest(SelectionAssertions, unittest.TestCase):
         entry = f"100644 blob {blob}\t{filename}\n".encode("ascii")
         return self.git("mktree", input=entry).decode("ascii").strip()
 
+    def documentation_tree(self, names):
+        # Git trees can hold LF/TAB/backslash names that Windows cannot create.
+        # Keep them entirely in objects, with NUL delimiters and no checkout.
+        blob = self.git("hash-object", "-w", "--stdin", input=b"Documentation.\n").decode("ascii").strip()
+        entries = b"".join(
+            f"100644 blob {blob}\t{name.removeprefix('docs/')}\0".encode("utf-8")
+            for name in names
+        )
+        docs = self.git("mktree", "-z", input=entries).decode("ascii").strip()
+        indexed_tree = self.git("write-tree").decode("ascii").strip()
+        root_entries = self.git("ls-tree", "-z", indexed_tree)
+        root_entries += f"040000 tree {docs}\tdocs\0".encode("ascii")
+        return self.git("mktree", "-z", input=root_entries).decode("ascii").strip()
+
     def commit_tree(self, tree, *parents):
         arguments = ["commit-tree", tree]
         for parent in parents:
@@ -206,12 +220,10 @@ class GitSelectionTest(SelectionAssertions, unittest.TestCase):
 
     def test_nul_delimited_names_and_mode_only_changes_are_preserved(self):
         names = ("docs/space and 中文.md", "docs/line\nbreak\t.md", "docs/literal\\backslash.md")
-        for name in names:
-            self.write(name, "Documentation.\n")
-        self.git("add", "--all")
         # Change the Git executable bit, including on hosts without POSIX chmod.
         self.git("update-index", "--chmod=+x", "--", "sdk/python/copperbench.py")
-        head = self.commit("Add unusual names and make the SDK executable", stage=False)
+        head = self.commit_tree(self.documentation_tree(names), self.base)
+        self.assertTrue(self.git("ls-tree", head, "--", "sdk/python/copperbench.py").startswith(b"100755 blob "))
         event = self.event(head)
         self.assertEqual(set(names) | {"sdk/python/copperbench.py"},
                          set(selection.changed_paths(self.repository, event)))
@@ -285,8 +297,7 @@ class GitSelectionTest(SelectionAssertions, unittest.TestCase):
                 self.assert_checks(self.plan(self.event(head), event_name=event_name), CHECKS)
 
     def test_cli_emits_complete_boolean_outputs_without_copying_filenames(self):
-        self.write("docs/name\nwindows=true.md", "Documentation.\n")
-        head = self.commit("Edit documentation with a newline in its filename")
+        head = self.commit_tree(self.documentation_tree(("docs/name\nwindows=true.md",)), self.base)
         output = self.root / "github-output.txt"
         summary = self.root / "github-summary.md"
         environment = {

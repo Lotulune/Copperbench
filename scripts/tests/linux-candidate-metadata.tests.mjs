@@ -62,6 +62,18 @@ test('tampered candidate bytes are rejected after metadata is frozen', () => {
   assert.match(result.stderr, /deb size mismatch|deb SHA-256 mismatch/);
 });
 
+test('graphical installer is bound when present and tampering is rejected', () => {
+  const directory = fixture();
+  const setup = resolve(directory, 'Copperbench 0.1.0 Linux x86_64 Setup.tar.gz');
+  writeFileSync(setup, 'offline setup');
+  assert.equal(generate(directory).status, 0);
+  assert.equal(verify(directory).status, 0);
+  writeFileSync(setup, 'altered setup');
+  const checked = verify(directory);
+  assert.notEqual(checked.status, 0);
+  assert.match(checked.stderr, /setup SHA-256 mismatch/);
+});
+
 test('generator refuses a manifest that prematurely claims formal Linux support', () => {
   const directory = fixture();
   const path = resolve(directory, 'linux-candidate-manifest.json');
@@ -129,4 +141,19 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(graphicalSmoke, /Timed out waiting for the packaged JCEF graphical probe/);
   assert.match(graphicalSmoke, /dump_bootstrap_failure/);
   assert.match(graphicalSmoke, /dump_product_failure/);
+});
+
+test('component update assets are bound to source identity and cannot be substituted', () => {
+  const directory = fixture();
+  const part = resolve(directory, 'copperbench-update-linux-x64-application.zip');
+  writeFileSync(part, 'component');
+  writeFileSync(resolve(directory, 'copperbench-update-linux-x64.properties'), 'inventory');
+  assert.equal(generate(directory).status, 0);
+  const metadata = JSON.parse(readFileSync(resolve(directory, 'LINUX-CANDIDATE-METADATA.json'), 'utf8'));
+  assert.equal(Object.keys(metadata.assets).filter(key => key.startsWith('update')).length, 2);
+  assert.equal(verify(directory).status, 0);
+  writeFileSync(part, 'different');
+  const checked = verify(directory);
+  assert.notEqual(checked.status, 0);
+  assert.match(checked.stderr, /update.*SHA-256 mismatch/);
 });

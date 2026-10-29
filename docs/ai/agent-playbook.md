@@ -1,5 +1,9 @@
 # 外部 Agent 操作手册
 
+关键路线的完整英文说明见 [Agent onboarding](getting-started.en.md) 和 [Trail Block API route](trail-block.en.md)。本页保留中文专项示例；入门先按[接入分流](getting-started.md)选择 Native／MCP，再从[同一个步道方块](trail-block.md)或 [W1/W2/W3](../../sdk/agent-workflows.md)继续。
+
+下文 JSON 中的 revision 数字用于说明请求形状；实际发送前必须替换为目标工作区刚读取的整数，不能沿用示例值。可直接执行的入门代码见上面的 Trail Block／SDK 路线，它们在写前读取真实 revision。
+
 本文给通过本机 MCP 操作 Copperbench 工作区的 AI Agent 使用。目标是让 Agent 在不绕过 revision、权限、恢复点和任务日志的前提下完成“读取 → 修改 → 构建 → 修复冲突”的闭环。
 
 使用包含 Stage 15 后改动的新构建时，先阅读[任务授权与自动验收](./task-authorization-and-acceptance.md)。它说明如何携带用户签发的任务授权、准备版本对应的 GameTest、在真实工程快照中测试最终 JAR，以及按用例数和内容哈希读取验收结果。
@@ -27,7 +31,7 @@ Agent 必须遵守以下规则：
 一次可靠的内容修改按以下顺序执行：
 
 1. MCP `initialize`，然后发送 `notifications/initialized`。
-2. `get_workspace`，记录 `workspaceId` 和 `revision`。
+2. `get_workspace`，记录 `workspaceId` 和 `revision`；读取 `get_workspace_environment` 确认活动生成器、工具链及字段合同，支持矩阵也可通过 `get_version_tracks` 查询。
 3. `list_mod_elements`，使用 `limit` 和响应中的 `nextCursor` 连续读取，直到响应明确给出 `nextCursor: null`。
 4. 对单个元素先使用 preview 工具；多个内容修改优先使用 `plan_workspace_changes`。
 5. `preview_workspace_plan` 检查语义差异、权限和 stale 状态。
@@ -40,6 +44,8 @@ Agent 必须遵守以下规则：
 ## 3. `create_mod_element` 的 `initialValues`
 
 `create_mod_element` 必须同时提供 `elementType`、`name`、`initialValues` 和 `expectedRevision`。`initialValues` 可以很小；Copperbench 会补齐通用默认值。不要凭空发明当前 schema 没有定义的字段。
+
+当前源码会预检请求形状以及已确认的部分生成前提，返回路径、期望类型和修复提示，详见[输入诊断与修复](./input-diagnostics.md)。完整的创建→构建→游戏确认示例见[第一件作品](../user/first-creation.md)。
 
 ### Item：先创建物品，再实现蓄力逻辑
 

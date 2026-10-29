@@ -125,6 +125,7 @@ public final class WorkspaceExecutionSnapshot {
     static List<FileEntry> inventory(Path root, BooleanSupplier cancelled) throws IOException {
         List<FileEntry> result = new ArrayList<>();
         if (!Files.exists(root, LinkOption.NOFOLLOW_LINKS)) return List.of();
+        var deliveries = WorkspaceDeliveryOutputs.recorded(root);
         rejectLinks(root);
         long[] total = {0};
         Files.walkFileTree(root, new SimpleFileVisitor<>() {
@@ -143,10 +144,15 @@ public final class WorkspaceExecutionSnapshot {
                 if (!attributes.isRegularFile() || attributes.isSymbolicLink())
                     throw unsafe("Snapshot input is not a regular file: " + relative);
                 rejectLinks(file);
+                String hash = null, ownedHash = deliveries.get(file.toAbsolutePath().normalize());
+                if (ownedHash != null) {
+                    hash = sha256(file);
+                    if (hash.equals(ownedHash)) return FileVisitResult.CONTINUE;
+                }
                 total[0] += attributes.size();
                 if (result.size() >= MAX_FILES || total[0] > MAX_BYTES)
                     throw new SnapshotException("WORKSPACE_SNAPSHOT_TOO_LARGE", "Snapshot exceeds 100,000 files or 2 GiB");
-                result.add(new FileEntry(relative.toString().replace('\\', '/'), attributes.size(), sha256(file)));
+                result.add(new FileEntry(relative.toString().replace('\\', '/'), attributes.size(), hash == null ? sha256(file) : hash));
                 return FileVisitResult.CONTINUE;
             }
         });
@@ -154,11 +160,19 @@ public final class WorkspaceExecutionSnapshot {
         return List.copyOf(result);
     }
 
-    public static String fingerprint(Path root, BooleanSupplier cancelled) throws IOException {
-        return manifestHash(inventory(root.toAbsolutePath().normalize(), cancelled));
+    /** Observes bounded authored inputs without copying a workspace or claiming immutable execution. */
+    public record InputIdentity(String sha256, int fileCount, long bytes) {}
+
+    public static InputIdentity observeInputIdentity(Path root, BooleanSupplier cancelled) throws IOException {
+        List<FileEntry> files = inventory(root.toAbsolutePath().normalize(), cancelled);
+        return new InputIdentity(manifestHash(files), files.size(), files.stream().mapToLong(FileEntry::bytes).sum());
     }
 
-    private static boolean excluded(Path relative) {
+    public static String fingerprint(Path root, BooleanSupplier cancelled) throws IOException {
+        return observeInputIdentity(root, cancelled).sha256();
+    }
+
+    static boolean excluded(Path relative) {
         if (relative.getNameCount() == 0) return false;
         String first = relative.getName(0).toString();
         if (EXCLUDED_ROOTS.contains(first) || first.startsWith(".env.")) return true;

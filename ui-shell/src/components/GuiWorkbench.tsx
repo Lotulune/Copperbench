@@ -15,11 +15,16 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import {
   AssetProjection,
-  FieldChange,
   ModElementEditorProjection,
   ModElementSummary
 } from '../types/contract';
-import { t } from '../i18n';
+import { uiText, uiMessage, renderUiMessage, useUiLocale, type UiMessage } from '../i18n';
+import { collectEditorFieldChanges, numericDraftValue } from '../hooks/editorFieldChanges';
+import { layoutNumericDrafts } from '../hooks/layoutNumericDrafts';
+import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadToken, rebaseEditor,
+  specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
+import { EditorRecoveryNotice } from './EditorRecoveryNotice';
+import { confirmEditorRead } from '../bridge/editorRecovery';
 
 interface GuiWorkbenchProps {
   element: ModElementSummary;
@@ -154,7 +159,7 @@ function componentsFrom(values: Record<string, unknown>): GuiComponentWire[] {
     if (typeof root.type !== 'string' || !root.data || typeof root.data !== 'object' || Array.isArray(root.data)) {
       return [];
     }
-    return [{ type: root.type, data: root.data as Record<string, unknown> }];
+    return [{ ...root, type: root.type, data: root.data as Record<string, unknown> }];
   });
 }
 
@@ -169,8 +174,8 @@ function componentName(component: GuiComponentWire, index: number): string {
 }
 
 function componentSize(component: GuiComponentWire): { width: number; height: number } {
-  const width = typeof component.data.width === 'number' ? component.data.width : undefined;
-  const height = typeof component.data.height === 'number' ? component.data.height : undefined;
+  const width = numericDraftValue(component.data.width);
+  const height = numericDraftValue(component.data.height);
   if (width !== undefined || height !== undefined) {
     return { width: Math.max(1, width ?? 20), height: Math.max(1, height ?? 20) };
   }
@@ -249,14 +254,6 @@ function layoutIssues(values: Record<string, unknown>, components: GuiComponentW
   return issues;
 }
 
-function changedFields(base: Record<string, unknown>, values: Record<string, unknown>): FieldChange[] {
-  const editablePaths = ['/type', '/width', '/height', '/inventoryOffsetX', '/inventoryOffsetY', '/renderBgLayer',
-    '/doesPauseGame', '/components', '/onOpen', '/onTick', '/onClosed'];
-  return editablePaths.flatMap((path) =>
-    JSON.stringify(base[path]) === JSON.stringify(values[path]) ? [] : [{ path, value: clone(values[path]) }]
-  );
-}
-
 function createButton(index: number): GuiComponentWire {
   return {
     type: 'button',
@@ -276,50 +273,79 @@ function createButton(index: number): GuiComponentWire {
   };
 }
 
-export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) => {
+export const GuiWorkbench: React.FC<GuiWorkbenchProps> = props => {
+  const { state } = useWorkbench();
+  const key = specializedEditorKey(state.workbench?.workspace.id ?? '', props.element.id, 'gui');
+  return <GuiEditor key={key} sessionKey={key} {...props} />;
+};
+const initialGuiValues = () => ({} as Record<string, unknown>);
+
+const GuiEditor: React.FC<GuiWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
   const {
     getModElementEditor,
     previewModElementChange,
     updateModElement,
     listAssets,
+    refreshWorkspace,
     state
   } = useWorkbench();
-  const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
-  const [base, setBase] = useState<Record<string, unknown>>({});
-  const [values, setValues] = useState<Record<string, unknown>>({});
+  const current = useSpecializedEditorSession(sessionKey, initialGuiValues);
+  const { editor, data: values, saving, error: saveMessage } = current;
+  const base = useMemo(() => editor ? editorValues(editor) : {}, [editor]);
+  const changeSession = (patch: Partial<typeof current>) => updateSpecializedSession(sessionKey, initialGuiValues, old => ({ ...old, ...patch }));
+  const setValues = (change: React.SetStateAction<Record<string, unknown>>) => updateSpecializedSession(sessionKey, initialGuiValues, old => {
+    const data = typeof change === 'function' ? change(old.data) : change;
+    return { ...old, data, dirty: JSON.stringify(data) !== JSON.stringify(old.editor ? editorValues(old.editor) : {}), error: null };
+  });
+  const setSaving = (saving: boolean) => changeSession({ saving });
+  const setSaveMessage = (error: UiMessage | null) => changeSession({ error });
   const [assets, setAssets] = useState<AssetProjection | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [impact, setImpact] = useState<string[]>([]);
   const [newComponentType, setNewComponentType] = useState<'button' | 'label' | 'image' | 'inputslot' | 'outputslot'>('button');
   const requestToken = useRef(0);
+  const actions = useRef({ getModElementEditor, listAssets, previewModElementChange, refreshWorkspace });
+  actions.current = { getModElementEditor, listAssets, previewModElementChange, refreshWorkspace };
+  const locale = useUiLocale();
 
   useEffect(() => {
     let cancelled = false;
-    setEditor(null);
+    const existing = getSpecializedSession(sessionKey, initialGuiValues);
+    if (existing.dirty || existing.saving || existing.loading || existing.saveUnknown) return;
+    const readToken = nextSpecializedReadToken();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    changeSession({ loading: true, readToken });
     setSelectedIndex(null);
-    Promise.all([getModElementEditor(element.id), listAssets().catch(() => null)])
-      .then(([projection, assetProjection]) => {
-        if (cancelled || !projection) return;
+    actions.current.getModElementEditor(element.id)
+      .then(projection => {
+        if (!projection || projection.element.id !== element.id) throw new Error('GUI editor projection unavailable');
         const next = editorValues(projection);
-        setEditor(projection);
-        setBase(clone(next));
-        setValues(clone(next));
-        setAssets(assetProjection);
+        updateSpecializedSession(sessionKey, initialGuiValues, old => old.readToken !== readToken ? old
+          : { ...old, editor: projection, data: old.dirty ? old.data : clone(next), revision, loading: false, error: null });
+        if (cancelled) return;
         if (componentsFrom(next).length > 0) setSelectedIndex(0);
       })
       .catch(() => {
-        if (!cancelled) setSaveMessage(tr("无法加载 GUI 编辑器投影。"));
+        updateSpecializedSession(sessionKey, initialGuiValues, old => old.readToken !== readToken ? old
+          : { ...old, loading: false, error: uiMessage('无法加载 GUI 编辑器。请返回后重试，原草稿已保留。', 'Could not load the GUI editor. Return and try again; your draft is preserved.') });
       });
     return () => {
       cancelled = true;
     };
-  }, [element.id, getModElementEditor, listAssets]);
+  }, [sessionKey, element.id]);
+  useEffect(() => {
+    if (!editor) return;
+    let cancelled = false;
+    void actions.current.listAssets().then(projection => { if (!cancelled) setAssets(projection); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [sessionKey, editor?.element.id]);
 
   const components = useMemo(() => componentsFrom(values), [values]);
-  const changes = useMemo(() => changedFields(base, values), [base, values]);
-  const issues = useMemo(() => layoutIssues(values, components), [values, components]);
+  const numericDraft = useMemo(() => layoutNumericDrafts(values, base), [values, base]);
+  const pending = useMemo(() => collectEditorFieldChanges(editor, numericDraft.values), [editor, numericDraft.values]);
+  const changes = useMemo(() => pending.invalid.length || numericDraft.invalid.length ? [] : pending.changes, [pending, numericDraft]);
+  const issues = useMemo(() => [...layoutIssues(numericDraft.values, components),
+    ...numericDraft.invalid.map(path => ({ index: null, message: uiText(`请输入有效数字：${path}`, `Enter a valid number: ${path}`) }))], [numericDraft, components, locale]);
   const selected = selectedIndex !== null ? components[selectedIndex] ?? null : null;
   const procedures = useMemo(() => state.elements
     .filter((candidate) => candidate.type === 'procedure' || candidate.type === 'function')
@@ -333,7 +359,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
     }
     const token = ++requestToken.current;
     const timer = window.setTimeout(() => {
-      previewModElementChange(element.id, changes)
+      actions.current.previewModElementChange(element.id, changes)
         .then((preview) => {
           if (requestToken.current === token) setImpact(preview?.generationImpact?.affectedDomains ?? []);
         })
@@ -341,12 +367,24 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           if (requestToken.current === token) setImpact([]);
         });
     }, 160);
-    return () => window.clearTimeout(timer);
-  }, [changes, element.id, previewModElementChange]);
+    return () => { window.clearTimeout(timer); requestToken.current++; };
+  }, [changes, element.id]);
 
   const setValue = (path: string, value: unknown) => {
     setValues((current) => ({ ...current, [path]: value }));
     setSaveMessage(null);
+  };
+  const readLatest = async () => {
+    if (getSpecializedSession(sessionKey, initialGuiValues).saving) return;
+    setSaving(true);
+    try {
+      const { editor: latest, revision: confirmedRevision } = await confirmEditorRead(state.workbench!.workspace.id, actions.current.refreshWorkspace, () => actions.current.getModElementEditor(element.id));
+      if (!latest || latest.element.id !== element.id) throw new Error('GUI editor projection unavailable');
+      updateSpecializedSession(sessionKey, initialGuiValues, old => ({ ...old, editor: latest, revision: confirmedRevision,
+        dirty: JSON.stringify(old.data) !== JSON.stringify(editorValues(latest)), saveUnknown: false,
+        error: uiMessage('已读取最新版本。请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.') }));
+    } catch { setSaveMessage(uiMessage('无法读取最新版本，草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.')); }
+    finally { setSaving(false); }
   };
 
   const setComponents = (next: GuiComponentWire[]) => setValue('/components', next);
@@ -412,33 +450,37 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
   };
 
   const save = async () => {
-    if (changes.length === 0 || issues.length > 0) return;
+    const submitted = getSpecializedSession(sessionKey, initialGuiValues);
+    if (issues.length > 0 || submitted.saving || submitted.saveUnknown || !editor || pending.invalid.length > 0) return;
+    if (changes.length === 0) { changeSession({ data: numericDraft.values, dirty: false }); return; }
     setSaving(true);
     setSaveMessage(null);
     try {
-      const result = await updateModElement(element.id, changes);
+      const result = await updateModElement(element.id, changes, submitted.revision);
       if (result.status === 'committed') {
-        setBase(clone(values));
-        setSaveMessage(tr("GUI 更改已保存。"));
+        commitSpecializedSession(sessionKey, initialGuiValues, submitted.data, rebaseEditor(editor, changes, result.data?.element ?? editor.element), result.newRevision, result.diagnostics, numericDraft.values);
+        setSaveMessage(uiMessage('GUI 更改已保存。', 'GUI changes saved.'));
       } else {
-        setSaveMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || tr("保存被 Core 拒绝。"));
+        changeSession({ diagnostics: result.diagnostics });
+        setSaveMessage(result.diagnostics[0]?.message ?? uiMessage('保存被 Core 拒绝。草稿未保存。', 'Core rejected the save. Your draft is unsaved.'));
       }
     } catch {
-      setSaveMessage(tr("保存失败，工作区未发生更改。"));
+      changeSession({ saveUnknown: true });
+      setSaveMessage(uiMessage('未收到保存回执。', 'No save receipt was received.'));
     } finally {
       setSaving(false);
     }
   };
 
-  const guiWidth = Number(values['/width'] ?? 176);
-  const guiHeight = Number(values['/height'] ?? 166);
+  const guiWidth = numericDraftValue(values['/width']) ?? numericDraftValue(base['/width']) ?? 176;
+  const guiHeight = numericDraftValue(values['/height']) ?? numericDraftValue(base['/height']) ?? 166;
   const guiLeft = (WYSIWYG_WIDTH - guiWidth) / 2;
   const guiTop = (WYSIWYG_HEIGHT - guiHeight) / 2;
 
   if (!editor) {
     return (
       <div data-testid="gui-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>
-        {tr("正在加载界面编辑器…")}</div>
+        {saveMessage ? renderUiMessage(saveMessage) : uiText('正在加载界面编辑器…', 'Loading the GUI editor…')}</div>
     );
   }
 
@@ -459,17 +501,20 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
             {tr("生成影响：")}{impact.join(', ')}
           </span>
         )}
-        {saveMessage && <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>{saveMessage}</span>}
+        {saveMessage && <span role="status" style={{ fontSize: 12, color: 'var(--text-sub)' }}>{renderUiMessage(saveMessage)}</span>}
+        {current.dirty && <span role="status">{uiText('未保存', 'Unsaved')}</span>}
         <button
           type="button"
           className="btn-primary"
           data-testid="gui-save-btn"
-          disabled={saving || changes.length === 0 || issues.length > 0}
+          disabled={saving || current.saveUnknown || !current.dirty || issues.length > 0 || pending.invalid.length > 0}
           onClick={save}
         >
           <Save size={13} /> {saving ? tr("保存中…") : tr("保存 GUI")}
         </button>
       </header>
+      <EditorRecoveryNotice editor="gui" saveUnknown={current.saveUnknown} diagnostics={current.diagnostics}
+        busy={saving || current.loading} onRead={() => void readLatest()} />
 
       <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '230px minmax(420px, 1fr) 300px' }}>
         <aside style={{ borderRight: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', minHeight: 0,
@@ -544,12 +589,12 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               </select>
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
-              {tr("宽度")}<input data-testid="gui-width" type="number" min={0} max={512} value={guiWidth}
-                onChange={(event) => setValue('/width', Number(event.target.value))} style={{ width: 72, marginLeft: 5 }} />
+              {tr("宽度")}<input data-testid="gui-width" type="text" inputMode="decimal" value={String(values['/width'] ?? '')}
+                onChange={(event) => setValue('/width', event.target.value)} style={{ width: 72, marginLeft: 5 }} />
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
-              {tr("高度")}<input data-testid="gui-height" type="number" min={0} max={512} value={guiHeight}
-                onChange={(event) => setValue('/height', Number(event.target.value))} style={{ width: 72, marginLeft: 5 }} />
+              {tr("高度")}<input data-testid="gui-height" type="text" inputMode="decimal" value={String(values['/height'] ?? '')}
+                onChange={(event) => setValue('/height', event.target.value)} style={{ width: 72, marginLeft: 5 }} />
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)', display: 'flex', alignItems: 'center', gap: 5 }}>
               <input type="checkbox" checked={Boolean(values['/renderBgLayer'])}
@@ -565,8 +610,8 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               <div style={{ position: 'absolute', left: guiLeft, top: guiTop, width: guiWidth, height: guiHeight,
                 border: '1px dashed var(--accent-copper)', background: Boolean(values['/renderBgLayer']) ? 'var(--bg-surface)' : 'transparent' }} />
               {components.map((component, index) => {
-                const x = Number(component.data.x ?? 0);
-                const y = Number(component.data.y ?? 0);
+                const x = numericDraftValue(component.data.x) ?? numericDraftValue(componentsFrom(base)[index]?.data.x) ?? 0;
+                const y = numericDraftValue(component.data.y) ?? numericDraftValue(componentsFrom(base)[index]?.data.y) ?? 0;
                 const size = componentSize(component);
                 return (
                   <button
@@ -680,12 +725,13 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                     </label>
                   );
                 }
-                if (typeof value === 'number') {
+                if (typeof value === 'number' || typeof componentsFrom(base)[selectedIndex ?? -1]?.data[key] === 'number'
+                  || ['x', 'y', 'width', 'height', 'id', 'spritesCount'].includes(key)) {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
                       {fieldLabel(key)}
-                      <input id={inputId} data-testid={`gui-component-field-${key}`} type="number" value={value}
-                        onChange={(event) => updateComponentField(key, Number(event.target.value))}
+                      <input id={inputId} data-testid={`gui-component-field-${key}`} type="text" inputMode="decimal" value={String(value ?? '')}
+                        onChange={(event) => updateComponentField(key, event.target.value)}
                         style={{ width: '100%', marginTop: 3 }} />
                     </label>
                   );

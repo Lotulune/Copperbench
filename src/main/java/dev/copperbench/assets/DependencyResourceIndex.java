@@ -166,4 +166,20 @@ final class DependencyResourceIndex {
         if (!selected.sha256().equals(WorkspaceExecutionSnapshot.sha256(selected.path()))) throw new IOException("Dependency changed");
         return model;
     }
+
+    byte[] readResource(String resource, int limit) throws IOException {
+        var candidates = entries.getOrDefault(resource, List.of());
+        if (candidates.size() != 1 || uncertain.contains(resource)) return null;
+        Archive selected = candidates.getFirst();
+        if (!selected.sha256().equals(WorkspaceExecutionSnapshot.sha256(selected.path()))) throw new IOException("Dependency changed");
+        byte[] bytes;
+        try (ZipFile zip = new ZipFile(selected.path().toFile())) {
+            var entry = zip.getEntry(resource);
+            if (entry == null) throw new IOException("Dependency resource disappeared");
+            try (var input = zip.getInputStream(entry)) { bytes = input.readNBytes(limit + 1); }
+        }
+        if (bytes.length > limit) throw new IOException("Texture exceeds the preview limit");
+        if (!selected.sha256().equals(WorkspaceExecutionSnapshot.sha256(selected.path()))) throw new IOException("Dependency changed");
+        return bytes;
+    }
 }

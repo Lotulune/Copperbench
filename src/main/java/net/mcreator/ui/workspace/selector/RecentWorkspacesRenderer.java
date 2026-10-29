@@ -18,93 +18,44 @@
 
 package net.mcreator.ui.workspace.selector;
 
+import dev.copperbench.shell.ProductTheme;
 import net.mcreator.generator.GeneratorFlavor;
-import net.mcreator.ui.component.util.PanelUtils;
-import net.mcreator.ui.init.L10N;
-import net.mcreator.ui.laf.themes.Theme;
-import net.mcreator.util.StringUtils;
-import net.mcreator.util.image.ImageUtils;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.util.Objects;
 
+/** Names stay primary; paths and core versions are horizontal metadata. */
 class RecentWorkspacesRenderer extends JPanel implements ListCellRenderer<RecentWorkspaceEntry> {
+    private final JLabel name = new JLabel();
+    private final JLabel path = new JLabel();
+    private final JLabel version = new JLabel();
+    private final JLabel icon = new JLabel();
 
-	private String version = null;
-	private boolean isSelected = false;
+    RecentWorkspacesRenderer() {
+        super(new BorderLayout(10, 0));
+        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        name.setFont(name.getFont().deriveFont(Font.BOLD, 14f));
+        path.setFont(path.getFont().deriveFont(11f));
+        version.setFont(version.getFont().deriveFont(10f));
+        JPanel copy = new JPanel(new GridLayout(0, 1, 0, 3));
+        copy.setOpaque(false);
+        copy.add(name); copy.add(path); copy.add(version);
+        add(icon, BorderLayout.WEST); add(copy, BorderLayout.CENTER);
+    }
 
-	private final Font rotatedFont;
-
-	private final JLabel nameLabel = new JLabel();
-	private final JLabel pathLabel = new JLabel();
-	private final JLabel iconLabel = new JLabel();
-
-	RecentWorkspacesRenderer() {
-		super(new BorderLayout(7, 0));
-
-		AffineTransform affineTransform = new AffineTransform();
-		affineTransform.rotate(Math.toRadians(-90), 0, 0);
-		rotatedFont = getFont().deriveFont(11.0f).deriveFont(affineTransform);
-
-		setBackground(Theme.current().getSecondAltBackgroundColor());
-
-		nameLabel.setFont(getFont().deriveFont(20.0f));
-		pathLabel.setFont(getFont().deriveFont(11.0f));
-
-		add("West", iconLabel);
-		add("Center", PanelUtils.northAndCenterElement(nameLabel, pathLabel));
-	}
-
-	@Override
-	public Component getListCellRendererComponent(JList<? extends RecentWorkspaceEntry> list,
-			RecentWorkspaceEntry value, int index, boolean isSelected, boolean cellHasFocus) {
-		this.version = value.getMCRVersion();
-		this.isSelected = isSelected;
-
-		String path = value.getPath().getParentFile().getAbsolutePath().replace("\\", "/");
-
-		nameLabel.setForeground(
-				isSelected ? Theme.current().getInterfaceAccentColor() : Theme.current().getAltForegroundColor());
-		pathLabel.setForeground(nameLabel.getForeground());
-
-		setToolTipText(L10N.t("dialog.workspace_selector.recent_workspace", value.getName(), path,
-				Objects.requireNonNullElse(value.getMCRVersion(), L10N.t("common.not_applicable"))));
-		setBorder(BorderFactory.createEmptyBorder(2, version != null ? 23 : 5, 3, 0));
-
-		if (value.getType() != GeneratorFlavor.UNKNOWN) {
-			ImageIcon icon = new ImageIcon(
-					ImageUtils.darken(ImageUtils.toBufferedImage(value.getType().getIcon().getImage())));
-
-			iconLabel.setIcon(
-					isSelected ? ImageUtils.colorize(icon, Theme.current().getInterfaceAccentColor(), false) : icon);
-			nameLabel.setText(StringUtils.abbreviateString(value.getName(), 17));
-			pathLabel.setText(StringUtils.abbreviateStringInverse(path, 26));
-		} else {
-			iconLabel.setIcon(null);
-			nameLabel.setText(StringUtils.abbreviateString(value.getName(), 19));
-			pathLabel.setText(StringUtils.abbreviateStringInverse(path, 34));
-		}
-
-		return this;
-	}
-
-	@Override protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-
-		if (version != null) {
-			Graphics2D g2 = (Graphics2D) g;
-
-			g2.setColor(
-					isSelected ? Theme.current().getInterfaceAccentColor() : Theme.current().getAltForegroundColor());
-
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-			String[] parts = version.split("\\.");
-			g2.setFont(rotatedFont);
-			g2.drawString(parts[0] + "." + parts[1], 15, 40);
-		}
-	}
-
+    @Override public Component getListCellRendererComponent(JList<? extends RecentWorkspaceEntry> list,
+            RecentWorkspaceEntry entry, int index, boolean selected, boolean focused) {
+        Color foreground = selected ? list.getSelectionForeground() : UIManager.getColor("Label.foreground");
+        setBackground(selected ? list.getSelectionBackground() : list.getBackground());
+        name.setForeground(foreground);
+        path.setForeground(selected ? foreground : ProductTheme.muted());
+        version.setForeground(path.getForeground());
+        name.setText(entry.getName());
+        String location = entry.getPath().getParentFile().getAbsolutePath();
+        path.setText(location);
+        version.setText(entry.getMCRVersion() == null ? "" : "MCreator " + entry.getMCRVersion());
+        icon.setForeground(path.getForeground());
+        icon.setIcon(entry.getType() == GeneratorFlavor.UNKNOWN ? null : ProductTheme.monochrome(entry.getType().getIcon()));
+        setToolTipText(entry.getName() + " — " + location);
+        return this;
+    }
 }

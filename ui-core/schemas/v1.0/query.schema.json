@@ -40,6 +40,7 @@
         "preview_asset_move",
         "list_mod_elements",
         "get_mod_element_editor",
+        "get_element_visual_preview",
         "preview_mod_element_change",
         "get_procedure_editor",
         "preview_procedure_change",
@@ -78,6 +79,16 @@
     }
   },
   "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "get_element_visual_preview"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"type": "object", "required": ["elementId"], "additionalProperties": false,
+        "properties": {
+          "elementId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+          "expectedUpdatedAt": {"type": "string", "maxLength": 64},
+          "changes": {"type": "array", "maxItems": 32, "items": {"type": "object", "required": ["path", "value"], "additionalProperties": false,
+            "properties": {"path": {"type": "string", "pattern": "^/(fields/)?(texture(Top|Left|Front|Right|Back|Bottom|Base64)?|renderType|customModelName|modelResource|blockBase|plantType|mobModelName|mobModelTexture)$"}, "value": {}}}}
+        }}}}
+    },
     {
       "if": {"properties": {"operation": {"const": "get_asset_preview"}}, "required": ["operation"]},
       "then": {"properties": {"payload": {"type": "object", "required": ["assetId", "expectedSha256"],

@@ -1,76 +1,79 @@
 <div align="center">
   <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
   <h1>Copperbench</h1>
-  <p><strong>在桌面上制作、构建和测试 Minecraft Java 模组。</strong></p>
+  <p><strong>让可视化编辑、手写 Java 和本地 Agent 在同一个 Minecraft 模组工程中协作。</strong></p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="docs/releases/current.md">下载 0.1.4</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
+  <p>
+    <a href="https://github.com/Lotulune/Copperbench/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lotulune/Copperbench/test.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="main 分支构建与测试状态"></a>
+    <a href="docs/releases/current.md"><img src="https://img.shields.io/badge/App-Windows%20%7C%20Linux-7289da?style=flat-square" alt="应用平台：Windows 和 Linux"></a>
+    <a href="docs/user/README.md"><img src="https://img.shields.io/badge/Loaders-Fabric%20%7C%20NeoForge-c77d48?style=flat-square" alt="加载器：Fabric 和 NeoForge"></a>
+    <a href="#development"><img src="https://img.shields.io/badge/JDK-25-437a54?style=flat-square" alt="开发环境 JDK：25"></a>
+    <a href="LICENSE.txt"><img src="https://img.shields.io/badge/License-GPL--3.0--only-2ea44f?style=flat-square" alt="许可证：GPL-3.0-only"></a>
+  </p>
+  <p><a href="docs/releases/current.md">下载</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
 
-Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fabric 和 NeoForge。用模组元素编辑器和 Blockly 制作内容，也可以编辑手写源码、管理模型与纹理，并通过本机 MCP 接入外部 AI 工具。
+Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 
-**当前稳定版：0.1.4，Windows 与 Linux 均已发布。** 新版工作台加入源码编辑、关系图、资产分类与预览，并简化导航和设置。
+**当前版本：0.1.18，Windows 与 Linux 均已发布。** 本版加入静态模型与元素预览、与简洁创作共享会话的专业工作台 Agent，并改进 Blockbench 打开响应与模型保存同步。安装包和发布详情见[当前下载](docs/releases/current.md)。
 
 <a id="getting-started"></a>
 
 ## 下载与开始使用
 
-| 平台 | 当前版本 | 安装包 | 指南 |
-| --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable) | Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
+安装包格式与链接统一维护在[当前下载](docs/releases/current.md)。Windows 按[快速开始](docs/user/getting-started.md)安装，Ubuntu 按[Linux 安装说明](docs/user/linux-installation.md)安装。
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 新建工作区，选择加载器和 Minecraft 版本。
-3. 添加模组元素，保存、构建，然后启动测试客户端。
+3. 在「简洁创作」中连接本机助手，或切换到专业工作台使用可视化编辑器和源码。按[第一件作品](docs/user/first-creation.md)创建方块，再看[构建失败与导出](docs/user/build-and-export.md)。
 
 工作台支持简体中文和英文。内置 Fabric / NeoForge 生成器覆盖 Minecraft **26.2、26.1.2、1.21.1、1.20.1**；一个工作区同时使用一个活动生成器。
 
-Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.4 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
+Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网。Blockbench 和创作助手 CLI 需单独安装与配置；Python 工作台需要 Python 3.11 或更新版本。
 
 <a id="showcase"></a>
 
 ## 工作台
 
-![Copperbench 0.1.4 工作台概览](assets/screenshots/v0.1.4/zh-CN/workbench.png)
+| 简洁创作 | 专业工作台 |
+| :---: | :---: |
+| ![亮色简洁创作：作品内容、对话与元素设置](assets/screenshots/2026-10-24/zh-CN/simple-creation-light.png) | ![亮色专业工作台：项目总览与导航](assets/screenshots/2026-10-24/zh-CN/workbench-light.png) |
+| 作品内容、助手对话和常用设置集中在一个界面。 | 从总览进入编辑器，查看项目状态并执行构建与运行。 |
+| **模组元素编辑** | **Java 源码** |
+| ![亮色模组元素编辑器：元素列表与方块属性](assets/screenshots/2026-10-24/zh-CN/elements-light.png) | ![亮色 Java 源码编辑器](assets/screenshots/2026-10-24/zh-CN/source-light.png) |
+| 浏览元素，在检查器中编辑字段。 | 浏览、搜索和编辑手写文件，生成文件带有只读标识。 |
+| **Python 工作台** | **关系图** |
+| ![亮色 Python 工作台：内置脚本示例、控制台与当前上下文](assets/screenshots/2026-10-24/zh-CN/python-light.png) | ![亮色工作区关系图](assets/screenshots/2026-10-24/zh-CN/relations-light.png) |
+| 脚本编辑器、控制台和当前工程上下文。 | 按分类浏览、搜索并定位工作区中的元素与资产。 |
 
-<table>
-  <tr>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/zh-CN/source.png" alt="源码编辑器" width="480"></td>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/zh-CN/relations.png" alt="工作区关系图" width="480"></td>
-  </tr>
-  <tr>
-    <td><strong>源码</strong><br>文件树、搜索、编辑标签页与生成文件只读标识。</td>
-    <td><strong>关系图</strong><br>浏览元素与资产，展开分组并定位相关内容。</td>
-  </tr>
-</table>
-
-<sub>0.1.4 前端的浏览器截图，使用内置 Copper Trails 示例数据。 [截图来源](assets/screenshots/README.md)</sub>
+2026-10-24 从当前检出的亮色浏览器预览截取，使用内置 Copper Trails 示例数据。[截图来源与复拍方法](assets/screenshots/README.md)
 
 ## 能做什么
 
 | 功能 | 用法 |
 | --- | --- |
-| 模组元素与逻辑 | 编辑方块、物品、实体等元素，用 Blockly 编排 Procedure。 |
-| 源码 | 浏览、搜索和编辑手写文件；保留草稿，检查外部修改冲突。生成文件只读。 |
-| 资产与模型 | 按类型筛选模型、纹理等资产，检查引用，预览图片和支持的模型，连接 Blockbench。 |
-| 关系图 | 搜索、折叠、平移、缩放和移动节点，点击打开元素或资产；不修改业务引用。 |
-| 工作区工具 | 编辑变量、标签与翻译，查看诊断、本地历史、版本迁移和设置。 |
-| 构建与自动化 | 构建、运行客户端或服务端，通过 MCP / SDK / headless 驱动工作区操作。 |
+| 简洁创作与 Agent | 在简洁创作和专业工作台之间切换、共享助手会话；当前源码接入 Codex CLI、Claude Code、Grok Build、Google Antigravity CLI 和 DeepSeek Harness。 |
+| 可视化编辑 | 创建方块、物品、实体等模组元素，用 Blockly 编排逻辑，并从字段诊断定位到编辑控件。 |
+| 源码与 Python | 编辑手写 Java，保留草稿并检查修改冲突；通过 [Python 工作台](docs/user/python-workbench.md)运行脚本和持久控制台，访问当前工程。生成文件保持只读。 |
+| 资产与模型 | 查看纹理、静态模型几何和元素外观，打开 Blockbench 编辑模型并同步保存结果。 |
+| 工作区工具 | 浏览关系图，编辑变量、标签和翻译，查看本地历史及迁移预览。 |
+| 构建与交付 | 构建、启动测试客户端或服务端，从诊断定位源码并导出模组；精确已验证导出绑定所选验收记录的产物。 |
 
 具体功能与生成器范围见[使用说明](docs/user/README.md)。Bedrock Add-on 不属于当前第一方 Java 模组编辑范围。
 
 ## 文档
 
-- [文档导航](docs/README.md) · [使用说明](docs/user/README.md) · [故障排查](docs/user/troubleshooting.md)
-- [MCP 接入](docs/ai/getting-started.md) · [Agent 操作示例](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
+- [文档导航](docs/README.md) · [第一件作品](docs/user/first-creation.md) · [构建失败与导出](docs/user/build-and-export.md)
+- [简洁创作](docs/user/simple-creation.md) · [Python 工作台](docs/user/python-workbench.md) · [连接 Blockbench](docs/user/blockbench-setup.md)
+- [Agent 接入](docs/ai/getting-started.md) · [用公开 API 创建同一个步道方块](docs/ai/trail-block.md) · [SDK](sdk/README.md)
 - [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [项目目录与维护](docs/maintenance/repository-maintenance.md)
-- [当前待办](docs/remaining-work.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
+- [当前版本与源码状态](docs/status.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
 
 <a id="development"></a>
 
 ## 从源码运行
 
-需要 JDK 25（桌面运行推荐带 JCEF 的 JetBrains Runtime）、Node.js 22、npm 和 Git；Windows 命令使用 PowerShell 7。先按[开发环境说明](docs/build/development-setup.md)配置 JDK。
+需要 JDK 25（原生桌面运行需带 JCEF 的 JetBrains Runtime）、Node.js 22、npm 和 Git；Windows 命令使用 PowerShell 7。先按[开发环境说明](docs/build/development-setup.md)配置开发工具。
 
 ```powershell
 git clone https://github.com/Lotulune/Copperbench.git

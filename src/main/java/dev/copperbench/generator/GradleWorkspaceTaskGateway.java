@@ -51,8 +51,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /** Runs loader-specific generation and Gradle tasks outside the workspace revision lock. */
 public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
@@ -113,6 +111,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	}
 
 	private void execute(UUID workspaceId, WorkspaceState state, Operation operation, JsonObject payload, Job job) {
+		WorkspaceTaskInputIdentity.Monitor inputMonitor = null;
 		try {
 			Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
 			Path executionRoot = operation == Operation.RUN_GAMETEST ? GameTestRunDirectory.select(root, job.id()) : isolated(operation)
@@ -168,9 +167,40 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			var result = backend.generate(executionRoot, state);
 			job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
 					+ " files; modId=" + result.modId());
+			Map<String, UUID> sourceOwners = new HashMap<>(result.sourceElementOwners());
+			Map<String, UUID> preparedOwners = generationPreparation.sourceElementOwners(state, executionRoot);
+			Set<String> ambiguousSources = new HashSet<>();
+			preparedOwners.forEach((path, owner) -> {
+				UUID previous = sourceOwners.putIfAbsent(path, owner);
+				if (previous != null && !previous.equals(owner)) ambiguousSources.add(path);
+			});
+			ambiguousSources.forEach(sourceOwners::remove);
+			job.sourceElementOwners = Map.copyOf(sourceOwners);
+			WorkspaceDeliveryOutputs.Prepared delivery = null;
+			GradleArchiveOutput.Request archiveOutput = null;
+			if (operation == Operation.EXPORT_WORKSPACE) {
+				delivery = WorkspaceDeliveryOutputs.prepare(root, payload);
+				if (backend.archiveTaskNames().isEmpty() && !delivery.output().getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip"))
+					throw new IllegalArgumentException("Pack exports require a workspace-relative .zip destination");
+				if (!backend.archiveTaskNames().isEmpty()) archiveOutput = GradleArchiveOutput.prepare(root, job.id(), backend.archiveTaskNames());
+			}
+			JsonObject liveInput = null;
+			if (operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE || operation == Operation.RUN_CLIENT) {
+				// Generated files are now ready. Observe the live input, without freezing/copying execution.
+				try {
+					inputMonitor = WorkspaceTaskInputIdentity.monitor(root);
+					liveInput = WorkspaceTaskInputIdentity.start(root, workspaceId, job.id(), state.revision(), clock, job::cancellationRequested);
+					job.record("sourceSnapshot", liveInput);
+				} catch (java.io.IOException | RuntimeException unavailable) {
+					recordInputUnavailable(root, workspaceId, job, unavailable);
+				}
+			}
+			if (job.cancellationRequested()) throw new InterruptedException("Task cancelled before process execution");
 			if (operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE) {
 				job.progress(0.55, "task." + taskKind(operation) + ".building", "Running Gradle build");
-				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(15),
+				List<String> arguments = archiveOutput == null ? backend.gradleArguments(operation)
+						: archiveOutput.arguments(backend.gradleArguments(operation));
+				var process = processes.run(executionRoot, arguments, Duration.ofMinutes(15),
 						line -> {
 							job.log("info", line);
 							job.captureJavaCompileDiagnostic(executionRoot, line);
@@ -180,7 +210,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				if (!backend.buildOutputAvailable(executionRoot))
 					throw new IllegalStateException(backend.displayName() + " build did not produce its export artifact");
 				if (operation == Operation.EXPORT_WORKSPACE) {
-					Path exported = backend.export(executionRoot, payload);
+					GradleArchiveOutput.Artifact declared = archiveOutput == null ? null : archiveOutput.artifact();
+					Path artifact = declared == null ? backend.buildArtifact(executionRoot) : declared.path();
+					Path exported = delivery.publish(artifact, declared == null ? null : declared.sha256());
+					if (inputMonitor != null) inputMonitor.publishedOutput(exported);
 					job.log("info", "Exported " + backend.displayName() + " artifact to "
 							+ executionRoot.relativize(exported).toString().replace('\\', '/'));
 				}
@@ -264,6 +297,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				}
 				if (operation == Operation.RUN_DATAGEN) writeDatagenManifest(executionRoot, state, result, job);
 			}
+			if (liveInput != null) {
+				try { WorkspaceTaskInputIdentity.finish(root, workspaceId, job.id(), liveInput,
+						store.read(workspaceId).map(current -> current.revision() == state.revision()).orElse(false), inputMonitor, clock, job::cancellationRequested); }
+				catch (java.io.IOException | RuntimeException unavailable) { recordInputUnavailable(root, workspaceId, job, unavailable); }
+			}
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
 		} catch (WorkspaceTaskGateway.GenerationPreparationException exception) {
@@ -328,6 +366,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					backend.displayName(), operation, workspaceId, exception);
 			job.fail(backend.diagnosticPrefix() + "_" + taskKind(operation).toUpperCase(Locale.ROOT) + "_FAILED",
 					failureId, taskKind(operation));
+		} finally {
+			if (inputMonitor != null) try { inputMonitor.close(); }
+			catch (java.io.IOException failure) { LOG.warn("Could not close task input observation {}", job.id(), failure); }
 		}
 	}
 
@@ -399,36 +440,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		job.fail(code, failureId, taskKind(operation), messageKey, fallback, args);
 	}
 
-	static Path exportJar(Path root, JsonObject payload) throws Exception {
-		if (!payload.has("output") || !payload.get("output").isJsonPrimitive()
-				|| payload.get("output").getAsString().isBlank())
-			throw new IllegalArgumentException("Export output is required");
-		Path normalizedRoot = root.toAbsolutePath().normalize();
-		Path output = normalizedRoot.resolve(payload.get("output").getAsString()).normalize();
-		if (!output.startsWith(normalizedRoot)) throw new IllegalArgumentException("Export path escapes the workspace");
-		Path jar;
-		try (var files = Files.list(normalizedRoot.resolve("build/libs"))) {
-			jar = files.filter(path -> path.getFileName().toString().endsWith(".jar"))
-					.filter(path -> !path.getFileName().toString().endsWith("-sources.jar"))
-					.sorted().findFirst().orElseThrow(() -> new IllegalStateException("Build did not produce a mod JAR"));
+
+	private void recordInputUnavailable(Path root, UUID workspaceId, Job job, Exception cause) {
+		String detail = WorkspaceTaskInputIdentity.failureDetail(cause);
+		job.log("warning", "Task input identity unavailable: " + detail);
+		try { WorkspaceTaskInputIdentity.unavailable(root, workspaceId, job.id(), detail, clock); }
+		catch (java.io.IOException | RuntimeException receiptFailure) {
+			LOG.warn("Could not record unavailable input identity for {}", job.id(), receiptFailure);
 		}
-		if (output.getParent() != null) Files.createDirectories(output.getParent());
-		if (output.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip")) {
-			try (ZipOutputStream archive = new ZipOutputStream(Files.newOutputStream(output))) {
-				archive.putNextEntry(new ZipEntry(jar.getFileName().toString()));
-				Files.copy(jar, archive);
-				archive.closeEntry();
-				Path lock = normalizedRoot.resolve(".copperbench/generator-lock.json");
-				if (Files.isRegularFile(lock)) {
-					archive.putNextEntry(new ZipEntry("generator-lock.json"));
-					Files.copy(lock, archive);
-					archive.closeEntry();
-				}
-			}
-		} else {
-			Files.copy(jar, output, StandardCopyOption.REPLACE_EXISTING);
-		}
-		return output;
 	}
 
 	@Override public Optional<JsonObject> find(UUID workspaceId, UUID taskId) {
@@ -866,6 +885,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private Path executionRoot;
 		private long sourceRevision;
 		private WorkspaceState sourceState;
+		private Map<String, UUID> sourceElementOwners = Map.of();
 		private PublishSession publishSession;
 		private boolean published;
 		private final CountDownLatch workerFinished = new CountDownLatch(1);
@@ -1079,46 +1099,26 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			String path = diagnosticPath(executionRoot, source);
 			String message = "Line " + lineNumber + ": " + compilerMessage;
 			String key = path + "\n" + message;
-			UUID elementId = resolveGeneratedElement(path);
 			JsonObject sourcePreview = captureSourcePreview(executionRoot, source, path, lineNumber);
+			UUID elementId = sourcePreview == null ? null : sourceElementOwners.get(path.startsWith("/") ? path.substring(1) : path);
+			if (elementId != null && (sourceState == null || sourceState.element(elementId) == null
+					|| sourceState.element(elementId).ownership().equals("manual"))) elementId = null;
 			synchronized (this) {
 				if (isRunning() && javaCompileDiagnosticKeys.add(key)) {
 					addDiagnostic("JAVA_COMPILE_ERROR", message, path, elementId);
-					if (sourcePreview != null) sourcePreviews.put(path, sourcePreview);
+					JsonObject diagnostic = diagnosticEntries.getLast();
+					for (var raw : diagnostic.getAsJsonArray("actions")) {
+						JsonObject action = raw.getAsJsonObject();
+						if ("open_source".equals(action.get("kind").getAsString())) {
+							JsonObject payload = new JsonObject(); payload.addProperty("line", Integer.parseInt(lineNumber));
+							action.add("payload", payload);
+						}
+					}
+					if (sourcePreview != null) sourcePreviews.putIfAbsent(path, sourcePreview);
 				}
 			}
 		}
 
-		private UUID resolveGeneratedElement(String path) {
-			WorkspaceState snapshot = sourceState;
-			if (snapshot == null || path == null || path.isBlank()) return null;
-			String fileName;
-			try {
-				fileName = Path.of(path.replace('/', java.io.File.separatorChar)).getFileName().toString();
-			} catch (RuntimeException exception) {
-				return null;
-			}
-			String stem = fileName.toLowerCase(Locale.ROOT).endsWith(".java")
-					? fileName.substring(0, fileName.length() - 5) : fileName;
-			String normalizedStem = normalizeGeneratedName(stem);
-			List<WorkspaceState.Element> matches = snapshot.elements().stream()
-					.filter(element -> generatedSourceMatches(element, normalizedStem)).toList();
-			return matches.size() == 1 ? matches.getFirst().id() : null;
-		}
-
-		private static boolean generatedSourceMatches(WorkspaceState.Element element, String normalizedStem) {
-			String name = normalizeGeneratedName(element.name());
-			return switch (element.type()) {
-				case "procedure" -> normalizedStem.equals(name + "procedure");
-				case "block", "item" -> false;
-				case "code" -> normalizedStem.equals(name) || normalizedStem.equals(name + "element");
-				default -> normalizedStem.equals(name + "element");
-			};
-		}
-
-		private static String normalizeGeneratedName(String value) {
-			return value == null ? "" : value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
-		}
 
 		private static String diagnosticPath(Path executionRoot, String source) {
 			String normalizedSource = source.replace('\\', '/');
@@ -1229,7 +1229,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				if (path.startsWith("/src/main/java/") && path.toLowerCase(Locale.ROOT).endsWith(".java")) {
 					JsonObject source = new JsonObject();
 					source.addProperty("id", "open_generated_source");
-					source.add("label", localized("action.open_source", "View generated source"));
+					source.add("label", localized("action.open_source", "View source"));
 					source.addProperty("kind", "open_source");
 					source.addProperty("target", path);
 					actions.add(source);

@@ -1,5 +1,14 @@
 /** English translations of authored interface messages. User content is never translated. */
 export const enUi: Record<string, string> = {
+  "工作区已有新修改": "The workspace has newer changes",
+  "你的修改尚未保存。可以继续编辑，或读取工作区最新状态；读取不会提交你的草稿。": "Your changes are not saved yet. Keep editing or fetch the latest workspace state. Fetching does not submit your draft.",
+  "暂时无法读取最新状态，请重试。草稿仍保留在编辑器中。": "Could not fetch the latest state. Try again. Your draft is still in the editor.",
+  "继续编辑": "Keep editing",
+  "正在读取…": "Fetching…",
+  "暂时无法打开工作区": "Could not open the workspace",
+  "界面未能连接到 Copperbench。请重新加载；若问题持续，请关闭并重新启动应用。": "The interface could not connect to Copperbench. Reload it, or restart the app if the problem continues.",
+  "查看错误详情": "Show error details",
+  "重新加载": "Reload",
   "叠加层布局": "Overlay layout",
   "选择组件以编辑属性。": "Select a component to edit its properties.",
   "固定文本": "Fixed text",

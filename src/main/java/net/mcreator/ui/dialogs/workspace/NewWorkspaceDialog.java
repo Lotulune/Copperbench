@@ -76,6 +76,10 @@ public class NewWorkspaceDialog extends MCreatorDialog {
 			UIRES.get("16px.bedrock"));
 
 	public NewWorkspaceDialog(Window w) {
+		this(w, false);
+	}
+
+	public NewWorkspaceDialog(Window w, boolean firstCreation) {
 		super(w, null, true);
 
 		AbstractWorkspacePanel neoforgeWorkspacePanel = new NeoForgeWorkspacePanel(this);
@@ -92,6 +96,9 @@ public class NewWorkspaceDialog extends MCreatorDialog {
 
 		JButton ok = L10N.button("dialog.new_workspace.button_new");
 		buttons.add(ok);
+		JCheckBox firstCreationApproved = new JCheckBox(dev.copperbench.shell.UiLocalePreferences.text(
+				"确认在所选新目录中创建第一件作品", "Confirm first creation in the selected new directory"));
+		if (firstCreation) buttons.add(firstCreationApproved, 0);
 
 		JButton cancel = new JButton(UIManager.getString("OptionPane.cancelButtonText"));
 		buttons.add(cancel);
@@ -105,6 +112,7 @@ public class NewWorkspaceDialog extends MCreatorDialog {
 		add("South", buttons);
 
 		ok.addActionListener(e -> {
+			if (firstCreation && !firstCreationApproved.isSelected()) return;
 			WorkspaceSettings workspaceSettings = current.getWorkspaceSettings();
 			if (workspaceSettings != null) {
 				if (w instanceof WorkspaceSelector workspaceSelector) {
@@ -117,10 +125,21 @@ public class NewWorkspaceDialog extends MCreatorDialog {
 							workspaceSettings.getCurrentGenerator());
 				}
 
-				workspaceFile = new File(new File(current.getWorkspaceFolder()),
+				File createdFile = new File(new File(current.getWorkspaceFolder()),
 						workspaceSettings.getModID() + ".mcreator");
-				Workspace workspace = Workspace.createWorkspace(workspaceFile, workspaceSettings);
+				Workspace workspace = Workspace.createWorkspace(createdFile, workspaceSettings);
 				workspace.close();
+				workspaceFile = createdFile;
+				if (firstCreation) {
+					try {
+						dev.copperbench.shell.FirstCreationPreferences.initialize(createdFile.toPath(), workspaceSettings.getModID());
+					} catch (java.io.IOException exception) {
+						dev.copperbench.shell.ProductDialogs.show(w, dev.copperbench.shell.UiLocalePreferences.text(
+								"工作区已创建，但首作引用无法保存。请保留原目录继续编辑。\n", "The workspace was created, but first-creation references could not be saved. Keep the original directory to continue editing.\n") + exception.getMessage(),
+								dev.copperbench.shell.UiLocalePreferences.text("首作引用保存失败", "First-creation references could not be saved"), JOptionPane.WARNING_MESSAGE,
+								new Object[] { UIManager.getString("OptionPane.okButtonText") }, UIManager.getString("OptionPane.okButtonText"));
+					}
+				}
 				dispose();
 			} else {
 				showErrorsMessage(w, current.getValidationResult());
@@ -306,7 +325,23 @@ public class NewWorkspaceDialog extends MCreatorDialog {
 				Generator.GENERATOR_CACHE.values().stream()
 						.filter(e -> GeneratorFlavor.OFFICIAL_FLAVORS.contains(e.getGeneratorFlavor()))
 						.collect(Collectors.toSet()), GeneratorFlavor.BaseLanguage.JAVA);
-		if (suggestedGenerator != null) {
+		if (firstCreation) {
+			current = fabricWorkspacePanel;
+			cardLayout.show(workspacePanels, "fabric");
+			fabric.setSelected(true);
+			for (JToggleButton type : new JToggleButton[] { neoforge, fabric, forge, quilt, spigot, paper, datapack, resourcepack, addon }) type.setEnabled(false);
+			boolean available = fabricWorkspacePanel.configureFirstCreation();
+			ok.setEnabled(false);
+			firstCreationApproved.setEnabled(available);
+			firstCreationApproved.addActionListener(_ -> ok.setEnabled(available && firstCreationApproved.isSelected()));
+			label.setText(dev.copperbench.shell.UiLocalePreferences.text(
+					"<html>第一件作品 · Fabric 1.21.1<br>选择新的空目录，创建后继续方块编辑与游戏检查。</html>",
+					"<html>First creation · Fabric 1.21.1<br>Choose a new empty directory, then continue to block editing and game checks.</html>"));
+			if (!available) label.setText(dev.copperbench.shell.UiLocalePreferences.text(
+					"<html>Fabric 1.21.1 生成器不可用。<br>请检查安装与插件后再开始首作。</html>",
+					"<html>The Fabric 1.21.1 generator is unavailable.<br>Check the installation and plugins before starting first creation.</html>"));
+			pack();
+		} else if (suggestedGenerator != null) {
 			selectType(suggestedGenerator.getGeneratorFlavor());
 		} else {
 			selectType(GeneratorFlavor.FORGE);

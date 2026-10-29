@@ -93,9 +93,9 @@ class Bridge:
     def list_windows(self):
         return self.call("list_windows")
 
-    def attach(self, window_id, evidence_dir="./evidence", game_dir=None, focus=True):
+    def attach(self, window_id, evidence_dir="./evidence", game_dir=None, focus=True, keyboard_policy="english"):
         return self.call("attach", window_id=str(window_id), evidence_dir=str(Path(evidence_dir).resolve()),
-                         game_dir=str(Path(game_dir).resolve()) if game_dir else None, focus=focus)
+                         game_dir=str(Path(game_dir).resolve()) if game_dir else None, focus=focus, keyboard_policy=keyboard_policy)
 
     def observe(self, session_id, max_width=1280):
         return self.call("observe", session_id=session_id, max_width=max_width)
@@ -106,9 +106,11 @@ class Bridge:
     def read_logs(self, session_id, cursor=None):
         return self.call("read_logs", session_id=session_id, cursor=cursor)
 
-    def menu_flow(self, session_id, action_id, flow, profile_path, world_name=None, timeout_ms=20000):
+    def menu_flow(self, session_id, action_id, flow, profile_path, world_name=None, timeout_ms=20000,
+                  controller="deterministic", creation_settings=None):
         return self.call("menu_flow", session_id=session_id, action_id=action_id, flow=flow,
-                         profile_path=str(Path(profile_path).resolve()), world_name=world_name, timeout_ms=timeout_ms)
+                         profile_path=str(Path(profile_path).resolve()), world_name=world_name, timeout_ms=timeout_ms,
+                         controller=controller, creation_settings=creation_settings)
 
     def record_verification(self, session_id, expectation, verdict, evidence_refs, author="planner"):
         return self.call("record_verification", session_id=session_id, expectation=expectation, verdict=verdict,

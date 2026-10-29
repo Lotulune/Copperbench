@@ -17,6 +17,10 @@ import org.cef.handler.CefMessageRouterHandlerAdapter;
 import java.io.Closeable;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Narrow JCEF transport for the path-scoped Blockbench process service. */
@@ -32,22 +36,31 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	private final ScheduledExecutorService requests = Executors.newSingleThreadScheduledExecutor(
+			Thread.ofVirtual().name("blockbench-bridge-", 0).factory());
+	private ScheduledFuture<?> exitMonitor;
+
+	JcefBlockbenchBridgeTransport(BlockbenchProcessService service) {
+		this(null, service);
+	}
 
 	private JcefBlockbenchBridgeTransport(WebView webView, BlockbenchProcessService service) {
-		this.webView = Objects.requireNonNull(webView);
+		this.webView = webView;
 		this.service = Objects.requireNonNull(service);
-		this.expectedBrowser = webView.getBrowser();
-		this.router = webView.getRouter();
+		this.expectedBrowser = webView == null ? null : webView.getBrowser();
+		this.router = webView == null ? null : webView.getRouter();
 		this.loadStartListener = this::installHost;
 		this.closeListener = this::close;
-		this.router.addHandler(this, false);
-		this.webView.addLoadStartListener(loadStartListener);
-		this.webView.addCloseListener(closeListener);
-		installHost();
+		if (webView != null) {
+			this.router.addHandler(this, false);
+			this.webView.addLoadStartListener(loadStartListener);
+			this.webView.addCloseListener(closeListener);
+			installHost();
+		}
 	}
 
 	public static JcefBlockbenchBridgeTransport attach(WebView webView, BlockbenchProcessService service) {
-		return new JcefBlockbenchBridgeTransport(webView, service);
+		return new JcefBlockbenchBridgeTransport(Objects.requireNonNull(webView), service);
 	}
 
 	private void installHost() {
@@ -69,11 +82,6 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 		try {
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
 			String operation = payload.has("operation") ? payload.get("operation").getAsString() : "";
-			if (operation.equals("dismiss_setup")) {
-				dev.copperbench.assets.BlockbenchConfiguration.productDefault().dismissOnboarding();
-				callback.success("{\"dismissed\":true}");
-				return true;
-			}
 			if (operation.equals("select_executable")) {
 				javax.swing.SwingUtilities.invokeLater(() -> {
 					if (closed.get()) { callback.failure(503, "Blockbench bridge is closed"); return; }
@@ -87,20 +95,50 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 				});
 				return true;
 			}
+			// Recovery snapshots, asset scans and OS process creation must never occupy CEF's router thread.
+			requests.execute(() -> handleRequest(operation, payload, callback));
+		} catch (RuntimeException exception) {
+			callback.failure(400, exception.getMessage());
+		}
+		return true;
+	}
+
+	private void handleRequest(String operation, JsonObject payload, CefQueryCallback callback) {
+		if (closed.get()) return;
+		try {
+			if (operation.equals("dismiss_setup")) {
+				dev.copperbench.assets.BlockbenchConfiguration.productDefault().dismissOnboarding();
+				if (!closed.get()) callback.success("{\"dismissed\":true}");
+				return;
+			}
 			BlockbenchProcessService.Snapshot snapshot = switch (operation) {
 				case "status" -> service.status();
 				case "open_asset" -> service.openAsset(requiredString(payload, "assetId"));
 				case "open_task" -> service.openTask(java.util.UUID.fromString(requiredString(payload, "taskId")));
 				default -> throw new IllegalArgumentException("Unsupported Blockbench bridge operation");
 			};
-			callback.success(toWireJson(snapshot));
+			if (snapshot.state() == BlockbenchProcessService.State.RUNNING && exitMonitor == null)
+				exitMonitor = requests.scheduleWithFixedDelay(this::checkEditorExit, 750, 750, TimeUnit.MILLISECONDS);
+			if (!closed.get()) callback.success(toWireJson(snapshot));
 		} catch (BlockbenchBridgeException exception) {
-			callback.failure(exception.code().equals("BLOCKBENCH_ALREADY_RUNNING") ? 409 : 400,
+			if (!closed.get()) callback.failure(exception.code().equals("BLOCKBENCH_ALREADY_RUNNING") ? 409 : 400,
 					exception.code() + ": " + exception.getMessage());
 		} catch (RuntimeException exception) {
-			callback.failure(400, exception.getMessage());
+			if (!closed.get()) callback.failure(400, exception.getMessage());
 		}
-		return true;
+	}
+
+	private void checkEditorExit() {
+		if (closed.get()) return;
+		try {
+			// The asset page can be unmounted while the editor runs; completion belongs to the desktop session.
+			if (service.status().state() == BlockbenchProcessService.State.RUNNING) return;
+		} catch (RuntimeException exception) {
+			org.apache.logging.log4j.LogManager.getLogger(JcefBlockbenchBridgeTransport.class)
+					.warn("Could not finalize the Blockbench editor session", exception);
+		}
+		exitMonitor.cancel(false);
+		exitMonitor = null;
 	}
 
 	@Override public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
@@ -171,9 +209,13 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true)) return;
-		webView.removeLoadStartListener(loadStartListener);
-		webView.removeCloseListener(closeListener);
-		try { router.removeHandler(this); } catch (Exception ignored) { }
-		service.close();
+		if (webView != null) {
+			webView.removeLoadStartListener(loadStartListener);
+			webView.removeCloseListener(closeListener);
+			try { router.removeHandler(this); } catch (Exception ignored) { }
+		}
+		// Cancel before interrupting the worker so a late process creation cannot outlive the workspace.
+		service.closeAsync();
+		requests.shutdownNow();
 	}
 }

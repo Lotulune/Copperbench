@@ -205,6 +205,7 @@ class WorkspaceApplicationServiceTest {
 		entityValues.addProperty("mobLabel", "Copper Guardian");
 		entityValues.addProperty("health", 20);
 		entityValues.addProperty("mobModelTexture", "textures/entity/copper_guardian.png");
+		entityValues.addProperty("mobModelName", "Biped");
 		entityValues.addProperty("whenMobDies", "guardian_cleanup");
 		CommandOutcome created = fixture.service.execute(
 				createTypedCommand(uuid(31), 0, "livingentity", "copper_guardian", entityValues), context);
@@ -616,8 +617,10 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("plantType %= double", bottomTexture.getAsJsonObject("condition").getAsJsonArray("expressions").get(0).getAsString());
 
 		Fixture toolFixture = fixture();
+		JsonObject toolValues = new JsonObject();
+		toolValues.addProperty("texture", "minecraft:iron_pickaxe");
 		CommandOutcome toolCreated = toolFixture.service.execute(
-				createElementCommand(uuid(64), "tool", "copper_hammer", new JsonObject()), context);
+				createElementCommand(uuid(64), "tool", "copper_hammer", toolValues), context);
 		JsonArray toolSections = editorSections(toolFixture, toolCreated, uuid(65), context);
 		assertEquals("select", editorField(toolSections, "/renderType").get("control").getAsString());
 		assertEquals("procedure_reference", editorField(toolSections, "/onCrafted").get("control").getAsString());
@@ -649,6 +652,11 @@ class WorkspaceApplicationServiceTest {
 		for (String type : types) {
 			Fixture fixture = fixture();
 			JsonObject initialValues = new JsonObject();
+			if (type.equals("tool")) initialValues.addProperty("texture", "minecraft:iron_pickaxe");
+			if (type.equals("specialentity")) {
+				initialValues.addProperty("entityTexture", "boat_skin");
+				initialValues.addProperty("itemTexture", "boat_item");
+			}
 			if (type.equals("plant")) {
 				initialValues.addProperty("texture", "minecraft:poppy");
 				initialValues.addProperty("suspiciousStewEffect", "SPEED");

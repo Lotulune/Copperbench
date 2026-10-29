@@ -1,24 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
-import { createServer } from 'vite';
+import { loadSsrTestModules } from './helpers/vite-ssr-loader.mjs';
 
 // Load the production TypeScript and its real imports through the existing Vite
 // toolchain. There is no copied bridge implementation or browser server to test.
-const loader = await createServer({
-  configFile: false,
-  root: fileURLToPath(new URL('../', import.meta.url)),
-  server: { middlewareMode: true, hmr: false, watch: null },
-  appType: 'custom',
-  optimizeDeps: { noDiscovery: true }
-});
-let JcefCoreBridge;
-try {
-  ({ JcefCoreBridge } = await loader.ssrLoadModule('/src/bridge/JcefCoreBridge.ts'));
-} finally {
-  await loader.close();
-}
+const [{ JcefCoreBridge, taskLogWatermark }] = await loadSsrTestModules(['/src/bridge/JcefCoreBridge.ts']);
 
 const workspaceId = '11111111-1111-4111-8111-111111111111';
 const taskId = '44444444-4444-4444-8444-444444444444';
@@ -54,6 +41,12 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+test('incremental task reads retain a missing log interval until it has been filled', () => {
+  assert.equal(taskLogWatermark([log(1), log(3)]), 1);
+  assert.equal(taskLogWatermark([log(3)]), 0);
+  assert.equal(taskLogWatermark([log(3), log(2), log(1), log(2)]), 3);
+});
 
 async function fixture(t, { initialize = true } = {}) {
   let eventSink;
@@ -170,6 +163,102 @@ test('public task query cannot undo pushed completion and still fills missing lo
   assert.deepEqual(result.data.source, source);
   assert.equal(result.data.task.state, 'running'); // The request's raw result is intentionally preserved.
 });
+
+const compilerFailure = () => ({
+  ...failure(), code: 'JAVA_COMPILE_ERROR', path: '/src/main/java/com/example/acceptance/WorkflowNote.java',
+  message: { key: 'diagnostic.java_compile_error', fallback: '{message}', args: { message: 'Line 4: 非法的表达式开始' } }
+});
+const sourceFailure = () => ({
+  code: 'TASK_SOURCE_NOT_FOUND', severity: 'error', recoverable: true, path: '/sourcePath', actions: [],
+  message: { key: 'diagnostic.task_source_not_found', fallback: 'The requested task source preview is unavailable.',
+    args: { detail: 'Raw preview failure 中文' } }
+});
+const capturedSource = () => {
+  const content = 'package com.example.acceptance;\n\npublic final class WorkflowNote {\n    public static final String NOTE = ;\n}\n';
+  return { path: '/src/main/java/com/example/acceptance/WorkflowNote.java', language: 'java',
+    content, size: Buffer.byteLength(content, 'utf8'), line: 4 };
+};
+async function observeCompilerFailure(f) {
+  f.readTask(() => projection(task('failed'), [log(1)], [compilerFailure()]));
+  await f.bridge.sendQuery(query('get_task', { taskId }));
+  f.emit('diagnostics_changed', { counts: { error: 1, warning: 0, info: 0 }, diagnostics: [compilerFailure()] });
+}
+
+test('a rejected source subquery preserves terminal task, logs, compiler diagnostics and raw receipt', async (t) => {
+  const f = await fixture(t);
+  await observeCompilerFailure(f);
+  const before = structuredClone(f.bridge.getState());
+  const invoke = f.host.invoke;
+  f.host.invoke = async raw => {
+    const result = JSON.parse(await invoke(raw));
+    if (JSON.parse(raw).payload?.sourcePath) {
+      result.status = 'rejected'; result.data = null; result.diagnostics = [sourceFailure()];
+    }
+    return JSON.stringify(result);
+  };
+  const result = await f.bridge.sendQuery(query('get_task', { taskId, sourcePath: capturedSource().path }));
+  assert.equal(result.status, 'rejected');
+  assert.deepEqual(result.diagnostics, [sourceFailure()]);
+  assert.deepEqual(f.bridge.getState(), before);
+  assert.equal(f.bridge.getState().taskReadErrors?.[taskId], undefined);
+});
+
+test('a source transport error remains a Promise error without becoming a task-status failure', async (t) => {
+  const f = await fixture(t);
+  await observeCompilerFailure(f);
+  const before = structuredClone(f.bridge.getState());
+  f.readTask(() => { throw new Error('Source connection lost 中文'); });
+  await assert.rejects(f.bridge.sendQuery(query('get_task', { taskId, sourcePath: capturedSource().path })),
+    /Source connection lost 中文/);
+  assert.deepEqual(f.bridge.getState(), before);
+});
+
+test('a source response for another task still fails identity validation without replacing the failed task', async (t) => {
+  const f = await fixture(t);
+  await observeCompilerFailure(f);
+  const before = structuredClone(f.bridge.getState());
+  f.readTask(() => ({ ...projection(task('failed', otherTaskId), [], [compilerFailure()]), source: capturedSource() }));
+  await assert.rejects(f.bridge.sendQuery(query('get_task', { taskId, sourcePath: capturedSource().path })),
+    /does not match the requested task/);
+  assert.deepEqual(f.bridge.getState(), before);
+});
+
+for (const mode of ['transport', 'rejected']) {
+  test(`a successful source read cannot hide an in-flight ${mode} status failure or clear its recovery entry`, async (t) => {
+    const f = await fixture(t);
+    await observeCompilerFailure(f);
+    const pending = deferred();
+    const invoke = f.host.invoke;
+    let failStatusRead = true;
+    f.readTask(() => ({ ...projection(task('failed'), [log(1)], [compilerFailure()]), source: capturedSource() }));
+    f.host.invoke = async raw => {
+      const request = JSON.parse(raw);
+      if (request.operation === 'get_task' && !('sourcePath' in request.payload) && failStatusRead) {
+        await pending.promise;
+        if (mode === 'transport') throw new Error('Original task status disconnected');
+        const result = JSON.parse(await invoke(raw));
+        return JSON.stringify({ ...result, status: 'failed', data: null,
+          diagnostics: [{ ...failure(), code: 'TASK_STATUS_UNAVAILABLE' }] });
+      }
+      return invoke(raw);
+    };
+    const read = f.bridge.sendQuery(query('get_task', { taskId }));
+    const observed = mode === 'transport' ? assert.rejects(read, /Original task status disconnected/) : read;
+    const source = await f.bridge.sendQuery(query('get_task', { taskId, sourcePath: capturedSource().path }));
+    assert.deepEqual(source.data.source, capturedSource());
+    pending.resolve();
+    await observed;
+    const error = f.bridge.getState().taskReadErrors[taskId];
+    assert.match(error, mode === 'transport' ? /Original task status disconnected/ : /TASK_STATUS_UNAVAILABLE/);
+    await f.bridge.sendQuery(query('get_task', { taskId, sourcePath: capturedSource().path }));
+    assert.equal(f.bridge.getState().taskReadErrors[taskId], error);
+    assert.equal(f.bridge.getState().tasks[taskId].state, 'failed');
+    assert.deepEqual(f.bridge.getState().taskDiagnostics[taskId], [compilerFailure()]);
+    failStatusRead = false;
+    await f.bridge.sendQuery(query('get_task', { taskId }));
+    assert.equal(f.bridge.getState().taskReadErrors?.[taskId], undefined);
+  });
+}
 
 test('old task query cannot clear separately pushed failure details', async (t) => {
   const f = await fixture(t);
@@ -338,4 +427,135 @@ test('a transport error retries a running task but not a task completed while th
   await flush();
   assert.equal(f.taskQueries().length, 2);
   assert.equal(f.bridge.getState().tasks[taskId].state, 'failed');
+});
+
+test('reconnect hydration queries an existing active task and resumes its incremental logs without a command', async (t) => {
+  const f = await fixture(t);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const invoke = f.host.invoke;
+  f.host.invoke = async raw => {
+    const response = JSON.parse(await invoke(raw));
+    if (response.operation === 'get_workbench') {
+      response.data.activeTasks = [task()];
+      response.data.recentTasks = [task()];
+    }
+    return JSON.stringify(response);
+  };
+  f.bridge.getState().taskLogs[taskId] = [log(1)];
+  f.readTask(() => projection(task('succeeded'), [log(2)]));
+  await f.bridge.sendQuery(query('get_workbench'));
+  t.mock.timers.tick(500);
+  await flush();
+  assert.equal(f.taskQueries().length, 1);
+  assert.equal(f.taskQueries()[0].payload.taskId, taskId);
+  assert.equal(f.taskQueries()[0].payload.afterLogSequence, 1);
+  assert.deepEqual(f.bridge.getState().taskLogs[taskId].map(entry => entry.sequence), [1, 2]);
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'succeeded');
+  assert.equal(f.invocations.some(request => request.messageType === 'command'), false);
+});
+
+test('a later stale running receipt cannot undo a terminal task or its original diagnostics', async (t) => {
+  const f = await fixture(t);
+  f.readTask(() => projection(task('failed'), [log(1)], [failure()]));
+  await f.bridge.sendQuery(query('get_task', { taskId }));
+  f.readTask(() => projection(task(), [log(2)], []));
+  const raw = await f.bridge.sendQuery(query('get_task', { taskId, afterLogSequence: 1 }));
+  assert.equal(raw.data.task.state, 'running');
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'failed');
+  assert.deepEqual(f.bridge.getState().taskDiagnostics[taskId], [failure()]);
+  assert.deepEqual(f.bridge.getState().taskLogs[taskId].map(entry => entry.sequence), [1, 2]);
+});
+
+test('workbench hydration cannot replace a task completed by a newer task query', async (t) => {
+  const f = await fixture(t);
+  const invoke = f.host.invoke;
+  const pending = deferred();
+  f.host.invoke = async raw => {
+    const response = JSON.parse(await invoke(raw));
+    if (response.operation === 'get_workbench') {
+      response.data.recentTasks = [task()];
+      response.data.activeTasks = [task()];
+      await pending.promise;
+    }
+    return JSON.stringify(response);
+  };
+  const hydration = f.bridge.sendQuery(query('get_workbench'));
+  await flush();
+  f.readTask(() => projection(task('succeeded'), [log(1)]));
+  await f.bridge.sendQuery(query('get_task', { taskId }));
+  pending.resolve();
+  await hydration;
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'succeeded');
+  assert.deepEqual(f.bridge.getState().workbench.activeTasks, []);
+  assert.equal(f.bridge.getState().workbench.recentTasks[0].state, 'succeeded');
+});
+
+test('a command receipt arriving after completion keeps the terminal task and starts no new poll', async (t) => {
+  const f = await fixture(t);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const invoke = f.host.invoke;
+  const pending = deferred();
+  f.host.invoke = async raw => {
+    const response = await invoke(raw);
+    if (JSON.parse(raw).messageType === 'command') await pending.promise;
+    return response;
+  };
+  const command = f.bridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: randomUUID(),
+    workspaceId, operation: 'run_datagen', expectedRevision: revision, payload: {} });
+  await flush();
+  f.emit('task_completed', { task: task('succeeded') });
+  pending.resolve();
+  await command;
+  t.mock.timers.tick(2000);
+  await flush();
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'succeeded');
+  assert.equal(f.taskQueries().length, 0);
+});
+
+test('an older read failure cannot replace a newer successful status observation', async (t) => {
+  const f = await fixture(t);
+  const pending = deferred();
+  let reads = 0;
+  f.readTask(() => ++reads === 1 ? pending.promise : projection(task('succeeded')));
+  const oldRead = f.bridge.sendQuery(query('get_task', { taskId }));
+  const rejection = assert.rejects(oldRead, /late disconnect/);
+  await f.bridge.sendQuery(query('get_task', { taskId }));
+  pending.reject(new Error('late disconnect'));
+  await rejection;
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'succeeded');
+  assert.equal(f.bridge.getState().taskReadErrors?.[taskId], undefined);
+});
+
+test('a task response for another task is rejected without changing the selected task projection', async (t) => {
+  const f = await fixture(t);
+  f.emit('task_started', { task: task() });
+  f.readTask(() => projection(task('succeeded', otherTaskId), [log(1)]));
+  await assert.rejects(f.bridge.sendQuery(query('get_task', { taskId })), /does not match the requested task/);
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'running');
+  assert.equal(f.bridge.getState().tasks[otherTaskId], undefined);
+  assert.equal(f.bridge.getState().taskLogs[taskId], undefined);
+});
+
+test('failed task reads remain unavailable and retry the original task instead of stopping recovery', async (t) => {
+  const f = await fixture(t);
+  const invoke = f.host.invoke;
+  let failed = false;
+  f.host.invoke = async raw => {
+    const response = JSON.parse(await invoke(raw));
+    if (response.operation === 'get_task' && !failed) {
+      failed = true; response.status = 'failed'; response.data = null;
+      response.diagnostics = [{ ...failure(), code: 'TASK_STATUS_UNAVAILABLE' }];
+    }
+    return JSON.stringify(response);
+  };
+  await startPolledTask(t, f);
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'running');
+  assert.match(f.bridge.getState().taskReadErrors[taskId], /TASK_STATUS_UNAVAILABLE/);
+  f.readTask(() => projection(task('succeeded'), [log(1)]));
+  t.mock.timers.tick(1000);
+  await flush();
+  assert.equal(f.taskQueries().length, 2);
+  assert.equal(f.taskQueries()[1].payload.taskId, taskId);
+  assert.equal(f.bridge.getState().tasks[taskId].state, 'succeeded');
+  assert.equal(f.bridge.getState().taskReadErrors?.[taskId], undefined);
 });

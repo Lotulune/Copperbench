@@ -32,3 +32,21 @@
 @media (max-width: 760px) { .asset-orbit-stage, .asset-image-flat { height: 280px; } }
 @media (min-width: 761px) and (max-height: 850px) { .asset-orbit-stage, .asset-image-flat { height: 220px; } .asset-orbit-views { padding: 5px 8px; } .asset-orbit-controls { padding: 5px 8px; } }
 @media (pointer:coarse) { .asset-content-preview button { min-height: 44px; min-width: 44px; } }
+.element-visual-preview { margin: 0; flex: none; }
+.element-preview-heading, .element-preview-heading > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.element-preview-heading { padding: 5px 8px; border-bottom: 1px solid var(--border-subtle); }
+.element-preview-heading > button { font-size: 12px; font-weight: 600; color: var(--text-main); }
+.element-preview-heading span { font-size: 11px; color: var(--text-muted); }
+.element-preview-body { position: relative; min-width: 0; }
+.element-visual-preview .asset-orbit-stage, .element-preview-placeholder { height: 230px; }
+.element-preview-loading { position: absolute; inset: 0; display: grid; place-content: center; margin: 0; background: var(--bg-panel); color: var(--text-muted); font-size: 12px; }
+.element-preview-body[aria-busy="true"] > :not(.element-preview-loading) { visibility: hidden; }
+.model-preview-render-error { position: absolute; inset: 0; overflow: auto; padding: 18px; background: var(--bg-panel); font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+.model-preview-render-error p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.model-scene-preview .asset-orbit-controls { gap: 4px; }
+.creation-appearance-source { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.creation-shell.is-simple .creation-appearance-source button { padding: 7px 10px; color: var(--text-muted); background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); font-size: 12px; }
+.creation-shell.is-simple .creation-appearance-source button[aria-pressed="true"] { color: var(--text-main); background: var(--bg-active); border-color: var(--border-active); }
+.creation-shell.is-simple .asset-content-preview button { font-size: 11px; gap: 2px; }
+.creation-shell.is-simple .asset-content-preview button:is([aria-pressed="true"], :hover:not(:disabled)) { background: var(--bg-active); color: var(--text-main); }
+@media (max-width: 760px) { .element-visual-preview .asset-orbit-stage { height: 260px; } }

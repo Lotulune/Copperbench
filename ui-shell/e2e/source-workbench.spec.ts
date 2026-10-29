@@ -75,7 +75,7 @@ test('external revision and file hash conflict keep the draft until explicit res
   await expect(page.getByTestId('source-editor')).toHaveValue('my local draft\n');
   await expect(page.getByTestId('source-save')).toBeDisabled();
   await page.getByText('查看磁盘上的最新内容', { exact: true }).click();
-  await expect(page.getByTestId('source-conflict').locator('pre')).toHaveText('external edit\n');
+  await expect(page.getByTestId('source-disk-content')).toHaveText('external edit\n');
   await page.getByRole('button', { name: '基于最新版本保留草稿' }).click();
   await page.getByTestId('source-save').click();
   await expect(page.getByTestId('source-save')).toBeDisabled();
@@ -101,6 +101,65 @@ test('file hash guards external edits without a workspace revision change', asyn
   await page.getByRole('button', { name: '放弃草稿并加载最新' }).click();
   await expect(page.getByTestId('source-editor')).toHaveValue('disk edit without revision\n');
   await expect(page.getByTestId('source-save')).toBeDisabled();
+});
+
+test('source input typed during save remains unsaved while Core receives the captured version', async ({ page }) => {
+  await openSource(page);
+  await openFile(page, javaPath);
+  await page.evaluate(async () => {
+    const modulePath = '/src/bridge/sourceBridge.ts';
+    const { sourceBridge } = await import(modulePath);
+    const original = sourceBridge.save.bind(sourceBridge);
+    sourceBridge.save = async (...args) => {
+      await new Promise<void>(resolve => window.addEventListener('source-release-save', () => resolve(), { once: true }));
+      return original(...args);
+    };
+  });
+  await page.getByTestId('source-editor').fill('captured source A\n');
+  await page.getByTestId('source-save').click();
+  await expect(page.getByTestId('source-editor')).toBeEditable();
+  await page.getByTestId('source-editor').fill('new source B\n');
+  await page.evaluate(() => window.dispatchEvent(new Event('source-release-save')));
+  await expect(page.getByTestId('source-save')).toBeEnabled();
+  await expect(page.getByTestId('source-editor')).toHaveValue('new source B\n');
+  const disk = await page.evaluate(async path => {
+    const modulePath = '/src/bridge/sourceBridge.ts';
+    return (await (await import(modulePath)).sourceBridge.read('11111111-1111-4111-8111-111111111111', path)).data.content;
+  }, javaPath);
+  expect(disk).toBe('captured source A\n');
+});
+
+test('an interrupted source save keeps an unknown result until an explicit read and never replays the write', async ({ page }) => {
+  await openSource(page);
+  await openFile(page, javaPath);
+  await page.evaluate(async () => {
+    const modulePath = '/src/bridge/sourceBridge.ts';
+    const { sourceBridge } = await import(modulePath);
+    const original = sourceBridge.save.bind(sourceBridge);
+    const observed = window as typeof window & { sourceWriteCount: number };
+    observed.sourceWriteCount = 0;
+    sourceBridge.save = async (...args) => {
+      observed.sourceWriteCount++;
+      await original(...args);
+      throw new Error('transport disconnected after commit');
+    };
+  });
+  await page.getByTestId('source-editor').fill('unknown committed source\n');
+  await page.getByTestId('source-save').click();
+  await expect(page.getByTestId('source-save-unknown')).toBeVisible();
+  await expect(page.getByTestId('source-save')).toBeDisabled();
+  await page.evaluate(async () => { const modulePath = '/src/i18n/locale.ts'; (await import(modulePath)).setUiLocale('en'); });
+  await expect(page.getByTestId('source-save-unknown')).toContainText('save result is unknown');
+  await page.getByTestId('nav-assets').click();
+  await page.getByTestId('nav-source').click();
+  await expect(page.getByTestId('source-editor')).toHaveValue('unknown committed source\n');
+  expect(await page.evaluate(() => (window as typeof window & { sourceWriteCount: number }).sourceWriteCount)).toBe(1);
+  await page.getByTestId('source-reload').click();
+  await expect(page.getByTestId('source-conflict')).toBeVisible();
+  await page.getByRole('button', { name: 'Keep draft against latest version' }).click();
+  await expect(page.getByTestId('source-save-unknown')).not.toBeVisible();
+  await expect(page.getByTestId('source-save')).toBeDisabled();
+  expect(await page.evaluate(() => (window as typeof window & { sourceWriteCount: number }).sourceWriteCount)).toBe(1);
 });
 
 test('entrypoint evidence opens the actual file and line; find and line jump select text', async ({ page }) => {
@@ -367,4 +426,60 @@ test('320px source view switches files and editor without squeezing the editor o
   await page.getByRole('tab', { name: /gradle.properties/ }).click();
   await expect(page.getByTestId('source-editor')).toHaveValue('narrow config draft');
   await page.screenshot({ path: '../output/source-workbench-320.png' });
+});
+
+
+test('source close confirmation traps Tab, escapes, and restores its invoking control across languages', async ({ page }) => {
+  await openSource(page);
+  await openFile(page, javaPath);
+  await page.getByTestId('source-editor').fill('keyboard retained source draft');
+  const close = page.getByRole('button', { name: `关闭 ${javaPath}`, exact: true });
+  await close.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog', { name: '关闭此文件将放弃未保存的草稿。', exact: true });
+  await expect(dialog).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(dialog.getByRole('button', { name: '关闭并放弃草稿' })).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.getByRole('button', { name: '继续编辑' })).toBeFocused();
+  await page.evaluate(async () => { const path = '/src/i18n/locale.ts'; (await import(path)).setUiLocale('en'); });
+  await expect(page.getByRole('button', { name: 'Keep editing', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Close and discard draft', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: `Close ${javaPath}`, exact: true })).toBeFocused();
+  await expect(page.getByTestId('source-editor')).toHaveValue('keyboard retained source draft');
+});
+
+test('confirmation preserves newer source input even when it equals the old disk baseline', async ({ page }) => {
+  await openSource(page);
+  await openFile(page, javaPath);
+  const editor = page.getByTestId('source-editor');
+  const original = await editor.inputValue();
+  await page.evaluate(async () => {
+    const path = '/src/bridge/sourceBridge.ts';
+    const { sourceBridge } = await import(path);
+    const save = sourceBridge.save.bind(sourceBridge);
+    (window as any).sourceUnknownWrites = 0;
+    sourceBridge.save = async (...args) => {
+      (window as any).sourceUnknownWrites++;
+      await save(...args);
+      throw new Error('Transport lost after commit');
+    };
+  });
+  await editor.fill(original + '\n// submitted A');
+  await page.getByTestId('source-save').click();
+  await expect(page.getByTestId('source-save-unknown')).toBeVisible();
+  await editor.fill(original);
+  // Input B now equals the old baseline, but it is still distinct from possibly committed A.
+  await page.getByTestId('source-reload').click();
+  await expect(page.getByTestId('source-conflict')).toBeVisible();
+  await expect(editor).toHaveValue(original);
+  await expect(page.getByTestId('source-disk-content')).toContainText('// submitted A');
+  await page.getByRole('button', { name: '基于最新版本保留草稿', exact: true }).click();
+  await expect(editor).toHaveValue(original);
+  await expect(page.getByTestId('source-save-unknown')).toHaveCount(0);
+  await expect(page.getByTestId('source-save')).toBeEnabled();
+  expect(await page.evaluate(() => (window as any).sourceUnknownWrites)).toBe(1);
 });

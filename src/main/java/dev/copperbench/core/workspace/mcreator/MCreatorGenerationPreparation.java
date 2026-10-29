@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /** Prepares cold plugin workspaces in explicit tasks, keeping mutations and reads offline. */
-final class MCreatorGenerationPreparation {
+final class MCreatorGenerationPreparation implements dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparation {
     static final String PENDING = "dev.copperbench.pendingGeneration";
     private final Workspace opened;
     private final RevisionedWorkspaceStore store;
@@ -96,7 +96,28 @@ final class MCreatorGenerationPreparation {
         workspace.putMetadata(PENDING, WorkspaceFileManager.gson.fromJson(pending, Object.class));
     }
 
-    void prepare(WorkspaceState state, Path target, Operation operation, Consumer<String> output) throws Exception {
+    @Override public Map<String, UUID> sourceElementOwners(WorkspaceState state, Path executionRoot) {
+        Path source = opened.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+        Map<String, UUID> owners = new LinkedHashMap<>(); Set<String> ambiguous = new HashSet<>();
+        for (ModElement element : opened.getModElements()) {
+            UUID id = MCreatorWorkspaceStateMapper.projectedElementId(state.id(), element);
+            var snapshot = state.element(id);
+            if (snapshot == null || snapshot.ownership().equals("manual") || element.isCodeLocked()
+                    || element.getTypeString().equals("code")) continue;
+            for (var file : element.getAssociatedFiles()) {
+                Path absolute = file.toPath().toAbsolutePath().normalize();
+                if (!absolute.startsWith(source)) continue;
+                String relative = source.relativize(absolute).toString().replace('\\', '/');
+                if (!relative.startsWith("src/main/java/") || !relative.endsWith(".java")
+                        || !Files.isRegularFile(executionRoot.resolve(relative)) || ambiguous.contains(relative)) continue;
+                UUID previous = owners.putIfAbsent(relative, id);
+                if (previous != null && !previous.equals(id)) { owners.remove(relative); ambiguous.add(relative); }
+            }
+        }
+        return Map.copyOf(owners);
+    }
+
+    @Override public void prepare(WorkspaceState state, Path target, Operation operation, Consumer<String> output) throws Exception {
         var codec = new dev.copperbench.procedure.ProcedureIrCodec();
         for (var element : state.elements()) {
             if (!element.type().equals("procedure") || element.ownership().equals("manual")) continue;

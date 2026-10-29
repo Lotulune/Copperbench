@@ -70,7 +70,7 @@ public class PreferencesDialog extends MCreatorDialog {
 		this.parent = parent;
 
 		setModal(true);
-		setTitle(L10N.t("dialog.preferences.title_mcreator"));
+		setTitle(dev.copperbench.shell.UiLocalePreferences.text("Copperbench 偏好设置", "Copperbench preferences"));
 
 		sections.setBackground(getBackground());
 		sections.setRootVisible(false);
@@ -96,7 +96,7 @@ public class PreferencesDialog extends MCreatorDialog {
 		spne.setDividerLocation(185);
 		add("Center", spne);
 
-		sections.setBackground(Theme.current().getBackgroundColor());
+		sections.setBackground(UIManager.getColor("Panel.background"));
 		ComponentUtils.deriveFont(sections, 13);
 
 		JButton ok = L10N.button("dialog.preferences.save");
@@ -139,19 +139,19 @@ public class PreferencesDialog extends MCreatorDialog {
 			selectSection(selectedTab);
 
 		ok.addActionListener(_ -> {
-			savePreferences();
-			dispose();
+			if (savePreferences()) dispose();
 		});
 
 		apply.addActionListener(_ -> {
-			savePreferences();
-			apply.setEnabled(false);
+			if (savePreferences()) apply.setEnabled(false);
 		});
 
 		cancel.addActionListener(_ -> dispose());
 
 		pack();
-		setSize(Math.max(960, getBounds().width), 570);
+		Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		setSize(Math.min(1000, screen.width - 48), Math.min(660, screen.height - 72));
+		setMinimumSize(new Dimension(Math.min(760, screen.width - 48), Math.min(420, screen.height - 72)));
 		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
@@ -245,8 +245,8 @@ public class PreferencesDialog extends MCreatorDialog {
 		JPanel sectionPanel = new JPanel(new GridBagLayout());
 		sectionPanel.setOpaque(false);
 
-		JComponent titlebar = L10N.label("dialog.preferences.description", name, description);
-		titlebar.setBorder(BorderFactory.createEmptyBorder(0, 10, 5, 10));
+		JLabel titlebar = new JLabel("<html><div style='width:460px'><b>" + name + "</b><br><br>" + description + "</div></html>");
+		titlebar.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
 
 		JScrollPane scrollPane = new JScrollPane(PanelUtils.pullElementUp(sectionPanel));
 		scrollPane.getVerticalScrollBar().setUnitIncrement(10);
@@ -255,13 +255,25 @@ public class PreferencesDialog extends MCreatorDialog {
 		sectionPanels.put(section, sectionPanel);
 	}
 
-	private void savePreferences() {
+	private boolean savePreferences() {
+		try {
 		PreferencesManager.getPreferencesRegistry().forEach((_, preferences) -> preferences.forEach(entry -> {
 			if (entries.containsKey(entry))
 				entry.setValueFromComponent(entries.get(entry));
 		}));
 		PreferencesManager.savePreferences();
 		ChinaMirrorService.syncUserHome();
+		L10N.initTranslations();
+		return true;
+		} catch (java.io.UncheckedIOException | SecurityException exception) {
+			String ok = dev.copperbench.shell.UiLocalePreferences.text("确定", "OK");
+			dev.copperbench.shell.ProductDialogs.show(this,
+					dev.copperbench.shell.UiLocalePreferences.text("无法保存语言设置，请检查应用数据目录的写入权限。",
+							"Could not save the language preference. Check write access to the app data folder."),
+					dev.copperbench.shell.UiLocalePreferences.text("保存失败", "Could not save"),
+					JOptionPane.ERROR_MESSAGE, new Object[]{ok}, ok);
+			return false;
+		}
 	}
 
 	private JComponent generateEntryComponent(PreferencesEntry<?> entry, JPanel placeInside) {
@@ -270,13 +282,13 @@ public class PreferencesDialog extends MCreatorDialog {
 		if (description == null)
 			description = "";
 
-		JComponent label = L10N.label("dialog.preferences.entry_description", name, description);
+		JComponent label = new JLabel("<html><div style='width:310px'>" + name + "<br><small>" + description + "</small></div></html>");
 		JComponent component = entry.getComponent(parent, _ -> markChanged());
 		if (component != null) {
 			JPanel wrap = new JPanel(new BorderLayout()) {
 				@Override public Dimension getPreferredSize() {
 					Dimension retval = super.getPreferredSize();
-					retval.height = 32;
+					retval.height = Math.max(32, retval.height);
 					if (!(component instanceof JCheckBox)) {
 						retval.width = Math.max(retval.width, 128);
 					}

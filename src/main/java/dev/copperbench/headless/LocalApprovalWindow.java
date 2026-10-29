@@ -1,10 +1,16 @@
 package dev.copperbench.headless;
 
+import dev.copperbench.shell.ProductDialogs;
+import dev.copperbench.shell.UiLocalePreferences;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import java.awt.GraphicsEnvironment;
+import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.concurrent.CompletableFuture;
@@ -14,6 +20,10 @@ final class LocalApprovalWindow {
     private LocalApprovalWindow() {}
 
     static boolean confirm(String title, String message) {
+        return confirm(title, message, UiLocalePreferences.read());
+    }
+
+    static boolean confirm(String title, String message, String locale) {
         if (GraphicsEnvironment.isHeadless()) return false;
         if (SwingUtilities.isEventDispatchThread())
             throw new IllegalStateException("CLI approval must be requested outside the event dispatch thread");
@@ -21,9 +31,24 @@ final class LocalApprovalWindow {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame(title);
             try {
-                String allow = "允许（Allow）", cancel = "取消（Cancel）";
-                JOptionPane pane = new JOptionPane(message, JOptionPane.QUESTION_MESSAGE,
-                        JOptionPane.YES_NO_OPTION, null, new Object[]{allow, cancel}, cancel);
+                String allow = TaskAuthorizationCopy.allow(locale), cancel = TaskAuthorizationCopy.cancel(locale);
+                JOptionPane pane = ProductDialogs.pane(message, JOptionPane.QUESTION_MESSAGE, new Object[]{cancel, allow}, cancel);
+                // Wrapped paths and translated paragraphs must not push the
+                // decision buttons outside the window or available screen.
+                var screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+                int contentWidth = Math.min(560, Math.max(200, screen.width - 160));
+                int contentHeight = Math.min(420, Math.max(80, screen.height - 200));
+                JTextArea body = (JTextArea) pane.getMessage();
+                body.setColumns(0);
+                body.setSize(contentWidth, Integer.MAX_VALUE);
+                JScrollPane scroll = new JScrollPane(body, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                scroll.setBorder(null);
+                scroll.setOpaque(false);
+                scroll.getViewport().setOpaque(false);
+                scroll.setPreferredSize(new Dimension(contentWidth, Math.min(contentHeight, body.getPreferredSize().height + 8)));
+                scroll.getVerticalScrollBar().setUnitIncrement(16);
+                body.setCaretPosition(0);
+                pane.setMessage(scroll);
                 frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.setContentPane(pane);
                 frame.addWindowListener(new WindowAdapter() {

@@ -1,78 +1,81 @@
 <div align="center">
   <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
   <h1>Copperbench</h1>
-  <p><strong>Create, build, and test Minecraft Java mods on your desktop.</strong></p>
+  <p><strong>Visual editing, manual Java and local Agent collaboration in one Minecraft mod project.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="docs/releases/current.md">Download 0.1.4</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
+  <p>
+    <a href="https://github.com/Lotulune/Copperbench/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/Lotulune/Copperbench/test.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="Build and test status on main"></a>
+    <a href="docs/releases/current.md"><img src="https://img.shields.io/badge/App-Windows%20%7C%20Linux-7289da?style=flat-square" alt="App: Windows and Linux"></a>
+    <a href="docs/user/README.md"><img src="https://img.shields.io/badge/Loaders-Fabric%20%7C%20NeoForge-c77d48?style=flat-square" alt="Loaders: Fabric and NeoForge"></a>
+    <a href="#development"><img src="https://img.shields.io/badge/JDK-25-437a54?style=flat-square" alt="Development JDK: 25"></a>
+    <a href="LICENSE.txt"><img src="https://img.shields.io/badge/License-GPL--3.0--only-2ea44f?style=flat-square" alt="License: GPL-3.0-only"></a>
+  </p>
+  <p><a href="docs/releases/current.md">Download</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
-Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric and NeoForge support. Create content with Mod Element editors and Blockly, edit manual source files, manage models and textures, and connect external AI tools through local MCP.
+Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable release: 0.1.4 for Windows and Linux.** The refreshed workbench adds source editing, a relationship graph, asset filtering and previews, with simpler navigation and settings.
+**Current release: 0.1.18 for Windows and Linux.** This release adds static model and element previews, brings the shared Agent workflow into the professional workbench, and improves Blockbench opening and saved-model synchronization. See [current downloads](docs/releases/current.md) for packages and release details.
 
 <a id="getting-started"></a>
 
 ## Download and get started
 
-| Platform | Current release | Packages | Guide |
-| --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable) | Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.md) |
+Download links and package formats are maintained in [current downloads](docs/releases/current.md). Follow the [Windows quick start](docs/user/getting-started.en.md) or [Ubuntu installation guide](docs/user/linux-installation.en.md).
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Create a workspace and choose a loader and Minecraft version.
-3. Add a Mod Element, save, build, and launch the test client.
+3. Use Simple creation to work with a local assistant, or switch to the professional workbench for visual editors and source. Follow [your first creation](docs/user/first-creation.en.md), then [build recovery and export](docs/user/build-and-export.en.md).
 
 The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
 
-Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access; Blockbench is installed separately. Release checks passed for 0.1.4, while full installed-product and gameplay acceptance were not repeated. See [current downloads](docs/releases/current.md) for each platform's verification scope and known issues.
+Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access. Blockbench and creation-assistant CLIs are installed and configured separately; the Python workbench needs Python 3.11 or later.
 
 <a id="showcase"></a>
 
 ## Workbench
 
-![Copperbench 0.1.4 workspace overview](assets/screenshots/v0.1.4/en/workbench.png)
+| Simple creation | Professional workbench |
+| :---: | :---: |
+| ![Light-theme Simple creation: content, conversation and element settings](assets/screenshots/2026-10-24/en/simple-creation-light.png) | ![Light-theme professional workbench: project overview and navigation](assets/screenshots/2026-10-24/en/workbench-light.png) |
+| Project content, assistant conversation and common settings in one view. | Open editors, inspect project status, and build or run from the overview. |
+| **Mod Element editing** | **Java source** |
+| ![Light-theme Mod Element editor: element list and block properties](assets/screenshots/2026-10-24/en/elements-light.png) | ![Light-theme Java source editor](assets/screenshots/2026-10-24/en/source-light.png) |
+| Browse elements and edit their fields in the inspector. | Browse, search and edit manual files; generated files carry a read-only label. |
+| **Python workbench** | **Relationships** |
+| ![Light-theme Python workbench: built-in script, console and current context](assets/screenshots/2026-10-24/en/python-light.png) | ![Light-theme workspace relationship graph](assets/screenshots/2026-10-24/en/relations-light.png) |
+| Script editor, console and current workspace context. | Browse, search and locate workspace elements and assets by category. |
 
-<table>
-  <tr>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/en/source.png" alt="Source editor" width="480"></td>
-    <td width="50%"><img src="assets/screenshots/v0.1.4/en/relations.png" alt="Workspace relationship graph" width="480"></td>
-  </tr>
-  <tr>
-    <td><strong>Source</strong><br>File tree, search, editor tabs and read-only generated files.</td>
-    <td><strong>Relationships</strong><br>Browse elements and assets, expand groups and locate related content.</td>
-  </tr>
-</table>
-
-<sub>Browser captures of the 0.1.4 frontend with the bundled Copper Trails example data. [Capture details](assets/screenshots/README.md)</sub>
+Captured on 2026-10-24 from this checkout's light-theme browser preview with bundled Copper Trails example data. [Source and capture instructions](assets/screenshots/README.md)
 
 ## What you can do
 
 | Feature | In practice |
 | --- | --- |
-| Mod Elements and logic | Edit blocks, items, entities and more; build Procedures with Blockly. |
-| Source | Browse, search and edit manual files, retain drafts and detect external changes. Generated files stay read-only. |
-| Assets and models | Filter by type, inspect references, preview images and supported models, and open assets in Blockbench. |
-| Relationship graph | Search, collapse, pan, zoom and move nodes; open their element or asset without changing business references. |
-| Workspace tools | Edit variables, tags and translations; review diagnostics, local history, migrations and settings. |
-| Builds and automation | Build projects, launch clients or servers, and drive workspace operations through MCP, SDKs or headless interfaces. |
+| Simple creation and Agent | Switch between Simple creation and the professional workbench, sharing assistant conversations. Current source integrates Codex CLI, Claude Code, Grok Build, Google Antigravity CLI and DeepSeek Harness. |
+| Visual editors | Create blocks, items, entities and other Mod Elements; arrange logic with Blockly and follow field diagnostics to the relevant control. |
+| Source and Python | Edit manual Java with draft and conflict protection; use the [Python workbench](docs/user/python-workbench.md) for scripts and a persistent console connected to the current workspace. Generated files remain read-only. |
+| Assets and models | Inspect textures, static model geometry and element appearance; open models in Blockbench and synchronize saved changes. |
+| Workspace tools | Browse relationships, edit variables/tags/translations, and review local history and migration previews. |
+| Build and deliver | Build, launch a test client or server, follow diagnostics to source, and export a mod. Exact verified export binds the artifact to the selected acceptance record. |
 
 See the [user guide](docs/user/README.md) for feature and generator coverage. Bedrock Add-ons are outside the current first-party Java editing scope.
 
 ## Documentation
 
-Most detailed guides are currently in Chinese.
+The key installation, first-creation, build/export and Agent routes have paired English and Simplified Chinese pages with same-topic language links.
 
-- [Documentation index](docs/README.md) · [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
-- [MCP setup](docs/ai/getting-started.md) · [Agent examples](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
-- [Development setup](docs/build/development-setup.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
-- [Current follow-up](docs/remaining-work.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
+- [Documentation index](docs/README.md) · [First creation](docs/user/first-creation.en.md) · [Build recovery and export](docs/user/build-and-export.en.md)
+- [Simple creation（简体中文）](docs/user/simple-creation.md) · [Python workbench（简体中文）](docs/user/python-workbench.md) · [Blockbench setup（简体中文）](docs/user/blockbench-setup.md)
+- [Agent onboarding](docs/ai/getting-started.en.md) · [The same Trail Block through public APIs](docs/ai/trail-block.en.md) · [SDK](sdk/README.md)
+- [Development setup](docs/build/development-setup.en.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
+- [Current release and source status](docs/status.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
 
 <a id="development"></a>
 
 ## Run from source
 
-Requires JDK 25 (JetBrains Runtime with JCEF is recommended for the desktop app), Node.js 22, npm, and Git. The Windows commands below use PowerShell 7. Configure your JDK using the [development setup guide](docs/build/development-setup.md) first.
+Requires JDK 25 (JetBrains Runtime with JCEF for the native desktop app), Node.js 22, npm, and Git. Windows commands use PowerShell 7. Configure the relevant tools using the [development setup guide](docs/build/development-setup.en.md).
 
 ```powershell
 git clone https://github.com/Lotulune/Copperbench.git

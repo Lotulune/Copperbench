@@ -12,14 +12,23 @@ def build_profile(spec, output):
     """No OCR or inferred labels: the caller supplies reviewed regions and the exact world name."""
     roles = {"title": {"singleplayer", "quit"}, "world_list": {"heading", "create"},
              "pause": {"heading", "save"}, "playing": {"hud_left", "hud_right"}}
+    creation = spec.get("creation")
+    if creation:
+        for step in creation["steps"]:
+            name = step["state"]
+            if name in roles or not name.startswith("create_"):
+                raise ValueError("Unique creation states must start with create_")
+            roles[name] = set(spec["states"][name]["markers"])
     if set(spec.get("states", {})) != set(roles) or any(
             set(spec["states"][state].get("markers", {})) != names for state, names in roles.items()):
         raise ValueError("Calibration needs only the documented state and marker names")
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
-    data = {"schema_version": 1, "world_name": spec["world_name"],
+    data = {"schema_version": 2 if creation else 1, "world_name": spec["world_name"],
             "capture_size": spec["capture_size"], "world_search_box": spec["world_search_box"],
             "empty_below_entry": spec["empty_below_entry"], "states": {}, "source_frames": {}}
+    if creation:
+        data.update(creation=creation, empty_world_list=spec["empty_world_list"])
     for state, state_spec in spec["states"].items():
         source = Path(state_spec["source"]).resolve(strict=True)
         source_bytes = source.read_bytes()
@@ -31,7 +40,7 @@ def build_profile(spec, output):
             if list(image.size) != spec["capture_size"]:
                 raise ValueError("All reviewed frames must have capture_size dimensions")
             markers = dict(state_spec["markers"])
-            if state == "world_list":
+            if state == "world_list" and spec.get("world_entry"):
                 markers["world_entry"] = spec["world_entry"]
             for role, marker in markers.items():
                 box = marker["box"]
@@ -56,6 +65,10 @@ def build_profile(spec, output):
                     "window": {"title": "Minecraft" + state_spec.get("title_suffix", "")}}
         if profile.classify(observed) != state:
             raise ValueError(f"Calibration markers cannot uniquely recognize {state}")
-    profile.check_world({"image": {"path": spec["states"]["world_list"]["source"]}})
+    observation = {"image": {"path": spec["states"]["world_list"]["source"]}}
+    if profile.entry:
+        profile.check_world(observation)
+    elif creation:
+        profile.check_empty_world_list(observation)
     return {"profile_path": str(path.resolve()), "profile_sha256": profile.fingerprint,
             "world_name": profile.name, "source_frames": data["source_frames"], "calibration_only": True}

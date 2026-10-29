@@ -15,6 +15,8 @@ async function installFixture(page: Page, mode: 'saveFailure' | 'invalidJson' | 
         if (request.messageType === 'command') {
           const calls = JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]');
           sessionStorage.setItem('diagnosticCommands', JSON.stringify([...calls, request.operation]));
+          const revisions = JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]');
+          sessionStorage.setItem('diagnosticRevisions', JSON.stringify([...revisions, request.expectedRevision]));
         }
         if (request.operation === 'update_mod_element' && (mode === 'saveFailure' || mode === 'invalidRevision')) {
           return JSON.stringify({ messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
@@ -64,8 +66,10 @@ test('failed field save retains its draft and raw diagnostic arguments across la
   await expect(page.getByLabel('Hardness', { exact: false })).toHaveValue('2');
   await expect(field).toHaveValue('User draft 中文');
   await expect(page.getByTestId('element-change-preview')).toContainText('1 field');
-  await expect(page.getByTestId('titlebar-workspace')).toContainText('42');
   expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]'))).toEqual(['update_mod_element']);
+  await page.getByTestId('inspector-save-btn').click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42, 42]);
+  await expect(page.getByTestId('validation-alert')).toContainText('user_field: Raw reason 中文');
   for (const [width, height] of [[1280, 720], [1920, 1080]]) {
     await page.setViewportSize({ width, height });
     const alert = page.getByTestId('validation-alert');
@@ -81,14 +85,44 @@ for (const [name, revision] of [['missing', undefined], ['null', null], ['string
     await page.goto('/');
     await page.getByTestId('nav-elements').click();
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
-    await page.getByTestId('field-displayName').fill('Preserved draft');
+    const field = page.getByTestId('field-displayName');
+    const fieldPath = await field.locator('xpath=ancestor::*[@data-field-path][1]').getAttribute('data-field-path');
+    const snapshot = () => page.evaluate(async path => {
+      const modulePath = '/src/bridge/index.ts';
+      const { coreBridge } = await import(modulePath);
+      const state = coreBridge.getState();
+      const editor = state.elementEditors['22222222-2222-4222-8222-222222222221'];
+      return { revision: state.workbench?.workspace.revision,
+        value: editor?.sections.flatMap(section => section.fields).find(field => field.path === path)?.value };
+    }, fieldPath);
+    const before = await snapshot();
+    expect(before.revision).toBe(42);
+    await field.fill('Preserved draft');
     await page.getByTestId('inspector-save-btn').click();
-    await expect(page.getByTestId('validation-alert')).toContainText('保存失败');
+    const alert = page.getByTestId('validation-alert');
+    await expect(alert).toContainText('保存结果待确认');
+    await expect(alert).not.toContainText('草稿未保存。请修正下方字段');
+    await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
     await page.getByTestId('ui-language-select').selectOption('en');
-    await expect(page.getByTestId('validation-alert')).toContainText('Save failed.');
-    await expect(page.getByTestId('titlebar-workspace')).toContainText('42');
-    await expect(page.getByTestId('titlebar-workspace')).not.toContainText('NaN');
-    await expect(page.getByTestId('field-displayName')).toHaveValue('Preserved draft');
+    await expect(alert).toContainText('Save result unknown');
+    await expect(alert).not.toContainText('Your draft is unsaved. Correct the fields');
+    await expect(field).toHaveValue('Preserved draft');
+    expect(await snapshot()).toEqual(before);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42]);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]'))).toEqual(['update_mod_element']);
+    await page.getByTestId('inspector-confirm-save-result').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('inspector-confirm-save-result')).toHaveCount(0);
+    await expect(page.getByTestId('inspector-save-btn')).toBeEnabled();
+    await expect(field).toHaveValue('Preserved draft');
+    expect(await snapshot()).toEqual(before);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42]);
+    await page.getByTestId('inspector-save-btn').click();
+    await expect(alert).toContainText('Save result unknown');
+    await expect(page.getByTestId('inspector-save-btn')).toBeDisabled();
+    await expect(field).toHaveValue('Preserved draft');
+    expect(await snapshot()).toEqual(before);
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticRevisions') ?? '[]'))).toEqual([42, 42]);
   });
 }
 
@@ -115,7 +149,7 @@ test('English compiler diagnostics open source and locate the owning element', a
   await page.getByTestId('task-diag-action-open_generated_source').click();
   const source = await page.getByTestId('task-source-content').innerText();
   await page.getByTestId('ui-language-select').selectOption('en');
-  await expect(page.getByTestId('task-source-preview')).toHaveAttribute('aria-label', 'Generated source preview');
+  await expect(page.getByTestId('task-source-preview')).toHaveAttribute('aria-label', 'Source preview');
   await expect(page.getByTestId('task-source-content')).toHaveText(source);
   await expect(page.getByTestId('task-source-preview')).toContainText('CopperLampElement.java:42');
   for (const [width, height] of [[1280, 720], [1920, 1080]]) {
@@ -135,9 +169,9 @@ test('source preview failure changes language without another source request', a
   await page.goto('/');
   await page.getByTestId('recent-tasks-button').click();
   await page.getByTestId('task-diag-action-open_generated_source').click();
-  await expect(page.getByTestId('task-source-error')).toContainText('生成源码预览不可用');
+  await expect(page.getByTestId('task-source-error')).toContainText('源码预览不可用');
   await page.getByTestId('ui-language-select').selectOption('en');
-  await expect(page.getByTestId('task-source-error')).toContainText('Generated source preview is unavailable.');
+  await expect(page.getByTestId('task-source-error')).toContainText('Source preview is unavailable.');
   expect(await page.evaluate(() => sessionStorage.getItem('sourceReads'))).toBe('1');
 });
 
@@ -156,6 +190,7 @@ test('stale repair remains blocked after changing language', async ({ page }) =>
 test('English datagen publication keeps explicit confirmation and keyboard cancellation', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('ui-language-select').selectOption('en');
+  await page.getByTestId('compact-run-menu').click();
   await page.getByRole('button', { name: 'Run staged data generation', exact: true }).click();
   await expect(page.getByRole('button', { name: 'View staged changes', exact: true })).toBeVisible({ timeout: 5000 });
   await page.getByRole('button', { name: 'View staged changes', exact: true }).click();
@@ -164,7 +199,7 @@ test('English datagen publication keeps explicit confirmation and keyboard cance
   const dialog = page.getByTestId('datagen-publish-dialog');
   await expect(dialog).toHaveAccessibleName('Publish generated data');
   await expect(dialog).toContainText('recovery point');
-  await expect(dialog).toContainText('Write 1 staged file to this workspace.');
+  await expect(dialog).toContainText('Write 1 staged file to the workspace and create a recovery point.');
   await page.screenshot({ path: testInfo.outputPath('english-datagen-confirmation.png'), animations: 'disabled' });
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);

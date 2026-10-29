@@ -16,11 +16,16 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import {
   AssetProjection,
-  FieldChange,
   ModElementEditorProjection,
   ModElementSummary
 } from '../types/contract';
-import { t } from '../i18n';
+import { uiText, uiMessage, renderUiMessage, useUiLocale, type UiMessage } from '../i18n';
+import { collectEditorFieldChanges, numericDraftValue } from '../hooks/editorFieldChanges';
+import { layoutNumericDrafts } from '../hooks/layoutNumericDrafts';
+import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadToken, rebaseEditor,
+  specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
+import { EditorRecoveryNotice } from './EditorRecoveryNotice';
+import { confirmEditorRead } from '../bridge/editorRecovery';
 
 interface OverlayWorkbenchProps {
   element: ModElementSummary;
@@ -69,7 +74,7 @@ function componentsFrom(values: Record<string, unknown>): OverlayComponentWire[]
     if (!entry || typeof entry !== 'object') return [];
     const root = entry as Record<string, unknown>;
     if (typeof root.type !== 'string' || !root.data || typeof root.data !== 'object' || Array.isArray(root.data)) return [];
-    return [{ type: root.type.toLowerCase(), data: root.data as Record<string, unknown> }];
+    return [{ ...root, type: root.type.toLowerCase(), data: root.data as Record<string, unknown> }];
   });
 }
 
@@ -106,16 +111,6 @@ function componentSize(component: OverlayComponentWire): { width: number; height
   if (component.type === 'label') return { width: Math.max(36, labelText(component).length * 6), height: 10 };
   if (component.type === 'entitymodel') return { width: 20, height: 20 };
   return { width: 32, height: 32 };
-}
-
-function changedFields(base: Record<string, unknown>, values: Record<string, unknown>): FieldChange[] {
-  const paths = [
-    '/priority', '/baseTexture', '/overlayTarget', '/displayCondition', '/components',
-    '/gridSettings/sx', '/gridSettings/sy', '/gridSettings/ox', '/gridSettings/oy', '/gridSettings/snapOnGrid'
-  ];
-  return paths.flatMap((path) =>
-    JSON.stringify(base[path]) === JSON.stringify(values[path]) ? [] : [{ path, value: clone(values[path]) }]
-  );
 }
 
 function validateOverlay(values: Record<string, unknown>, components: OverlayComponentWire[]): OverlayIssue[] {
@@ -187,40 +182,68 @@ function createEntityModel(procedure: string): OverlayComponentWire {
   };
 }
 
-export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onClose }) => {
-  const { getModElementEditor, previewModElementChange, updateModElement, listAssets, state } = useWorkbench();
-  const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
-  const [base, setBase] = useState<Record<string, unknown>>({});
-  const [values, setValues] = useState<Record<string, unknown>>({});
+export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = props => {
+  const { state } = useWorkbench();
+  const key = specializedEditorKey(state.workbench?.workspace.id ?? '', props.element.id, 'overlay');
+  return <OverlayEditor key={key} sessionKey={key} {...props} />;
+};
+const initialOverlayValues = () => ({} as Record<string, unknown>);
+const OverlayEditor: React.FC<OverlayWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
+  const { getModElementEditor, previewModElementChange, updateModElement, listAssets, refreshWorkspace, state } = useWorkbench();
+  const current = useSpecializedEditorSession(sessionKey, initialOverlayValues);
+  const { editor, data: values, saving, error: message } = current;
+  const base = useMemo(() => editor ? editorValues(editor) : {}, [editor]);
+  const changeSession = (patch: Partial<typeof current>) => updateSpecializedSession(sessionKey, initialOverlayValues, old => ({ ...old, ...patch }));
+  const setValues = (change: React.SetStateAction<Record<string, unknown>>) => updateSpecializedSession(sessionKey, initialOverlayValues, old => {
+    const data = typeof change === 'function' ? change(old.data) : change;
+    return { ...old, data, dirty: JSON.stringify(data) !== JSON.stringify(old.editor ? editorValues(old.editor) : {}), error: null };
+  });
+  const setSaving = (saving: boolean) => changeSession({ saving });
+  const setMessage = (error: UiMessage | null) => changeSession({ error });
   const [assets, setAssets] = useState<AssetProjection | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [newComponentType, setNewComponentType] = useState<OverlayComponentType>('label');
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [impact, setImpact] = useState<string[]>([]);
   const previewToken = useRef(0);
+  const actions = useRef({ getModElementEditor, listAssets, previewModElementChange, refreshWorkspace });
+  actions.current = { getModElementEditor, listAssets, previewModElementChange, refreshWorkspace };
+  const locale = useUiLocale();
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getModElementEditor(element.id), listAssets().catch(() => null)])
-      .then(([projection, assetProjection]) => {
-        if (cancelled || !projection) return;
+    const existing = getSpecializedSession(sessionKey, initialOverlayValues);
+    if (existing.dirty || existing.saving || existing.loading || existing.saveUnknown) return;
+    const readToken = nextSpecializedReadToken();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    changeSession({ loading: true, readToken });
+    actions.current.getModElementEditor(element.id)
+      .then(projection => {
+        if (!projection || projection.element.id !== element.id) throw new Error('Overlay editor projection unavailable');
         const next = editorValues(projection);
-        setEditor(projection);
-        setBase(clone(next));
-        setValues(clone(next));
-        setAssets(assetProjection);
+        updateSpecializedSession(sessionKey, initialOverlayValues, old => old.readToken !== readToken ? old
+          : { ...old, editor: projection, data: old.dirty ? old.data : clone(next), revision, loading: false, error: null });
+        if (cancelled) return;
         setSelectedIndex(componentsFrom(next).length > 0 ? 0 : null);
       })
       .catch(() => {
-        if (!cancelled) setMessage(tr("无法加载 Overlay 编辑器投影。"));
+        updateSpecializedSession(sessionKey, initialOverlayValues, old => old.readToken !== readToken ? old
+          : { ...old, loading: false, error: uiMessage('无法加载 Overlay 编辑器。请返回后重试，原草稿已保留。', 'Could not load the Overlay editor. Return and try again; your draft is preserved.') });
       });
     return () => { cancelled = true; };
-  }, [element.id, getModElementEditor, listAssets]);
+  }, [sessionKey, element.id]);
+  useEffect(() => {
+    if (!editor) return;
+    let cancelled = false;
+    void actions.current.listAssets().then(projection => { if (!cancelled) setAssets(projection); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [sessionKey, editor?.element.id]);
 
   const components = useMemo(() => componentsFrom(values), [values]);
-  const changes = useMemo(() => changedFields(base, values), [base, values]);
-  const issues = useMemo(() => validateOverlay(values, components), [values, components]);
+  const numericDraft = useMemo(() => layoutNumericDrafts(values, base), [values, base]);
+  const pending = useMemo(() => collectEditorFieldChanges(editor, numericDraft.values), [editor, numericDraft.values]);
+  const changes = useMemo(() => pending.invalid.length || numericDraft.invalid.length ? [] : pending.changes, [pending, numericDraft]);
+  const issues = useMemo(() => [...validateOverlay(numericDraft.values, components),
+    ...numericDraft.invalid.map(path => ({ index: null, message: uiText(`请输入有效数字：${path}`, `Enter a valid number: ${path}`) }))], [numericDraft, components, locale]);
   const selected = selectedIndex === null ? null : components[selectedIndex] ?? null;
   const procedures = useMemo(() => state.elements.filter((candidate) => candidate.type === 'procedure')
     .sort((left, right) => left.displayName.localeCompare(right.displayName)), [state.elements]);
@@ -233,7 +256,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
     }
     const token = ++previewToken.current;
     const timer = window.setTimeout(() => {
-      previewModElementChange(element.id, changes)
+      actions.current.previewModElementChange(element.id, changes)
         .then((preview) => {
           if (previewToken.current === token) setImpact(preview?.generationImpact?.affectedDomains ?? []);
         })
@@ -241,8 +264,8 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
           if (previewToken.current === token) setImpact([]);
         });
     }, 160);
-    return () => window.clearTimeout(timer);
-  }, [changes, element.id, previewModElementChange]);
+    return () => { window.clearTimeout(timer); previewToken.current++; };
+  }, [changes, element.id]);
 
   const setValue = (path: string, value: unknown) => {
     setValues((current) => ({ ...current, [path]: value }));
@@ -271,11 +294,11 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
     const texture = textures[0]?.relativePath ?? '';
     const procedure = procedures[0]?.name ?? '';
     if ((newComponentType === 'image' || newComponentType === 'sprite') && !texture) {
-      setMessage(tr("添加 Image / Sprite 前需要先导入 SCREEN texture。"));
+      setMessage(uiMessage('添加 Image / Sprite 前需要先导入 SCREEN texture。', 'Import a SCREEN texture before adding an Image or Sprite.'));
       return;
     }
     if (newComponentType === 'entitymodel' && !procedure) {
-      setMessage(tr("添加 EntityModel 前需要至少一个返回 Entity 的 Procedure。"));
+      setMessage(uiMessage('添加 EntityModel 前需要至少一个返回 Entity 的 Procedure。', 'A Procedure that returns Entity is required before adding an EntityModel.'));
       return;
     }
     const component = newComponentType === 'label' ? createLabel(components.length)
@@ -306,26 +329,42 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
   };
 
   const save = async () => {
-    if (saving || changes.length === 0 || issues.length > 0) return;
+    const submitted = getSpecializedSession(sessionKey, initialOverlayValues);
+    if (submitted.saving || submitted.saveUnknown || issues.length > 0 || pending.invalid.length > 0 || !editor) return;
+    if (changes.length === 0) { changeSession({ data: numericDraft.values, dirty: false }); return; }
     setSaving(true);
     setMessage(null);
     try {
-      const result = await updateModElement(element.id, changes);
+      const result = await updateModElement(element.id, changes, submitted.revision);
       if (result.status === 'committed') {
-        setBase(clone(values));
-        setMessage(tr("Overlay 更改已保存。"));
+        commitSpecializedSession(sessionKey, initialOverlayValues, submitted.data, rebaseEditor(editor, changes, result.data?.element ?? editor.element), result.newRevision, result.diagnostics, numericDraft.values);
+        setMessage(uiMessage('Overlay 更改已保存。', 'Overlay changes saved.'));
       } else {
-        setMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || tr("保存被 Core 拒绝。"));
+        changeSession({ diagnostics: result.diagnostics });
+        setMessage(result.diagnostics[0]?.message ?? uiMessage('保存被 Core 拒绝。草稿未保存。', 'Core rejected the save. Your draft is unsaved.'));
       }
     } catch {
-      setMessage(tr("保存失败，工作区未发生更改。"));
+      changeSession({ saveUnknown: true });
+      setMessage(uiMessage('未收到保存回执。', 'No save receipt was received.'));
     } finally {
       setSaving(false);
     }
   };
+  const readLatest = async () => {
+    if (getSpecializedSession(sessionKey, initialOverlayValues).saving) return;
+    setSaving(true);
+    try {
+      const { editor: latest, revision: confirmedRevision } = await confirmEditorRead(state.workbench!.workspace.id, actions.current.refreshWorkspace, () => actions.current.getModElementEditor(element.id));
+      if (!latest || latest.element.id !== element.id) throw new Error('Overlay editor projection unavailable');
+      updateSpecializedSession(sessionKey, initialOverlayValues, old => ({ ...old, editor: latest, revision: confirmedRevision,
+        dirty: JSON.stringify(old.data) !== JSON.stringify(editorValues(latest)), saveUnknown: false,
+        error: uiMessage('已读取最新版本。请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.') }));
+    } catch { setMessage(uiMessage('无法读取最新版本，草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.')); }
+    finally { setSaving(false); }
+  };
 
   if (!editor) {
-    return <div data-testid="overlay-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>{tr("正在加载叠加层编辑器…")}</div>;
+    return <div data-testid="overlay-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>{message ? renderUiMessage(message) : uiText('正在加载叠加层编辑器…', 'Loading the Overlay editor…')}</div>;
   }
 
   return (
@@ -339,12 +378,15 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
           <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("叠加层布局")}</div>
         </div>
         {impact.length > 0 && <span className="badge badge-blue" data-testid="overlay-generation-impact">{tr("生成影响：")}{impact.join(', ')}</span>}
-        {message && <span style={{ maxWidth: 280, fontSize: 10, color: 'var(--text-sub)' }}>{message}</span>}
+        {message && <span role="status" style={{ maxWidth: 280, fontSize: 12, color: 'var(--text-sub)' }}>{renderUiMessage(message)}</span>}
+        {current.dirty && <span role="status">{uiText('未保存', 'Unsaved')}</span>}
         <button type="button" className="btn-primary" data-testid="overlay-save-btn"
-          disabled={saving || changes.length === 0 || issues.length > 0} onClick={save}>
+          disabled={saving || current.saveUnknown || !current.dirty || issues.length > 0 || pending.invalid.length > 0} onClick={save}>
           <Save size={13} /> {saving ? tr("保存中…") : tr("保存 Overlay")}
         </button>
       </header>
+      <EditorRecoveryNotice editor="overlay" saveUnknown={current.saveUnknown} diagnostics={current.diagnostics}
+        busy={saving || current.loading} onRead={() => void readLatest()} />
 
       <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '230px minmax(420px, 1fr) 300px' }}>
         <aside style={{ minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
@@ -403,9 +445,9 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
           <div style={{ padding: '7px 12px', display: 'flex', gap: 9, alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
             <Grid3X3 size={13} />
             {(['sx', 'sy', 'ox', 'oy'] as const).map((key) => <label key={key} style={{ fontSize: 9, color: 'var(--text-sub)' }}>{fieldLabel(key)}
-              <input data-testid={`overlay-grid-${key}`} type="number" min={1} max={100}
-                value={Number(values[`/gridSettings/${key}`] ?? (key === 'sx' || key === 'sy' ? 18 : key === 'ox' ? 11 : 15))}
-                onChange={(event) => setValue(`/gridSettings/${key}`, Number(event.target.value))}
+              <input data-testid={`overlay-grid-${key}`} type="text" inputMode="decimal"
+                value={String(values[`/gridSettings/${key}`] ?? '')}
+                onChange={(event) => setValue(`/gridSettings/${key}`, event.target.value)}
                 style={{ width: 52, marginLeft: 3 }} />
             </label>)}
             <label style={{ display: 'flex', gap: 4, alignItems: 'center', fontSize: 9, color: 'var(--text-sub)' }}>
@@ -418,11 +460,11 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
               background: 'var(--bg-panel)', border: '1px solid var(--border-active)', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>
               {Boolean(values['/gridSettings/snapOnGrid']) && <div style={{ position: 'absolute', inset: 0, opacity: 0.18,
                 backgroundImage: `linear-gradient(to right, var(--text-sub) 1px, transparent 1px), linear-gradient(to bottom, var(--text-sub) 1px, transparent 1px)`,
-                backgroundSize: `${Number(values['/gridSettings/sx'] ?? 18)}px ${Number(values['/gridSettings/sy'] ?? 18)}px`,
-                backgroundPosition: `${Number(values['/gridSettings/ox'] ?? 11)}px ${Number(values['/gridSettings/oy'] ?? 15)}px` }} />}
+                backgroundSize: `${numericDraftValue(values['/gridSettings/sx']) ?? numericDraftValue(base['/gridSettings/sx']) ?? 18}px ${numericDraftValue(values['/gridSettings/sy']) ?? numericDraftValue(base['/gridSettings/sy']) ?? 18}px`,
+                backgroundPosition: `${numericDraftValue(values['/gridSettings/ox']) ?? numericDraftValue(base['/gridSettings/ox']) ?? 11}px ${numericDraftValue(values['/gridSettings/oy']) ?? numericDraftValue(base['/gridSettings/oy']) ?? 15}px` }} />}
               {components.map((component, index) => {
-                const x = Number(component.data.x ?? 0);
-                const y = Number(component.data.y ?? 0);
+                const x = numericDraftValue(component.data.x) ?? numericDraftValue(componentsFrom(base)[index]?.data.x) ?? 0;
+                const y = numericDraftValue(component.data.y) ?? numericDraftValue(componentsFrom(base)[index]?.data.y) ?? 0;
                 const size = componentSize(component);
                 return <button type="button" key={`preview-${component.type}-${index}`} data-testid={`overlay-preview-component-${index}`}
                   onClick={() => setSelectedIndex(index)} title={`${valueLabel(component.type)} @ ${x},${y}`}
@@ -456,8 +498,8 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
             </div>
 
             {(['x', 'y'] as const).map((key) => <label key={key} style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{fieldLabel(key)}
-              <input data-testid={`overlay-component-field-${key}`} type="number" value={Number(selected.data[key] ?? 0)}
-                onChange={(event) => updateComponentField(key, Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
+              <input data-testid={`overlay-component-field-${key}`} type="text" inputMode="decimal" value={String(selected.data[key] ?? '')}
+                onChange={(event) => updateComponentField(key, event.target.value)} style={{ width: '100%', marginTop: 3 }} />
             </label>)}
             <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("锚点")}<select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
                 style={{ width: '100%', marginTop: 3 }}>{ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}</select>
@@ -488,11 +530,11 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
             {selected.type === 'sprite' && <>
               <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("精灵图（sprite）")}<input list="overlay-textures" value={String(selected.data.sprite ?? '')} onChange={(event) => updateComponentField('sprite', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("精灵帧数（spritesCount）")}<input data-testid="overlay-component-field-spritesCount" type="number" min={1} value={Number(selected.data.spritesCount ?? 1)}
-                  onChange={(event) => updateComponentField('spritesCount', Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("精灵帧数（spritesCount）")}<input data-testid="overlay-component-field-spritesCount" type="text" inputMode="decimal" value={String(selected.data.spritesCount ?? '')}
+                  onChange={(event) => updateComponentField('spritesCount', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定帧序号")}<input type="number" value={Number((selected.data.spriteIndex as Record<string, unknown> | undefined)?.fixedValue ?? 0)}
-                  onChange={(event) => updateObjectField('spriteIndex', 'fixedValue', Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定帧序号")}<input type="text" inputMode="decimal" value={String((selected.data.spriteIndex as Record<string, unknown> | undefined)?.fixedValue ?? '')}
+                  onChange={(event) => updateObjectField('spriteIndex', 'fixedValue', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
             </>}
 
@@ -501,7 +543,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
                   onChange={(event) => updateComponentField('entityModel', event.target.value || null)} style={{ width: '100%', marginTop: 3 }} />
               </label>
               {(['scale', 'rotationX'] as const).map((key) => <label key={key} style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{fieldLabel(key)}
-                <input type="number" value={Number(selected.data[key] ?? 0)} onChange={(event) => updateComponentField(key, Number(event.target.value))}
+                <input type="text" inputMode="decimal" value={String(selected.data[key] ?? '')} onChange={(event) => updateComponentField(key, event.target.value)}
                   style={{ width: '100%', marginTop: 3 }} />
               </label>)}
               <label style={{ display: 'flex', gap: 5, marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>

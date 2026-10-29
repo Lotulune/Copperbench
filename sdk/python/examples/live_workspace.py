@@ -11,6 +11,7 @@ if args.display_name is not None and args.element is None:
     parser.error("--display-name requires --element")
 
 with Workspace.connect(args.workspace) as workspace:
+    workspace.require_schema()
     if args.element is None:
         for element in workspace.elements:
             print(element.id, element.name)

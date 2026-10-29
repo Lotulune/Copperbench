@@ -7,7 +7,10 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,7 +22,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /** Read-only asset catalog and reference graph service for a workspace. */
 public final class AssetWorkspaceService {
@@ -28,6 +30,8 @@ public final class AssetWorkspaceService {
 	private static final Set<String> KNOWN_EXTENSIONS = Set.of(".json", ".png", ".jpg", ".jpeg", ".ogg", ".wav",
 			".bbmodel", ".mcmeta", ".zip", ".lang");
 	private static final Pattern URI = Pattern.compile("^[a-z][a-z0-9+.-]*://.*$", Pattern.CASE_INSENSITIVE);
+	private static final List<String> ASSET_ROOTS = List.of("assets/", "models/", "resourcepacks/",
+			"src/main/resources/assets/", "src/main/assets/");
 
 	private final Path root;
 
@@ -48,10 +52,23 @@ public final class AssetWorkspaceService {
 
 	/** Lists supported files from known asset roots in deterministic workspace-relative path order. */
 	public List<AssetDescriptor> list() {
-		try (Stream<Path> paths = Files.walk(root)) {
-			return paths.filter(Files::isRegularFile).filter(this::isAssetPath).map(this::descriptor)
-					.sorted(Comparator.comparing(AssetDescriptor::relativePath))
-					.toList();
+		List<AssetDescriptor> assets = new ArrayList<>();
+		try {
+			Files.walkFileTree(root, new SimpleFileVisitor<>() {
+				@Override public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) {
+					if (directory.equals(root)) return FileVisitResult.CONTINUE;
+					String prefix = root.relativize(directory).toString().replace('\\', '/') + "/";
+					// Skip caches, game runs and local history before descending into them.
+					return ASSET_ROOTS.stream().anyMatch(assetRoot -> assetRoot.startsWith(prefix)
+							|| prefix.startsWith(assetRoot)) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
+				}
+
+				@Override public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
+					if (isAssetPath(file) && Files.isRegularFile(file)) assets.add(descriptor(file));
+					return FileVisitResult.CONTINUE;
+				}
+			});
+			return assets.stream().sorted(Comparator.comparing(AssetDescriptor::relativePath)).toList();
 		} catch (IOException exception) {
 			throw new IllegalStateException("Asset workspace could not be scanned", exception);
 		}

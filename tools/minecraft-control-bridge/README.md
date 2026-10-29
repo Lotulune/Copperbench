@@ -1,5 +1,9 @@
 # Minecraft Control Bridge（MVP）
 
+0.3.0 已实现：[Windows 输入法保护](issues/windows-ime-gameplay-input.md)。默认在发键前检查目标窗口 IME，按需关闭该窗口中文转换并核对英文状态，detach 时恢复桥修改且未被用户再次更改的状态。无法确认则不发键，不改系统默认输入法。当前旧 worker 须重连 MCP 才加载新版。
+
+0.3.0 增加 [Jev 本地连续菜单流程](MENU-FLOWS.md)：MCP 的 `mc_menu_flow` 默认 `controller="jev"`，支持校准后的创建/进入世界、保存回标题、退出及等待加载。整段操作只返回终态或异常，不逐按钮等待主模型。Python SDK 为兼容保留 `deterministic` 默认值。
+
 供外部 Agent 使用的本地桌面控制工具：截图、有限时长键鼠动作、日志读取和证据记录。
 支持 Windows 与 Linux X11；不安装 Minecraft 模组，不依赖游戏版本或加载器 API。
 **平台后端可用不等于所有游戏版本均已验收**，实测范围见 [VALIDATION.md](VALIDATION.md)。
@@ -14,7 +18,7 @@
 
 **0.2.0 新增 [本地菜单流程](MENU-FLOWS.md)**：校准后使用一次 `mc_menu_flow` 完成进入指定存档、保存回标题或保存退出。中间截图由本地状态机校验并留证，只有终态/异常返回主 LLM；下面逐步观察规则仍适用于手动控制和未校准界面。
 
-- 明确的菜单优先使用已校准的 `mc_menu_flow`；命令和玩法验收仍由主 LLM 决定。Jev 只用于尚未决定的局部选择；“主 LLM 已决定，再问 Jev 确认”只会增加调用。菜单流程使用限定模板匹配，不是通用视觉代理。
+- 明确的菜单使用一次已校准的 `mc_menu_flow`，不要逐按钮调用主 LLM 或单独调用 `mc_jev_choose`。Jev 在 worker 内选择受限步骤；`deterministic` 跳过网络决定。菜单使用限定模板匹配，不是通用视觉代理；玩法验收仍由主 LLM 决定。
 - 主 LLM 检查 `mc_step` 返回的图片后可直接据此继续，不必再调用一次 `mc_observe`。仅在过期、窗口变化、图片缺失或状态不确定时重新观察。先完成源码核查，再进入短操作循环。
 - 在已观察到的界面中，将确定的小序列放进一批，例如输入命令、回车及短等待；界面是否切换不确定时须在该处停下来观察，不能盲跑跨屏脚本。批次仍限定 2,000 ms / 32 动作。
 - 最后一项动作释放输入后，桥使用剩余批次预算补足最多 150 ms 的界面刷新等待；末尾已有 `wait` 时抵扣该等待。它不识别画面是否就绪；较慢的已知切换仍需显式等待。失焦、F8 和父进程断开检查在等待期间继续生效。
@@ -152,10 +156,10 @@ Python 使用 `Bridge` 上的同名方法，MCP 名称加 `mc_` 前缀：
 |---|---|
 | `doctor()` | 初始化后端、报告平台能力；不注入测试按键，不声称游戏已验证 |
 | `list_windows()` | 返回 Minecraft/Java 候选窗口、PID、进程启动标识和客户区 |
-| `attach(window_id, game_dir=None, focus=True)` | 绑定明确窗口、预留 F8、创建证据目录；Python 还可传 `evidence_dir` |
+| `attach(..., keyboard_policy="english")` | 绑定窗口、预留 F8、创建证据；发键前检查/准备目标 IME，`preserve` 不切换且发现风险时阻止发键 |
 | `observe(session_id, max_width=1280)` | 截图、时间、`frame_id`、尺寸和焦点状态 |
 | `step(session_id, action_id, actions)` | 顺序执行动作，释放输入，返回操作回执与新截图 |
-| `menu_flow(session_id, action_id, flow, profile_path, world_name=None, timeout_ms=20000)` | 在同一 worker 中匹配已校准界面并执行菜单导航，返回终态/异常；每批仍受原动作约束 |
+| `menu_flow(..., controller="deterministic", creation_settings=None)` | 同一 worker 内识别并执行菜单流程；MCP 默认 `jev`，Python 可显式选择；创建须提交完整设置 |
 | `read_logs(session_id, cursor=None)` | 增量读取 `game_dir/logs/latest.log`，最多 64 KiB，识别轮转/截断 |
 | `record_verification(session_id, expectation, verdict, evidence_refs)` | 记录主 LLM 的外部判断，附证据引用 |
 | `stop(session_id)` | 中断动作；之后必须 detach/attach 才能继续 |

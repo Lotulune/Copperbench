@@ -1,14 +1,14 @@
 import { coreBridge } from './index';
 import { safeRandomUUID } from './JcefCoreBridge';
-import { t, uiText } from '../i18n';
+import { uiMessage } from '../i18n';
+import { OperationFailure } from './operationFailure';
 import type { QueryOperation, WorkspaceSourceContent, WorkspaceSourceFiles, WorkspaceSourceIndex } from '../types/contract';
 
 async function query<T>(workspaceId: string, operation: QueryOperation, payload: Record<string, unknown>) {
   const result = await coreBridge.sendQuery<T>({ messageType: 'query', schemaVersion: '1.0',
     requestId: safeRandomUUID(), workspaceId, operation, payload });
   if (result.workspaceId !== workspaceId || result.status !== 'succeeded' || !result.data) {
-    throw new Error(result.diagnostics.map(diagnostic => t(diagnostic.message)).join('\n')
-      || uiText('无法读取工作区源码。', 'Could not read workspace source.'));
+    throw new OperationFailure(result.diagnostics, uiMessage('无法读取工作区源码。', 'Could not read workspace source.'));
   }
   return { data: result.data, revision: result.revision };
 }

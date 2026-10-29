@@ -15,15 +15,16 @@ import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
 import { t, uiText, englishCount } from '../i18n';
 
 export const StatusFooter: React.FC = () => {
-  const { state, workspaceHealth, setActiveView, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
+  const { state, workspaceHealth, openDiagnostics, openTask, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
   const { mcp } = useMcpRuntimeState();
 
   const connection = state.workbench?.connection ?? {
-    core: 'connected',
-    network: 'online',
-    bridge: 'ready'
+    core: 'unknown',
+    network: 'unknown',
+    bridge: 'unknown'
   };
 
+  const unknownCore = state.viewportState === 'loading' ? uiText('连接中…', 'Connecting…') : uiText('未取得工作区状态', 'Workspace state unavailable');
   const permission = mcp?.status === 'listening'
     ? mcp.permissionProfile
     : state.workbench?.permission.profile ?? mcp?.permissionProfile ?? 'workspace';
@@ -58,10 +59,10 @@ export const StatusFooter: React.FC = () => {
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-healthy={connection.core === 'connected'}
           data-testid="core-status"
-          title={`${uiText('Java 核心', 'Java Core')}: ${valueLabel(connection.core)}`}
+          title={`${uiText('Java 核心', 'Java Core')}: ${connection.core === 'unknown' ? unknownCore : valueLabel(connection.core)}`}
         >
           <Server size={12} color={connection.core === 'connected' ? 'var(--badge-green)' : 'var(--badge-amber)'} />
-          <span>{uiText('核心：', 'Core: ')}{valueLabel(connection.core)}</span>
+          <span>{uiText('核心：', 'Core: ')}{connection.core === 'unknown' ? unknownCore : valueLabel(connection.core)}</span>
         </div>
 
         {/* Network status */}
@@ -70,15 +71,15 @@ export const StatusFooter: React.FC = () => {
           data-testid="offline-status"
           title={`${uiText('网络', 'Network')}: ${valueLabel(connection.network)}`}
         >
-          {connection.network === 'offline' ? (
+          {connection.network === 'unknown' ? <><WifiOff size={12} /><span>{uiText('网络状态未知', 'Network status unknown')}</span></> : connection.network === 'offline' ? (
             <>
               <WifiOff size={12} color="var(--badge-amber)" />
               <span style={{ color: 'var(--badge-amber)', fontWeight: 600 }}>{uiText('离线模式（本地可用）', 'Offline (local work available)')}</span>
             </>
           ) : (
             <>
-              <Wifi size={12} color="var(--badge-green)" />
-              <span>{uiText('在线', 'Online')}</span>
+              <Wifi size={12} color={connection.network === 'online' ? 'var(--badge-green)' : 'var(--badge-amber)'} />
+              <span>{connection.network === 'online' ? uiText('在线', 'Online') : valueLabel(connection.network)}</span>
             </>
           )}
         </div>
@@ -90,7 +91,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="bridge-status"
         >
           <Activity size={12} color="var(--accent-copper)" />
-          <span>{uiText('桥接：', 'Bridge: ')}{valueLabel(connection.bridge)}</span>
+          <span>{uiText('桥接：', 'Bridge: ')}{connection.bridge === 'unknown' ? uiText('等待状态', 'Waiting for status') : valueLabel(connection.bridge)}</span>
         </div>
       </div>
 
@@ -99,7 +100,7 @@ export const StatusFooter: React.FC = () => {
         {/* Active Task progress pill */}
         {runningTask && (
           <button
-            onClick={() => setIsTaskDrawerOpen(!isTaskDrawerOpen)}
+            onClick={() => openTask(runningTask.id)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -115,7 +116,7 @@ export const StatusFooter: React.FC = () => {
           >
             <Terminal size={11} />
             <span aria-live="polite">
-              {t(runningTask.stage)}（{Math.round((runningTask.progress || 0) * 100)}%）
+              {t(runningTask.stage)}{runningTask.progress == null ? '…' : ` (${Math.round(runningTask.progress * 100)}%)`}
             </span>
             <ChevronUp size={11} />
           </button>
@@ -129,10 +130,7 @@ export const StatusFooter: React.FC = () => {
 
         {/* Diagnostics Badge */}
         <button
-          onClick={() => {
-            setActiveView('hub');
-            requestAnimationFrame(() => document.getElementById('workspace-health-panel')?.focus());
-          }}
+          onClick={() => openDiagnostics(errorCount > 0 ? 'error' : warningCount > 0 ? 'warning' : 'all')}
           aria-label={uiText('查看当前工作区诊断', 'View current workspace diagnostics')}
           style={{
             display: 'flex',

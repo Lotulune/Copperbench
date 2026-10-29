@@ -32,6 +32,8 @@ class Engine:
         self.menu_completed = {}
         self.stopped = False
         self.log_cursors = {}
+        from .input_language import KeyboardGuard
+        self.keyboard_guard = KeyboardGuard(backend) if hasattr(backend, "keyboard_status") else None
 
     def doctor(self):
         return {"platform": self.backend.platform, "status": "available", "bridge_version": __version__,
@@ -39,13 +41,23 @@ class Engine:
                                  "ascii_text": True, "game_telemetry": False, "background_control": False},
                 "max_step_ms": MAX_DURATION_MS, "max_frame_age_seconds": MAX_FRAME_AGE_SECONDS,
                 "post_action_settle_ms": POST_ACTION_SETTLE_MS, "emergency_key": "F8",
-                "menu_flows": ["enter_world", "save_to_title", "save_and_quit"],
+                "menu_flows": ["enter_world", "create_world", "wait_for_world", "save_to_title", "save_and_quit"],
+                "menu_controllers": ["deterministic", "jev"],
+                "keyboard_policies": ["english", "preserve"],
+                "keyboard_layout_detection": self.keyboard_guard is not None,
                 "max_menu_flow_ms": 25000,
                 "requirements": ["foreground unobscured game window", "same desktop and privilege level"],
                 "note": "Backend initialized; actual capture/input/F8 are verified at attach and in live tests"}
 
     def list_windows(self):
-        return {"windows": self.backend.list_windows()}
+        windows = self.backend.list_windows()
+        if self.keyboard_guard:
+            for row in windows:
+                try:
+                    row["keyboard"] = self.backend.keyboard_status(row["window_id"])
+                except BridgeError as error:
+                    row["keyboard"] = {"error": error.as_dict()}
+        return {"windows": windows}
 
     def _require(self, session_id):
         if self.session is None or session_id != self.session["session_id"]:
@@ -77,7 +89,9 @@ class Engine:
             jars.append({"path": path.relative_to(root).as_posix(), "sha256": sha256(path)})
         return {"scope": "game_dir_mods_only_not_loaded_classpath", "jars": jars}
 
-    def attach(self, window_id, evidence_dir, game_dir=None, focus=True):
+    def attach(self, window_id, evidence_dir, game_dir=None, focus=True, keyboard_policy="english"):
+        if keyboard_policy not in {"english", "preserve"}:
+            raise BridgeError("INVALID_ARGUMENT", "keyboard_policy must be english or preserve")
         if self.session:
             raise BridgeError("SESSION_EXISTS", "Detach the existing session first")
         if not isinstance(window_id, str) or not window_id.isdecimal():
@@ -93,7 +107,8 @@ class Engine:
                 self.backend.focus(window_id)
                 target = self.backend.window(window_id)
             sid = str(uuid.uuid4())
-            self.session = {"session_id": sid, "window_id": window_id, "target": target, "game_dir": game}
+            self.session = {"session_id": sid, "window_id": window_id, "target": target, "game_dir": game,
+                            "keyboard_policy": keyboard_policy}
             self.completed, self.log_cursors = {}, {}
             self.menu_completed = {}
             self.frame, self.stopped = None, False
@@ -103,7 +118,9 @@ class Engine:
                         "artifact_start": self._artifacts(), "client_behavior_verified": False}
             self.evidence = Evidence(Path(evidence_dir).resolve() / sid, metadata)
             self.evidence.event({"type": "attached", "target": target})
+            keyboard = self.backend.keyboard_status(window_id) if self.keyboard_guard else {"status": "not_supported"}
             return {**self.session, "evidence_dir": str(self.evidence.root), "emergency_key": "F8",
+                    "keyboard": keyboard,
                     "next": "observe before step; keep the game foreground and unobscured"}
         except Exception:
             self.session = None
@@ -243,6 +260,14 @@ class Engine:
             for action in normalized:
                 if action["type"] == "click":
                     self._click_point(action, window)
+            keyboard = None
+            if self.keyboard_guard and any(a["type"] == "text" or a["type"] == "hold" and a["keys"] for a in normalized):
+                keyboard = self.keyboard_guard.prepare(self.session["window_id"], self.session["keyboard_policy"], self._check)
+                self.evidence.event({"type": "keyboard_prepared", "action_id": action_id, **keyboard})
+                # Switching layout does not authorize acting on a resized window or old frame.
+                self._require_frame()
+                if self._check()["rect"] != window["rect"]:
+                    raise BridgeError("WINDOW_CHANGED", "Window changed while preparing keyboard")
         except BridgeError as error:
             self.evidence.event({"type": "step_rejected", "action_id": action_id,
                                  "error": error.as_dict(), "input_executed": False})
@@ -256,6 +281,8 @@ class Engine:
                   "before_frame_id": before, "before_frame_age_ms": round(frame_age * 1000, 2),
                   "declared_duration_ms": declared_ms, "post_action_settle_ms": 0,
                   "completed_actions": 0, "replayed": False}
+        if keyboard is not None:
+            result["keyboard"] = keyboard
         self.evidence.event({"type": "step_started", "action_id": action_id, "actions": normalized, "before_frame_id": before})
         try:
             for index, action in enumerate(normalized):
@@ -289,9 +316,11 @@ class Engine:
         self.evidence.event({"type": "step_finished", **result})
         return result
 
-    def menu_flow(self, session_id, action_id, flow, profile_path, world_name=None, timeout_ms=20000):
+    def menu_flow(self, session_id, action_id, flow, profile_path, world_name=None, timeout_ms=20000,
+                  controller="deterministic", creation_settings=None):
         from .menu_flow import run_menu_flow
-        return run_menu_flow(self, session_id, action_id, flow, profile_path, world_name, timeout_ms)
+        return run_menu_flow(self, session_id, action_id, flow, profile_path, world_name, timeout_ms,
+                             controller=controller, creation_settings=creation_settings)
 
     def read_logs(self, session_id, cursor=None):
         self._require(session_id)
@@ -348,13 +377,15 @@ class Engine:
         self._require(session_id)
         try:
             self.backend.release_all()
+            keyboard_restore = self.keyboard_guard.restore() if self.keyboard_guard else {"status": "not_supported"}
+            self.evidence.event({"type": "keyboard_restored", **keyboard_restore})
             try:
                 artifacts = self._artifacts()
                 extra = {"artifact_end": artifacts, "artifacts_unchanged": artifacts == self.evidence.metadata["artifact_start"]}
             except Exception as exc:
                 extra = {"artifact_check_error": str(exc), "artifacts_unchanged": False}
             self.evidence.event({"type": "detached"})
-            return self.evidence.finish(extra)
+            return self.evidence.finish({**extra, "keyboard_restore": keyboard_restore})
         finally:
             self.backend.disarm()
             self.lock.release()

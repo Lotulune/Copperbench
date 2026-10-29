@@ -36,18 +36,18 @@ button,
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
+  background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-active);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Shell Layout */
@@ -505,9 +505,11 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-card {
+  max-height: calc(100dvh - 40px);
   background: var(--modal-bg);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-top: 3px solid var(--accent-copper);
+  border-radius: 2px;
   box-shadow: var(--shadow-lg);
   max-width: 520px;
   width: 100%;
@@ -517,14 +519,19 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-header {
+  flex-shrink: 0;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
+.modal-header h2 { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+
 .modal-header > button {
+  flex-shrink: 0;
   min-width: 32px;
   min-height: 32px;
   display: inline-grid;
@@ -532,6 +539,10 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-body {
+  overflow-wrap: anywhere;
+  min-height: 0;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
   padding: 20px;
   overflow-y: auto;
   max-height: 70vh;
@@ -541,6 +552,8 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .modal-footer {
+  flex-wrap: wrap;
+  flex-shrink: 0;
   padding: 14px 20px;
   background: var(--bg-panel);
   border-top: 1px solid var(--border-subtle);
@@ -548,6 +561,30 @@ input:disabled, select:disabled, textarea:disabled {
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.modal-card .btn-primary,
+.modal-card .btn-secondary {
+  min-height: 38px;
+  border-radius: 2px;
+}
+
+.modal-card .btn-primary {
+  background: var(--accent-copper-fill);
+  border-color: var(--accent-copper-fill);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 0 var(--accent-copper-active);
+}
+.modal-card .btn-primary:hover:not(:disabled) {
+  background: var(--accent-copper-fill-hover);
+  border-color: var(--accent-copper-fill-hover);
+}
+
+.modal-card details summary { cursor: pointer; color: var(--text-muted); }
+.modal-card details[open] summary { margin-bottom: 10px; }
+
+@media (max-width: 560px) {
+  .modal-footer { flex-wrap: wrap; }
 }
 
 /* Responsive Grid Helpers */

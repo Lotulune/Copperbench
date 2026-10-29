@@ -88,7 +88,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
     await expect(page.locator('[data-testid="diag-action-open_invalid_field"]')).toBeVisible();
     await page.click('[data-testid="diag-action-open_invalid_field"]');
-    await expect(page.locator('[data-field-path="/fields/hardness"]')).toBeFocused();
+    await expect(page.locator('[data-field-path="/fields/hardness"]').getByRole('textbox')).toBeFocused();
     await expect(page.locator('[data-testid="validation-alert"]')).toBeVisible();
     await expect(page.locator('[data-testid="validation-alert"]')).toContainText(
       '硬度必须在 0 到 100 之间。'
@@ -100,7 +100,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-revision-conflict"]');
 
     await expect(page.locator('[data-testid="revision-conflict-dialog"]')).toBeVisible();
-    await expect(page.getByText('版本并发写入冲突')).toBeVisible();
+    await expect(page.getByRole('dialog', { name: '工作区已有新修改', exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="conflict-refresh-btn"]')).toBeVisible();
 
     // Click refresh to resolve

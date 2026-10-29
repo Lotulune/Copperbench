@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { playwrightTestServer } from './tests/helpers/playwright-server.mjs';
+
+const webServer = playwrightTestServer('COPPERBENCH_E2E_PORT', 5183);
 
 export default defineConfig({
   testDir: './e2e',
@@ -8,7 +11,13 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    locale: 'zh-CN',
+    baseURL: webServer.url,
+    // Existing workbench scenarios represent returning users. Simple-mode specs
+    // override this storage state to exercise the genuine first-run default.
+    storageState: { cookies: [], origins: [{ origin: webServer.url, localStorage: [
+      { name: 'copperbench.workbench.mode', value: 'professional' }
+    ] }] },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'
   },
@@ -44,10 +53,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 }
     }
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 15000
-  }
+  webServer
 });

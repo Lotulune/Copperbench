@@ -1,3 +1,5 @@
+import { confirmAction } from '../feedback/feedback';
+import { ElementVisualPreview } from './ElementVisualPreview';
 import { elementLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -14,7 +16,6 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import {
   ModElementSummary,
-  FieldChange,
   ModElementEditorProjection,
   ModElementChangePreview,
   AssetProjection,
@@ -26,22 +27,15 @@ import {
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
 import {
-  clearElementEditorDraft, elementEditorDraftKey, getElementEditorDraft, setElementEditorDraft
+  clearElementEditorDraft, elementEditorDraftKey, getElementEditorDraft, setElementEditorDraft, useElementEditorDraft
 } from '../hooks/elementEditorDrafts';
+import { collectEditorFieldChanges, hasEditorInputDraft, normalizeEditorNumericDrafts } from '../hooks/editorFieldChanges';
+import { confirmEditorRead } from '../bridge/editorRecovery';
+import { DiagnosticDetails } from './DiagnosticDetails';
 
 interface ElementInspectorProps {
   element: ModElementSummary;
   onClose: () => void;
-}
-
-function fieldValue(field: EditorField, values: Record<string, unknown>): unknown {
-  const value = values[field.path];
-  if (field.control === 'json' && typeof value === 'string') return JSON.parse(value);
-  return value;
-}
-
-function comparable(value: unknown): string {
-  return JSON.stringify(value) ?? String(value);
 }
 
 function conditionTruthy(value: unknown): boolean {
@@ -81,25 +75,6 @@ function conditionActive(field: EditorField, values: Record<string, unknown>): b
     return field.condition.expressions.some((expression) => conditionExpressionActive(expression, values));
   }
   return field.condition.paths.some((path) => conditionTruthy(values[path]));
-}
-
-function collectFieldChanges(
-  editor: ModElementEditorProjection | null,
-  values: Record<string, unknown>
-): { changes: FieldChange[]; invalidJson: boolean } {
-  if (!editor) return { changes: [], invalidJson: false };
-  try {
-    const changes = editor.sections
-      .flatMap((section) => section.fields)
-      .filter((field) => !field.readOnly)
-      .flatMap((field) => {
-        const next = fieldValue(field, values);
-        return comparable(next) === comparable(field.value) ? [] : [{ path: field.path, value: next }];
-      });
-    return { changes, invalidJson: false };
-  } catch {
-    return { changes: [], invalidJson: true };
-  }
 }
 
 function resourceCategoryForField(path: string): AssetProjection['assets'][number]['category'] | null {
@@ -160,7 +135,10 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
     getModElementEditor,
     previewModElementChange,
     listAssets,
+    refreshWorkspace,
     runDiagnosticAction,
+    fieldFocusRequest,
+    clearFieldFocusRequest,
     planWorkspaceChanges,
     applyWorkspacePlan,
     state
@@ -184,6 +162,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   }, []);
 
   const [restoredDraft] = useState(() => getElementEditorDraft(draftKey));
+  const sharedDraft = useElementEditorDraft(draftKey);
   const [editor, setEditor] = useState<ModElementEditorProjection | null>(restoredDraft?.editor ?? null);
   const [configurationPlan, setConfigurationPlan] = useState<WorkspacePlan | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>(restoredDraft?.values ?? {});
@@ -193,6 +172,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [localErrors, setLocalErrors] = useState<UiMessage[]>([]);
+  const [saveDiagnostics, setSaveDiagnostics] = useState<Diagnostic[]>(restoredDraft?.diagnostics ?? []);
+  const [saveUnknown, setSaveUnknown] = useState(restoredDraft?.saveUnknown ?? false);
   const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>(restoredDraft?.referenceDrafts ?? {});
   const [externalChange, setExternalChange] = useState(restoredDraft?.externalChange ?? false);
   const [reloadVersion, setReloadVersion] = useState(0);
@@ -200,18 +181,40 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   const baseRevision = useRef(restoredDraft?.baseRevision ?? state.workbench?.workspace.revision ?? 0);
   const revisionRef = useRef(baseRevision.current);
   revisionRef.current = state.workbench?.workspace.revision ?? 0;
-  const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
-  const hasDraft = pending.invalidJson || pending.changes.length > 0 || Object.values(referenceDrafts).some(value => value.length > 0);
-  const draftRef = useRef({ editor, hasDraft, isSaving });
-  draftRef.current = { editor, hasDraft, isSaving };
+  const pending = useMemo(() => collectEditorFieldChanges(editor, values), [editor, values]);
+  const hasInputDraft = useMemo(() => hasEditorInputDraft(editor, values), [editor, values]);
+  const hasUnsubmittableInput = hasInputDraft && pending.changes.length === 0
+    && pending.invalid.length === 0 && !pending.hasInputDraft;
+  const hasDraft = hasInputDraft || Object.values(referenceDrafts).some(value => value.length > 0)
+    || saveUnknown || Boolean(sharedDraft?.saveUnknown || sharedDraft?.saving) || isSaving;
+  const draftRef = useRef({ editor, values, hasDraft, isSaving });
+  draftRef.current = { editor, values, hasDraft, isSaving };
+  const mounted = useRef(true);
+  const saveSequence = useRef(0);
+  const savingRef = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; saveSequence.current++; }; }, []);
 
   useEffect(() => {
     if (editor && hasDraft) {
-      setElementEditorDraft(draftKey, { editor, values, referenceDrafts, baseRevision: baseRevision.current, externalChange });
+      setElementEditorDraft(draftKey, { editor, values, referenceDrafts, baseRevision: baseRevision.current, externalChange,
+        diagnostics: saveDiagnostics, saveUnknown: saveUnknown || getElementEditorDraft(draftKey)?.saveUnknown,
+        saving: getElementEditorDraft(draftKey)?.saving ?? isSaving });
     } else {
       clearElementEditorDraft(draftKey);
     }
-  }, [draftKey, editor, values, referenceDrafts, hasDraft, externalChange]);
+  }, [draftKey, editor, values, referenceDrafts, hasDraft, externalChange, saveDiagnostics, saveUnknown, isSaving]);
+  useEffect(() => {
+    if (!sharedDraft) return;
+    if (sharedDraft.baseRevision > baseRevision.current && sharedDraft.values === values) {
+      baseRevision.current = sharedDraft.baseRevision;
+      setEditor(sharedDraft.editor);
+      setExternalChange(sharedDraft.externalChange);
+    }
+    if (!isSaving) {
+      setSaveUnknown(Boolean(sharedDraft.saveUnknown));
+      if (sharedDraft.diagnostics) setSaveDiagnostics(sharedDraft.diagnostics);
+    }
+  }, [sharedDraft?.baseRevision, sharedDraft?.editor, sharedDraft?.saveUnknown, sharedDraft?.diagnostics, isSaving]);
 
   // Keep the latest query dispatcher without re-running the projection fetch
   // on unrelated bridge state changes.
@@ -221,6 +224,13 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   previewRef.current = previewModElementChange;
   const listAssetsRef = useRef(listAssets);
   listAssetsRef.current = listAssets;
+  useEffect(() => {
+    if (!editor || !fieldFocusRequest || fieldFocusRequest.elementId !== element.id
+      || fieldFocusRequest.workspaceId !== state.workbench?.workspace.id) return;
+    const field = editor.sections.flatMap(section => section.fields).find(field => field.path === fieldFocusRequest.path);
+    if (field) document.getElementById(fieldControlId(field.path))?.focus();
+    clearFieldFocusRequest();
+  }, [editor, fieldFocusRequest, element.id, state.workbench?.workspace.id, clearFieldFocusRequest]);
 
   const preparationCompletions = Object.values(state.tasks)
     .filter(task => ['generate', 'build', 'export', 'run_client', 'run_server', 'run_datagen', 'run_gametest'].includes(task.kind)
@@ -248,6 +258,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
       }
     }
     forceReload.current = false;
+    setSaveUnknown(false);
     let cancelled = false;
     const observedRevision = revisionRef.current;
     setExternalChange(false);
@@ -298,7 +309,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   }, [editor?.element.id]);
 
   useEffect(() => {
-    if (!editor || pending.invalidJson || pending.changes.length === 0) {
+    if (!editor || pending.invalid.length > 0 || pending.changes.length === 0) {
       setPreview(null);
       setIsPreviewing(false);
       return;
@@ -326,35 +337,53 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   const elementDiagnostics: Diagnostic[] = [
     ...(editor?.sections.flatMap((section) => section.fields.flatMap((field) => field.diagnostics)) ??
       []),
-    ...state.diagnostics.filter((d) => !d.elementId || d.elementId === element.id)
+    ...state.diagnostics.filter((d) => !d.elementId || d.elementId === element.id),
+    ...saveDiagnostics
   ];
 
   const handleSave = async () => {
-    if (!editor) return;
-    setIsSaving(true);
-    setSaveSuccess(false);
-    setLocalErrors([]);
-
-    if (pending.invalidJson) {
-      setLocalErrors([uiMessage("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]);
-      setIsSaving(false);
+    if (!editor || savingRef.current || getElementEditorDraft(draftKey)?.saving || saveUnknown) return;
+    if (pending.invalid.length > 0) {
+      setLocalErrors(pending.invalid.map(issue => issue.control === 'number'
+        ? uiMessage(`请输入有效数字：${issue.path}`, `Enter a valid number: ${issue.path}`)
+        : uiMessage(`JSON 字段格式无效：${issue.path}`, `Invalid JSON field: ${issue.path}`)));
       return;
     }
     const changes = pending.changes;
     if (changes.length === 0) {
-      setIsSaving(false);
+      if (pending.hasInputDraft) {
+        setValues(normalizeEditorNumericDrafts(editor, values));
+        setLocalErrors([]); setSaveSuccess(true);
+      }
       return;
     }
+    const sequence = ++saveSequence.current;
+    savingRef.current = true;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    setLocalErrors([]);
+    setElementEditorDraft(draftKey, { editor, values, referenceDrafts, baseRevision: baseRevision.current, externalChange,
+      diagnostics: saveDiagnostics, saveUnknown: false, saving: true });
 
     let result;
     try {
       result = await updateModElement(element.id, changes, baseRevision.current);
     } catch {
-      setLocalErrors([uiMessage("保存失败，工作区未发生更改。", "Save failed. The workspace was not changed.")]);
-      setIsSaving(false);
+      savingRef.current = false;
+      const draft = getElementEditorDraft(draftKey);
+      if (draft) setElementEditorDraft(draftKey, { ...draft, saving: false, saveUnknown: true });
+      if (mounted.current) {
+        setLocalErrors([uiMessage("保存结果待确认。草稿已保留；请读取最新版本并核对后再保存。", "The save result is unknown. Your draft is preserved; read the latest version and compare before saving again.")]);
+        setSaveUnknown(true);
+        setIsSaving(false);
+      }
       return;
     }
-    setIsSaving(false);
+    savingRef.current = false;
+    const receiptDraft = getElementEditorDraft(draftKey);
+    if (receiptDraft) setElementEditorDraft(draftKey, { ...receiptDraft, saving: false,
+      diagnostics: result.diagnostics, externalChange: receiptDraft.externalChange || Boolean(result.conflict) });
+    if (mounted.current) { setIsSaving(false); setSaveDiagnostics(result.diagnostics); }
 
     if (result.status === 'committed') {
       baseRevision.current = result.newRevision;
@@ -365,62 +394,95 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         element: result.data?.element ?? editor.element,
         sections: editor.sections.map(section => ({
           ...section,
-          fields: section.fields.map(field => ({ ...field, value: fieldValue(field, values) }))
+          fields: section.fields.map(field => {
+            const change = changes.find(change => change.path === field.path);
+            return change ? { ...field, value: change.value } : field;
+          })
         }))
       };
       const cachedDraft = getElementEditorDraft(draftKey);
       // A newer inspector can already be editing this element while this
       // request finishes. Only replace the snapshot this request committed.
-      if (cachedDraft?.values === values && cachedDraft.referenceDrafts === referenceDrafts) {
-        if (Object.values(referenceDrafts).some(value => value.length > 0)) {
+      if (cachedDraft) {
+        if (cachedDraft.values !== values || cachedDraft.referenceDrafts !== referenceDrafts
+          || hasEditorInputDraft(committedEditor, normalizeEditorNumericDrafts(committedEditor, values))
+          || pending.hasInputDraft || Object.values(referenceDrafts).some(value => value.length > 0)) {
           // Unadded references were not submitted. Keep them even when this
           // inspector unmounted before the command completed.
-          setElementEditorDraft(draftKey, { editor: committedEditor, values, referenceDrafts,
-            baseRevision: result.newRevision, externalChange: false });
+          setElementEditorDraft(draftKey, { ...cachedDraft, editor: committedEditor,
+            values: cachedDraft.values === values ? normalizeEditorNumericDrafts(committedEditor, values) : cachedDraft.values,
+            baseRevision: result.newRevision, externalChange: false, diagnostics: result.diagnostics, saveUnknown: false, saving: false });
         } else {
           clearElementEditorDraft(draftKey);
         }
       }
+      if (!mounted.current || sequence !== saveSequence.current) return;
       setEditor(committedEditor);
+      setValues(current => current === values ? normalizeEditorNumericDrafts(committedEditor, current) : current);
       setExternalChange(false);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
+      setTimeout(() => { if (mounted.current && sequence === saveSequence.current) setSaveSuccess(false); }, 2000);
       // Refresh the projection, but keep the values the user just committed
       // so the mock (which does not persist field edits) does not visually
       // revert them.
       try {
         const refreshed = await getEditorRef.current(element.id);
-        if (refreshed) {
-          const committed = { ...values };
+        if (refreshed && mounted.current && sequence === saveSequence.current) {
           const rebased = {
             ...refreshed,
             element: result.data?.element ?? refreshed.element,
             sections: refreshed.sections.map((section) => ({
               ...section,
-              fields: section.fields.map((field) => ({
-                ...field,
-                value: Object.prototype.hasOwnProperty.call(committed, field.path)
-                  ? fieldValue(field, committed)
-                  : field.value
-              }))
+              fields: section.fields.map((field) => {
+                const change = changes.find(change => change.path === field.path);
+                return change ? { ...field, value: change.value } : field;
+              })
             }))
           };
           setEditor(rebased);
-          setValues(committed);
+          // The projection only refreshes the baseline. Inputs typed while the
+          // query was pending remain a distinct, unsaved version.
           setPreview(null);
         }
       } catch {
-        setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器。", "The element was saved, but the editor could not be refreshed.")]);
+        if (mounted.current && sequence === saveSequence.current) setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器。", "The element was saved, but the editor could not be refreshed.")]);
       }
-    } else if (result.conflict) {
+    } else if (!mounted.current) return;
+    else if (result.conflict) {
       setExternalChange(true);
     } else if (result.diagnostics.length > 0) {
       setLocalErrors(result.diagnostics.map((d) => d.message));
     }
   };
 
+  const readLatestKeepingDraft = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setIsSaving(true);
+    try {
+      const { editor: latest, revision } = await confirmEditorRead(state.workbench!.workspace.id,
+        refreshWorkspace, () => getEditorRef.current(element.id));
+      if (!mounted.current || !latest || latest.element.id !== element.id) return;
+      baseRevision.current = revision;
+      setEditor(latest);
+      setSaveUnknown(false);
+      const draft = getElementEditorDraft(draftKey);
+      if (draft) setElementEditorDraft(draftKey, { ...draft, editor: latest, baseRevision: baseRevision.current,
+        externalChange: false, saveUnknown: false, saving: false });
+      setExternalChange(false);
+      setLocalErrors([uiMessage('已读取最新版本；请核对保留的草稿后再保存。', 'The latest version is loaded. Review your preserved draft before saving again.')]);
+    } catch {
+      if (mounted.current) setLocalErrors([uiMessage('无法读取最新版本。草稿和原诊断已保留。', 'Could not read the latest version. Your draft and original diagnostics are preserved.')]);
+    } finally {
+      savingRef.current = false;
+      if (mounted.current) setIsSaving(false);
+    }
+  };
+
   const handleDelete = async () => {
-    if (window.confirm(uiText(`确定要删除「${element.displayName}」吗？`, `Delete "${element.displayName}"?`))) {
+    if (await confirmAction({ title: uiMessage('删除元素', 'Delete element'), danger: true,
+      message: uiMessage(`删除「${element.displayName}」？删除前会检查引用并创建恢复点。`, `Delete "${element.displayName}"? References will be checked and a recovery point created first.`),
+      confirmLabel: uiMessage('删除元素', 'Delete element') })) {
       try {
         const result = await deleteModElement(element.id);
         if (result.status === 'committed') {
@@ -437,7 +499,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
   const errorMessagesToDisplay =
     localErrors.length > 0
       ? localErrors
-      : pending.invalidJson
+      : pending.invalidNumber
+        ? pending.invalid.filter(issue => issue.control === 'number').map(issue => uiText(`请输入有效数字：${issue.path}`, `Enter a valid number: ${issue.path}`))
+        : pending.invalidJson
         ? [uiText("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]
         : preview && !preview.canApply
           ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message))
@@ -520,15 +584,13 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         return (
           <input
             id={controlId}
-            type="number"
+            type="text"
+            inputMode="decimal"
             value={value === undefined || value === null ? '' : String(value)}
-            min={field.constraints?.min}
-            max={field.constraints?.max}
-            step={field.constraints?.step ?? 1}
             disabled={disabled}
             readOnly={disabled}
             onChange={(e) =>
-              setValues((prev) => ({ ...prev, [field.path]: parseFloat(e.target.value) || 0 }))
+              setValues((prev) => ({ ...prev, [field.path]: e.target.value }))
             }
             style={commonStyle}
             data-testid={`field-${fieldTestSuffix(field.path)}`}
@@ -660,9 +722,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
             const itemDisabled = disabled || itemField.readOnly || !conditionActive(itemField, itemValuesByPath);
             const itemTestId = `field-${fieldTestSuffix(field.path)}-${index}-${itemName}`;
             if (itemField.control === 'number') {
-              return <input type="number" value={itemValue === null || itemValue === undefined ? '' : String(itemValue)}
-                min={itemField.constraints?.min} max={itemField.constraints?.max} step={itemField.constraints?.step ?? 1}
-                disabled={itemDisabled} onChange={(e) => updateItem(index, itemField.path, Number(e.target.value))}
+              return <input type="text" inputMode="decimal" value={itemValue === null || itemValue === undefined ? '' : String(itemValue)}
+                disabled={itemDisabled} onChange={(e) => updateItem(index, itemField.path, e.target.value)}
                 data-testid={itemTestId} />;
             }
             if (itemField.control === 'toggle') {
@@ -928,18 +989,22 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
             }}>{uiText("应用已审查的处理计划", "Apply reviewed resolution plan")}</button>
           </div>}
         </section>}
-        {externalChange && (
+        {(externalChange || hasUnsubmittableInput) && (
           <div role="alert" data-testid="inspector-external-change">
-            <p>{uiText("此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。", "Another operation changed this element or workspace. Your draft is preserved. Review the latest content before continuing.")}</p>
-            <button type="button" className="btn-secondary" onClick={() => {
+            <p>{externalChange
+              ? uiText("此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。", "Another operation changed this element or workspace. Your draft is preserved. Review the latest content before continuing.")
+              : uiText('草稿包含当前不可提交的字段，输入已保留。可放弃草稿，或先处理字段的只读状态。', 'Your draft contains fields that cannot currently be submitted. Your input is preserved; discard the draft or resolve the fields’ read-only state.')}</p>
+            <button type="button" className="btn-secondary" disabled={isSaving || Boolean(getElementEditorDraft(draftKey)?.saving)} onClick={() => {
               clearElementEditorDraft(draftKey);
               forceReload.current = true;
               setReloadVersion((version) => version + 1);
             }} data-testid="inspector-reload-latest">
               {uiText("丢弃草稿并加载最新内容", "Discard draft and load latest content")}</button>
+            <button type="button" className="btn-secondary" disabled={isSaving || Boolean(getElementEditorDraft(draftKey)?.saving)}
+              onClick={() => void readLatestKeepingDraft()}>{uiText('读取最新版本并保留草稿', 'Read latest version and keep draft')}</button>
           </div>
         )}
-        {errorMessagesToDisplay.length > 0 && (
+        {(errorMessagesToDisplay.length > 0 || saveUnknown) && (
           <div
             role="alert"
             data-testid="validation-alert"
@@ -955,13 +1020,29 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--badge-red)', fontWeight: 600, fontSize: '12px' }}>
               <AlertTriangle size={15} />
-              <span>{uiText("校验未通过", "Validation failed")}</span>
+              <span>{saveUnknown ? uiText('保存结果待确认', 'Save result unknown') : uiText("校验未通过", "Validation failed")}</span>
             </div>
             {errorMessagesToDisplay.map((msg, idx) => (
               <div key={idx} style={{ fontSize: '12px', color: 'var(--text-main)' }}>
                 • {renderUiMessage(msg)}
               </div>
             ))}
+            {saveUnknown && <p style={{ margin: 0, fontSize: 12 }}>{uiText('保存结果待确认。草稿已保留；请读取最新版本并核对后再保存。', 'The save result is unknown. Your draft is preserved; read the latest version and compare before saving again.')}</p>}
+            <p style={{ margin: 0, fontSize: 12 }}>{hasDraft && !saveUnknown ? uiText('草稿未保存。请修正下方字段，或读取最新版本。', 'Your draft is unsaved. Correct the fields below or read the latest version.') : null}</p>
+            {elementDiagnostics.filter(diagnostic => diagnostic.severity === 'error').map((diagnostic, index) => {
+              const prefix = `/elements/${element.id}`;
+              const path = diagnostic.path?.startsWith(`${prefix}/`) ? diagnostic.path.slice(prefix.length) : diagnostic.path;
+              const field = editor?.sections.flatMap(section => section.fields).find(field => field.path === path);
+              return <div key={`${diagnostic.code}:${index}`} style={{ fontSize: 12 }}>
+                {path && <code>{path}</code>}
+                {field && <button type="button" className="btn-secondary" onClick={() => document.getElementById(fieldControlId(field.path))?.focus()}>
+                  {uiText('定位字段', 'Go to field')}{' · '}{t(field.label)}</button>}
+              </div>;
+            })}
+            {saveUnknown && <button type="button" className="btn-secondary" disabled={isSaving}
+              onClick={() => void readLatestKeepingDraft()} data-testid="inspector-confirm-save-result">
+              {uiText('读取最新版本并保留草稿', 'Read latest version and keep draft')}</button>}
+            <DiagnosticDetails diagnostics={saveDiagnostics.length ? saveDiagnostics : elementDiagnostics} />
           </div>
         )}
 
@@ -1023,7 +1104,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           >
             {uiText("正在加载…", "Loading…")}</div>
         ) : (
-          editor.sections.map((section) => (
+          <>
+          {state.workbench?.workspace.id && <ElementVisualPreview workspaceId={state.workbench.workspace.id} element={editor.element} changes={pending.changes} />}
+          {editor.sections.map((section) => (
             <section className="element-editor-section" key={section.id}>
               <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sub)', letterSpacing: '0.5px' }}>
                 {t(section.title)}
@@ -1170,7 +1253,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 );
               })}
             </section>
-          ))
+          ))}
+          </>
         )}
       </div>
 
@@ -1196,14 +1280,15 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {saveSuccess && (
+          {hasDraft && !isSaving && <span role="status" style={{ color: 'var(--badge-amber)', fontSize: 12 }}>{uiText('未保存', 'Unsaved')}</span>}
+          {saveSuccess && !hasDraft && (
             <span style={{ color: 'var(--badge-green)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Check size={13} /> {uiText("已保存", "Saved")}</span>
           )}
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={externalChange || isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)}
+            disabled={externalChange || saveUnknown || isSaving || Boolean(getElementEditorDraft(draftKey)?.saving) || !editor || pending.invalid.length > 0 || pending.changes.length === 0 && !pending.hasInputDraft || Boolean(preview && !preview.canApply)}
             data-testid="inspector-save-btn"
           >
             <Save size={13} />

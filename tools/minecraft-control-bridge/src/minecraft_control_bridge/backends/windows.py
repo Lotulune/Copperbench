@@ -47,6 +47,9 @@ class WindowsBackend(DesktopBackend):
     def __init__(self):
         self.u = C.WinDLL("user32", use_last_error=True)
         self.k = C.WinDLL("kernel32", use_last_error=True)
+        self.imm = C.WinDLL("imm32", use_last_error=True)
+        self.imm.ImmIsIME.argtypes, self.imm.ImmIsIME.restype = [W.HANDLE], W.BOOL
+        self.imm.ImmGetDefaultIMEWnd.argtypes, self.imm.ImmGetDefaultIMEWnd.restype = [W.HWND], W.HWND
         self.keys, self.buttons = set(), set()
         self._hotkey = False
         self._enum_type = C.WINFUNCTYPE(W.BOOL, W.HWND, W.LPARAM)
@@ -68,6 +71,10 @@ class WindowsBackend(DesktopBackend):
             "PeekMessageW": ([C.POINTER(W.MSG), W.HWND, W.UINT, W.UINT, W.UINT], W.BOOL),
             "SetCursorPos": ([C.c_int, C.c_int], W.BOOL),
             "GetSystemMetrics": ([C.c_int], C.c_int),
+            "GetKeyboardLayout": ([W.DWORD], W.HANDLE),
+            "GetKeyboardLayoutList": ([C.c_int, C.POINTER(W.HANDLE)], C.c_int),
+            "PostMessageW": ([W.HWND, W.UINT, W.WPARAM, W.LPARAM], W.BOOL),
+            "SendMessageTimeoutW": ([W.HWND, W.UINT, W.WPARAM, W.LPARAM, W.UINT, W.UINT, C.POINTER(ULONG_PTR)], W.LPARAM),
         }
         for name, (args, result) in signatures.items():
             fn = getattr(self.u, name)
@@ -142,6 +149,47 @@ class WindowsBackend(DesktopBackend):
         if not self.u.RegisterHotKey(None, 0x4D43, 0x4000, VK["f8"]):
             raise BridgeError("ESTOP_UNAVAILABLE", "Cannot reserve F8; another application may own it")
         self._hotkey = True
+
+    def layout_is_ime(self, layout):
+        return bool(self.imm.ImmIsIME(layout))
+
+    def keyboard_layouts(self):
+        size = self.u.GetKeyboardLayoutList(0, None)
+        layouts = (W.HANDLE * size)()
+        count = self.u.GetKeyboardLayoutList(size, layouts)
+        return [int(h) for h in layouts[:count] if h]
+
+    def keyboard_status(self, window_id):
+        window = self.window(window_id)
+        thread = self.u.GetWindowThreadProcessId(int(window_id), None)
+        layout = self.u.GetKeyboardLayout(thread)
+        if not thread or not layout:
+            raise BridgeError("KEYBOARD_LAYOUT_UNAVAILABLE", "Cannot inspect target window input locale")
+        # TSF input processors are not all reported by ImmIsIME. CJK locales are
+        # conservatively prepared as well; closed-mode IME is not proof of raw-key delivery.
+        is_ime = self.layout_is_ime(layout)
+        ime_window = self.imm.ImmGetDefaultIMEWnd(int(window_id))
+        ime_open = None
+        if ime_window:
+            value = ULONG_PTR()
+            if self.u.SendMessageTimeoutW(ime_window, 0x0283, 0x0005, 0, 0x0002, 100, C.byref(value)):
+                ime_open = bool(value.value)
+        return {"thread_id": thread, "layout": int(layout), "language_id": layout & 0xffff,
+                "is_ime": is_ime, "ime_risk": is_ime or (layout & 0x3ff) in {4, 17, 18},
+                "ime_open": ime_open,
+                "pid": window["pid"], "process_started": window["process_started"]}
+
+    def request_ime_open(self, window_id, opened):
+        hwnd = self.imm.ImmGetDefaultIMEWnd(int(window_id))
+        result = ULONG_PTR()
+        if not hwnd or not self.u.SendMessageTimeoutW(hwnd, 0x0283, 0x0006, int(opened), 0x0002, 100, C.byref(result)):
+            raise BridgeError("IME_SWITCH_REJECTED", "Target IME did not acknowledge the open-status request")
+
+    def request_keyboard_layout(self, window_id, layout):
+        # Documented locale request, not a keyboard/mouse-message input substitute.
+        # Only the selected application thread changes; never LoadKeyboardLayout or global hotkeys.
+        if not self.u.PostMessageW(int(window_id), 0x0050, 0, layout):
+            raise BridgeError("IME_SWITCH_REJECTED", "Target input-locale request was rejected")
 
     def emergency_pressed(self):
         message = W.MSG()

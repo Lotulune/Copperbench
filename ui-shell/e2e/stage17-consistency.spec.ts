@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('asset index text remains readable beside its status dot at supported window widths', async ({ page }, testInfo) => {
+test('asset resource count remains readable in the heading at supported window widths', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
-  const header = page.locator('.asset-browser-header').first();
-  const count = header.locator('.connection-state > span:not([aria-hidden])');
+  const header = page.locator('.asset-library-heading');
+  const count = header.locator('p');
   for (const [width, height] of [[1280, 720], [1366, 768], [1920, 1080]]) {
     await page.setViewportSize({ width, height });
-    await expect(count).toHaveText(/已索引 \(\d+\/\d+\)/);
+    await expect(count).toHaveText('7 个资源文件');
     const text = await count.boundingBox(), bounds = await header.boundingBox();
     expect(text).not.toBeNull(); expect(bounds).not.toBeNull();
     expect(text!.width).toBeGreaterThan(40);
@@ -93,15 +93,21 @@ test('resource details distinguish vanilla resolution from unavailable dependenc
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
   const references = page.getByTestId('asset-outgoing-references');
+  await page.getByTestId('asset-references-disclosure').locator(':scope > summary').click();
+  await expect(references).toBeVisible();
   await expect(references).toContainText('原版已解析');
-  const summary = references.locator('summary').filter({ hasText: 'minecraft:block/cube_all' });
+  const vanilla = references.getByRole('listitem').filter({ hasText: 'minecraft:block/cube_all' });
+  const summary = vanilla.locator('summary');
   await summary.focus();
   await page.keyboard.press('Enter');
-  await expect(references).toContainText('引用位置：/parent');
-  await expect(references).toContainText('资源版本：1.21.1');
-  await expect(references).toContainText('a'.repeat(64));
-  await references.locator('summary').filter({ hasText: 'thirdparty:block/lamp' }).click();
-  await expect(references).toContainText('本次检查未下载外部资源');
+  await expect(vanilla.getByText('位置：/parent', { exact: true })).toBeVisible();
+  await expect(vanilla.getByText('版本：1.21.1', { exact: true })).toBeVisible();
+  await expect(vanilla.getByText('minecraft-client.jar sha256=' + 'a'.repeat(64), { exact: true })).toBeVisible();
+  const external = references.getByRole('listitem').filter({ hasText: 'thirdparty:block/lamp' });
+  await external.locator('summary').click();
+  await expect(external).toContainText('未验证');
+  await expect(external.getByText('位置：/textures/all', { exact: true })).toBeVisible();
+  await expect(external.getByText('external_catalog_unavailable', { exact: true })).toBeVisible();
   expect(await references.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
 

@@ -1,0 +1,40 @@
+/* Motion explains disclosure and focus. Window corner geometry belongs to native DWM. */
+:root {
+  --motion-reveal: 240ms;
+  --motion-dismiss: 180ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-tools-toggle svg { transition: transform var(--motion-reveal) var(--motion-ease); }
+.nav-tools-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: grid-template-rows var(--motion-dismiss) var(--motion-ease),
+    opacity var(--motion-dismiss) ease, visibility 0s var(--motion-dismiss);
+}
+.nav-tools-disclosure-content { min-height: 0; overflow: hidden; }
+.nav-tools-disclosure[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: grid-template-rows var(--motion-reveal) var(--motion-ease),
+    opacity var(--motion-reveal) ease, visibility 0s;
+}
+
+@keyframes overlay-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dialog-reveal { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } }
+@keyframes menu-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { animation: overlay-reveal 160ms ease-out; }
+.modal-overlay .modal-card { animation: dialog-reveal 200ms var(--motion-ease); transform-origin: center; }
+.workspace-actions-menu[open] > .workspace-actions-popover {
+  animation: menu-reveal 160ms var(--motion-ease); transform-origin: top right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-tools-disclosure, .nav-tools-toggle svg { transition: none; }
+  .modal-overlay, .modal-overlay .modal-card, .workspace-actions-menu[open] > .workspace-actions-popover { animation: none; }
+}

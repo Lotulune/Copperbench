@@ -1,5 +1,7 @@
 # Copperbench remaining work
 
+For the compact current entry, see [current status and release capabilities](./status.md). This page retains detailed follow-up and historical evidence; it does not promote source changes into published downloads.
+
 ## Current baseline
 
 - Public stable releases: Windows `v0.1.4` and Linux `v0.1.4-linux-stable`. The refreshed Product Shell, source editing, relationship graph, asset previews, settings and reliability changes are published. See [current downloads](./releases/current.md) for platform-specific verification.

@@ -1,6 +1,9 @@
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
+  --update-bg: #21384c;
+  --update-text: #b8dcff;
+  --update-border: #3b5e7b;
   --bg-base: #191a19;
   --bg-surface: #1c1d1c;
   --bg-panel: #242624;
@@ -18,6 +21,9 @@
   --text-muted: #b1b6ac;
   /* Secondary text remains readable on both canvas and panel surfaces. */
   --text-sub: #9da596;
+  --scrollbar-thumb: #737b6d;
+  --scrollbar-thumb-hover: #99a18f;
+  --scrollbar-track: #242624;
 
   --accent-copper: #e2aa7a;
   --accent-copper-hover: #f2bd90;
@@ -63,6 +69,9 @@
 }
 
 [data-theme="light"] {
+  --update-bg: #eaf4ff;
+  --update-text: #245d8f;
+  --update-border: #c2dcf3;
   color-scheme: light;
   --bg-base: #ffffff;
   --bg-surface: #ffffff;
@@ -80,7 +89,10 @@
   --text-main: #242622;
   --text-muted: #696d66;
   /* Secondary text meets normal-text contrast on light surfaces. */
-  --text-sub: #71766c;
+  --text-sub: #61675c;
+  --scrollbar-thumb: #737d6c;
+  --scrollbar-thumb-hover: #53604c;
+  --scrollbar-track: #f4f4f3;
 
   --accent-copper: #985029;
   --accent-copper-hover: #833e11;

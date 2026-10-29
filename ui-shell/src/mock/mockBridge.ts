@@ -3294,6 +3294,11 @@ export class MockCoreBridge implements CoreBridge {
           ]
         } satisfies InstalledPluginInventory;
         break;
+      case 'get_element_visual_preview': {
+        data = { schemaVersion: '1.0', elementId: (query.payload as { elementId: string }).elementId,
+          scene: { kind: 'unavailable', reason: 'model_geometry_missing' } };
+        break;
+      }
       case 'get_mod_element_editor': {
         const elemId = (query.payload as { elementId?: UUID })?.elementId;
         if (elemId && this.state.elementEditors[elemId]) {

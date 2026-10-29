@@ -66,6 +66,9 @@ java {
 // Keep that tiny transported boundary on a bytecode level accepted by the
 // oldest supported Java tracks while the main application remains Java 25.
 sourceSets {
+    installer {
+        java.srcDir 'platform/installer/src'
+    }
     gradleBridge {
         java.srcDir 'src/gradleBridge/java'
         compileClasspath = configurations.compileClasspath
@@ -74,12 +77,18 @@ sourceSets {
     main {
         compileClasspath += gradleBridge.output
         runtimeClasspath += gradleBridge.output
+        compileClasspath += installer.output
+        runtimeClasspath += installer.output
     }
     test {
         compileClasspath += gradleBridge.output
         runtimeClasspath += gradleBridge.output
+        compileClasspath += installer.output
+        runtimeClasspath += installer.output
     }
 }
+
+tasks.named('compileInstallerJava', JavaCompile) { options.release = 17 }
 
 tasks.named('compileGradleBridgeJava', JavaCompile) {
     javaCompiler = javaToolchains.compilerFor {
@@ -90,6 +99,18 @@ tasks.named('compileGradleBridgeJava', JavaCompile) {
 
 tasks.named('jar', Jar) {
     from sourceSets.gradleBridge.output
+    from sourceSets.installer.output
+}
+
+tasks.register('installerJar', Jar) {
+    archiveFileName = 'copperbench-setup.jar'
+    destinationDirectory = layout.buildDirectory.dir('installer')
+    from sourceSets.installer.output
+    from('platform/installer/assets')
+    from('LICENSE.txt')
+    from('LICENSE-ADDITIONAL-TERMS.md')
+    from('src/main/resources/net/mcreator/ui/res/icon.png')
+    manifest { attributes('Main-Class': 'dev.copperbench.installer.InstallerMain') }
 }
 
 // Tooling API transports ordinary -D properties after daemon startup. The tiny
@@ -389,6 +410,7 @@ tasks.register('runMCreator', JavaExec.class) {
 
     jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--enable-native-access', 'ALL-UNNAMED,jcef'
     systemProperty 'copperbench.productShell', 'true'
+    systemProperty 'java.net.useSystemProxies', 'true'
 
     classpath += sourceSets.main.runtimeClasspath
 
@@ -402,6 +424,7 @@ tasks.register('runProductShell', JavaExec.class) {
 
     jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--enable-native-access', 'ALL-UNNAMED,jcef'
     systemProperty 'copperbench.productShell', 'true'
+    systemProperty 'java.net.useSystemProxies', 'true'
 
     classpath += sourceSets.main.runtimeClasspath
     mainClass.set('net.mcreator.Launcher')

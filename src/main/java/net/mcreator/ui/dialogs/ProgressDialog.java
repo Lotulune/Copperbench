@@ -133,6 +133,17 @@ public class ProgressDialog extends MCreatorDialog {
 		});
 	}
 
+	private void refreshProgressUnit(ProgressUnit unit) {
+		ThreadUtil.runOnSwingThread(() -> {
+			int index = listModel.indexOf(unit);
+			if (index >= 0) {
+				// BasicListUI caches row heights. Repainting alone cannot accommodate
+				// a detail line added after the row was first measured.
+				listModel.set(index, unit);
+			}
+		});
+	}
+
 	public static class ProgressUnit {
 
 		private final String name;
@@ -155,18 +166,14 @@ public class ProgressDialog extends MCreatorDialog {
 
 		public void markStateOk() {
 			status = Status.COMPLETE;
-
-			if (progressDialog != null) {
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
-			}
+			repaintUnit();
 		}
 
 		public void markStateError() {
 			status = Status.ERROR;
+			repaintUnit();
 
 			if (progressDialog != null) {
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
-
 				if (progressDialog.mcreator != null)
 					progressDialog.mcreator.getApplication().getTaskbarIntegration()
 							.setErrorIndicator(progressDialog.mcreator);
@@ -175,10 +182,9 @@ public class ProgressDialog extends MCreatorDialog {
 
 		public void markStateWarning() {
 			status = Status.WARNING;
+			repaintUnit();
 
 			if (progressDialog != null) {
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
-
 				if (progressDialog.mcreator != null)
 					progressDialog.mcreator.getApplication().getTaskbarIntegration()
 							.setWarningIndicator(progressDialog.mcreator);
@@ -195,7 +201,7 @@ public class ProgressDialog extends MCreatorDialog {
 
 		private void repaintUnit() {
 			if (progressDialog != null)
-				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
+				progressDialog.refreshProgressUnit(this);
 		}
 
 		enum Status {
@@ -217,20 +223,21 @@ public class ProgressDialog extends MCreatorDialog {
 				boolean isSelected, boolean cellHasFocus) {
 			removeAll();
 			setOpaque(false);
-			setLayout(new BorderLayout());
+			setLayout(new BorderLayout(0, 4));
 
 			JPanel stap = new JPanel(new BorderLayout(2, 0));
 			stap.setOpaque(false);
 
-			JPanel labels = new JPanel();
-			labels.setOpaque(false);
-			labels.setLayout(new BoxLayout(labels, BoxLayout.Y_AXIS));
+			JPanel heading = new JPanel(new BorderLayout(12, 0));
+			heading.setOpaque(false);
 			JLabel status = new JLabel(ma.name);
-			labels.add(status);
+			status.setToolTipText(ma.name);
+			heading.add(status, BorderLayout.CENTER);
 			if (ma.detail != null && !ma.detail.isBlank()) {
 				JLabel detail = new JLabel(ma.detail);
 				detail.setForeground(Theme.current().getAltForegroundColor());
-				labels.add(detail);
+				detail.setToolTipText(ma.detail);
+				add(detail, BorderLayout.CENTER);
 			}
 
 			switch (ma.status) {
@@ -246,7 +253,8 @@ public class ProgressDialog extends MCreatorDialog {
 				bar.setStringPainted(ma.percent > 0);
 				if (ma.percent > 0)
 					bar.setString(ma.percent + "%");
-				bar.setPreferredSize(new Dimension(120, 14));
+				bar.setPreferredSize(new Dimension(120,
+						Math.max(bar.getPreferredSize().height, bar.getFontMetrics(bar.getFont()).getHeight() + 4)));
 				stap.add("West", PanelUtils.totalCenterInPanel(bar));
 			}
 			case COMPLETE -> stap.add("East", PanelUtils.centerInPanel(new JLabel(complete)));
@@ -254,8 +262,8 @@ public class ProgressDialog extends MCreatorDialog {
 			case WARNING -> stap.add("East", PanelUtils.centerInPanel(new JLabel(warning)));
 			}
 
-			add("West", labels);
-			add("East", stap);
+			heading.add(stap, BorderLayout.LINE_END);
+			add(heading, BorderLayout.NORTH);
 			setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 			return this;
 		}

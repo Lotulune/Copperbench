@@ -204,7 +204,11 @@ export interface TaskSummary {
   diagnostics: DiagnosticCounts;
   sourceSnapshot?: { sha256: string; fileCount: number; bytes: number; manifestPath: string };
   verification?: GameTestVerification;
-  verifiedExport?: { exportDirectory: string; artifactSha256: string; status: 'passed_current_input' | 'passed_historical_input' };
+  verifiedExport?: {
+    exportDirectory: string; artifactSha256: string; status: 'passed_current_input' | 'passed_historical_input';
+    /** Already present in the frozen Core receipt. Optional here for readable older task history. */
+    environment?: Record<string, unknown>;
+  };
   resultObservation?: 'unconfirmed_after_session_loss';
   gameTestSetup?: { state: string; configurationPath: string; starterScope?: 'mod_loading_only'; createdPaths?: string[] };
 }
@@ -1041,6 +1045,7 @@ export type QueryOperation =
   | 'preview_asset_move'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
+  | 'get_element_visual_preview'
   | 'preview_mod_element_change'
   | 'get_procedure_editor'
   | 'preview_procedure_change'

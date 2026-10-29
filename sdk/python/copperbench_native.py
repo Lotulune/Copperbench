@@ -8,13 +8,19 @@ import math
 import os
 from pathlib import Path
 import queue
+import re
 import shutil
 import socket
 import subprocess
 import threading
 import time
-from typing import Any, Iterator, Sequence
+from typing import Any, Callable, Iterator, Sequence
 import uuid
+
+from copperbench import ClientMetrics, _cursor_page, _field_contract, _poll_task
+
+
+_MAX_RESPONSE_CHARS = 32 * 1024 * 1024
 
 
 class NativeApiError(RuntimeError):
@@ -35,7 +41,8 @@ class Workspace:
     @classmethod
     def open(cls, workspace: str | Path, *, launcher: str | Path | Sequence[str] | None = None,
              task_authorization_id: str | None = None, startup_timeout: float = 120,
-             request_timeout: float = 30, cwd: str | Path | None = None) -> Workspace:
+             request_timeout: float = 30, cwd: str | Path | None = None,
+             metrics: ClientMetrics | None = None) -> Workspace:
         """Open an existing .mcreator file without an MCP token or running desktop.
 
         launcher is the Copperbench executable, or an explicit argv sequence
@@ -56,6 +63,7 @@ class Workspace:
             raise ValueError("launcher must be a nonempty executable or argv sequence")
         self = cls.__new__(cls)
         self.task_authorization_id = task_authorization_id
+        self.metrics = metrics
         self.request_timeout = request_timeout
         self.revision: int | None = None
         self._closed = False
@@ -70,6 +78,9 @@ class Workspace:
             text=True, encoding="utf-8", errors="strict", bufsize=1, cwd=cwd,
         )
         self._input, self._output = self._process.stdin, self._process.stdout
+        # Keep the original LF/CRLF bytes for metrics, with the same strict UTF-8
+        # decoding and universal line recognition as the subprocess text stream.
+        self._output.reconfigure(newline="")
         self._reader = threading.Thread(target=self._read_output, daemon=True)
         self._reader.start()
         try:
@@ -82,7 +93,7 @@ class Workspace:
             self.get_workspace()
             return self
         except BaseException:
-            self.close()
+            self._close(graceful=False)
             raise
 
     @staticmethod
@@ -92,7 +103,7 @@ class Workspace:
 
     @classmethod
     def connect(cls, workspace: str | Path, *, request_timeout: float = 30,
-                task_authorization_id: str | None = None) -> Workspace:
+                task_authorization_id: str | None = None, metrics: ClientMetrics | None = None) -> Workspace:
         """Attach to the desktop's live Core. Closing disconnects only this client.
 
         Discovery and credentials are private to the local OS user, separate
@@ -118,6 +129,7 @@ class Workspace:
                                  'NATIVE_CONNECTION_UNAVAILABLE') from error
         self = cls.__new__(cls)
         self.task_authorization_id = task_authorization_id
+        self.metrics = metrics
         self.request_timeout = request_timeout
         self.revision = None
         self._closed = False
@@ -132,7 +144,7 @@ class Workspace:
             self._socket = socket.create_connection(('127.0.0.1', port), timeout=request_timeout)
             self._socket.settimeout(None)
             self._input = self._socket.makefile('w', encoding='utf-8', newline='\n')
-            self._output = self._socket.makefile('r', encoding='utf-8')
+            self._output = self._socket.makefile('r', encoding='utf-8', newline='')
             self._reader = threading.Thread(target=self._read_output, daemon=True)
             self._reader.start()
             self._send(json.dumps({'token': connection['token']}, ensure_ascii=True))
@@ -146,7 +158,7 @@ class Workspace:
             self.get_workspace()
             return self
         except BaseException as error:
-            self.close()
+            self._close(graceful=False)
             if isinstance(error, OSError):
                 raise NativeApiError('Desktop session is no longer available', 'NATIVE_CONNECTION_UNAVAILABLE') from error
             raise
@@ -175,15 +187,18 @@ class Workspace:
     def _read_output(self) -> None:
         try:
             while True:
-                line = self._output.readline(32 * 1024 * 1024 + 1)
+                line = self._output.readline(_MAX_RESPONSE_CHARS + 2)
                 if not line:
                     break
-                if len(line) > 32 * 1024 * 1024:
+                # CRLF previously occupied one character after newline
+                # translation. Preserve that limit while counting both bytes.
+                characters = len(line) - int(line.endswith('\r\n'))
+                if characters > _MAX_RESPONSE_CHARS:
                     raise ValueError("Native response exceeds 32 Mi characters")
                 value = json.loads(line)
                 if not isinstance(value, dict):
                     raise ValueError("Native response must be an object")
-                self._responses.put(value)
+                self._responses.put((value, len(line.encode("utf-8"))))
         except Exception as error:
             self._responses.put(NativeApiError(str(error), "NATIVE_INVALID_RESPONSE"))
         finally:
@@ -191,16 +206,32 @@ class Workspace:
             self._output.close()
 
     def _receive(self, timeout: float) -> dict[str, Any]:
+        self._last_response_bytes = 0
         try:
             value = self._responses.get(timeout=timeout)
         except queue.Empty as error:
             raise NativeApiError("Native API timed out; the request is not retried", "NATIVE_TIMEOUT") from error
         if isinstance(value, Exception):
             raise value
-        return value
+        response, self._last_response_bytes = value
+        return response
 
     def _call(self, kind: str, operation: str, payload: dict[str, Any],
               expected_revision: int | None = None) -> dict[str, Any]:
+        metrics = getattr(self, "metrics", None)
+        if metrics is None:
+            return self._call_once(kind, operation, payload, expected_revision)
+        started = time.monotonic()
+        if metrics is not None:
+            metrics._add(operation, "logicalCalls")
+        try:
+            return self._call_once(kind, operation, payload, expected_revision)
+        finally:
+            if metrics is not None:
+                metrics._add(operation, "elapsedSeconds", time.monotonic() - started)
+
+    def _call_once(self, kind: str, operation: str, payload: dict[str, Any],
+                   expected_revision: int | None = None) -> dict[str, Any]:
         with self._lock:
             if self._closed:
                 raise NativeApiError("Workspace is closed", "NATIVE_SESSION_CLOSED")
@@ -215,29 +246,43 @@ class Workspace:
             if len(line) > 4 * 1024 * 1024:
                 raise ValueError("Native request exceeds 4 Mi characters")
             try:
+                if getattr(self, "metrics", None) is not None:
+                    self.metrics._add(operation, "attempts")
                 self._send(line)
                 response = self._receive(self.request_timeout)
+                if getattr(self, "metrics", None) is not None:
+                    self.metrics._add(operation, "responseBytes", self._last_response_bytes)
                 if response.get("id") != request_id:
                     raise NativeApiError("Native response ID mismatch", "NATIVE_INVALID_RESPONSE", response)
             except (NativeApiError, OSError) as error:
-                self.close()
+                self._close(graceful=False)
                 if isinstance(error, NativeApiError):
                     raise
                 raise NativeApiError("Core pipe disconnected; request was not retried", "NATIVE_PROCESS_EXITED") from error
             if "error" in response:
                 error = response["error"]
+                if (not isinstance(error, dict) or not isinstance(error.get("message"), str)
+                        or not isinstance(error.get("code"), str) or not error["code"]):
+                    self._close(graceful=False)
+                    raise NativeApiError("Malformed native error", "NATIVE_INVALID_RESPONSE", response)
                 raise NativeApiError(error["message"], error["code"], response)
             result = response.get("result")
             if not isinstance(result, dict):
-                self.close()
+                self._close(graceful=False)
                 raise NativeApiError("Missing Core result", "NATIVE_INVALID_RESPONSE", response)
             allowed_statuses = {"compatible", "incompatible"} if kind == "handshake" else {
                 "succeeded", "committed", "accepted", "completed", "cancelled"}
-            if result.get("status") not in allowed_statuses:
-                diagnostics = result.get("diagnostics") or []
-                diagnostic = diagnostics[0] if diagnostics else {}
+            if not isinstance(result.get("status"), str) or result["status"] not in allowed_statuses:
+                if not isinstance(result.get("status"), str) or result["status"] not in {"rejected", "failed"}:
+                    self._close(graceful=False)
+                    raise NativeApiError("Unrecognized Core result status", "NATIVE_INVALID_RESPONSE", result)
+                diagnostics = result.get("diagnostics") if isinstance(result.get("diagnostics"), list) else []
+                diagnostic = next((item for item in diagnostics if isinstance(item, dict)
+                                   and isinstance(item.get("code"), str) and item["code"]), {})
                 message = diagnostic.get("message", {})
-                code = diagnostic.get("code", "CORE_OPERATION_REJECTED")
+                code = result.get("code")
+                if not isinstance(code, str) or not code:
+                    code = diagnostic.get("code", "CORE_OPERATION_REJECTED")
                 if result.get("conflict"):
                     code = "REVISION_CONFLICT"
                 raise NativeApiError(message.get("fallback", code) if isinstance(message, dict) else str(message), code, result)
@@ -253,9 +298,28 @@ class Workspace:
     def negotiate_schema(self, supported_versions: Sequence[str], *, client_name: str = "python",
                          client_version: str = "1") -> dict[str, Any]:
         """Negotiate the UI-Core wire schema with the running Core, without mutation."""
-        return self._call("handshake", "handshake", {
-            "supportedSchemaVersions": list(supported_versions),
+        versions = list(supported_versions)
+        if (not versions or any(not isinstance(value, str) or re.fullmatch(r"[0-9]+\.[0-9]+", value) is None
+                                for value in versions) or len(set(versions)) != len(versions)):
+            raise ValueError("supported_versions must contain major.minor schema versions")
+        result = self._call("handshake", "handshake", {
+            "supportedSchemaVersions": versions,
             "client": {"name": client_name, "version": client_version}})
+        selected, offered = result.get("selectedSchemaVersion"), result.get("coreSchemaVersions")
+        if (not isinstance(offered, list) or not offered
+                or any(not isinstance(value, str) or re.fullmatch(r"[0-9]+\.[0-9]+", value) is None for value in offered)
+                or not isinstance(result.get("diagnostics"), list)
+                or (result["status"] == "compatible" and (selected not in versions or selected not in offered))
+                or (result["status"] == "incompatible" and selected is not None)):
+            raise NativeApiError("Malformed schema negotiation result", "NATIVE_INVALID_RESPONSE", result)
+        return result
+
+    def require_schema(self, supported_versions: Sequence[str] = ("1.0",)) -> dict[str, Any]:
+        """Stop explicitly on incompatibility; never downgrade required semantics."""
+        result = self.negotiate_schema(supported_versions)
+        if result["status"] != "compatible":
+            raise NativeApiError("The host has no compatible Core schema", "UI_CORE_SCHEMA_INCOMPATIBLE", result)
+        return result
 
     def command(self, operation: str, *, expected_revision: int | None = None, **payload: Any) -> dict[str, Any]:
         """Execute once at the last observed revision (or the explicit revision).
@@ -270,9 +334,14 @@ class Workspace:
     def get_workspace(self) -> dict[str, Any]:
         return self.query("get_workbench")
 
-    def field_contract(self, element_type: str = "block") -> dict[str, Any]:
+    def get_workspace_environment(self) -> dict[str, Any]:
+        return self.query("get_workspace_environment")
+
+    def field_contract(self, element_type: str = "block", *,
+                       environment: dict[str, Any] | None = None) -> dict[str, Any]:
         """Discover the Core contract before constructing structured writes."""
-        return self.query("get_workspace_environment")["data"]["fieldContracts"][element_type]
+        return _field_contract(self.get_workspace_environment() if environment is None else environment,
+                               element_type, NativeApiError, "NATIVE_INVALID_RESPONSE")
 
     def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
                                expected_revision: int | None = None,
@@ -306,19 +375,15 @@ class Workspace:
         return ElementCollection(self)
 
     def list_mod_elements(self, **filters: Any) -> Iterator[dict[str, Any]]:
-        cursor = None
-        seen = set()
+        cursor = filters.get("cursor")
+        seen = {cursor} if isinstance(cursor, str) else set()
         while True:
             result = self.query("list_mod_elements", **{**filters, "limit": filters.get("limit", 200),
                                                         **({"cursor": cursor} if cursor else {})})
-            data = result["data"]
-            yield from data.get("items", [])
-            cursor = data.get("nextCursor")
-            if not cursor:
+            items, cursor = _cursor_page(result, seen, NativeApiError, "NATIVE_INVALID_RESPONSE")
+            yield from items
+            if cursor is None:
                 return
-            if cursor in seen:
-                raise NativeApiError("Repeated pagination cursor", "NATIVE_INVALID_RESPONSE", result)
-            seen.add(cursor)
 
     def create_mod_element(self, **payload: Any) -> dict[str, Any]:
         return self.command("create_mod_element", **payload)
@@ -356,44 +421,58 @@ class Workspace:
     def cancel_task(self, task_id: str) -> dict[str, Any]:
         return self.command("cancel_task", taskId=task_id)
 
-    def wait_task(self, task_id: str, *, timeout: float = 2700, poll_interval: float = 0.2) -> dict[str, Any]:
-        """Wait for a terminal task result. Timeout leaves the task running in this session."""
-        if timeout <= 0 or poll_interval <= 0:
-            raise ValueError("timeout and poll_interval must be positive")
-        deadline = time.monotonic() + timeout
-        after_sequence = 0
-        logs = []
-        while True:
-            result = self.get_task(task_id, after_sequence)
-            data = result["data"]
-            for entry in data.get("logs", []):
-                after_sequence = max(after_sequence, entry["sequence"])
-                logs.append(entry)
-            if data["task"]["state"] not in {"queued", "running"}:
-                data['logs'] = logs
-                return result
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise NativeApiError("Task is still running; poll or cancel it explicitly", "NATIVE_TASK_TIMEOUT", result)
-            time.sleep(min(poll_interval, remaining))
+    def wait_task(self, task_id: str, *, timeout: float = 2700, poll_interval: float = 0.2,
+                  after_log_sequence: int = 0,
+                  on_update: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
+        """Resume an existing task with incremental logs; timeout only ends waiting.
+
+        Persist on_update responses before disconnecting. An independent host
+        must remain alive until its task ends; connect() can reconnect to a
+        still-running desktop host. Transport errors propagate without replay.
+        """
+        return _poll_task(self.get_task, task_id, timeout=timeout, poll_interval=poll_interval,
+                          after_log_sequence=after_log_sequence, on_update=on_update,
+                          error_type=NativeApiError, invalid_code="NATIVE_INVALID_RESPONSE",
+                          timeout_code="NATIVE_TASK_TIMEOUT")
 
     def close(self) -> None:
+        """Disconnect, allowing an idle owned host up to 30s to finish saving."""
+        self._close(graceful=True)
+
+    def _close(self, *, graceful: bool) -> None:
         # Never wait for the request lock: another thread may be waiting for
         # Core or filling a pipe. Shutdown must wake it, not depend on it.
         with self._close_lock:
             if self._closed:
                 return
-            self._closed = True
-            self._responses.put(NativeApiError('Workspace is closed', 'NATIVE_SESSION_CLOSED'))
+            idle = graceful and self._lock.acquire(blocking=False)
+            try:
+                self._closed = True
+                self._responses.put(NativeApiError('Workspace is closed', 'NATIVE_SESSION_CLOSED'))
+            finally:
+                if idle:
+                    self._lock.release()
             if self._socket is not None:
                 try:
                     self._socket.shutdown(socket.SHUT_RDWR)
                 except OSError:
                     pass
-                self._socket.close()
+                # makefile() keeps socket I/O references. Its buffered streams
+                # can still be held by a pending read/write, so socket.close()
+                # alone may defer the OS close and leave that operation alive.
+                descriptor = self._socket.detach()
+                if descriptor != -1:
+                    socket.close(descriptor)
             elif self._process is not None:
-                # A blocked writer owns the buffered stream lock. Terminate
-                # before touching that stream; otherwise close() also hangs.
+                deadline = time.monotonic() + (30 if idle else 2)
+                if idle and self._writer is not None:
+                    # An acknowledged request can leave its writer descheduled
+                    # after flush. Liveness alone does not establish blocked I/O.
+                    # Wait within the graceful budget before touching its stream.
+                    self._writer.join(timeout=max(0, deadline - time.monotonic()))
+                # In-flight/faulted writes retain the short abort path; after
+                # the graceful budget, a writer still holding the stream must
+                # also be interrupted before closing the buffered input.
                 if self._writer is not None and self._writer.is_alive():
                     self._process.terminate()
                 else:
@@ -402,7 +481,8 @@ class Workspace:
                     except (OSError, ValueError):
                         pass
                 try:
-                    self._process.wait(timeout=2)
+                    # The writer and normal EOF exit share the graceful budget.
+                    self._process.wait(timeout=max(0, deadline - time.monotonic()))
                 except subprocess.TimeoutExpired:
                     self._process.kill()
                     self._process.wait(timeout=2)

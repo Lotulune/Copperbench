@@ -19,7 +19,8 @@
 
 package net.mcreator.ui.chromium;
 
-import net.mcreator.ui.init.L10N;
+import dev.copperbench.shell.ProductDialogs;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 import org.cef.browser.CefBrowser;
 import org.cef.callback.CefJSDialogCallback;
 import org.cef.handler.CefJSDialogHandlerAdapter;
@@ -41,28 +42,29 @@ public class SwingJSDialogHandler extends CefJSDialogHandlerAdapter {
 
 		// Route to the Event Dispatch Thread for Swing component safety
 		SwingUtilities.invokeLater(() -> {
+			String ok = text("确定", "OK");
+			String cancel = text("取消", "Cancel");
 			switch (dialog_type) {
 			case JSDIALOGTYPE_ALERT:
-				JOptionPane.showOptionDialog(parent, message_text, "提示", JOptionPane.DEFAULT_OPTION,
-						JOptionPane.WARNING_MESSAGE, null, new Object[]{"确定"}, "确定");
+				ProductDialogs.show(parent, message_text, text("提示", "Notice"),
+						JOptionPane.INFORMATION_MESSAGE, new Object[]{ok}, ok);
 				callback.Continue(true, "");
 				break;
 
 			case JSDIALOGTYPE_CONFIRM:
-				int result = JOptionPane.showOptionDialog(parent, message_text, "确认",
-						JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-						new Object[]{"确定", "取消"}, "取消");
+				int result = ProductDialogs.show(parent, message_text, text("确认", "Confirm"),
+						JOptionPane.QUESTION_MESSAGE, new Object[]{ok, cancel}, cancel);
 				callback.Continue(result == JOptionPane.OK_OPTION, "");
 				break;
 
 			case JSDIALOGTYPE_PROMPT:
-				JOptionPane pane = new JOptionPane(message_text, JOptionPane.QUESTION_MESSAGE,
-                        JOptionPane.OK_CANCEL_OPTION, null, new Object[]{"确定", "取消"}, "取消");
+				JOptionPane pane = ProductDialogs.pane(message_text, JOptionPane.QUESTION_MESSAGE,
+                        new Object[]{ok, cancel}, cancel);
                 pane.setWantsInput(true);
                 pane.setInitialSelectionValue(default_prompt_text);
-                JDialog dialog = pane.createDialog(parent, "请输入");
+                JDialog dialog = pane.createDialog(parent, text("请输入", "Enter a value"));
                 try { dialog.setVisible(true); } finally { dialog.dispose(); }
-                String input = "确定".equals(pane.getValue()) && pane.getInputValue() != JOptionPane.UNINITIALIZED_VALUE
+                String input = ok.equals(pane.getValue()) && pane.getInputValue() != JOptionPane.UNINITIALIZED_VALUE
                         ? String.valueOf(pane.getInputValue()) : null;
 				if (input != null) {
 					callback.Continue(true, input);

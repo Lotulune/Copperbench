@@ -45,6 +45,8 @@ export interface BridgeState {
   tasks: Record<UUID, TaskSummary>;
   taskLogs: Record<UUID, TaskLogEntry[]>;
   taskDiagnostics: Record<UUID, Diagnostic[]>;
+  /** Local transport observations; never replace the Core task state. */
+  taskReadErrors?: Record<UUID, string>;
   diagnostics: Diagnostic[];
   recoveryPoints: RecoveryPoint[];
   currentRecoveryPointId: string | null;

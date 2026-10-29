@@ -1,0 +1,17 @@
+.agent-provider-icon { display: inline-block; flex-shrink: 0; object-fit: contain; vertical-align: middle; }
+[data-theme="dark"] .agent-provider-icon.is-monochrome { filter: invert(1); }
+.creation-provider-trigger { display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px; min-width: 0; min-height: 36px; padding: 7px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-input); color: var(--text-main); font: 13px/20px var(--font-sans); white-space: nowrap; }
+.creation-provider-trigger > .agent-provider-icon { display: block; }
+.creation-provider-trigger:hover:not(:disabled), .creation-provider-trigger[aria-expanded="true"] { background: var(--bg-hover); border-color: var(--border-active); }
+.creation-provider-trigger:disabled { opacity: .72; }
+.creation-shell.is-simple .creation-provider-trigger { gap: 7px; padding: 5px 4px; min-height: 32px; border: 0; background: transparent; font-size: 12px; }
+.creation-shell.is-simple .creation-provider-trigger[aria-expanded="true"] { background: var(--bg-hover); }
+.creation-provider-trigger > span { overflow: hidden; text-overflow: ellipsis; }
+.creation-provider-trigger > svg { flex-shrink: 0; }
+.creation-provider-listbox { position: fixed; z-index: 1200; box-sizing: border-box; padding: 5px; overflow-y: auto; border: 1px solid var(--border-active); border-radius: var(--radius-md); background: var(--bg-panel); color: var(--text-main); box-shadow: var(--shadow-lg); font: 13px/1.5 var(--font-sans); }
+.creation-provider-option { display: flex; align-items: center; gap: 10px; min-height: 43px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; user-select: none; }
+.creation-provider-option[data-highlighted="true"] { background: var(--bg-hover); outline: 1px solid var(--border-focus); outline-offset: -1px; }
+.creation-provider-option[aria-selected="true"] { background: var(--accent-copper-dim); }
+.creation-provider-option-name { flex: 1; white-space: nowrap; }
+.creation-provider-option small { color: var(--text-sub); font-size: 11px; }
+.creation-provider-option > svg { flex-shrink: 0; color: var(--accent-copper); }

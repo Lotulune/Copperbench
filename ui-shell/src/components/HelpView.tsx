@@ -1,6 +1,6 @@
 import { tr, uiText } from '../i18n/locale';
 import React, { useState } from 'react';
-import { ArrowRight, FileArchive, LoaderCircle } from 'lucide-react';
+import { ArrowRight, FileArchive, LoaderCircle, RefreshCw } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import { ABOUT_FACTS, TRACK_HONEST_FACTS, USER_GUIDE_SECTIONS } from '../content/userGuide';
@@ -10,6 +10,7 @@ export const HelpView: React.FC = () => {
   const [includeWorkspaceFiles, setIncludeWorkspaceFiles] = useState(false);
   const [exportingDiagnostics, setExportingDiagnostics] = useState(false);
   const [diagnosticExportStatus, setDiagnosticExportStatus] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState(false);
 
   const exportDiagnostics = async () => {
     setExportingDiagnostics(true);
@@ -26,7 +27,7 @@ export const HelpView: React.FC = () => {
 
   return <div className="help-view" data-testid="help-view" style={{ flex: 1, minWidth: 0, padding: '24px', overflowY: 'auto' }}>
     <div style={{ width: '100%', maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <h1 style={{ margin: 0, fontSize: 22, fontWeight: 550 }}>{uiText('帮助', 'Help')}</h1>
+      <h1 style={{ margin: 0, fontSize: 22, fontWeight: 550 }}>{uiText('帮助与关于', 'Help & about')}</h1>
 
       <section data-testid="diagnostic-support-panel" aria-labelledby="diagnostic-support-heading"
         style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 20, borderBottom: '1px solid var(--border-subtle)' }}>
@@ -85,7 +86,13 @@ export const HelpView: React.FC = () => {
       </section>
 
       <section className="about-panel" data-testid="about-panel" aria-labelledby="about-panel-heading" style={{ paddingTop: 18, borderTop: '1px solid var(--border-subtle)' }}>
-        <h2 id="about-panel-heading" style={{ fontSize: 14, margin: '0 0 12px' }}>{tr("关于 Copperbench")}</h2>
+        <div className="about-panel-heading">
+          <h2 id="about-panel-heading" style={{ fontSize: 14, margin: 0 }}>{tr("关于 Copperbench")}</h2>
+          {window.__COPPERBENCH_WINDOW_HOST__?.updatesAvailable && <button type="button" className="btn-secondary" data-testid="help-check-updates"
+            onClick={() => { setUpdateError(false); void window.__COPPERBENCH_WINDOW_HOST__!.invoke('check_updates').catch(() => setUpdateError(true)); }}>
+            <RefreshCw size={14} aria-hidden="true" />{uiText('检查更新', 'Check for updates')}</button>}
+        </div>
+        {updateError && <p role="alert">{uiText('暂时无法打开更新，请重试。', 'Could not open updates. Please try again.')}</p>}
         <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 9, fontSize: 12 }}>
           {ABOUT_FACTS.map(fact => <div key={fact.label} style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
             <dt style={{ width: 145, color: 'var(--text-muted)' }}>{fact.label}</dt><dd style={{ margin: 0 }} title={fact.description}>{fact.value}</dd>

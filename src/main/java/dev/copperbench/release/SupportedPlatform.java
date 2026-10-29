@@ -77,8 +77,11 @@ public final class SupportedPlatform {
 		if (currentHostRunnable())
 			return;
 		if (!GraphicsEnvironment.isHeadless())
-			JOptionPane.showOptionDialog(null, UNSUPPORTED_MESSAGE, "Copperbench 系统要求",
-                    JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, new Object[]{"确定"}, "确定");
+			dev.copperbench.shell.ProductDialogs.show(null,
+					dev.copperbench.shell.UiLocalePreferences.text(UNSUPPORTED_MESSAGE,
+							"Copperbench requires 64-bit Windows 11 (build 22000 or later). Windows 10 is not supported."),
+					dev.copperbench.shell.UiLocalePreferences.text("Copperbench 系统要求", "Copperbench system requirements"),
+					JOptionPane.ERROR_MESSAGE, new Object[]{"OK"}, "OK");
 		throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
 	}
 }

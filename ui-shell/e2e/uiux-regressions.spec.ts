@@ -106,8 +106,8 @@ test('restored function drafts keep their original revision and survive a reject
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('function-code-editor')).toHaveValue('say keep the stale draft\n');
   await expect.poll(() => dirtyCount(page)).toBe(1);
-  page.once('dialog', dialog => dialog.accept());
   await page.getByTestId('function-reload').click();
+  await page.getByTestId('confirm-dialog').getByRole('button', { name: '放弃并重新加载', exact: true }).click();
   await expect(page.getByTestId('function-code-editor')).not.toHaveValue('say keep the stale draft\n');
   await expect.poll(() => dirtyCount(page)).toBe(0);
 });

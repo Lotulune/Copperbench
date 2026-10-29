@@ -58,6 +58,14 @@ const assets = {
   sbom: asset(sbomPath, 'sbom', 'application/spdx+json'),
   manifest: asset(manifestPath, 'manifest', 'application/json')
 };
+if (readdirSync(exportDir).some(name => /^Copperbench.*Linux x86_64 Setup\.tar\.gz$/.test(name))) {
+  assets.setup = asset(exactlyOne(exportDir, /^Copperbench.*Linux x86_64 Setup\.tar\.gz$/, 'graphical installer'), 'setup', 'application/gzip');
+}
+
+for (const [index, name] of readdirSync(exportDir).filter(name => /^copperbench-update-linux-x64(?:-[a-z0-9.-]+\.zip|\.properties)$/.test(name)).sort().entries()) {
+  const role = `update${index}`;
+  assets[role] = asset(resolve(exportDir, name), role, name.endsWith('.zip') ? 'application/zip' : 'text/plain');
+}
 
 const identityInput = [sourceCommit, ...Object.values(assets)
   .sort((left, right) => left.role.localeCompare(right.role))

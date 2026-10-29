@@ -38,10 +38,15 @@ without rereading the workspace.
 ## Errors and compatibility
 
 Stable diagnostic codes are the machine contract. Human-readable fallback text
-is for display only. Unknown fields must be rejected, and clients should
-negotiate protocol/schema versions before calling tools. Preview `0.x` fields
-may gain optional properties; removal or semantic changes require a new major
-schema version and a migration note.
+is for display only. Unknown request fields remain rejected. MCP initialization
+requires selected protocol `2025-11-25`; Native uses transport `1` and negotiates
+UI-Core `1.0` before version-dependent writes. An unsupported MCP version raises
+`MCP_PROTOCOL_INCOMPATIBLE`, without an initialized notification or downgrade.
+Native `require_schema()` fails explicitly on an incompatible negotiation while
+`negotiate_schema()` retains the raw result. Frozen wire schemas retain their
+defined fields; new fields require the project's version/extension mechanism,
+not a general permission to add arbitrary optional preview properties. See the
+[public compatibility table](compatibility.md).
 
 MCP `isError: true` always raises `CopperbenchError`, including the audit-log
 failure response that only contains a top-level `code`. The SDKs preserve a
@@ -60,7 +65,33 @@ replay or treated error-only payloads as success. Python Native `Workspace`
 requests continue to execute once; this MCP change does not alter its transport
 or the Core Workspace Plan integrity and replay checks.
 
-Run the shared transport/error regression fixtures against both production
+## Bounded reads and task resumption
+
+Element iterators preserve the original list query and follow every cursor to
+explicit `nextCursor=null`. Missing/malformed/repeated cursors fail with an
+invalid-response code rather than returning an incomplete set as complete.
+Core `LIST_CURSOR_STALE/INVALID` diagnostics propagate without automatic restart;
+discard a partial traversal before explicitly rereading. MCP `tools/list` has
+its own pagination rule: its final `nextCursor` may be omitted.
+
+`wait_task` / `waitTask` query an existing task ID, accept `after_log_sequence` /
+`afterLogSequence` and a checkpoint callback (`on_update` / `onUpdate`), and never
+submit a start/cancel operation. Each callback receives the original increment
+before another query. Log sequences must be strictly increasing beyond the
+requested sequence. Wrong identity, unknown task state or malformed logs are
+invalid responses. Terminal `failed`/`cancelled` remain terminal observations,
+not success. A timeout error's `details` retain the last task and all logs received
+during that wait; it does not close or cancel the task. Transport errors retain
+their original details; reconnect using the last successful checkpoint. The
+independent Native host must remain alive while its task runs.
+
+Exact export uses the existing `verifiedTaskId` acceptance branch, not the
+ordinary build/export route. Default `allowHistorical=false` preserves current
+input checks; do not infer acceptance from an ordinary build or a restored
+unconfirmed observation. The [fixed workflows](agent-workflows.md) compare actual
+exported JAR/XML/receipt bytes and selected acceptance/source identities.
+
+From a source checkout, run the shared transport/error regression fixtures against both production
 SDKs with `python -m unittest discover -s sdk/python -p 'test_*.py'` and
 `node --test sdk/typescript/tests/*.test.mjs`. The Node tests use the repository's
 existing `ui-shell` TypeScript development dependency (`npm ci --prefix

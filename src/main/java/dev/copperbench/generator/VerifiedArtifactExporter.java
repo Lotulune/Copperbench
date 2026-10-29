@@ -68,4 +68,32 @@ public final class VerifiedArtifactExporter {
             throw new VerificationException("VERIFIED_EVIDENCE_CHANGED: " + pathKey + " is missing or has different bytes.");
         return path;
     }
+
+    /** Resolves a completed export receipt for folder opening; never accepts a caller-supplied path. */
+    public static Path exportDirectory(Path root, UUID workspaceId, UUID exportTaskId) throws IOException {
+        Path checkedRoot = WorkspaceExecutionSnapshot.canonicalPath(root);
+        JsonObject task = WorkspaceTaskRecords.read(checkedRoot, workspaceId, exportTaskId)
+                .map(record -> record.getAsJsonObject("task"))
+                .orElseThrow(() -> new VerificationException("VERIFIED_EXPORT_NOT_FOUND: No export task was recorded for this workspace."));
+        try {
+            if (!"export".equals(task.get("kind").getAsString()) || !"succeeded".equals(task.get("state").getAsString())
+                    || !task.has("verifiedExport") || task.has("resultObservation"))
+                throw new VerificationException("VERIFIED_EXPORT_UNAVAILABLE: Select a completed verified export.");
+            JsonObject receipt = task.getAsJsonObject("verifiedExport");
+            String status = receipt.get("status").getAsString();
+            if (!"passed_current_input".equals(status) && !"passed_historical_input".equals(status))
+                throw new VerificationException("VERIFIED_EXPORT_UNAVAILABLE: The export receipt is incomplete.");
+            Path expected = WorkspaceExecutionSnapshot.canonicalPath(checkedRoot.resolve(".copperbench/verified-exports/" + exportTaskId));
+            Path recorded = WorkspaceExecutionSnapshot.canonicalPath(Path.of(receipt.get("exportDirectory").getAsString()));
+            if (!expected.startsWith(checkedRoot) || !recorded.equals(expected))
+                throw new VerificationException("VERIFIED_EXPORT_PATH_INVALID: The recorded directory is outside its scoped export location.");
+            Path verification = expected.resolve("verification.json");
+            WorkspaceExecutionSnapshot.rejectLinks(verification);
+            if (!Files.isDirectory(expected, LinkOption.NOFOLLOW_LINKS) || !Files.isRegularFile(verification, LinkOption.NOFOLLOW_LINKS))
+                throw new VerificationException("VERIFIED_EXPORT_NOT_FOUND: The recorded export directory or receipt is missing.");
+            return expected;
+        } catch (RuntimeException exception) {
+            throw new VerificationException("VERIFIED_EXPORT_UNAVAILABLE: The recorded export receipt is invalid.");
+        }
+    }
 }

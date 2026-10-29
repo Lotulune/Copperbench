@@ -49,7 +49,7 @@ public class L10N {
 
 	private static Map<Locale, LocaleRegistration> supportedLocales;
 
-	private static Locale osLocale = Locale.getDefault();
+	private static final Locale osLocale = Locale.getDefault();
 
 	private static Locale selectedLocale = null;
 
@@ -67,7 +67,6 @@ public class L10N {
 			rb = supportedLocales.get(DEFAULT_LOCALE).resourceBundle();
 		}
 
-		osLocale = Locale.getDefault();
 		LOG.info("Setting default locale to: {}; OS locale: {}", getLocale(), osLocale);
 		Locale.setDefault(getLocale());
 		JComponent.setDefaultLocale(getLocale());
@@ -121,7 +120,7 @@ public class L10N {
 
 	public static Locale getLocale() {
 		if (selectedLocale == null)
-			selectedLocale = PreferencesManager.PREFERENCES.ui.language.get();
+			selectedLocale = dev.copperbench.shell.UiLocalePreferences.javaLocale();
 
 		return selectedLocale;
 	}

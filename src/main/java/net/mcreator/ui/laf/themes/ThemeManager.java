@@ -56,6 +56,8 @@ public class ThemeManager {
 	 */
 	public static void applySelectedTheme() {
 		try {
+			JDialog.setDefaultLookAndFeelDecorated(true);
+			FlatLaf.setUseNativeWindowDecorations(true);
 			if (OS.getOS() == OS.LINUX) {
 				// We need to call this to enable the window decorations on Linux
 				JFrame.setDefaultLookAndFeelDecorated(true);
@@ -66,6 +68,12 @@ public class ThemeManager {
 
 			Map<String, String> flatLafDefaults = new HashMap<>();
 			theme.applyFlatLafOverrides(flatLafDefaults);
+			boolean dark = theme.getBackgroundColor().getRed() + theme.getBackgroundColor().getGreen()
+					+ theme.getBackgroundColor().getBlue() < 384;
+			flatLafDefaults.put("@accentColor", dark ? "#e2aa7a" : "#985029");
+			flatLafDefaults.put("@background", dark ? "#1c1d1c" : "#ffffff");
+			flatLafDefaults.put("@foreground", dark ? "#e6e8e2" : "#262923");
+			flatLafDefaults.put("TitlePane.unifiedBackground", "false");
 			FlatLaf.setGlobalExtraDefaults(flatLafDefaults);
 
 			// Make sure UI works on Windows High-DPI
@@ -83,6 +91,7 @@ public class ThemeManager {
 			UIManager.setLookAndFeel(laf);
 
 			theme.applyUIDefaultsOverrides(UIManager.getDefaults());
+			dev.copperbench.shell.ProductTheme.apply(dark);
 
 			LafUtil.applyDefaultHTMLStyles();
 		} catch (Exception e) {
@@ -117,6 +126,15 @@ public class ThemeManager {
 
 	public static LinkedHashSet<Theme> getThemes() {
 		return THEMES;
+	}
+
+	/** The workbench owns its resolved appearance; native dialogs must match it. */
+	public static void synchronizeProductAppearance(boolean dark) {
+		if (dev.copperbench.shell.ProductTheme.dark() == dark) return;
+		CURRENT_THEME = getTheme(dark ? "default_dark" : "default_light").init();
+		applySelectedTheme();
+		for (java.awt.Window window : java.awt.Window.getWindows())
+			if (window.isDisplayable()) SwingUtilities.updateComponentTreeUI(window);
 	}
 
 	/**

@@ -43,9 +43,13 @@ function Invoke-Native([string]$file, [string[]]$arguments, [string]$workDir, [i
 Assert-NoRunningCopperbench
 
 $exportDir = Join-Path $RepositoryRoot 'build\export'
-$installer = Join-Path $exportDir 'Copperbench 0.1.0 Windows 64bit.exe'
+$productVersion = ((Get-Content -LiteralPath (Join-Path $RepositoryRoot 'src/main/resources/mcreator.conf') | Where-Object { $_ -match '^product.version=' }) -split '=', 2)[1].Trim()
+$installer = Join-Path $exportDir "Copperbench $productVersion Windows 64bit.exe"
 if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
 	throw "Installer not found: $installer"
+}
+if ([System.Diagnostics.FileVersionInfo]::GetVersionInfo($installer).InternalName -eq 'CopperbenchSetup') {
+	throw 'This is the graphical installer. The legacy /S /D rehearsal is not supported. Follow platform/installer/README.md in a clean test account; no installation was changed.'
 }
 
 $rehearsalRoot = Join-Path $RepositoryRoot 'build\g7-rehearsal'

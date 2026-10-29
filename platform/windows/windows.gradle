@@ -6,7 +6,7 @@ launch4j {
     dontWrapJar = false
     copyConfigurable = []
     classpath = ["./lib/*"]
-    jvmOptions = ["--add-opens=java.base/java.lang=ALL-UNNAMED", "--enable-native-access=ALL-UNNAMED,jcef", "-Dcopperbench.productShell=true"]
+    jvmOptions = ["--add-opens=java.base/java.lang=ALL-UNNAMED", "--enable-native-access=ALL-UNNAMED,jcef", "-Dcopperbench.productShell=true", "-Djava.net.useSystemProxies=true"]
     libraryDir = "null"
     stayAlive = true
 
@@ -31,6 +31,8 @@ launch4j {
 }
 
 tasks.register('exportWin64', Copy.class) {
+    dependsOn installerJar
+    dependsOn 'buildUpdateHostWin64'
     dependsOn downloadJDKWin64
     dependsOn downloadJDK21Win64
     dependsOn createAllExecutables
@@ -44,16 +46,19 @@ tasks.register('exportWin64', Copy.class) {
         from file('build/launch4j/copperbench.exe')
         from file('gradlew')
         from file('gradlew.bat')
+        from file('build/installer/copperbench-setup.jar')
+        from file('build/installer/copperbench-update-host.exe')
     }
     into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('lib') {
-        from 'build/libs'
+        from tasks.named('jar')
+        from tasks.named('localIpcAgentJar')
         from configurations.export
         from configurations.win64
     }
     into('plugins') { from 'build/plugins/' }
     into('license') { from 'license' }
-    into('user') { from file('docs/user/README.md') }
+    into('user') { from('docs/user') { include 'README.md', 'graphical-installation.md', 'security-alerts.md' } }
     into('jdk') { from 'jdk/jbr25_win_64' }
     into('jdk21') { from 'jdk/jdk21_win_64' }
     def gradleDistSources = [
@@ -77,7 +82,23 @@ tasks.register('exportWin64', Copy.class) {
 
     doLast {
         signFile(file('build/export/win64/copperbench.exe'))
+        signFile(file('build/export/win64/copperbench-update-host.exe'))
     }
+}
+
+tasks.register('buildUpdateHostWin64', Exec.class) {
+    dependsOn downloadNSIS
+    commandLine 'node', 'platform/installer/build-update-host.mjs', project.productVersion
+    inputs.files('platform/installer/bootstrap.nsi', 'platform/installer/build-update-host.mjs')
+    inputs.property('version', project.productVersion)
+    outputs.file('build/installer/copperbench-update-host.exe')
+}
+
+tasks.register('buildWindowsUpdates', JavaExec.class) {
+    dependsOn exportWin64
+    classpath = sourceSets.installer.runtimeClasspath
+    mainClass = 'dev.copperbench.installer.UpdatePackageBuilder'
+    args file('build/export/win64'), project.productVersion, 'windows-x64', file('build/export')
 }
 
 tasks.register('exportWindowsZip', Zip.class) {
@@ -89,8 +110,8 @@ tasks.register('exportWindowsZip', Zip.class) {
     archiveFileName = project.productName + ' ' + project.productVersion + ' Windows 64bit.zip'
 }
 
-tasks.register('buildInstallerWin64', Exec.class) {
-    dependsOn downloadNSIS
+tasks.register('buildLegacyNsisInstallerWin64', Exec.class) {
+    dependsOn downloadLegacyNsisPlugin
     dependsOn exportWin64
 
     doFirst {
@@ -114,6 +135,16 @@ tasks.register('buildInstallerWin64', Exec.class) {
 
     doLast {
         delete 'build/export/install64.nsi'
+        signFile(file('build/export/' + project.productName + ' ' + project.productVersion + ' Windows 64bit.exe'))
+    }
+}
+
+tasks.register('buildInstallerWin64', Exec.class) {
+    dependsOn downloadNSIS
+    dependsOn exportWin64
+    commandLine 'node', 'platform/installer/build.mjs', '--platform', 'windows',
+            '--version', project.productVersion, '--payload', 'build/export/win64'
+    doLast {
         signFile(file('build/export/' + project.productName + ' ' + project.productVersion + ' Windows 64bit.exe'))
     }
 }
@@ -154,6 +185,7 @@ tasks.register('exportWindows') {
     group = 'export'
 
     dependsOn exportWindowsZip
+    dependsOn buildWindowsUpdates
 
     // Add installer only if this is not a snapshot build (and not MacOS that does not support makensis)
     if (!project.snapshot && !Os.isFamily(Os.FAMILY_MAC)) {

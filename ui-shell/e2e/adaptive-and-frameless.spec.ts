@@ -180,13 +180,13 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
   });
 
-  test('help/about view displays honest facts, honest track statuses, and user guide content', async ({ page }) => {
+  test('help/about view displays honest facts, honest track statuses, and user guide content', async ({ page }, testInfo) => {
     await page.click('[data-testid="nav-help"]');
     const helpView = page.locator('[data-testid="help-view"]');
     await expect(helpView).toBeVisible();
 
     // Header and dev-build badge
-    await expect(helpView.getByRole('heading', { name: '帮助', exact: true })).toBeVisible();
+    await expect(helpView.getByRole('heading', { name: '帮助与关于', exact: true })).toBeVisible();
     await expect(helpView).toContainText('稳定版');
 
     // About panel facts
@@ -195,8 +195,14 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(aboutPanel).toContainText('Copperbench 0.1.4');
     await expect(aboutPanel).toContainText('GPL-3.0');
     await expect(aboutPanel).toContainText('MCreator 2026.2.33518');
+    await expect(aboutPanel).toContainText('Fabric / NeoForge · 26.2 / 26.1.2 / 1.21.1 / 1.20.1');
     await expect(aboutPanel).toContainText('稳定版');
     await expect(aboutPanel).toContainText('未生产签名');
+
+    const firstCreation = page.getByTestId('guide-section-first-creation');
+    await firstCreation.locator(':scope > summary').click();
+    await expect(firstCreation).toContainText('/give @s first_creation:trail_block 16');
+    await expect(firstCreation).toContainText('同一个世界');
 
     // Honest version tracks table
     const tracksTable = page.locator('[data-testid="help-tracks-table"]');
@@ -205,8 +211,9 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(tracksTable).toBeVisible();
     await expect(page.locator('[data-testid="help-track-row-1.21.1"]')).toContainText('正式支持');
     await expect(page.locator('[data-testid="help-track-row-26.2"]')).toContainText('Fabric / NeoForge 正式支持');
-    await expect(page.locator('[data-testid="help-track-row-26.1"]')).toContainText('Fabric / NeoForge 正式支持');
+    await expect(page.locator('[data-testid="help-track-row-26.1.2"]')).toContainText('Fabric / NeoForge 正式支持');
     await expect(page.locator('[data-testid="help-track-row-1.20.1"]')).toContainText('Fabric / NeoForge 正式支持');
+    await page.screenshot({ path: testInfo.outputPath('help-first-creation.png'), animations: 'disabled' });
 
     // User guide sections
     await expect(page.locator('[data-testid="guide-section-workspace"]')).toContainText('工作区');

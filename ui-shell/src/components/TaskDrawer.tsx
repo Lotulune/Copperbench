@@ -11,17 +11,28 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { useDialogA11y } from '../hooks/useDialogA11y';
+import { ConfirmDialog } from './Dialog';
+import { TaskLogView, newLogReadingState, type LogReadingState } from './TaskLogView';
+import { newestTasks, taskTone } from './taskPresentation';
+import { formatDateTime } from '../i18n/dateTime';
+import { coreBridge } from '../bridge';
+import { safeRandomUUID, taskLogWatermark } from '../bridge/JcefCoreBridge';
+import { OperationFailure, operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
+import { DiagnosticDetails } from './DiagnosticDetails';
+import { ExportCompatibility } from './ExportCompatibility';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview, WorkspacePlan, WorkspacePlanStep } from '../types/contract';
 import './taskAuthorization.css';
+import { useAgent } from '../context/AgentContext';
+import { agentAttachment } from './agentEvidence';
 
 export const TaskDrawer: React.FC = () => {
+  const agent = useAgent();
   const {
     isTaskDrawerOpen,
     setIsTaskDrawerOpen,
     activeTaskId,
-    setActiveTaskId,
+    openTask, taskFocusRequest,
     state,
     cancelTask,
     prepareGameTests,
@@ -36,34 +47,59 @@ export const TaskDrawer: React.FC = () => {
     applyWorkspacePlan
   } = useWorkbench();
 
-  const logContainerRef = useRef<HTMLDivElement>(null);
+  const logViews = useRef(new Map<string, LogReadingState>());
   const [datagenPreview, setDatagenPreview] = useState<DatagenPreview | null>(null);
   const [datagenBusy, setDatagenBusy] = useState(false);
   const [datagenError, setDatagenError] = useState<UiMessage | null>(null);
   const [allowHistoricalExport, setAllowHistoricalExport] = useState(false);
   const [sourcePreview, setSourcePreview] = useState<TaskSourcePreview | null>(null);
   const [sourceBusy, setSourceBusy] = useState(false);
-  const [sourceError, setSourceError] = useState<UiMessage | null>(null);
+  const [sourceError, setSourceError] = useState<unknown>(null);
   const [repairPlan, setRepairPlan] = useState<WorkspacePlan | null>(null);
   const [repairBusy, setRepairBusy] = useState(false);
   const [repairError, setRepairError] = useState<UiMessage | null>(null);
   const [repairApplied, setRepairApplied] = useState(false);
   const [confirmPublish, setConfirmPublish] = useState(false);
-  const publishDialogRef = useDialogA11y(confirmPublish, () => setConfirmPublish(false));
+  const [cancelRequests, setCancelRequests] = useState<Record<string, { status: 'requesting' | 'pending' | 'unknown' | 'rejected'; diagnostics: Diagnostic[] }>>({});
+  const cancellationRequests = useRef(new Set<string>());
 
   // Active task and logs
   const activeTask = activeTaskId
     ? state.tasks[activeTaskId]
-    : Object.values(state.tasks)[0] || null;
+    : newestTasks(Object.values(state.tasks))[0] || null;
 
   const logs = activeTask ? state.taskLogs[activeTask.id] || [] : [];
   const diagnostics = activeTask ? state.taskDiagnostics[activeTask.id] || [] : [];
+  const scopeKey = JSON.stringify([state.workbench?.workspace.id, activeTask?.id]);
+  const scope = useRef(scopeKey);
+  scope.current = scopeKey;
+  const alive = useRef(true);
+  const requestSequences = useRef(new Map<string, number>());
+  const nextRequestSequence = useRef(0);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const requestToken = (kind: string) => {
+    const sequence = ++nextRequestSequence.current;
+    requestSequences.current.set(kind, sequence);
+    return { scope: scopeKey, kind, sequence };
+  };
+  const isCurrent = (request: ReturnType<typeof requestToken>) => alive.current && scope.current === request.scope
+    && requestSequences.current.get(request.kind) === request.sequence;
+  const cancelRequest = cancelRequests[scopeKey];
+  const taskRunning = activeTask?.state === 'queued' || activeTask?.state === 'running';
+  const readError = state.taskReadErrors?.[activeTaskId ?? activeTask?.id ?? ''];
+  if (!logViews.current.has(scopeKey)) logViews.current.set(scopeKey, newLogReadingState());
 
   useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, [logs]);
+    if (!isTaskDrawerOpen || !taskFocusRequest || taskFocusRequest.taskId !== activeTaskId) return;
+    const frame = requestAnimationFrame(() => {
+      const target = taskFocusRequest.target === 'diagnostics' ? 'task-diagnostics' : 'task-log-stream';
+      const element = document.querySelector<HTMLElement>(`[data-testid="${target}"]`)
+        ?? document.querySelector<HTMLElement>('[data-testid="task-status-unavailable"]');
+      element?.focus({ preventScroll: true });
+      element?.scrollIntoView({ block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isTaskDrawerOpen, taskFocusRequest?.requestId, activeTaskId, activeTask?.id]);
 
   useEffect(() => {
     setDatagenPreview(null);
@@ -75,7 +111,8 @@ export const TaskDrawer: React.FC = () => {
     setRepairError(null);
     setRepairApplied(false);
     setConfirmPublish(false);
-  }, [activeTask?.id]);
+    setDatagenBusy(false); setSourceBusy(false); setRepairBusy(false);
+  }, [scopeKey]);
 
   const handleDiagnosticAction = async (action: ActionHint, diagnostic: Diagnostic) => {
     if (action.kind === 'preview_repair') {
@@ -95,12 +132,14 @@ export const TaskDrawer: React.FC = () => {
       setRepairBusy(true);
       setRepairError(null);
       setRepairApplied(false);
+      const request = requestToken('repair');
       try {
         const plan = await planWorkspaceChanges(
           operations as Array<Omit<WorkspacePlanStep, 'plannedId'>>,
           true,
           Number(expectedRevision)
         );
+        if (!isCurrent(request)) return;
         if (!plan) {
           setRepairPlan(null);
           setRepairError({ key: 'diagnostic.repair_preview_unavailable', fallback: 'Safe repair preview is unavailable.' });
@@ -108,10 +147,11 @@ export const TaskDrawer: React.FC = () => {
         }
         setRepairPlan(plan);
       } catch {
+        if (!isCurrent(request)) return;
         setRepairPlan(null);
         setRepairError({ key: 'diagnostic.repair_preview_unavailable', fallback: 'Safe repair preview is unavailable.' });
       } finally {
-        setRepairBusy(false);
+        if (isCurrent(request)) setRepairBusy(false);
       }
       return;
     }
@@ -122,27 +162,36 @@ export const TaskDrawer: React.FC = () => {
     if (!activeTask || !action.target) return;
     setSourceBusy(true);
     setSourceError(null);
+    const request = requestToken('source');
     try {
       const preview = await previewTaskSource(activeTask.id, action.target);
+      if (!isCurrent(request)) return;
       if (!preview) {
         setSourcePreview(null);
-        setSourceError(uiMessage("生成源码预览不可用。", "Generated source preview is unavailable."));
+        setSourceError(new OperationFailure([], uiMessage('源码预览不可用。', 'Source preview is unavailable.')));
         return;
       }
-      setSourcePreview(preview);
-    } catch {
+      // The captured bytes are shared by path; the chosen diagnostic owns its own line.
+      const diagnosticLine = action.payload?.line;
+      const line = typeof diagnosticLine === 'number' && Number.isSafeInteger(diagnosticLine) && diagnosticLine > 0
+        ? diagnosticLine : preview.line;
+      setSourcePreview({ ...preview, line });
+    } catch (error) {
+      if (!isCurrent(request)) return;
       setSourcePreview(null);
-      setSourceError(uiMessage("生成源码预览不可用。", "Generated source preview is unavailable."));
+      setSourceError(error);
     } finally {
-      setSourceBusy(false);
+      if (isCurrent(request)) setSourceBusy(false);
     }
   };
   const applyDiagnosticRepair = async () => {
-    if (!repairPlan || !repairPlan.safety.ready) return;
+    if (!repairPlan || !repairPlan.safety.ready || repairPlan.workspaceId !== state.workbench?.workspace.id) return;
     setRepairBusy(true);
     setRepairError(null);
+    const request = requestToken('repair');
     try {
       const result = await applyWorkspacePlan(repairPlan);
+      if (!isCurrent(request)) return;
       if (result.status !== 'committed') {
         setRepairError(result.diagnostics[0]
           ? result.diagnostics[0].message
@@ -152,9 +201,10 @@ export const TaskDrawer: React.FC = () => {
       setRepairPlan(null);
       setRepairApplied(true);
     } catch {
-      setRepairError({ key: 'diagnostic.repair_apply_failed', fallback: 'The safe repair was not applied.' });
+      if (isCurrent(request)) setRepairPlan(null);
+      if (isCurrent(request)) setRepairError(uiMessage('修复结果待确认。请读取最新工作区状态并核对，勿重复应用。', 'The repair result is unknown. Read the latest workspace state and compare before applying again.'));
     } finally {
-      setRepairBusy(false);
+      if (isCurrent(request)) setRepairBusy(false);
     }
   };
 
@@ -162,34 +212,63 @@ export const TaskDrawer: React.FC = () => {
     if (!activeTask) return;
     setDatagenBusy(true);
     setDatagenError(null);
+    const request = requestToken('datagen');
     try {
       const preview = await previewDatagenOutput(activeTask.id);
+      if (!isCurrent(request)) return;
       if (!preview) setDatagenError(uiMessage("无法读取暂存结果，请确认任务已成功完成。", "Could not read staged results. Check that the task completed successfully."));
       setDatagenPreview(preview);
     } catch {
+      if (!isCurrent(request)) return;
       setDatagenError(uiMessage("无法读取暂存结果，请查看任务日志。", "Could not read staged results. Check the task logs."));
     } finally {
-      setDatagenBusy(false);
+      if (isCurrent(request)) setDatagenBusy(false);
     }
   };
 
   const publishDatagen = async () => {
-    if (!activeTask || !datagenPreview?.canPublish) return;
+    if (!activeTask || !datagenPreview?.canPublish || datagenPreview.taskId !== activeTask.id) return;
     setConfirmPublish(false);
     setDatagenBusy(true);
     setDatagenError(null);
+    const request = requestToken('datagen');
     try {
       const result = await publishDatagenOutput(activeTask.id, datagenPreview.manifestHash);
+      if (!isCurrent(request)) return;
       if (result.status === 'committed' && result.data) {
         setDatagenPreview(result.data as DatagenPreview);
       } else {
         setDatagenError(result.diagnostics[0] ? result.diagnostics[0].message : uiMessage("发布失败，工作区未变更。", "Publish failed. The workspace was not changed."));
       }
     } catch {
-      setDatagenError(uiMessage("发布失败，工作区未变更。", "Publish failed. The workspace was not changed."));
+      if (isCurrent(request)) setDatagenError(uiMessage('发布结果待确认。请读取最新工作区状态并核对，勿重复发布。', 'The publish result is unknown. Read the latest workspace state and compare before publishing again.'));
     } finally {
-      setDatagenBusy(false);
+      if (isCurrent(request)) setDatagenBusy(false);
     }
+  };
+
+  const requestCancellation = async () => {
+    if (!activeTask?.cancellable || !taskRunning || cancellationRequests.current.has(scopeKey)) return;
+    const key = scopeKey;
+    cancellationRequests.current.add(key);
+    setCancelRequests(previous => ({ ...previous, [key]: { status: 'requesting', diagnostics: [] } }));
+    try {
+      const result = await cancelTask(activeTask.id);
+      if (result.status === 'rejected') cancellationRequests.current.delete(key);
+      if (!alive.current) return;
+      setCancelRequests(previous => ({ ...previous, [key]: { status: result.status === 'rejected' ? 'rejected' : 'pending', diagnostics: result.diagnostics } }));
+    } catch {
+      if (alive.current) setCancelRequests(previous => ({ ...previous, [key]: { status: 'unknown', diagnostics: [] } }));
+    }
+  };
+  const refreshActiveTask = async () => {
+    const taskId = activeTaskId ?? activeTask?.id;
+    if (!taskId || !state.workbench) return;
+    const afterLogSequence = taskLogWatermark(logs);
+    try {
+      await coreBridge.sendQuery({ messageType: 'query', schemaVersion: '1.0', requestId: safeRandomUUID(), workspaceId: state.workbench.workspace.id,
+        operation: 'get_task', payload: { taskId, afterLogSequence } });
+    } catch { /* The read error remains associated with the original task. */ }
   };
 
   if (!isTaskDrawerOpen) return null;
@@ -198,6 +277,7 @@ export const TaskDrawer: React.FC = () => {
     <div
       className="task-drawer animate-fade-in"
       data-testid="task-drawer"
+      data-task-id={activeTaskId ?? activeTask?.id ?? undefined}
       style={{
         position: 'absolute',
         bottom: 0,
@@ -231,12 +311,13 @@ export const TaskDrawer: React.FC = () => {
             <span>{uiText('任务控制台与日志流', 'Task console and logs')}</span>
           </div>
 
-          {Object.keys(state.tasks).length > 1 && <select
+          {(Object.keys(state.tasks).length > 1 || (activeTaskId && !activeTask && Object.keys(state.tasks).length > 0)) && <select
             aria-label={t({ key: 'task.recent_selector', fallback: 'Recent tasks' })}
-            value={activeTask?.id ?? ''} onChange={(event) => setActiveTaskId(event.target.value)}
+            value={activeTaskId ?? activeTask?.id ?? ''} onChange={(event) => openTask(event.target.value)}
             style={{ maxWidth: 220, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-            {Object.values(state.tasks).map((task) => <option key={task.id} value={task.id}>
-              {valueLabel(task.kind)} · {valueLabel(task.state)} · {new Date(task.startedAt).toLocaleString()}
+            {activeTaskId && !activeTask && <option value={activeTaskId} disabled>{uiText('任务不可用', 'Task unavailable')} · {activeTaskId}</option>}
+            {newestTasks(Object.values(state.tasks)).map((task) => <option key={task.id} value={task.id}>
+              {valueLabel(task.kind)} · {valueLabel(task.state)} · {formatDateTime(task.startedAt)}
             </option>)}
           </select>}
 
@@ -246,7 +327,8 @@ export const TaskDrawer: React.FC = () => {
                 {valueLabel(activeTask.kind)}
               </span>
               <span
-                className={`badge badge-${activeTask.state === 'succeeded' ? 'green' : activeTask.state === 'running' ? 'amber' : 'red'}`}
+                data-testid="task-current-state"
+                className={`badge badge-${taskTone[activeTask.state]}`}
                 style={{ fontSize: '12px' }}
               >
                 {valueLabel(activeTask.state)}
@@ -259,6 +341,11 @@ export const TaskDrawer: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {activeTask && <button type="button" className="btn-secondary" data-testid="task-analyze-agent" onClick={() => {
+            agent.openPanel(agentAttachment(`task:${activeTask.id}`, 'task-log', JSON.stringify({ task: activeTask, logs, diagnostics }, null, 2)),
+              uiText('请分析这次任务的结果并修复问题。', 'Analyze this task result and fix the problem.'));
+            setIsTaskDrawerOpen(false);
+          }}>{uiText('让 Agent 分析', 'Analyze with Agent')}</button>}
           {activeTask?.kind === 'run_gametest' && activeTask.state === 'failed' &&
             <button type="button" className="btn-secondary" onClick={() => void prepareGameTests()}>{uiText("准备测试模板", "Prepare test templates")}</button>}
           {activeTask?.kind === 'prepare_game_tests' && activeTask.state === 'succeeded' &&
@@ -280,11 +367,13 @@ export const TaskDrawer: React.FC = () => {
             <button
               className="btn-danger"
               style={{ fontSize: '12px', padding: '2px 8px' }}
-              onClick={() => cancelTask(activeTask.id)}
+              type="button"
+              disabled={Boolean(cancelRequest && cancelRequest.status !== 'rejected' && taskRunning)}
+              onClick={() => void requestCancellation()}
               data-testid="task-cancel-btn"
             >
               <Ban size={12} />
-              <span>{uiText('取消', 'Cancel')}</span>
+              <span>{cancelRequest && taskRunning && cancelRequest.status !== 'rejected' ? uiText('正在请求停止', 'Requesting stop') : uiText('停止任务', 'Stop task')}</span>
             </button>
           )}
 
@@ -300,6 +389,20 @@ export const TaskDrawer: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {(readError || (activeTaskId && !activeTask)) && <div role="status" tabIndex={-1} data-testid="task-status-unavailable" style={{ padding: '8px 16px', fontSize: 12 }}>
+        <p>{activeTask ? uiText('暂时无法取得任务状态；保留最近一次观察。请检查任务状态。', 'Task status is temporarily unavailable; the last observation is preserved. Check the task status.') : uiText('此任务当前不可用，无法显示它的日志与操作。', 'This task is currently unavailable. Its logs and actions cannot be displayed.')} <code>{activeTaskId}</code></p>
+        <button type="button" className="btn-secondary" onClick={() => void refreshActiveTask()}>{uiText('检查任务状态', 'Check task status')}</button>
+        <details><summary>{uiText('读取错误详情', 'Read error details')}</summary><pre tabIndex={0} style={{ whiteSpace: 'pre-wrap', userSelect: 'text' }}>{readError}</pre></details>
+      </div>}
+      {cancelRequest && taskRunning && <div role="status" data-testid="task-cancel-status" style={{ padding: '8px 16px', fontSize: 12 }}>
+        <p>{cancelRequest.status === 'unknown' ? uiText('取消请求结果待确认。请读取原任务；任务尚未确认取消。', 'The cancellation result is unknown. Read the original task; cancellation has not been confirmed.')
+          : cancelRequest.status === 'rejected' ? uiText('取消请求被拒绝。请查看原因；任务状态以最新回执为准。', 'The cancellation request was rejected. Review the reason; the latest receipt determines the task state.')
+          : uiText('正在请求取消；等待任务返回终态。', 'Requesting cancellation; waiting for the task to reach a final state.')}</p>
+        {cancelRequest.diagnostics.map((diagnostic, index) => <p key={index}>{t(diagnostic.message)}</p>)}
+        <DiagnosticDetails diagnostics={cancelRequest.diagnostics} />
+        {cancelRequest.status === 'unknown' && <button type="button" className="btn-secondary" onClick={() => void refreshActiveTask()}>{uiText('检查任务状态', 'Check task status')}</button>}
+      </div>}
 
       {activeTask?.verification && <section className="gametest-verification" aria-label={uiText("GameTest 验收报告", "GameTest verification report")}>
         <strong>{activeTask.verification.status === 'pending' ? uiText("测试正在执行", "Tests are running") : activeTask.verification.status === 'passed' ? uiText("配置的测试已通过", "Configured tests passed") : uiText("测试尚未通过验收", "Tests have not passed verification")}</strong>
@@ -328,8 +431,9 @@ export const TaskDrawer: React.FC = () => {
         </details>
       </section>}
       {activeTask?.verifiedExport && <section className="gametest-verification" aria-label={uiText("已验证产物导出", "Verified artifact export")}>
-        <strong>{activeTask.verifiedExport.status === 'passed_historical_input' ? uiText("已导出历史已验证产物", "Previously verified artifact exported") : uiText("已导出当前输入的已验证产物", "Verified artifact for current input exported")}</strong>
+        <strong>{activeTask.verifiedExport.status === 'passed_historical_input' ? uiText("已导出历史已验证产物", "Previously verified artifact exported") : uiText('已导出验收产物 · 导出时输入匹配', 'Accepted artifact exported · input matched at export time')}</strong>
         <p>{activeTask.verifiedExport.exportDirectory}</p>
+        <ExportCompatibility environment={activeTask.verifiedExport.environment} />
         <p>{uiText("导出内容：JAR、GameTest 报告和文件清单。", "Exported: JAR, GameTest report and file manifest.")}</p>
       </section>}
       {activeTask?.gameTestSetup && <section className="gametest-verification" aria-label={uiText("GameTest 模板", "GameTest templates")}>
@@ -432,6 +536,7 @@ export const TaskDrawer: React.FC = () => {
       {diagnostics.length > 0 && (
         <section
           data-testid="task-diagnostics"
+          tabIndex={-1}
           aria-label={uiText('任务诊断', 'Task diagnostics')}
           style={{
             padding: '10px 16px',
@@ -482,13 +587,14 @@ export const TaskDrawer: React.FC = () => {
               )}
             </div>
           ))}
+          <DiagnosticDetails diagnostics={diagnostics} />
         </section>
       )}
 
-      {(sourcePreview || sourceError) && (
+      {(sourcePreview || Boolean(sourceError)) && (
         <section
           data-testid="task-source-preview"
-          aria-label={uiText("生成源码预览", "Generated source preview")}
+          aria-label={uiText("源码预览", "Source preview")}
           style={{
             borderBottom: '1px solid var(--border-subtle)',
             background: 'var(--bg-input)',
@@ -500,7 +606,7 @@ export const TaskDrawer: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '7px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
             <div style={{ minWidth: 0, fontSize: '12px' }}>
-              <strong>{uiText("生成源码", "Generated source")}</strong>
+              <strong>{uiText("源码", "Source")}</strong>
               {sourcePreview && (
                 <code style={{ marginLeft: '8px', color: 'var(--text-sub)' }}>
                   {sourcePreview.path}{sourcePreview.line > 0 ? `:${sourcePreview.line}` : ''}
@@ -508,7 +614,11 @@ export const TaskDrawer: React.FC = () => {
               )}
             </div>
             {sourcePreview && <button type="button" className="btn-secondary" data-testid="task-source-open-editor"
-              onClick={() => { openSource(sourcePreview.path, sourcePreview.line); setIsTaskDrawerOpen(false); }}>
+              onClick={() => {
+                const workspacePath = sourcePreview.path.startsWith('/src/') ? sourcePreview.path.slice(1) : sourcePreview.path;
+                openSource(workspacePath, sourcePreview.line);
+                setIsTaskDrawerOpen(false);
+              }}>
               {uiText('在源码编辑器中打开', 'Open in source editor')}
             </button>}
             <button
@@ -520,8 +630,11 @@ export const TaskDrawer: React.FC = () => {
             >
               {uiText("关闭", "Close")}</button>
           </div>
-          {sourceError ? (
-            <div data-testid="task-source-error" style={{ padding: '12px', color: 'var(--badge-red)', fontSize: '12px' }}>{renderUiMessage(sourceError)}</div>
+          {Boolean(sourceError) ? (
+            <div data-testid="task-source-error" role="alert" style={{ padding: '12px', color: 'var(--badge-red)', fontSize: '12px', overflow: 'auto' }}>
+              <p>{operationFailureText(sourceError)}</p>
+              <DiagnosticDetails diagnostics={operationDiagnostics(sourceError)} />
+            </div>
           ) : (
             <pre
               data-testid="task-source-content"
@@ -532,114 +645,14 @@ export const TaskDrawer: React.FC = () => {
           )}
         </section>
       )}
-      {/* Log Stream Output */}
-      <div
-        ref={logContainerRef}
-        data-testid="task-log-stream"
-        role="log"
-        aria-live="polite"
-        aria-label={t({ key: 'aria.task_log_stream', fallback: 'Task log stream' })}
-        style={{
-          flex: 1,
-          padding: '12px 16px',
-          overflowY: 'auto',
-          background: 'var(--bg-input)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-          userSelect: 'text'
-        }}
-      >
-        {logs.length === 0 ? (
-          <div style={{ color: 'var(--text-sub)', fontStyle: 'italic' }}>
-            {uiText('暂无任务输出日志。', 'No task output yet.')}
-          </div>
-        ) : (
-          logs.map((entry, idx) => (
-            <div
-              key={idx}
-              style={{
-                display: 'flex',
-                gap: '8px',
-                lineHeight: '1.4',
-                color:
-                  entry.level === 'error'
-                    ? 'var(--badge-red)'
-                    : entry.level === 'warning'
-                    ? 'var(--badge-amber)'
-                    : 'var(--text-main)'
-              }}
-            >
-              <span style={{ color: 'var(--text-sub)', flexShrink: 0 }}>
-                [{entry.timestamp.slice(11, 19)}]
-              </span>
-              <span
-                style={{
-                  fontWeight: 600,
-                  color:
-                    entry.level === 'error'
-                      ? 'var(--badge-red)'
-                      : entry.level === 'warning'
-                      ? 'var(--badge-amber)'
-                      : 'var(--badge-blue)',
-                  flexShrink: 0
-                }}
-              >
-                [{entry.level.toUpperCase()}]
-              </span>
-              <span style={{ wordBreak: 'break-word' }}>{entry.text}</span>
-            </div>
-          ))
-        )}
-      </div>
+      {activeTask && <TaskLogView key={scopeKey} logs={logs} reading={logViews.current.get(scopeKey)!} />}
+      {!activeTask && !activeTaskId && <p className="task-log-empty">{uiText('暂无任务。', 'No tasks yet.')}</p>}
 
-      {confirmPublish && datagenPreview && (
-        <div
-          role="presentation"
-          onMouseDown={() => setConfirmPublish(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(0, 0, 0, 0.58)',
-            display: 'grid', placeItems: 'center', padding: '24px'
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="datagen-publish-title"
-            data-testid="datagen-publish-dialog"
-            ref={publishDialogRef}
-            onMouseDown={(event) => event.stopPropagation()}
-            style={{
-              width: 'min(440px, 100%)',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-active)',
-              borderRadius: 'var(--radius-md)',
-              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.55)',
-              padding: '18px'
-            }}
-          >
-            <h2 id="datagen-publish-title" style={{ margin: 0, fontSize: '16px' }}>{uiText("发布数据生成结果", "Publish generated data")}</h2>
-            <p style={{ margin: '10px 0 16px', color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.6 }}>
-              {uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入工作区，并创建恢复点。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to the workspace and create a recovery point.`)}
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setConfirmPublish(false)}>{uiText("取消", "Cancel")}</button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={publishDatagen}
-                data-testid="datagen-confirm-publish"
-              >
-                <Upload size={14} />
-                <span>{uiText("确认发布", "Confirm publish")}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {datagenPreview && <ConfirmDialog open={confirmPublish} title={uiText('发布数据生成结果', 'Publish generated data')}
+        confirmLabel={uiText('发布到工作区', 'Publish to workspace')} testId="datagen-publish-dialog" confirmTestId="datagen-confirm-publish"
+        onCancel={() => setConfirmPublish(false)} onConfirm={() => void publishDatagen()}>
+        <p>{uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入工作区，并创建恢复点。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to the workspace and create a recovery point.`)}</p>
+      </ConfirmDialog>}
     </div>
   );
 };

@@ -1,0 +1,96 @@
+{
+  "historicalRecordDate": "2026-10-21",
+  "archivedOn": "2026-10-24",
+  "scope": "Existing browser-fixture images and detector output referenced by DESIGN.md, copied unchanged from ignored local output directories. This archive does not rerun or extend the original validation.",
+  "records": [
+    "docs/testing/simple-creation-2026-10-21.md",
+    "docs/testing/deepseek-harness-2026-10-21.md",
+    "docs/testing/simple-creation-fixes-2026-10-21.md"
+  ],
+  "files": [
+    {
+      "path": "simple-creation-validation/ui-light-1600.png",
+      "originalPath": "output/simple-creation-validation/ui-light-1600.png",
+      "sha256": "020accab85f228190a1b8b26095689685e196499da7d4ed5748df88a3b6f3238",
+      "bytes": 77097
+    },
+    {
+      "path": "simple-creation-validation/ui-dark-1366.png",
+      "originalPath": "output/simple-creation-validation/ui-dark-1366.png",
+      "sha256": "446c97c91db2cf8aed1e843011cd10b99c191e94258b921ea585748724182b1d",
+      "bytes": 73487
+    },
+    {
+      "path": "simple-creation-validation/ui-compact-500-chromium.png",
+      "originalPath": "output/simple-creation-validation/ui-compact-500-chromium.png",
+      "sha256": "522bc94e62483dc6643c8c8830255efc4f1abad66dd7d6aa1b2cef15018802f0",
+      "bytes": 41954
+    },
+    {
+      "path": "simple-creation-validation/ui-running.png",
+      "originalPath": "output/simple-creation-validation/ui-running.png",
+      "sha256": "4df47decf387b7e7d8becb187dd0892f357da041fd4109342bf1720cf1d1fdbc",
+      "bytes": 75837
+    },
+    {
+      "path": "simple-creation-validation/ui-approval.png",
+      "originalPath": "output/simple-creation-validation/ui-approval.png",
+      "sha256": "7c84d0a7f48e82ab4127230da3ed0c7ccd1ef2cea9560298eadaaa5095e18512",
+      "bytes": 82164
+    },
+    {
+      "path": "simple-creation-validation/ui-permission-blocked.png",
+      "originalPath": "output/simple-creation-validation/ui-permission-blocked.png",
+      "sha256": "e5379a2d07a3a961055a3fbdc2d24ad9c0c6b7ad119a8207c0ac8c2096102188",
+      "bytes": 81815
+    },
+    {
+      "path": "simple-creation-validation/ui-new-work.png",
+      "originalPath": "output/simple-creation-validation/ui-new-work.png",
+      "sha256": "6cf250a693a7737ae90ebe1481067a94ee06b85434fbe059ec00bca1e66f670a",
+      "bytes": 117567
+    },
+    {
+      "path": "simple-creation-validation/design-findings.json",
+      "originalPath": "output/simple-creation-validation/design-findings.json",
+      "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+      "bytes": 4
+    },
+    {
+      "path": "deepseek-harness-validation/menu-light.png",
+      "originalPath": "output/deepseek-harness-validation/menu-light.png",
+      "sha256": "9e75fc3b8767deb7fdc5a203a86825ee1d1c799885404e1b71805ac950609dec",
+      "bytes": 8270
+    },
+    {
+      "path": "deepseek-harness-validation/menu-dark.png",
+      "originalPath": "output/deepseek-harness-validation/menu-dark.png",
+      "sha256": "48a923a3647191afacbaad2859f0210aa6d77e2ff9f3529961de792ee4219366",
+      "bytes": 8319
+    },
+    {
+      "path": "deepseek-harness-validation/compact-menu.png",
+      "originalPath": "output/deepseek-harness-validation/compact-menu.png",
+      "sha256": "de4d229389617bbfced6e6c6fb0ed88fe252c7ac98d7133868c8e4e6bac43c2b",
+      "bytes": 44974
+    },
+    {
+      "path": "simple-creation-fixes/question-light.png",
+      "originalPath": "output/simple-creation-fixes/question-light.png",
+      "sha256": "48e07654dd43666fc3040b0194876878815d4ae3b419bd2388dcc8fa2e2e5245",
+      "bytes": 13393
+    },
+    {
+      "path": "simple-creation-fixes/question-dark-compact.png",
+      "originalPath": "output/simple-creation-fixes/question-dark-compact.png",
+      "sha256": "5a8850ee0f6c44178eac7f7351db98d5cb12dc1c102c096e48221ed6b9162ace",
+      "bytes": 33345
+    },
+    {
+      "path": "simple-creation-fixes/orphan-draft-recovery.png",
+      "originalPath": "output/simple-creation-fixes/orphan-draft-recovery.png",
+      "sha256": "811f20c1f14eb1456fc5e634830ead53c07f98205dc9e5368ed14f3abb285cb2",
+      "bytes": 86987
+    }
+  ]
+}

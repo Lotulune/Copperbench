@@ -2,11 +2,13 @@
 
 Copperbench is an independent derivative of MCreator. Use this repository's [issue tracker](https://github.com/Lotulune/Copperbench/issues) for Copperbench bugs and proposals, and open pull requests against **`main`**. Upstream source and attribution records are in [UPSTREAM.md](UPSTREAM.md).
 
+Start with the [one-page contributor route（简体中文）](docs/build/contributor-quickstart.md) to choose the minimum environment, shortest checks and completion criteria for your layer. The detailed commands below remain references; do not run every layer for a documentation change.
+
 Bug reports are useful contributions. Include the Copperbench version, operating system and desktop session, generator, steps to reproduce, and the expected and actual result. The bug-report form accepts Windows 11 and Ubuntu 24.04 GNOME Wayland/Xorg. Review diagnostic bundles before attaching them; include only information needed to reproduce the problem.
 
 ## Run from source
 
-Use JDK 25 (JetBrains Runtime with JCEF for the desktop shell), Node.js 22, npm and Git. Python SDK tests require Python 3.11 or later. PowerShell scripts require PowerShell 7. See the [development setup guide](docs/build/development-setup.md) for JDK configuration and Windows launcher troubleshooting.
+Use JDK 25 (JetBrains Runtime with JCEF for the desktop shell), Node.js 22, npm and Git. Python SDK tests require Python 3.11 or later. PowerShell scripts require PowerShell 7. See the [development setup guide](docs/build/development-setup.en.md) ([简体中文](docs/build/development-setup.md)) for layer-specific prerequisites, JDK configuration and Windows launcher troubleshooting.
 
 From the repository root:
 
@@ -21,6 +23,8 @@ On Windows, use `.\gradlew.bat` instead of `./gradlew`. Use the repository's Gra
 ## Choose verification for the change
 
 Run the checks for the affected layer. A documentation correction needs link and content checks; it does not require an unrelated gameplay replay. Report exactly what ran, what passed or failed, and what the environment prevented you from checking.
+
+The source-only [contributor verification entry](scripts/performance/README.md#contributor-verification) reuses the CI selector: `python scripts/verify-changed.py --paths README.md` prints a plan only. Review it before using `--run`, with explicit `--allow-downloads` for Gradle dependencies. It records commands, exit codes, available counts and blocked environment gaps without installing tools or changing global settings. The development guide gives the invocation/report contract; the table below retains manual references.
 
 | Changed layer | Useful local checks |
 | --- | --- |

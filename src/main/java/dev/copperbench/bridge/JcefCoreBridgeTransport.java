@@ -169,15 +169,16 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 			JsonObject envelope = JsonParser.parseString(payload).getAsJsonObject();
 			if (envelope.has("operation") && java.util.Set.of("get_blockbench_environment", "get_blockbench_task",
 					"list_blockbench_tasks", "begin_blockbench_task", "finish_blockbench_task", "cancel_blockbench_task",
-					"preview_blockbench_import", "import_blockbench_task", "recover_blockbench_import")
+					"preview_blockbench_import", "import_blockbench_task", "recover_blockbench_import",
+					"get_workspace_health", "get_history", "get_diff", "preview_recovery_restore", "list_assets")
 					.contains(envelope.get("operation").getAsString())) {
-				// A connection probe can take seconds; keep the Chromium message-router thread responsive.
-				Thread.ofVirtual().name("blockbench-discovery").start(() -> {
+				// History reads can wait for a Blockbench recovery snapshot; asset scans and probes also perform I/O.
+				Thread.ofVirtual().name("workbench-background-query").start(() -> {
 					try {
 						String result = endpoint.handle(payload);
 						if (!closed.get()) callback.success(result != null ? result : "{}");
 					} catch (RuntimeException exception) {
-						if (!closed.get()) callback.failure(400, "Blockbench environment query failed");
+						if (!closed.get()) callback.failure(400, "Workspace background operation failed");
 					}
 				});
 				return true;

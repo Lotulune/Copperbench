@@ -4,4 +4,4 @@ from .client import Bridge
 from .errors import BridgeError
 
 __all__ = ["Bridge", "BridgeError"]
-__version__ = "0.2.0"
+__version__ = "0.3.0"

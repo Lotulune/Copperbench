@@ -1,6 +1,7 @@
 import { tr } from '../i18n/locale';
 import { elementShortLabel, valueLabel } from '../i18n/labels';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
+import { useElementListSession, type SortOption } from '../hooks/elementListSessions';
 import {
   Box,
   Compass,
@@ -48,7 +49,7 @@ const OverlayWorkbench = React.lazy(() => import('./OverlayWorkbench').then((mod
 
 const COMMON_TYPES = ['all', 'block', 'item', 'procedure', 'recipe'] as const;
 
-type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
+
 
 
 export const ModElementsWorkbench: React.FC = () => {
@@ -60,18 +61,15 @@ export const ModElementsWorkbench: React.FC = () => {
     setIsCreateModalOpen
   } = useWorkbench();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<ModElementType | 'all'>('all');
-  const [selectedState, setSelectedState] = useState<'all' | 'valid' | 'draft' | 'invalid'>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [sortBy, setSortBy] = useState<SortOption>('updated_desc');
-  const [pageSize, setPageSize] = useState<number>(24);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // Reset to page 1 whenever filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedType, selectedState, sortBy, pageSize]);
+  const browsing = useElementListSession(state.workbench?.workspace.id ?? 'no-workspace');
+  const { searchQuery, selectedType, selectedState, viewMode, sortBy, pageSize, currentPage } = browsing.state;
+  const setSearchQuery = (value: string) => browsing.set('searchQuery', value);
+  const setSelectedType = (value: ModElementType | 'all') => browsing.set('selectedType', value);
+  const setSelectedState = (value: typeof selectedState) => browsing.set('selectedState', value);
+  const setViewMode = (value: typeof viewMode) => browsing.set('viewMode', value);
+  const setSortBy = (value: SortOption) => browsing.set('sortBy', value);
+  const setPageSize = (value: number) => browsing.set('pageSize', value);
+  const setCurrentPage = (value: React.SetStateAction<number>) => browsing.set('currentPage', value);
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredAndSortedElements = useMemo(() => {
@@ -146,7 +144,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'overlay') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载 Overlay 深度编辑器…")}</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{uiText('正在打开叠加层编辑器…', 'Opening the overlay editor…')}</div>}>
         <OverlayWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -154,7 +152,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'gui') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载 GUI 深度编辑器…")}</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{uiText('正在打开界面编辑器…', 'Opening the GUI editor…')}</div>}>
         <GuiWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -260,7 +258,7 @@ export const ModElementsWorkbench: React.FC = () => {
         </header>
 
         {/* Elements View Area */}
-        <div className="elements-results">
+        <div className="elements-results" ref={browsing.restoreScroll} onScroll={event => browsing.rememberScroll(event.currentTarget.scrollTop)}>
           {filteredAndSortedElements.length === 0 ? (
             <div className="elements-empty">
               <span className="hub-empty-icon">{hasFilters ? <Search size={30} aria-hidden="true" /> : <Box size={30} aria-hidden="true" />}</span>

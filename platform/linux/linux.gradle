@@ -30,6 +30,7 @@ tasks.register('prepareLinuxGradleDistPool') {
 }
 
 tasks.register('exportLinux64', Copy.class) {
+    dependsOn installerJar
     dependsOn downloadJDKLinux64
     dependsOn downloadJDK21Linux64
     dependsOn writeLinuxCandidateManifest
@@ -48,16 +49,19 @@ tasks.register('exportLinux64', Copy.class) {
         from file('src/main/resources/net/mcreator/ui/res/' + icon) rename(icon, 'icon.png')
         from file('gradlew')
         from file('gradlew.bat')
+        from file('build/installer/copperbench-setup.jar')
         from file('build/reports/linux-candidate-manifest.json')
     }
     into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('lib') {
-        from 'build/libs'
+        from tasks.named('jar')
+        from tasks.named('localIpcAgentJar')
         from configurations.export
         from configurations.linux64
     }
     into('plugins') { from 'build/plugins/' }
     into('license') { from 'license' }
+    into('user') { from('docs/user') { include 'README.md', 'graphical-installation.md', 'security-alerts.md' } }
     into('jdk') { from 'jdk/jbr25_linux_64' }
     into('jdk21') { from 'jdk/jdk21_linux_64' }
     into('gradle-dists') { from 'build/linux-gradle-dists' }
@@ -166,12 +170,32 @@ tasks.register('buildDebLinux64') {
 tasks.register('exportLinuxCandidate') {
     group = 'export'
     dependsOn tarLinux64
-    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) dependsOn buildDebLinux64
+    dependsOn 'buildLinuxUpdates'
+    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) {
+        dependsOn buildDebLinux64
+        dependsOn 'buildInstallerLinux64'
+    }
+}
+
+tasks.register('buildLinuxUpdates', JavaExec.class) {
+    dependsOn exportLinux64
+    classpath = sourceSets.installer.runtimeClasspath
+    mainClass = 'dev.copperbench.installer.UpdatePackageBuilder'
+    args file('build/export/linux64'), project.productVersion, 'linux-x64', file('build/export')
+}
+
+tasks.register('buildInstallerLinux64', Exec.class) {
+    dependsOn exportLinux64
+    onlyIf { Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC) }
+    commandLine 'node', 'platform/installer/build.mjs', '--platform', 'linux',
+            '--version', project.productVersion, '--payload', 'build/export/linux64'
 }
 
 tasks.register('exportLinux') {
     group = 'export'
     dependsOn tarLinux64
+    dependsOn buildLinuxUpdates
+    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) dependsOn 'buildInstallerLinux64'
 
     doLast {
         delete 'build/export/linux64'

@@ -345,6 +345,25 @@ public class Generator implements IGenerator, Closeable {
 		TagsUtils.processDefinitionToTags(this, generatableElement, (List<?>) map.get("tags"), true);
 	}
 
+	/** All possible base/global targets, including conditions a pending mutation may enable. */
+	@Nonnull public Set<File> getPotentialBaseGeneratorFiles() {
+		List<Object> templates = new ArrayList<>(generatorConfiguration.getBaseTemplates());
+		List<Map<?, ?>> definitions = new ArrayList<>();
+		for (ModElementType<?> type : generatorConfiguration.getGeneratorStats().getSupportedModElementTypes())
+			definitions.add(generatorConfiguration.getDefinitionsProvider().getModElementDefinition(type));
+		for (BaseType type : BaseType.values())
+			definitions.add(generatorConfiguration.getDefinitionsProvider().getBaseTypeDefinition(type));
+		for (Map<?, ?> definition : definitions)
+			if (definition != null && definition.get("global_templates") instanceof List<?> globals)
+				templates.addAll(globals);
+		Set<File> files = new LinkedHashSet<>();
+		for (Object template : templates) {
+			File file = new File(GeneratorTokens.replaceTokens(workspace, (String) ((Map<?, ?>) template).get("name")));
+			if (workspace.getFolderManager().isFileInWorkspace(file)) files.add(file);
+		}
+		return files;
+	}
+
 	@Nonnull public List<GeneratorTemplate> getModBaseGeneratorTemplatesList() {
 		AtomicInteger templateID = new AtomicInteger();
 

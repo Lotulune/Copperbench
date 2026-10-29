@@ -47,10 +47,13 @@ public final class AssetPreviewService {
             if (image.has("reason")) result.add("reason", image.get("reason"));
             else result.add("image", image);
         } else if (asset.category() == dev.copperbench.assets.AssetCategory.MODEL
-                && asset.relativePath().toLowerCase(Locale.ROOT).endsWith(".json")) {
-            if (asset.size() > MAX_DOCUMENT_BYTES) return unsupported(result, "document_too_large");
-            result.addProperty("kind", "model_json");
-            result.addProperty("document", new String(readVerified(workspace, asset, MAX_DOCUMENT_BYTES), StandardCharsets.UTF_8));
+                && asset.relativePath().toLowerCase(Locale.ROOT).matches(".*\\.(json|bbmodel|obj|java)$")) {
+            boolean json = asset.relativePath().toLowerCase(Locale.ROOT).endsWith(".json");
+            int limit = asset.relativePath().toLowerCase(Locale.ROOT).endsWith(".bbmodel") ? 12 * 1024 * 1024 : json ? MAX_DOCUMENT_BYTES : 2 * 1024 * 1024;
+            if (asset.size() > limit) return unsupported(result, "document_too_large");
+            byte[] content = readVerified(workspace, asset, limit);
+            result.addProperty("kind", json ? "model_json" : "model");
+            if (content.length <= MAX_DOCUMENT_BYTES) result.addProperty("document", new String(content, StandardCharsets.UTF_8));
             JsonArray textures = result.getAsJsonArray("textures");
             Set<String> selected = new LinkedHashSet<>();
             int linkedTextures = 0;
@@ -67,6 +70,13 @@ public final class AssetPreviewService {
                 textures.add(image);
             }
             result.addProperty("linkedTextureCount", linkedTextures);
+            try {
+                result.add("scene", new dev.copperbench.assets.ModelPreviewService(root, graph.assets()).asset(asset,
+                        content));
+            } catch (IOException | IllegalArgumentException | IllegalStateException error) {
+                JsonObject scene = dev.copperbench.assets.ModelPreviewService.unavailable("model_invalid");
+                scene.addProperty("detail", error.getMessage()); result.add("scene", scene);
+            }
         } else return unsupported(result, "format_not_supported");
         return result;
     }

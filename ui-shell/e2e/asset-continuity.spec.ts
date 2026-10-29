@@ -38,6 +38,7 @@ test('asset refresh, failure and retry preserve the open modeling draft', async 
   await page.getByTestId('nav-assets').click();
   await expect(page.getByTestId('asset-details')).toBeVisible();
   const panel = page.getByTestId('blockbench-tasks');
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await panel.locator('summary').first().click();
   const draft = panel.getByLabel('新模型目标路径');
   await draft.fill('models/blockbench/unfinished.bbmodel');
@@ -68,6 +69,7 @@ test('an empty workspace can review and import its first asset without losing th
   await page.getByTestId('nav-assets').click();
   await expect(page.getByTestId('asset-browser-empty')).toBeVisible();
   const panel = page.getByTestId('blockbench-tasks');
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await panel.locator('summary').first().click();
   await panel.getByLabel('新模型目标路径').fill('models/first.bbmodel');
   await page.getByTestId('asset-import-empty').click();
@@ -86,6 +88,7 @@ test('changing workspace identity resets the modeling draft and expansion', asyn
   await page.getByTestId('nav-assets').click();
   await expect(page.getByTestId('asset-details')).toBeVisible();
   const panel = page.getByTestId('blockbench-tasks');
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await panel.locator('summary').first().click();
   await panel.getByLabel('新模型目标路径').fill('models/old-workspace.bbmodel');
   await page.evaluate(async () => {
@@ -97,6 +100,8 @@ test('changing workspace identity resets the modeling draft and expansion', asyn
       workspaceId, operation: 'get_workbench', payload: {} });
   });
   await expect(panel).not.toHaveAttribute('open', '');
+  await expect(page.getByTestId('asset-modeling-disclosure')).not.toHaveAttribute('open', '');
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await panel.locator('summary').first().click();
   await expect(panel.getByLabel('新模型目标路径')).toHaveValue('models/blockbench/new_model.bbmodel');
 });
@@ -105,6 +110,7 @@ test.describe('clipboard feedback', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('nav-assets').click();
+    await page.getByTestId('asset-metadata-disclosure').locator(':scope > summary').click();
     await expect(page.getByTestId('asset-stable-id')).toBeVisible();
   });
 
@@ -131,7 +137,7 @@ test.describe('clipboard feedback', () => {
       await page.evaluate(unavailable => Object.defineProperty(navigator, 'clipboard', { configurable: true,
         value: unavailable ? undefined : { writeText: async () => { throw new Error('Permission denied'); } } }), unavailable);
       await page.getByRole('button', { name: '复制稳定标识' }).click();
-      await expect(page.getByTestId('asset-copy-feedback')).toHaveText('复制失败，请选中标识手动复制。');
+      await expect(page.getByTestId('asset-copy-feedback')).toHaveText('复制失败，请手动复制。');
       await expect(page.getByTestId('asset-copy-feedback')).toHaveAttribute('role', 'alert');
       await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true,
         value: { writeText: async () => {} } }));

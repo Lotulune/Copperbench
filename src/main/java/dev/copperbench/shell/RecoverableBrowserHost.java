@@ -18,6 +18,7 @@ import java.awt.*;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import static dev.copperbench.shell.UiLocalePreferences.text;
 
 /** Keeps the Java workspace alive while a failed browser surface is replaced. */
 final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
@@ -29,8 +30,8 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 	private final CardLayout cards = new CardLayout();
 	private final BrowserFactory browserFactory;
 	private final Runnable closeAction;
-	private final JButton retryButton = new JButton("重新加载界面");
-	private final JLabel recoveryStatus = new JLabel("渲染进程异常退出。", SwingConstants.CENTER);
+	private final JButton retryButton = new JButton();
+	private final JLabel recoveryStatus = new JLabel("", SwingConstants.CENTER);
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private BrowserHandle currentBrowser;
@@ -80,7 +81,7 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 			return;
 
 		retryButton.setEnabled(false);
-		recoveryStatus.setText("正在重新加载界面...");
+		recoveryStatus.setText(text("正在重新加载界面…", "Reloading the interface…"));
 		BrowserHandle failedBrowser = currentBrowser;
 		currentBrowser = null;
 		if (failedBrowser != null) {
@@ -102,7 +103,7 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 			}
 			LOG.error("Failed to recreate JCEF browser after renderer termination", exception);
 			recovering = true;
-			recoveryStatus.setText("界面重新加载失败，请重试或关闭工作区。");
+			recoveryStatus.setText(text("界面重新加载失败，请重试。", "Could not reload the interface. Please try again."));
 			retryButton.setEnabled(true);
 			cards.show(this, RECOVERY_CARD);
 			retryButton.requestFocusInWindow();
@@ -124,7 +125,11 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 			return;
 		LOG.error("Showing renderer recovery state after {}", reason);
 		recovering = true;
-		recoveryStatus.setText("渲染进程异常退出。工作区数据仍由 Java 服务保留。");
+		// Rebuild labels here because the language may have changed since this host opened.
+		for (Component card : getComponents())
+			if (card != browser.component()) remove(card);
+		add(createRecoveryPanel(), RECOVERY_CARD);
+		recoveryStatus.setText(text("工作区仍保持打开。", "Your workspace is still open."));
 		retryButton.setEnabled(true);
 		cards.show(this, RECOVERY_CARD);
 		revalidate();
@@ -156,14 +161,14 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 
 		JLabel icon = new JLabel(UIManager.getIcon("OptionPane.errorIcon"));
 		icon.setAlignmentX(Component.CENTER_ALIGNMENT);
-		JLabel title = new JLabel("界面渲染已停止", SwingConstants.CENTER);
+		JLabel title = new JLabel(text("界面暂时无法显示", "The interface stopped responding"), SwingConstants.CENTER);
 		title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
 		title.setAlignmentX(Component.CENTER_ALIGNMENT);
 		recoveryStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		JTextArea explanation = new JTextArea(
-				"工作区仍保持打开。恢复后会重新读取最后一次已提交的状态；"
-						+ "崩溃前尚未提交的界面输入不会被标记为已保存。");
+		JTextArea explanation = new JTextArea(text(
+				"重新加载后会恢复已保存的内容，尚未保存的输入可能丢失。",
+				"Reload to restore saved content. Unsaved input may have been lost."));
 		explanation.setEditable(false);
 		explanation.setFocusable(false);
 		explanation.setOpaque(false);
@@ -173,10 +178,12 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 		explanation.setAlignmentX(Component.CENTER_ALIGNMENT);
 		explanation.setMaximumSize(new Dimension(500, 64));
 
+		retryButton.setText(text("重新加载界面", "Reload interface"));
 		retryButton.setName("renderer-recovery-retry");
-		retryButton.addActionListener(ignored -> retryRecovery());
-		retryButton.getAccessibleContext().setAccessibleDescription("重建渲染进程并重新连接当前工作区");
-		JButton closeButton = new JButton("关闭工作区");
+		if (retryButton.getActionListeners().length == 0)
+			retryButton.addActionListener(ignored -> retryRecovery());
+		retryButton.getAccessibleContext().setAccessibleDescription(text("重新连接当前工作区", "Reconnect to the current workspace"));
+		JButton closeButton = new JButton(text("关闭工作区", "Close workspace"));
 		closeButton.setName("renderer-recovery-close");
 		closeButton.addActionListener(ignored -> closeAction.run());
 		JPanel actions = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));

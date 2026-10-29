@@ -1,3 +1,4 @@
+import { confirmAction } from '../feedback/feedback';
 import { tr, uiText } from '../i18n/locale';
 import './creatorData.css';
 import { valueLabel } from '../i18n/labels';
@@ -195,7 +196,9 @@ export const CreatorDataView: React.FC = () => {
       setTab('references');
       return;
     }
-    if (!window.confirm(tr("确定删除“{0}”吗？删除前会创建本地恢复点。", [entryName(entry)]))) return;
+    if (!await confirmAction({ title: { zh: '删除条目', en: 'Delete entry' }, danger: true,
+      message: { zh: `删除「${entryName(entry)}」？删除前会创建本地恢复点。`, en: `Delete "${entryName(entry)}"? A local recovery point will be created first.` },
+      confirmLabel: { zh: '删除条目', en: 'Delete entry' } })) return;
     const result = await deleteRegistryEntry(entry.id);
     if (result.status !== 'committed') {
       setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("删除失败。"));

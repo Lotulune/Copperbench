@@ -1,11 +1,14 @@
 # 测试与验收证据索引
 
+本轮新增：[复评优化 spec](../roadmap/review-optimization-spec-2026-10-16.md)、[统一验收记录](review-optimization-2026-10-16.md)、[决策看板](../maintenance/review-improvement-board-2026-10-16.md)、[最终包验收准备](final-package-acceptance-2026-10-16.md)、[任务研究合同](task-evaluation.md)、[原生首作演示准备](first-creation-demo.md)。准备文档不代表对应实测已经通过。
+
 ## 当前交付基线
 
 当前稳定版为 Windows `v0.1.4`、Linux `v0.1.4-linux-stable`，下载入口见[当前下载](../releases/current.md)。
 
 | 内容 | 入口 |
 | --- | --- |
+| 首次成功、输入诊断与依赖告警（源码） | [2026-10-14 检查记录](first-success-2026-10-14.md) |
 | Windows 0.1.4 发布与验证 | [发布记录](product-shell-release-0.1.4.md) |
 | Linux 0.1.4 发布与验证 | [发布记录](product-shell-linux-publication-0.1.4.md)、[本次验收范围](product-shell-linux-release-0.1.4.md) |
 | 历史 0.1.2 维护修复与 Windows 原生回归 | [维护验收](maintenance-2026-09-27.md) |
@@ -16,6 +19,10 @@
 | 待跟进与未验证范围 | [持续维护清单](../remaining-work.md) |
 
 这些入口记录已完成的验证范围；不能把历史通过结果扩展到其他二进制、平台或游戏版本。
+
+本地待发布改动：[安装与双语体验验收记录](installer-ux-2026-10-12.md)，包含新图形安装器的构建结果、定向回归和待完成的系统验收。
+
+后续[云端验收记录](installer-cloud-2026-10-13.md)包含源码摘要核对、有效复验结果和环境阻碍；完整桌面安装验收仍待完成。
 
 ## 测试源码与生成产物
 
