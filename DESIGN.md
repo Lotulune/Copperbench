@@ -1,331 +1,284 @@
 ---
 name: Copperbench
-description: Existing desktop workbench visual system with simple creation extensions.
+description: The Notebook — white sheets on a cool desk, pen blue for the action that matters.
 colors:
-  bg-base: "#191a19"
-  light-bg-base: "#ffffff"
-  bg-surface: "#1c1d1c"
-  light-bg-surface: "#ffffff"
-  bg-panel: "#242624"
-  light-bg-panel: "#f4f4f3"
-  bg-card: "#1c1d1c"
-  light-bg-card: "#ffffff"
-  bg-card-hover: "#2b2d2a"
-  light-bg-card-hover: "#f3f4f1"
-  bg-input: "#20221f"
-  light-bg-input: "#ffffff"
-  bg-hover: "rgba(255, 255, 255, 0.04)"
-  light-bg-hover: "rgba(0, 0, 0, 0.04)"
-  bg-active: "rgba(255, 255, 255, 0.08)"
-  light-bg-active: "rgba(0, 0, 0, 0.08)"
-  border-subtle: "#30322f"
-  light-border-subtle: "#e7e7e4"
-  border-focus: "#e2aa7a"
-  light-border-focus: "#985029"
-  border-active: "#6c7268"
-  light-border-active: "#89988b"
-  text-main: "#e6e8e2"
-  light-text-main: "#242622"
-  text-muted: "#b1b6ac"
-  light-text-muted: "#696d66"
-  text-sub: "#9da596"
-  light-text-sub: "#61675c"
-  accent-copper: "#e2aa7a"
-  light-accent-copper: "#985029"
-  accent-copper-hover: "#f2bd90"
-  light-accent-copper-hover: "#833e11"
-  accent-copper-active: "#d49a68"
-  light-accent-copper-active: "#6e330d"
-  accent-copper-dim: "rgba(226, 170, 122, 0.1)"
-  light-accent-copper-dim: "#f4e9dd"
-  accent-copper-fill: "#e2aa7a"
-  light-accent-copper-fill: "#985029"
-  accent-copper-fill-hover: "#f2bd90"
-  light-accent-copper-fill-hover: "#833e11"
-  accent-copper-fill-active: "#d49a68"
-  light-accent-copper-fill-active: "#6e330d"
-  text-on-accent: "#241a12"
-  light-text-on-accent: "#ffffff"
-  badge-green: "#8bc5a5"
-  light-badge-green: "#296745"
-  badge-green-bg: "rgba(139, 197, 165, 0.1)"
-  light-badge-green-bg: "#e8f2eb"
-  badge-amber: "#dfbd73"
-  light-badge-amber: "#865d15"
-  badge-amber-bg: "rgba(223, 189, 115, 0.1)"
-  light-badge-amber-bg: "#faf0d8"
-  badge-red: "#f49c96"
-  light-badge-red: "#b63737"
-  badge-red-bg: "rgba(244, 156, 150, 0.1)"
-  light-badge-red-bg: "#fceceb"
-  badge-blue: "#94bde8"
-  light-badge-blue: "#326398"
-  badge-blue-bg: "rgba(148, 189, 232, 0.1)"
-  light-badge-blue-bg: "#eaf1f9"
-  titlebar-bg: "#161716"
-  light-titlebar-bg: "#f7f7f6"
-  navrail-bg: "#161716"
-  light-navrail-bg: "#f7f7f6"
-  modal-bg: "#1c1d1c"
-  light-modal-bg: "#ffffff"
-  modal-overlay: "rgba(5, 7, 10, 0.75)"
-  light-modal-overlay: "rgba(15, 23, 42, 0.5)"
+  desk: "#14171d"
+  light-desk: "#eceef1"
+  sheet: "#1d2129"
+  light-sheet: "#ffffff"
+  sheet-well: "#232833"
+  light-sheet-well: "#f6f7f9"
+  sheet-edge: "#2a303a"
+  light-sheet-edge: "#e0e3e8"
+  input: "#191c23"
+  light-input: "#ffffff"
+  border-subtle: "#2c323d"
+  light-border-subtle: "#e2e5ea"
+  border-active: "#454d5c"
+  light-border-active: "#c8cdd6"
+  ink: "#e7eaf0"
+  light-ink: "#1c2230"
+  ink-muted: "#b4bbc8"
+  light-ink-muted: "#4c5566"
+  ink-sub: "#9aa2b2"
+  light-ink-sub: "#667082"
+  pen: "#8ea6ff"
+  light-pen: "#2747a8"
+  pen-fill: "#4a68d8"
+  light-pen-fill: "#2747a8"
+  pen-fill-hover: "#5a77e3"
+  light-pen-fill-hover: "#1f3a8c"
+  pen-wash: "rgba(142, 166, 255, 0.14)"
+  light-pen-wash: "#e8edfa"
+  text-on-pen: "#ffffff"
+  dot: "#2a303b"
+  light-dot: "#d6dae1"
+  tab-blue: "rgba(142, 170, 242, 0.16)"
+  light-tab-blue: "#dfe8f8"
+  tab-sand: "rgba(230, 200, 110, 0.16)"
+  light-tab-sand: "#f5ecc8"
+  tab-sage: "rgba(120, 196, 152, 0.16)"
+  light-tab-sage: "#dcebe1"
+  tab-rose: "rgba(240, 150, 130, 0.16)"
+  light-tab-rose: "#f6e0da"
+  state-green: "#86d3a8"
+  light-state-green: "#22704a"
+  state-amber: "#e9c578"
+  light-state-amber: "#855a0c"
+  state-red: "#f3a097"
+  light-state-red: "#b5362d"
+  brand-copper: "#d07a4a"
+  light-brand-copper: "#c8643a"
 typography:
-  headline-workbench:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
-    fontSize: "26px"
-    fontWeight: 600
-    lineHeight: 1.25
-    letterSpacing: "-0.6px"
-  headline-creation:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+  headline-page:
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI Variable\", \"Segoe UI\", -apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", sans-serif"
+    fontSize: "28px"
+    fontWeight: 700
+    lineHeight: 1.3
+    letterSpacing: "-0.02em"
+  headline-view:
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei UI\", sans-serif"
     fontSize: "21px"
-    fontWeight: 650
+    fontWeight: 700
     lineHeight: 1.25
-  title-creation:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
-    fontSize: "16px"
-    fontWeight: 600
+    letterSpacing: "-0.02em"
+  title:
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei UI\", sans-serif"
+    fontSize: "15px"
+    fontWeight: 650
     lineHeight: 1.4
-  title-preview:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
-    fontSize: "17px"
-    fontWeight: 600
   body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei UI\", sans-serif"
     fontSize: "13px"
-    lineHeight: 1.5
-    letterSpacing: "0"
+    fontWeight: 400
+    lineHeight: 1.55
   body-conversation:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei UI\", sans-serif"
     fontSize: "14px"
-    lineHeight: 1.8
+    lineHeight: 1.75
   label:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei UI\", sans-serif"
     fontSize: "12px"
+    fontWeight: 600
   label-badge:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Inter\", \"Segoe UI\", Roboto, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    fontFamily: "\"Segoe UI Variable Text\", \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei UI\", sans-serif"
     fontSize: "11px"
-    fontWeight: 500
-    lineHeight: 1.2
-  mono-detail:
-    fontFamily: "\"JetBrains Mono\", \"Fira Code\", \"Cascadia Code\", Consolas, monospace"
-    fontSize: "11px"
+    fontWeight: 600
+    lineHeight: 1.35
+  mono:
+    fontFamily: "\"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas, monospace"
+    fontSize: "11.5px"
     lineHeight: 1.6
 rounded:
   xs: "4px"
   sm: "6px"
   md: "8px"
   lg: "12px"
+  xl: "14px"
   full: "9999px"
 spacing:
-  page-gutter: "clamp(20px, 2.4vw, 40px)"
+  gutter: "12px"
+  control-gap: "8px"
+  section: "34px"
 components:
-  creation-primary:
-    backgroundColor: "{colors.accent-copper-fill}"
-    textColor: "{colors.text-on-accent}"
+  button-primary:
+    backgroundColor: "{colors.pen-fill}"
+    textColor: "{colors.text-on-pen}"
     rounded: "{rounded.sm}"
-    padding: "8px 15px"
-  creation-primary-hover:
-    backgroundColor: "{colors.accent-copper-fill-hover}"
-  creation-secondary:
-    backgroundColor: "{colors.bg-surface}"
-    textColor: "{colors.text-main}"
+    padding: "7px 14px"
+    height: "34px"
+  button-primary-hover:
+    backgroundColor: "{colors.pen-fill-hover}"
+  button-secondary:
+    backgroundColor: "{colors.sheet}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.sm}"
-    padding: "8px 14px"
-  workbench-primary:
-    backgroundColor: "{colors.text-main}"
-    textColor: "{colors.bg-surface}"
+    padding: "7px 14px"
+    height: "34px"
+  button-ghost-icon:
+    textColor: "{colors.ink-muted}"
     rounded: "{rounded.sm}"
-    padding: "6px 14px"
-  workbench-primary-hover:
-    backgroundColor: "{colors.text-muted}"
-  workbench-secondary:
-    backgroundColor: "{colors.bg-panel}"
-    textColor: "{colors.text-main}"
-    rounded: "{rounded.sm}"
-    padding: "6px 12px"
-  button-danger:
-    backgroundColor: "{colors.badge-red-bg}"
-    textColor: "{colors.badge-red}"
-    rounded: "{rounded.sm}"
-    padding: "6px 12px"
+    size: "32px"
   input:
-    backgroundColor: "{colors.bg-input}"
-    textColor: "{colors.text-main}"
+    backgroundColor: "{colors.input}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.sm}"
-    padding: "6px 10px"
-  navigation-item:
-    textColor: "{colors.text-muted}"
+    padding: "6px 11px"
+    height: "34px"
+  sheet:
+    backgroundColor: "{colors.sheet}"
+    rounded: "{rounded.lg}"
+  card:
+    backgroundColor: "{colors.sheet}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  nav-item:
+    textColor: "{colors.ink-muted}"
     rounded: "{rounded.sm}"
     padding: "7px 10px"
-    width: "100%"
-  navigation-item-selected:
-    backgroundColor: "{colors.bg-active}"
-    textColor: "{colors.text-main}"
-  badge-green:
-    backgroundColor: "{colors.badge-green-bg}"
-    textColor: "{colors.badge-green}"
+    height: "36px"
+  nav-item-selected:
+    backgroundColor: "{colors.sheet}"
+    textColor: "{colors.ink}"
+  badge:
     typography: "{typography.label-badge}"
-    rounded: "{rounded.full}"
+    rounded: "{rounded.xs}"
     padding: "2px 8px"
-  approval-card:
-    backgroundColor: "{colors.bg-surface}"
-    textColor: "{colors.text-main}"
-    rounded: "{rounded.md}"
-    padding: "14px"
-  composer:
-    backgroundColor: "{colors.bg-input}"
-    textColor: "{colors.text-main}"
-    rounded: "{rounded.lg}"
+  dialog:
+    backgroundColor: "{colors.sheet}"
+    rounded: "{rounded.xl}"
 ---
 
 # Design System: Copperbench
 
 ## Overview
 
-Copperbench uses neutral desktop panels, thin dividers, a copper accent, system sans-serif text, and Lucide icons. Density serves workspace editing: compact navigation and toolbars frame the current work, while task content receives the available space.
+**Creative North Star: "The Notebook"**
 
-The simple creation surface extends this existing system with a conversation, composer, and actual asset preview. The professional workbench keeps its established component variants. Product scope and the selected conversational composition remain in PRODUCT.md and the simple-creation surface brief.
+Copperbench is a well-kept notebook on a cool desk. Navigation, the title bar and the status line sit directly on the desk; anything the player works on is a white sheet laid on top of it. A 16px dot grid marks the places where ideas are composed, pen blue is reserved for the one action that matters on a screen, and a fine pen underline draws beneath whatever is selected. The world is mature and quiet: Minecraft content supplies the colour, the interface supplies order.
+
+Density follows the task. Simple creation is airy, with two sheets (conversation and preview) and a desk-level title. The professional workbench is denser: folder tabs on the sheet's top strip, compact rows and cards, and the same controls everywhere. Light is the reference rendition; dark is blue-black ink paper, never brown-black. The user rejected a children's-block palette, a murky oxidised dark, and a yellow highlighter behind text.
+
+This system replaced the copper workbench on 2026-10-30. Copper survives only as the brand mark in the app icon and the workspace plate glyph.
 
 **Key Characteristics:**
-
-- Neutral surfaces and thin borders separate navigation, content, and supporting panels.
-- Copper marks focused controls, selected simple-mode controls, and simple-mode primary actions.
-- Readable Chinese and English labels use the existing system font stack.
-- Real workspace assets supply preview imagery; existing icons remain functional cues.
-
-This is an extraction of the implementation on 2026-10-21. Visual authority is [tokens.css](ui-shell/src/styles/tokens.css), the final cascade in [global.css](ui-shell/src/styles/global.css) and [workbench.css](ui-shell/src/styles/workbench.css), and the existing components. [simpleCreation.css](ui-shell/src/components/simpleCreation.css) extends that authority. The stylesheet import order in [App.tsx](ui-shell/src/App.tsx) is global, workbench, motion, then simple creation. Read later and more-specific rules before treating an earlier declaration as the effective design.
-
-The supplied browser-fixture captures were visually checked: [light 1600](assets/screenshots/2026-10-21/simple-creation-validation/ui-light-1600.png), [dark 1366](assets/screenshots/2026-10-21/simple-creation-validation/ui-dark-1366.png), [compact 500](assets/screenshots/2026-10-21/simple-creation-validation/ui-compact-500-chromium.png), [running](assets/screenshots/2026-10-21/simple-creation-validation/ui-running.png), [approval](assets/screenshots/2026-10-21/simple-creation-validation/ui-approval.png), [permission blocked](assets/screenshots/2026-10-21/simple-creation-validation/ui-permission-blocked.png), and [new work](assets/screenshots/2026-10-21/simple-creation-validation/ui-new-work.png). The independent finish reviewer returned **ship** for these seven captures; [detector findings](assets/screenshots/2026-10-21/simple-creation-validation/design-findings.json) are empty. That evidence covers the rendered browser fixtures, not native CLI integration or Minecraft gameplay acceptance. This extension introduced no shipping raster asset.
-
-The later DeepSeek Harness extension adds a fifth provider with a locally bundled blue whale SVG. The selected provider, list options, conversations, and assistant messages use the same icon component. Its model-setup action reads “配置指南” / “Setup guide”. The five-provider [light menu](assets/screenshots/2026-10-21/deepseek-harness-validation/menu-light.png), [dark menu](assets/screenshots/2026-10-21/deepseek-harness-validation/menu-dark.png), and [compact window](assets/screenshots/2026-10-21/deepseek-harness-validation/compact-menu.png) were visually checked; six interaction scenarios passed, including keyboard selection and full option visibility at 500×600. See the [scoped validation record](docs/testing/deepseek-harness-2026-10-21.md) for native CLI results.
-
-The review fixes preserve that composition. Clarifying questions now use native radios or checkboxes, optional custom text, option descriptions, and one explicit submit action; permission buttons keep their immediate allow/deny behavior. Removed-content drafts use the existing connection-note styling with a specific discard action. Completed creation forms offer a new-project action while unfinished forms retain their input. Shared close protection includes chat text, while playtest/export checks distinguish unsent chat from workspace edits. The [light question form](assets/screenshots/2026-10-21/simple-creation-fixes/question-light.png), [compact dark form](assets/screenshots/2026-10-21/simple-creation-fixes/question-dark-compact.png), and [draft recovery](assets/screenshots/2026-10-21/simple-creation-fixes/orphan-draft-recovery.png) were visually checked. The [fix verification](docs/testing/simple-creation-fixes-2026-10-21.md) records the focused regressions and native CLI connection results; no new raster asset ships.
-
-The screenshots and detector result above are preserved in the [2026-10-21 archive](assets/screenshots/README.md#historical-simple-creation--2026-10-21). Their bytes were copied unchanged from local validation output on 2026-10-24; the original validation dates and scope still apply.
+- Desk and sheet are the only two levels; panels inside a sheet use its soft well, not another card.
+- Pen blue is the single action colour; state colours appear only where they carry meaning.
+- Every element type has one identity plate (icon on an index-tab tint) used in every list, card and editor header.
+- Motion is short and functional: press feedback, sliding segmented thumbs, sheets rising into place, the pen underline drawing in.
+- Healthy states are quiet; problems keep their words.
 
 ## Colors
 
-The palette pairs a copper accent with neutral surfaces and restrained semantic status colors.
+A restrained notebook palette: cool neutrals for desk and paper, one pen-blue accent, and four muted index-tab tints that identify element families.
 
 ### Primary
+- **Pen Blue** (light #2747a8 / dark #8ea6ff as text, #4a68d8 as fill): primary buttons, the send button, focus rings, selected tab icons, links, the selected segment's icon and the pen underline. Never decoration.
 
-The `accent-copper` family supplies text, selection, and focus emphasis. The separate `accent-copper-fill` family pairs with `text-on-accent` on simple-mode primary actions, the active mode switch, and dialog primary actions. The dim accent marks selected work items and user conversation bubbles.
-
-**The Variant Rule.** Keep the implemented action hierarchy: simple-mode primary actions and dialog primary actions use copper; the general professional-workbench primary uses `text-main` over `bg-surface`. The title-bar primary has its own transparent treatment.
+### Secondary
+- **Index-tab tints** (blue, sand, sage, rose): element-type plates and badges. Blue is blocks and world, sand is items and equipment, sage is logic and data, rose is recipes, progression and entities. A tint always pairs with its own ink.
 
 ### Neutral
+- **Desk** (light #eceef1 / dark #14171d): window ground behind the title bar, rails and status line.
+- **Sheet** (light #ffffff / dark #1d2129): every work surface, dialog, menu and selected rail row.
+- **Sheet well** (light #f6f7f9 / dark #232833): canvases, editor wells and grouped panels inside a sheet.
+- **Ink** (light #1c2230), **Ink muted** (#4c5566), **Ink sub** (#667082): main, secondary and supporting text; each passes 4.5:1 on its surface.
+- **Dot** (light #d6dae1): the 16px composing grid.
 
-Use `bg-base` for the window canvas, `bg-surface` for main content, `bg-panel` for supporting areas, and `bg-input` for editable fields. Navigation and title-bar surfaces use their named tokens. Borders distinguish structural separation, interactive edges, and focus through `border-subtle`, `border-active`, and `border-focus`. Main, muted, and supplementary copy use the three text tokens.
+### Named Rules
+**The One Pen Rule.** Pen blue appears on at most one filled control per region. Everything else is a white sheet button or a ghost icon.
 
-Green, amber, red, and blue badge pairs carry status meaning. The simple-mode error panel uses the red foreground, border, and background pair. A permission failure remains an error with guidance.
+**The Two Levels Rule.** Desk, then sheet. A third raised level inside a sheet is a soft well, never a bordered card on a card.
 
-### Theme contract
-
-Unprefixed frontmatter color keys copy the default dark `:root` / `[data-theme="dark"]` values; `light-` keys copy the corresponding `[data-theme="light"]` values. Frontmatter component references show the root values. The sidecar snippets use the original CSS custom properties so the active theme supplies the correct pair.
-
-[useTheme.ts](ui-shell/src/hooks/useTheme.ts) resolves the saved `system`, `light`, or `dark` preference, follows the system color-scheme query when appropriate, and applies the resolved theme to the document. Preserve the token pairs together. No additional palette or synthesized tonal scale is established here.
+**The Brand Mark Rule.** Copper (#c8643a) belongs to the logo and the workspace glyph only; it is not an interface accent.
 
 ## Typography
 
-All interface text uses the existing sans-serif stack recorded in the frontmatter. Tool details and code use the existing mono stack. Fonts are fallbacks in source; this document does not assert that a particular optional font is installed.
+**Display Font:** Segoe UI Variable Text (with Segoe UI, PingFang SC and Microsoft YaHei UI)
+**Body Font:** the same system stack
+**Label/Mono Font:** Cascadia Code (with JetBrains Mono, Consolas) for identifiers, paths and logs only
 
-| Role | Observed use |
-| --- | --- |
-| Workbench headline | Workspace overview heading; the final workbench rule overrides the earlier fluid size. |
-| Creation headline | Current work name; reduces to 18px at the 990px breakpoint. |
-| Creation title | Conversation heading; reduces to 15px at the 650px breakpoint. |
-| Preview title | Asset or preview heading. |
-| Body | Base desktop interface and controls. |
-| Conversation body | Messages with preserved line breaks and wrapping; assistant content is bounded at 74ch, user bubbles at the smaller of 90% and 65ch. |
-| Label and badge | Compact fields, navigation metadata, and status. Secondary metadata commonly uses 11px; composer footnotes use 10px. |
-| Mono detail | Expandable tool output; the professional task log uses 12px mono text. |
+**Character:** One sturdy system sans carries every role through size and weight; Chinese and English set together without a second display face.
 
-The hierarchy is role-specific, with weights commonly 500 or 600 and the creation headline at 650. There is no declared modular type ratio or separate display face. Keep the established line lengths and wrapping for task text.
+### Hierarchy
+- **Page headline** (700, 28px, 1.3, -0.02em): the overview's workspace name.
+- **View headline** (700, 21–22px, 1.25): simple-creation title, view titles, element list title.
+- **Title** (650, 15–16px, 1.4): section headings, preview heading, dialog titles (17px).
+- **Body** (400, 13px, 1.55): controls and interface text. Conversation text is 14px at 1.75 with a 74ch measure.
+- **Label** (600, 12px): list group labels and field labels. Badges are 11px at 600.
+
+### Named Rules
+**The Quiet Label Rule.** No eyebrows or kickers above headings; a heading carries itself.
 
 ## Layout
 
-The shell fills the window and delegates scrolling to its content regions. The shared title bar is 48px high; the desktop status footer is 32px high. The general workbench uses its existing navigation rail and page-gutter token. The simple surface has its own compact rail and does not inherit the professional rail width.
+The shell is a 48px desk title bar, a desk rail (232px professional, 236px simple) and a 34px desk status line; the work area is one sheet inset 12px from the right edge. In professional mode the sheet's top strip (sheet well) holds folder tabs, workspace actions and the Agent toggle; the Agent panel is a second sheet beside it. Simple creation puts the title and the playtest/export actions on the desk, with the conversation sheet and preview sheet below at a 12px gap (`1fr` / `34%`).
 
-### Simple creation dimensions
-
-| Width | Implemented layout |
-| --- | --- |
-| Above 1250px | Outer grid: 210px rail plus remaining content. Conversation/preview grid: `minmax(280px, 1fr) minmax(270px, 35%)`. Header and conversation horizontal padding: 26px; preview: 22px. |
-| At or below 1250px | Rail: 180px. Conversation/preview grid: `minmax(280px, 1fr) minmax(250px, 34%)`. Main horizontal padding: 20px; preview: 16px. The visible provider label is hidden while the label association remains. |
-| At or below 990px | Rail: 162px. Conversation and preview stack in a scrolling content area. Conversation is 510px minimum and 760px maximum; preview is at least 300px. Preview/back controls provide direct navigation. Header actions wrap. |
-| At or below 650px | Rail becomes a 42px disclosure bar. Its expanded content overlays below it, with a two-column work list and four-column utilities. Main content scrolls vertically. The conversation fills the content viewport; preview follows below. Conversation padding is 18px. |
-
-The desktop composer area caps at 62% of its chat region and scrolls internally when approvals or guidance grow. At the smallest breakpoint its cap is 70%. The textarea is 76–220px high normally; at or below 650px it starts at 62px and caps at 110px. The desktop header is at least 82px high; the smallest layout uses 72px.
-
-Messages, conversations, and previews use bounded scrolling and `min-width: 0` / `min-height: 0` to shrink inside the shell. Long task text wraps; work and navigation labels can ellipsize. Common control gaps are 8px, message/avatar separation is 11px, and settings fields are separated by 15px. These are observed component values, not a new universal spacing scale.
-
-### Shared chrome and professional layout
-
-The title-bar grid changes at 1100px and 760px. At 760px its columns are `24px minmax(0, 1fr) auto`; command text and shortcut decoration disappear. Existing professional navigation and inspector rules remain in their own stylesheets. At 760px the page-gutter override is 16px and the professional rail uses 56px; the inspector occupies the available content instead of keeping the adjacent main list visible. Do not apply the simple-mode breakpoints to professional screens.
+Breakpoints follow the incumbent contract: 1250px and 990px narrow the simple rail and stack the preview under the conversation; 650px collapses the simple rail into a disclosure; 760px shrinks the professional rail to icons and the title bar to brand / switch / tools; 420px truncates the mode switch labels and hides the search and frame toggles. Common gaps are 8px between controls, 12px between sheets and 34px between overview sections.
 
 ## Elevation & Depth
 
-Neutral surface changes and thin dividers establish most depth. The simple conversation and preview panes have no floating-card shadow. The composer uses `shadow-sm`; the expanded compact navigation uses `shadow-md`; modal cards and the command palette use `shadow-lg`. Exact dark/light shadow values are in the sidecar, extracted from the source tokens.
+Depth is two-level and soft. Sheets sit on the desk with a 1px edge and a long, low-opacity shadow; menus and dialogs lift further. Shadows always carry offset and blur; there are no zero-blur block shadows.
 
-Dialogs use the theme overlay, a 4px backdrop blur, and a copper top edge. Focus is visible through the copper outline/border and the existing input focus shadow. The simple-mode focus outline is 2px with a 3px offset. Shared buttons retain their more-specific global 2px outline with a 1px offset; the workbench's generic focus rule supplies a 3px offset where not overridden.
+### Shadow Vocabulary
+- **Sheet** (`0 0 0 1px var(--sheet-edge), 0 1px 2px rgba(20,30,50,.05), 0 18px 40px -26px rgba(20,30,50,.34)`): work sheets, the selected rail row's lift.
+- **Press** (`0 0 0 1px var(--sheet-edge), 0 1px 1px rgba(20,30,50,.06)`): segmented thumbs and selected rows.
+- **Menu** (`0 10px 26px -12px rgba(20,30,50,.3), 0 1px 2px rgba(20,30,50,.06)`): popovers, notices, hovered cards.
+- **Dialog** (`0 30px 64px -24px rgba(20,30,50,.4), 0 2px 6px rgba(20,30,50,.07)`): dialogs and the command palette, over a 6px blurred overlay.
 
-Motion supports disclosure and state. Shared button color/border/shadow transitions last 160ms; simple buttons use 140ms background/color transitions. Navigation disclosure uses the source reveal/dismiss durations and easing. The simple activity spinner rotates in 1s. Reduced-motion rules disable the corresponding disclosure, dialog/menu animations, simple button transitions, and spinner animation. Exact motion values and contexts are recorded in the sidecar.
+### Named Rules
+**The Rest Is Flat Rule.** Cards rest on a 1px edge; the menu shadow appears only on hover or when something floats.
 
 ## Shapes
 
-The shared radius vocabulary is recorded in the frontmatter: small controls use `sm`, status pills use `full`, and supporting simple-mode panels commonly use `md`. The composer uses `lg`. Structural panes stay square and divide with 1px lines.
-
-Preserve the existing component exceptions: dialog cards and dialog action buttons have 2px corners; the mode-switch container has 7px corners with 4px segments; send/stop controls have 9px corners. User message bubbles use `12px 12px 3px 12px`. These shapes describe the current components; they do not add new global radius tokens.
+Corners are restrained and nested: controls 6px, cards and plates 8px, sheets 12px, dialogs 14px. Inner segments subtract their padding (a 3px-padded 8px track holds a 5px thumb). Pills (`9999px`) are kept for the agent status chip and dots. Folder tabs round only their top corners (8px). Callouts are tinted fields with no coloured side stripe.
 
 ## Components
 
 ### Buttons
+- **Shape:** gently rounded (6px), 34px tall.
+- **Primary:** pen fill with white text, a faint inner highlight and a pen-tinted soft shadow; hover deepens the fill.
+- **Secondary:** white sheet with a 1px edge; hover raises the edge to the active border.
+- **Ghost icon:** 32px, transparent until hover; editor back buttons nudge their arrow 2px left on hover.
+- **Press:** every control scales to 0.965 for 110ms; large rows and cards scale to 0.985.
 
-Simple primary actions have a 38px minimum height, 600 weight, and the frontmatter padding/radius; hover uses the copper fill hover token. Simple secondary actions have an active border, surface fill, and 500 weight. Simple buttons become 48% opaque when disabled.
+### Chips and badges
+- **Style:** 11px, 600 weight, 4px corners, tint background with its own ink, no border.
+- **State:** "supported" collapses to a check mark; exceptions (preview, unavailable) keep their words.
 
-General workbench primary, secondary, and danger controls have a 36px minimum height. Their base padding and radius appear in the frontmatter. Primary hover uses muted text as the fill; secondary hover uses card-hover fill and an active border; danger uses the existing red treatment. Dialog actions override to a 38px minimum height and their own shape. Use the source disabled rules rather than assuming all button families share one state.
+### Cards / Containers
+- **Corner Style:** 8px for cards, 12px for sheets.
+- **Background:** sheet on a sheet-well field, or sheet well inside a sheet.
+- **Shadow Strategy:** edge at rest, menu shadow and a 2px lift on hover.
+- **Internal Padding:** 16px cards, 18–24px sheets.
 
-### Inputs and composer
+### Inputs / Fields
+- **Style:** 1px border, input background, 6px corners, 34px tall; the border darkens on hover.
+- **Focus:** pen border plus a 3px pen-tinted ring. Fields embedded in a composite (search boxes, the composer) let the container take the ring.
+- **Error / Disabled:** red ink for invalid help text, which appears only when the value is invalid; disabled fields at 60% opacity.
 
-Shared fields use a subtle 1px border, input background, 32px minimum height, and the frontmatter padding. Focus changes the border and adds `0 0 0 2px var(--accent-copper-dim)`. Placeholder color uses the supplementary text token. Disabled fields use 60% opacity and the hover background.
+### Navigation
+- **Rail:** rows 36px with 6px corners; hover fills with the active tint; the selected row becomes a lifted white sheet with a pen-blue icon and a pen underline drawn under its label.
+- **Mode switch:** a two-segment track with a white thumb that slides 300ms between "简洁创作" and "专业工作台".
+- **Tabs:** folder tabs on the sheet's top strip; the active tab is white and joins the sheet below; close buttons appear on hover.
 
-The simple composer is an input surface with an active border and small shadow; `:focus-within` changes its border to the focus token. Its inner textarea keeps the source sizing, 14px text, 1.6 line-height, and native resize behavior. Backend choice, sign-in, and send/stop are inside the composer. Enter sends, Shift+Enter adds a line, and composition events prevent premature submission during IME entry.
+### Element identity plate
+The signature component: a 30–38px square with 8px corners showing the element type's icon on its index-tab tint. It appears in the simple rail, overview, element cards, the create dialog and every specialist editor header.
 
-### Navigation and mode switch
-
-Professional navigation uses compact neutral rows: selected rows have active neutral fill and main text, without the older leading copper marker. Simple work selection uses dim copper and a subtle border; selected conversations use active neutral fill.
-
-The title-bar simple/professional switch uses pressed button semantics, copper fill for the active segment, and hover fill for inactive segments. The smallest layout keeps both labels. Compact navigation exposes its expanded state, closes on Escape, and returns focus to its toggle.
-
-### Badges, containers, and dialogs
-
-Pill badges use 11px text, 500 weight, 1.2 line-height, 2px by 8px padding, and their status pair. Reuse the neutral badge for non-semantic metadata.
-
-A simple approval card uses a focus-colored border, surface fill, 14px padding, and the medium radius. Choices wrap; a free-text request uses an associated input label. Error cards use the red pair and supplementary actions. The existing Dialog component supplies labeled modal semantics through the shared dialog accessibility hook; reuse it for modal work.
-
-### Conversation and work preview
-
-User messages use dim-copper bubbles. Assistant messages use a compact copper avatar and plain content; tool output is disclosed under an expandable summary with bounded mono text. The log keeps `aria-live="off"` and follows the bottom only while the reader remains within the source's 72px threshold.
-
-The appearance/settings tabs use tab semantics and Left/Right/Home/End keyboard handling. Selected tabs have a 2px copper underline. Preview reuses the existing asset component: real textures render pixelated over its 16px checkerboard transparency pattern, with real asset metadata. No asset produces an actionable empty state. The recovery-point entry stays at the bottom of the preview column.
-
-Source and interaction details: [SimpleCreationView.tsx](ui-shell/src/components/SimpleCreationView.tsx), [assetPreview.css](ui-shell/src/components/assetPreview.css), [Dialog.tsx](ui-shell/src/components/Dialog.tsx), and [motion.css](ui-shell/src/styles/motion.css).
+### Composer
+A sheet with a 1px active border and 16px soft shadow at the foot of the dot-grid conversation; focus swaps to the pen border and ring. The provider choice sits inside it; the send button is a pen-filled 36px square that turns neutral when disabled.
 
 ## Do's and Don'ts
 
 ### Do:
-
-- **Do** reuse the theme tokens and preserve the light/dark/system preference.
-- **Do** preserve the simple, professional, title-bar, and dialog button variants documented here.
-- **Do** keep focus visible, associate field labels, and retain Chinese IME composition handling.
-- **Do** show current state, actionable errors, actual assets, and the existing recovery-point entry.
-- **Do** let messages wrap and keep the reader's scroll position when they leave the bottom.
+- **Do** keep chrome on the desk and work on sheets; inside a sheet, group with the soft well.
+- **Do** use the element identity plate wherever an element is listed or edited.
+- **Do** keep healthy states silent: a green dot, a check mark or a number, with the full sentence available to assistive technology.
+- **Do** run motion through the shared tokens (`--ease-out` cubic-bezier(0.16,1,0.3,1); 110 / 160 / 220 / 320ms) and remove spatial entrances under reduced motion.
 
 ### Don't:
-
-- **Don't** replace the established copper, neutral panels, typography, or icon system during a surface extension.
-- **Don't** present generated game scenes, fixture messages, or sample success as actual workspace results.
-- **Don't** remove keyboard navigation or force every running output update to focus or scroll the conversation.
-- **Don't** invent a global spacing scale, tonal ramp, or display typeface from isolated component values.
+- **Don't** put a yellow highlighter or any filled marker behind text; selection is the pen underline.
+- **Don't** add big-number metric tiles; counts read inline as label and number.
+- **Don't** use coloured side stripes, zero-blur offset shadows, gradient text or glass as decoration.
+- **Don't** reintroduce copper as an interface accent or a brown-black dark theme.
+- **Don't** repeat a name the surrounding chrome already shows (a breadcrumb under its own tab, a view title under the desk title).

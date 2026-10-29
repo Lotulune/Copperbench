@@ -9,8 +9,6 @@ import {
   AlertTriangle,
   Info,
   Check,
-  Box,
-  Compass,
   Link as LinkIcon
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -32,6 +30,7 @@ import {
 import { collectEditorFieldChanges, hasEditorInputDraft, normalizeEditorNumericDrafts } from '../hooks/editorFieldChanges';
 import { confirmEditorRead } from '../bridge/editorRecovery';
 import { DiagnosticDetails } from './DiagnosticDetails';
+import { ElementPlate } from './ElementPlate';
 
 interface ElementInspectorProps {
   element: ModElementSummary;
@@ -902,20 +901,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: 'var(--radius-sm)',
-              background: element.type === 'block' ? 'var(--accent-copper-dim)' : 'var(--badge-blue-bg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: element.type === 'block' ? 'var(--accent-copper)' : 'var(--badge-blue)'
-            }}
-          >
-            {element.type === 'block' ? <Box size={16} /> : <Compass size={16} />}
-          </div>
+          <ElementPlate type={element.type} size={17} />
           <div>
             <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>
               {element.displayName}</div>

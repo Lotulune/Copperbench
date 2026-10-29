@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { WorkbenchProvider, useWorkbench } from './context/WorkbenchContext';
 import { FramelessTitlebar } from './components/FramelessTitlebar';
 import { NavRail } from './components/NavRail';
@@ -36,8 +36,9 @@ import { AgentProvider } from './context/AgentContext';
 import { ProfessionalAgentPanel, AgentPanelToggle } from './components/ProfessionalAgentPanel';
 import './styles/global.css';
 import './styles/workbench.css';
-import './styles/motion.css';
 import './components/simpleCreation.css';
+import './styles/notebook.css';
+import './styles/motion.css';
 
 const ShellContent: React.FC = () => {
   const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();
@@ -45,17 +46,7 @@ const ShellContent: React.FC = () => {
   const simple = mode === 'simple';
   const [settingsOpened, setSettingsOpened] = useState(activeView === 'settings');
   const [newWorkspaceOpened, setNewWorkspaceOpened] = useState(activeView === 'new-workspace');
-  const contentRef = useRef<HTMLDivElement>(null);
-  const previousView = useRef(activeView);
-  useLayoutEffect(() => {
-    if (previousView.current === activeView) return;
-    previousView.current = activeView;
-    if (!contentRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    // Keep persistent editors mounted; only acknowledge the newly selected surface.
-    const transition = contentRef.current.animate([{ opacity: 0.55 }, { opacity: 1 }],
-      { duration: 150, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-    return () => transition.cancel();
-  }, [activeView]);
+  // View arrival motion lives in CSS: a view root animates when it mounts or stops being hidden.
   useEffect(() => { if (activeView === 'settings') setSettingsOpened(true); }, [activeView]);
   useEffect(() => { if (activeView === 'new-workspace') setNewWorkspaceOpened(true); }, [activeView]);
 
@@ -76,7 +67,7 @@ const ShellContent: React.FC = () => {
         <main className="app-content-canvas" data-active-view={activeView}>
           {!simple && <div className="professional-navigation"><WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} /><AgentPanelToggle /></div>}
           <SimpleCreationView active={simple}>
-          <div className="workbench-view-content" ref={contentRef}>
+          <div className="workbench-view-content">
           {activeView === 'hub' && <WorkspaceHub />}
           {activeView === 'elements' && <ModElementsWorkbench key={`elements-${state.workbench?.workspace.id}`} />}
           {activeView === 'relations' && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}

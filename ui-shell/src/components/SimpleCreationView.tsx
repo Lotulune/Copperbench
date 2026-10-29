@@ -9,6 +9,7 @@ import { useFirstCreation } from '../onboarding/FirstCreationContext';
 import { assetRecordsFromProjection, type AssetRecord } from '../types/assets';
 import type { EditorField, FieldChange, ModElementEditorProjection } from '../types/contract';
 import { elementShortLabel } from '../i18n/labels';
+import { ElementPlate } from './ElementPlate';
 import { t, uiMessage, uiText, useUiLocale } from '../i18n';
 import { confirmAction } from '../feedback/feedback';
 import { AssetPreview } from './AssetPreview';
@@ -246,6 +247,9 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
           : snapshot?.state === 'running' ? uiText('正在创作…', 'Working…')
             : snapshot?.state === 'failed' ? uiText('本次任务未完成', 'This task did not complete')
               : providerInfo?.installed ? uiText('已检测到', 'CLI detected') : uiText('先连接创作助手', 'Connect a creation assistant');
+  // Idle detection results are already shown by the composer; only active work earns a visible status.
+  const conversationTitle = snapshot?.sessions.find(session => session.id === snapshot.conversationId)?.title || null;
+  const statusVisible =Boolean(agent.loading || snapshot?.detecting || (snapshot?.state && snapshot.state !== 'idle'));
   const permissionHint = permissionDeniedHint(providerInfo, agent.error || snapshot?.error);
   const conversationPermission = snapshot?.settings?.permissionProfile;
 
@@ -256,15 +260,19 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
         <Box size={16} aria-hidden="true" /><span>{uiText('内容与对话', 'Content and conversations')}</span><ChevronDown size={15} aria-hidden="true" />
       </button>
       <div className="creation-sidebar-content" id="creation-sidebar-content" onClick={event => { if ((event.target as HTMLElement).closest('button')) setMobileNavigationOpen(false); }}>
-      <button type="button" className="creation-new-work" data-testid="simple-new-workspace" onClick={() => setActiveView('new-workspace')}><Plus size={18} />{uiText('新建作品', 'New creation')}</button>
-      <button type="button" className="creation-open-work" onClick={openWorkspaceOpen}><FolderOpen size={15} />{uiText('打开作品', 'Open creation')}</button>
-      <div className="creation-sidebar-workspace"><Box size={17} aria-hidden="true" /><span title={workspace?.name}>{workspace?.name ?? uiText('尚未打开作品', 'No creation open')}</span></div>
+      <div className="creation-sidebar-workspace"><span className="creation-workspace-mark" aria-hidden="true"><Box size={18} /></span>
+        <span className="creation-workspace-copy"><strong title={workspace?.name}>{workspace?.name ?? uiText('尚未打开作品', 'No creation open')}</strong>
+          {workspace && <small>{workspace.generator.displayName}</small>}</span></div>
+      <div className="creation-sidebar-actions">
+        <button type="button" className="creation-new-work" data-testid="simple-new-workspace" onClick={() => setActiveView('new-workspace')}><Plus size={16} />{uiText('新建作品', 'New creation')}</button>
+        <button type="button" className="creation-open-work" onClick={openWorkspaceOpen} aria-label={uiText('打开作品', 'Open creation')} title={uiText('打开作品', 'Open creation')}><FolderOpen size={16} /></button>
+      </div>
       <div className="creation-works-heading"><h2>{uiText('作品内容', 'Creation content')}</h2><span>{state.elements.length}</span></div>
       {state.elements.length > 8 && <input className="creation-work-search" type="search" aria-label={uiText('查找作品内容', 'Find creation content')} placeholder={uiText('查找内容…', 'Find content…')} value={workSearch} onChange={event => setWorkSearch(event.target.value)} />}
       <div className="creation-works" role="group" aria-label={uiText('作品内容', 'Creation content')}>
         {works.map(element => <button type="button" key={element.id} className="creation-work" aria-pressed={selected?.id === element.id}
           data-testid={`simple-element-${element.id}`} onClick={() => { setSelectedElementId(element.id); setActiveView('hub'); }}>
-          <Box size={19} aria-hidden="true" /><span><strong>{element.displayName}</strong><small>{elementShortLabel(element.type)}</small></span>
+          <ElementPlate type={element.type} size={16} /><span><strong>{element.displayName}</strong><small>{elementShortLabel(element.type)}</small></span>
         </button>)}
         {!works.length && <p className="creation-sidebar-empty">{state.elements.length ? uiText('没有匹配的内容', 'No matching content') : uiText('描述想法，开始第一件作品。', 'Describe an idea to start creating.')}</p>}
       </div>
@@ -288,18 +296,20 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
     <div className="creation-content">
       <header className="creation-header" hidden={!active}>
         <div className="creation-heading">{!home && <button type="button" className="creation-back" onClick={() => setActiveView('hub')} aria-label={uiText('返回创作', 'Back to creation')} data-testid="simple-back"><ArrowLeft size={18} /></button>}
-          <div><h1>{home ? workspace?.name ?? uiText('开始创作', 'Start creating') : workbenchNavigation().find(item => item.id === activeView)?.label}</h1>
-            {home && workspace && <span className="creation-version">{workspace.generator.displayName}</span>}</div>
+          {/* The sidebar already names the work; the heading names what is open in it. */}
+          <div><h1>{home ? conversationTitle ?? workspace?.name ?? uiText('开始创作', 'Start creating') : workbenchNavigation().find(item => item.id === activeView)?.label}</h1>
+            {home && conversationTitle && <span className="creation-version">{providerNames[effectiveProvider]}</span>}</div>
         </div>
         <div className="creation-header-actions">
           <button type="button" className="creation-primary" data-testid="simple-playtest" disabled={!workspace || playPending || taskRunning || running || hasParameterDrafts}
             onClick={() => void playtest()}><Play size={16} />{uiText('在游戏中试玩', 'Playtest in game')}</button>
-          <button type="button" className="creation-secondary" data-testid="simple-export" disabled={!workspace || running || taskRunning} onClick={openDelivery}><FileArchive size={16} />{uiText('导出模组', 'Export mod')}</button>
+          <button type="button" className="creation-secondary" data-testid="simple-export" disabled={!workspace || running || taskRunning} onClick={openDelivery}><FileArchive size={16} />{uiText('导出', 'Export')}</button>
         </div>
       </header>
       <div className="creation-home" ref={homeRef} hidden={!active || !home}>
         <section className="creation-chat" aria-label={uiText('创作对话', 'Creation chat')}>
-          <div className="creation-chat-heading"><h2>{uiText('一起把想法做出来', 'Bring your idea to life')}</h2><span className="creation-agent-state" role="status" aria-live="polite">{running && <LoaderCircle size={13} className="creation-spinner" aria-hidden="true" />}{status}</span>
+          <div className="creation-chat-heading"><span className="creation-agent-state" role="status" aria-live="polite" data-visible={statusVisible} data-busy={running}>
+            {running && <LoaderCircle size={13} className="creation-spinner" aria-hidden="true" />}<span className={statusVisible ? undefined : 'sr-only'}>{status}</span></span>
             <button type="button" className="creation-compact-preview" data-testid="simple-show-preview" onClick={showCompactPreview}><Image size={14} aria-hidden="true" />{uiText('预览与设置', 'Preview and settings')}</button>
           </div>
           {(playError || recentTask) && <div className={`creation-task-strip${playError || recentTask?.state === 'failed' ? ' has-error' : ''}`}>
@@ -307,8 +317,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
           </div>}
           <div className="creation-messages" ref={messagesRef} role="log" aria-label={uiText('对话记录', 'Conversation messages')} aria-live="off"
             onScroll={event => { const list = event.currentTarget; following.current = list.scrollHeight - list.scrollTop - list.clientHeight < 72; }}>
-            {!snapshot?.messages.length && <div className="creation-empty-chat"><Box size={30} strokeWidth={1.4} aria-hidden="true" /><h3>{uiText('你想在 Minecraft 里添加什么？', 'What would you add to Minecraft?')}</h3>
-              <p>{uiText('说说它的外观和玩法，创作助手会与你一起完成。', 'Describe how it looks and works, then build it with your creation assistant.')}</p>
+            {!snapshot?.messages.length && <div className="creation-empty-chat"><span className="creation-empty-mark" aria-hidden="true"><Box size={26} strokeWidth={1.6} /></span><h3>{uiText('你想在 Minecraft 里添加什么？', 'What would you add to Minecraft?')}</h3>
               {workspace ? <div className="creation-ideas">{[
                 uiText('做一块会发光的矿石', 'Create a glowing ore'), uiText('做一把有特殊效果的剑', 'Create a sword with a special effect')
               ].map(text => <button type="button" key={text} onClick={() => { changeDraft(text); composerRef.current?.focus(); }}>{text}<ArrowUp size={13} aria-hidden="true" /></button>)}</div>
@@ -322,8 +331,8 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
             {running && snapshot?.state !== 'waiting_approval' && <p className="creation-working"><LoaderCircle size={14} className="creation-spinner" aria-hidden="true" />{status}</p>}
           </div>
           <div className="creation-compose-area">
-            {!agent.available ? <div className="creation-connection-note" role="status" data-testid="simple-agent-unavailable"><strong>{uiText('桌面创作助手尚未连接', 'Desktop assistant is unavailable')}</strong><p>{uiText('在支持创作助手的桌面应用中打开作品，再选择已安装的助手。', 'Open the project in a desktop app with assistant support, then select an installed assistant.')}</p></div>
-              : !agent.loading && !snapshot?.detecting && workspace && !providerInfo?.installed && <div className="creation-connection-note" role="status" data-testid="simple-provider-setup"><strong>{uiText('连接创作助手', 'Connect a creation assistant')}</strong><p>{uiText(`尚未检测到 ${providerNames[effectiveProvider]}。安装并完成配置后，点击重新检测。`, `${providerNames[effectiveProvider]} was not detected. Install and configure it, then check again.`)}</p><div>
+            {!agent.available ? <div className="creation-connection-note is-quiet" role="status" data-testid="simple-agent-unavailable"><p>{uiText('创作助手需在桌面应用中使用', 'The assistant runs in the desktop app')}</p></div>
+              : !agent.loading && !snapshot?.detecting && workspace && !providerInfo?.installed && <div className="creation-connection-note" role="status" data-testid="simple-provider-setup"><strong>{uiText(`未检测到 ${providerNames[effectiveProvider]}`, `${providerNames[effectiveProvider]} not detected`)}</strong><div>
                 <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}><ExternalLink size={14} />{uiText('安装指南', 'Setup guide')}</button>
                 <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'detect' })}><RefreshCw size={14} />{uiText('重新检测', 'Check again')}</button>
               </div></div>}
@@ -341,8 +350,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
             {snapshot?.conversationId && conversationPermission && conversationPermission !== 'workspace' && <div className={`creation-connection-note creation-permission-note${conversationPermission === 'full-access' ? ' is-elevated' : ''}`} role="status" data-testid="simple-permission-notice">
               <strong>{uiText('本对话权限：', 'Conversation permissions: ')}{permissionLabel(conversationPermission)}</strong>
               <p>{conversationPermission === 'read-only' ? uiText('助手只能查看作品，不能修改；需要更多权限的操作会被自动拒绝。', 'The assistant can view but not change your creation; operations that need more access are declined automatically.')
-                : uiText('助手可以读写作品目录以外的文件，仍会按需请求批准。', 'The assistant can read and write files outside the creation folder and still asks for approval when needed.')}
-                {uiText('这是在专业工作台中为本对话选择的。', ' This was chosen for this conversation in the professional workbench.')}</p>
+                : uiText('助手可以读写作品目录以外的文件，仍会按需请求批准。', 'The assistant can read and write files outside the creation folder and still asks for approval when needed.')}</p>
               <div><button type="button" data-testid="simple-permission-reset" disabled={running || Boolean(agent.pending)}
                 onClick={() => void agent.invoke({ operation: 'updateSettings', conversationId: snapshot.conversationId!, settings: { ...snapshot.settings!, permissionProfile: 'workspace' } })}>{uiText('恢复默认权限', 'Restore default permissions')}</button>
                 <button type="button" onClick={() => agent.openPanel()}>{uiText('在专业工作台中查看', 'View in professional workbench')}</button></div>
@@ -353,7 +361,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                 placeholder={uiText('描述你想添加或修改的内容…', 'Describe what you want to add or change…')}
                 onChange={event => changeDraft(event.target.value)} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
                 onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && !event.nativeEvent.isComposing && !composing.current && event.keyCode !== 229) { event.preventDefault(); void send(); } }} />
-              <div className="creation-composer-tools"><div className="creation-provider-choice"><label htmlFor="creation-provider">{uiText('创作助手', 'Assistant')}</label>
+              <div className="creation-composer-tools"><div className="creation-provider-choice"><label className="sr-only" htmlFor="creation-provider">{uiText('创作助手', 'Assistant')}</label>
                 <AgentProviderSelect value={effectiveProvider} providers={snapshot?.providers ?? []} active={active && home} detecting={snapshot?.detecting}
                   disabled={running || Boolean(agent.pending) || agent.loading || !agent.available || !workspaceId}
                   onChange={next => void newConversation(next)} />
@@ -365,11 +373,10 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                   : <button type="submit" className="creation-send" data-testid="simple-send" aria-label={uiText('发送', 'Send')} disabled={!draft.trim() || !workspaceId || !providerInfo?.installed || !agent.available || agent.loading || Boolean(agent.pending) || hasParameterDrafts}><ArrowUp size={21} /></button>}
               </div>
             </form>
-            <p className="creation-composer-footnote">{uiText('Enter 发送 · Shift + Enter 换行', 'Enter to send · Shift + Enter for a new line')}{snapshot?.conversationId && <span>{uiText('切换助手会新建对话', 'Switching assistants starts a new conversation')}</span>}</p>
           </div>
         </section>
         <aside className="creation-preview" ref={previewRef} aria-label={uiText('作品预览', 'Creation preview')}>
-          <header><h2>{selected?.displayName ?? uiText('作品预览', 'Creation preview')}</h2>{selected && <span>{elementShortLabel(selected.type)}</span>}
+          <header><h2>{selected?.displayName ?? uiText('预览', 'Preview')}</h2>{selected && <span>{elementShortLabel(selected.type)}</span>}
             <button type="button" className="creation-compact-back" data-testid="simple-back-to-chat" onClick={showCompactChat}><ArrowLeft size={14} aria-hidden="true" />{uiText('返回对话', 'Back to chat')}</button>
           </header>
           <div className="creation-preview-tabs" role="tablist" aria-label={uiText('预览内容', 'Preview content')}
@@ -384,11 +391,11 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                 <button type="button" aria-pressed={appearanceSource === 'asset'} onClick={() => setAppearanceSource('asset')}>{uiText('纹理与模型', 'Textures and models')}</button>
               </div>}
               {previewElement && appearanceSource === 'element' && workspaceId ? active && home && previewTab === 'appearance' && <ElementVisualPreview workspaceId={workspaceId} element={previewElement} changes={changes} /> : <>
-              <label className="creation-asset-label" htmlFor="creation-asset">{uiText('工作区纹理与模型', 'Workspace textures and models')}</label>
+              <label className="sr-only" htmlFor="creation-asset">{uiText('工作区纹理与模型', 'Workspace textures and models')}</label>
               <select id="creation-asset" value={previewAsset?.id ?? ''} disabled={assetsLoading || !visibleAssets.length} onChange={event => setAssetId(event.target.value)}><option value="">{uiText('选择要查看的资产', 'Choose an asset to view')}</option>{visibleAssets.map(asset => <option key={asset.id} value={asset.id}>{asset.name} · {asset.format}</option>)}</select>
               {assetsLoading && <p className="creation-panel-note" role="status">{uiText('正在读取素材…', 'Loading assets…')}</p>}
               {assetsError && <div className="creation-panel-error" role="alert"><p>{assetsError}</p><button type="button" onClick={() => setReloadAssets(value => value + 1)}>{uiText('重试', 'Retry')}</button></div>}
-              {previewAsset ? <AssetPreview workspaceId={workspaceId} asset={previewAsset} /> : !assetsLoading && <div className="creation-preview-empty"><Image size={35} strokeWidth={1.25} aria-hidden="true" /><p>{visibleAssets.length ? uiText('选择资产，查看实际纹理。', 'Choose an asset to see its texture.') : uiText('添加纹理后，在这里查看外观。', 'Add a texture to preview its appearance here.')}</p><button type="button" onClick={() => setActiveView('assets')}>{uiText('打开素材', 'Open assets')}</button></div>}
+              {previewAsset ? <AssetPreview workspaceId={workspaceId} asset={previewAsset} /> : !assetsLoading && <div className="creation-preview-empty"><Image size={30} strokeWidth={1.4} aria-hidden="true" /><p>{visibleAssets.length ? uiText('选一个纹理查看', 'Pick a texture to view') : uiText('还没有纹理', 'No textures yet')}</p><button type="button" onClick={() => setActiveView('assets')}>{uiText('打开素材', 'Open assets')}</button></div>}
               </>}
             </section>
             <section id="creation-settings" role="tabpanel" aria-labelledby="creation-settings-tab" hidden={previewTab !== 'settings'}>
@@ -410,7 +417,6 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                     </form>}
             </section>
           </div>
-          <button type="button" className="creation-recovery-link" onClick={() => setActiveView('history')}><History size={17} />{uiText('查看恢复点', 'View recovery points')}</button>
         </aside>
       </div>
       <div className="creation-existing-view" hidden={active && home}>{children}</div>

@@ -3,7 +3,6 @@ import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ArrowLeft,
-  Gift,
   Save,
   Check,
   X,
@@ -23,6 +22,8 @@ import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadTok
   specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
 import { EditorRecoveryNotice } from './EditorRecoveryNotice';
 import { confirmEditorRead } from '../bridge/editorRecovery';
+import { ElementPlate } from './ElementPlate';
+import { elementVisual } from './elementVisual';
 
 interface LootTableWorkbenchProps {
   element: ModElementSummary;
@@ -483,6 +484,7 @@ const LootEditor: React.FC<LootTableWorkbenchProps & { sessionKey: string }> = (
     >
       {/* Top Header */}
       <header
+        className="editor-header"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -498,37 +500,23 @@ const LootEditor: React.FC<LootTableWorkbenchProps & { sessionKey: string }> = (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             type="button"
-            className="btn-secondary"
+            className="btn-secondary editor-back"
             onClick={onClose}
             aria-label={tr("返回元素列表")}
+            title={tr("返回元素列表")}
             data-testid="loottable-back-btn"
-            style={{ padding: '5px 10px', fontSize: '12px' }}
           >
-            <ArrowLeft size={14} />
-            <span>{tr("返回")}</span>
+            <ArrowLeft size={16} />
           </button>
 
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--accent-copper-dim)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent-copper)'
-            }}
-          >
-            <Gift size={18} />
-          </div>
+          <ElementPlate type="loottable" />
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {element.displayName}
               </span>
-              <span className="badge badge-copper">{tr("战利品表")}</span>
+              <span className={`badge tone-${elementVisual('loottable').tone}`}>{tr("战利品表")}</span>
               <span className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}>
                 {valueLabel(element.state)}
               </span>

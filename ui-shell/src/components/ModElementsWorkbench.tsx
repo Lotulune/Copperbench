@@ -4,16 +4,10 @@ import React, { useMemo, useEffect } from 'react';
 import { useElementListSession, type SortOption } from '../hooks/elementListSessions';
 import {
   Box,
-  Compass,
-  Scroll,
-  Terminal,
   Search,
   LayoutGrid,
   List as ListIcon,
   Plus,
-  FileCode2,
-  Gift,
-  Trophy,
   ChevronLeft,
   ChevronRight,
   X
@@ -21,6 +15,7 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { ElementInspector } from './ElementInspector';
+import { ElementPlate } from './ElementPlate';
 import { t, uiText } from '../i18n';
 
 const ProcedureWorkbench = React.lazy(() => import('./ProcedureWorkbench').then((module) => ({
@@ -112,26 +107,6 @@ export const ModElementsWorkbench: React.FC = () => {
     return filteredAndSortedElements.slice(start, start + pageSize);
   }, [filteredAndSortedElements, currentPage, pageSize]);
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'block':
-        return <Box size={18} />;
-      case 'item':
-        return <Compass size={18} />;
-      case 'recipe':
-        return <Scroll size={18} />;
-      case 'procedure':
-        return <Terminal size={18} />;
-      case 'function':
-        return <FileCode2 size={18} />;
-      case 'loottable':
-        return <Gift size={18} />;
-      case 'achievement':
-        return <Trophy size={18} />;
-      default:
-        return <Box size={18} />;
-    }
-  };
 
   // Dedicated full-screen workbenches for complex data-driven elements
   if (selectedElement?.type === 'procedure') {
@@ -275,68 +250,11 @@ export const ModElementsWorkbench: React.FC = () => {
               {paginatedElements.map((elem) => {
                 const isSelected = selectedElementId === elem.id;
                 return (
-                  <button
-                    type="button"
-                    key={elem.id}
-                    className="element-card"
-                    data-element-id={elem.id}
-                    onClick={() => setSelectedElementId(elem.id)}
-                    aria-pressed={isSelected}
-                    style={{
-                      background: isSelected ? 'var(--bg-panel)' : 'var(--bg-surface)',
-                      border: isSelected
-                        ? '1px solid var(--accent-copper)'
-                        : '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '16px',
-                      cursor: 'pointer',
-                      width: '100%',
-                      textAlign: 'left',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px',
-                      boxShadow: isSelected ? '0 0 0 2px var(--accent-copper-dim)' : 'none',
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.borderColor = 'var(--border-focus)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    }}
-                  >
-                    {/* Top Row */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                      <div
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: 'var(--radius-sm)',
-                          background:
-                            elem.type === 'block'
-                              ? 'var(--accent-copper-dim)'
-                              : elem.type === 'function'
-                              ? 'var(--badge-blue-bg)'
-                              : elem.type === 'achievement'
-                              ? 'var(--badge-amber-bg)'
-                              : 'var(--bg-panel)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color:
-                            elem.type === 'block'
-                              ? 'var(--accent-copper)'
-                              : elem.type === 'function'
-                              ? 'var(--badge-blue)'
-                              : elem.type === 'achievement'
-                              ? 'var(--badge-amber)'
-                              : 'var(--text-main)'
-                        }}
-                      >
-                        {getTypeIcon(elem.type)}
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button type="button" key={elem.id} className="element-card" data-element-id={elem.id}
+                    onClick={() => setSelectedElementId(elem.id)} aria-pressed={isSelected}>
+                    <div className="element-card-top">
+                      <ElementPlate type={elem.type} size={18} className="element-plate-lg" />
+                      <div className="element-card-badges">
                         {elem.firstParty === false && (
                           <span className="badge badge-amber" data-testid="element-outside-slice">{tr("暂不支持编辑")}</span>
                         )}
@@ -345,32 +263,8 @@ export const ModElementsWorkbench: React.FC = () => {
                         </span>
                       </div>
                     </div>
-
-                    {/* Content */}
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
-                        {elem.displayName}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-sub)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
-                        {elem.name}
-                      </div>
-                    </div>
-
-                    {/* Bottom Meta */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        borderTop: '1px solid var(--border-subtle)',
-                        paddingTop: '8px',
-                        fontSize: '12px',
-                        color: 'var(--text-sub)'
-                      }}
-                    >
-                      <span>{valueLabel(elem.ownership)}</span>
-                      <span className="badge badge-copper">{elementShortLabel(elem.type)}</span>
-                    </div>
+                    <div className="element-card-copy"><strong>{elem.displayName}</strong><code>{elem.name}</code></div>
+                    <div className="element-card-meta"><span>{elementShortLabel(elem.type)}</span><span>{valueLabel(elem.ownership)}</span></div>
                   </button>
                 );
               })}

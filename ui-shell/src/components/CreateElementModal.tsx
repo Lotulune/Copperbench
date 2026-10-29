@@ -2,12 +2,13 @@ import { tr, uiText } from '../i18n/locale';
 import { renderUiMessage, uiMessage, t, type UiMessage } from '../i18n';
 import { elementLabel, elementShortLabel } from '../i18n/labels';
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy, Search } from 'lucide-react';
+import { X, Plus, Search } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ALL_MOD_ELEMENT_TYPES, type ModElementType } from '../types/contract';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { COMMON_ELEMENT_TYPES, elementTypeDescription } from '../content/elementTypeHelp';
 import { showNotice } from '../feedback/feedback';
+import { elementVisual } from './elementVisual';
 
 const recentTypes = new Map<string, ModElementType[]>();
 
@@ -40,7 +41,6 @@ export const CreateElementModal: React.FC = () => {
   const capability = state.workbench?.capabilities.find(item => item.id === 'mod_elements.create');
   const unavailable = !state.workbench || capability?.availability === 'unavailable';
   const unavailableReason = capability?.message ? t(capability.message) : uiText('请先打开可编辑的工作区。', 'Open an editable workspace first.');
-  const typeIcons: Record<string, typeof Box> = { block: Box, item: Compass, recipe: Scroll, procedure: Terminal, function: FileCode2, loottable: Gift, achievement: Trophy };
   if (!isCreateModalOpen) return null;
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -109,7 +109,7 @@ export const CreateElementModal: React.FC = () => {
               onChange={event => setName(event.target.value)} aria-invalid={nameInvalid}
               aria-describedby={error ? 'create-element-error create-element-hint' : 'create-element-hint'}
               autoComplete="off" spellCheck={false} autoFocus data-testid="create-element-name-input" />
-            <p id="create-element-hint">{uiText('用于文件与资源引用。小写字母开头，可用数字和下划线，最多 64 个字符；显示名称可在创建后编辑。', 'Used in files and resource references. Start with a lowercase letter; use letters, digits or underscores, up to 64 characters. Edit the display name after creation.')}</p>
+            <p id="create-element-hint">{uiText('小写字母开头，可含数字和下划线', 'Start with a lowercase letter; letters, digits and underscores')}</p>
           </div>
           <div className="create-catalog-toolbar">
             <label><Search size={14} aria-hidden="true" /><span className="sr-only">{uiText('搜索元素类型', 'Search element types')}</span>
@@ -119,12 +119,12 @@ export const CreateElementModal: React.FC = () => {
               <option value="all">{uiText('全部类型', 'All types')}</option><option value="common">{uiText('常用类型', 'Common types')}</option><option value="recent">{uiText('最近使用', 'Recently used')}</option>
             </select>
           </div>
-          <p className="create-type-selection" role="status">{uiText('已选：', 'Selected: ')}{elementLabel(elementType)} · {state.workbench?.workspace.generator.displayName}</p>
+          <p className="create-type-selection sr-only" role="status">{uiText('已选：', 'Selected: ')}{elementLabel(elementType)} · {state.workbench?.workspace.generator.displayName}</p>
           <div className="create-type-grid" role="group" aria-label={tr('元素类型')}>
-            {types.map(type => { const Icon = typeIcons[type] ?? Compass; return <button key={type} type="button" data-testid={`create-element-type-${type}`}
+            {types.map(type => { const { Icon, tone } = elementVisual(type); return <button key={type} type="button" data-testid={`create-element-type-${type}`}
               className="create-type-option" onClick={() => setElementType(type)} aria-label={elementLabel(type)} aria-pressed={elementType === type}
               disabled={unavailable} aria-describedby={unavailable ? 'create-unavailable' : `create-help-${type}`}>
-              <Icon size={16} aria-hidden="true" /><span><strong>{elementShortLabel(type)}</strong><small id={`create-help-${type}`}>{elementTypeDescription(type)}</small></span>
+              <span className={`create-type-plate tone-${tone}`} aria-hidden="true"><Icon size={16} /></span><span><strong>{elementShortLabel(type)}</strong><small id={`create-help-${type}`}>{elementTypeDescription(type)}</small></span>
             </button>; })}
             {!types.length && <p role="status">{uiText('没有匹配的类型。试试其他关键词或全部类型。', 'No matching types. Try another search or all types.')}</p>}
           </div>

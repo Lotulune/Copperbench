@@ -1,127 +1,180 @@
+/*
+ * Notebook: white sheets on a cool desk, a dot grid for composing, pen blue for the
+ * one action that matters and a fine pen underline beneath what is selected.
+ * The legacy `--accent-copper*` names now carry the pen accent so every component
+ * follows the new world; the brand copper survives only as `--brand-copper`.
+ */
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --update-bg: #21384c;
-  --update-text: #b8dcff;
-  --update-border: #3b5e7b;
-  --bg-base: #191a19;
-  --bg-surface: #1c1d1c;
-  --bg-panel: #242624;
-  --bg-card: #1c1d1c;
-  --bg-card-hover: #2b2d2a;
-  --bg-input: #20221f;
-  --bg-hover: rgba(255, 255, 255, 0.04);
-  --bg-active: rgba(255, 255, 255, 0.08);
+  --update-bg: rgba(142, 166, 255, 0.12);
+  --update-text: #b9c8ff;
+  --update-border: rgba(142, 166, 255, 0.28);
 
-  --border-subtle: #30322f;
-  --border-focus: #e2aa7a;
-  --border-active: #6c7268;
+  --bg-base: #14171d;
+  --bg-surface: #1d2129;
+  --bg-panel: #232833;
+  --bg-card: #1d2129;
+  --bg-card-hover: #252a35;
+  --bg-input: #191c23;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.09);
 
-  --text-main: #e6e8e2;
-  --text-muted: #b1b6ac;
-  /* Secondary text remains readable on both canvas and panel surfaces. */
-  --text-sub: #9da596;
-  --scrollbar-thumb: #737b6d;
-  --scrollbar-thumb-hover: #99a18f;
-  --scrollbar-track: #242624;
+  --border-subtle: #2c323d;
+  --border-focus: #8ea6ff;
+  --border-active: #454d5c;
 
-  --accent-copper: #e2aa7a;
-  --accent-copper-hover: #f2bd90;
-  --accent-copper-active: #d49a68;
-  --accent-copper-dim: rgba(226, 170, 122, 0.1);
-  --accent-copper-glow: rgba(226, 170, 122, 0.16);
-  /* Dark text on copper fill; light mode supplies its own contrasting pair. */
-  --accent-copper-fill: #e2aa7a;
-  --accent-copper-fill-hover: #f2bd90;
-  --accent-copper-fill-active: #d49a68;
-  --text-on-accent: #241a12;
+  --text-main: #e7eaf0;
+  --text-muted: #b4bbc8;
+  --text-sub: #9aa2b2;
+  --scrollbar-thumb: #3a414e;
+  --scrollbar-thumb-hover: #545d6d;
+  --scrollbar-track: transparent;
 
-  --badge-green: #8bc5a5;
-  --badge-green-bg: rgba(139, 197, 165, 0.1);
-  --badge-amber: #dfbd73;
-  --badge-amber-bg: rgba(223, 189, 115, 0.1);
-  --badge-red: #f49c96;
-  --badge-red-bg: rgba(244, 156, 150, 0.1);
-  --badge-blue: #94bde8;
-  --badge-blue-bg: rgba(148, 189, 232, 0.1);
+  --accent-copper: #8ea6ff;
+  --accent-copper-hover: #a9bbff;
+  --accent-copper-active: #7a93f0;
+  --accent-copper-dim: rgba(142, 166, 255, 0.14);
+  --accent-copper-glow: rgba(142, 166, 255, 0.26);
+  --accent-copper-fill: #4a68d8;
+  --accent-copper-fill-hover: #5a77e3;
+  --accent-copper-fill-active: #3f5cc8;
+  --text-on-accent: #ffffff;
 
-  --titlebar-bg: #161716;
-  --navrail-bg: #161716;
-  --footer-bg: #161716;
-  --drawer-bg: #1c1d1c;
-  --modal-bg: #1c1d1c;
-  --modal-overlay: rgba(5, 7, 10, 0.75);
+  --badge-green: #86d3a8;
+  --badge-green-bg: rgba(134, 211, 168, 0.12);
+  --badge-amber: #e9c578;
+  --badge-amber-bg: rgba(233, 197, 120, 0.12);
+  --badge-red: #f3a097;
+  --badge-red-bg: rgba(243, 160, 151, 0.12);
+  --badge-blue: #9dbcf4;
+  --badge-blue-bg: rgba(157, 188, 244, 0.12);
 
+  --titlebar-bg: var(--bg-base);
+  --navrail-bg: var(--bg-base);
+  --footer-bg: var(--bg-base);
+  --drawer-bg: var(--bg-surface);
+  --modal-bg: var(--bg-surface);
+  --modal-overlay: rgba(6, 8, 12, 0.56);
+
+  /* Notebook materials */
+  --desk: var(--bg-base);
+  --sheet: var(--bg-surface);
+  --sheet-edge: #2a303a;
+  --sheet-under: #191d24;
+  --dot: #2a303b;
+  --pen-mark: rgba(142, 166, 255, 0.8);
+  --selection: rgba(142, 166, 255, 0.3);
+  --tab-sage: rgba(120, 196, 152, 0.16);
+  --tab-sage-ink: #a3d9b8;
+  --tab-blue: rgba(142, 170, 242, 0.16);
+  --tab-blue-ink: #b0c4f6;
+  --tab-sand: rgba(230, 200, 110, 0.16);
+  --tab-sand-ink: #e8d290;
+  --tab-rose: rgba(240, 150, 130, 0.16);
+  --tab-rose-ink: #f2b6a7;
+  --brand-copper: #d07a4a;
+
+  /* A restrained scale: controls 6, cards 8, sheets 12, dialogs 14. */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 14px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 20px 64px rgba(0, 0, 0, 0.4);
-  --page-gutter: clamp(20px, 2.4vw, 40px);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 10px 28px -12px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 30px 70px -24px rgba(0, 0, 0, 0.72), 0 2px 8px rgba(0, 0, 0, 0.32);
+  --shadow-sheet: 0 0 0 1px var(--sheet-edge), 0 1px 2px rgba(0, 0, 0, 0.3), 0 22px 44px -28px rgba(0, 0, 0, 0.75);
+  --shadow-press: 0 0 0 1px var(--sheet-edge), 0 1px 1px rgba(0, 0, 0, 0.3);
+  --focus-ring: 0 0 0 3px rgba(142, 166, 255, 0.32);
+  --page-gutter: clamp(20px, 2.4vw, 36px);
   --nav-width: 232px;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  --font-sans: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-mono: "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas, monospace;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --dur-press: 110ms;
+  --dur-quick: 160ms;
+  --dur-base: 220ms;
+  --dur-view: 320ms;
 }
 
 [data-theme="light"] {
-  --update-bg: #eaf4ff;
-  --update-text: #245d8f;
-  --update-border: #c2dcf3;
   color-scheme: light;
-  --bg-base: #ffffff;
+  --update-bg: #e8edfa;
+  --update-text: #24408f;
+  --update-border: #c9d4f2;
+
+  --bg-base: #eceef1;
   --bg-surface: #ffffff;
-  --bg-panel: #f4f4f3;
+  --bg-panel: #f6f7f9;
   --bg-card: #ffffff;
-  --bg-card-hover: #f3f4f1;
+  --bg-card-hover: #f7f8fa;
   --bg-input: #ffffff;
-  --bg-hover: rgba(0, 0, 0, 0.04);
-  --bg-active: rgba(0, 0, 0, 0.08);
+  --bg-hover: rgba(28, 34, 48, 0.045);
+  --bg-active: rgba(28, 34, 48, 0.08);
 
-  --border-subtle: #e7e7e4;
-  --border-focus: #985029;
-  --border-active: #89988b;
+  --border-subtle: #e2e5ea;
+  --border-focus: #2747a8;
+  --border-active: #c8cdd6;
 
-  --text-main: #242622;
-  --text-muted: #696d66;
-  /* Secondary text meets normal-text contrast on light surfaces. */
-  --text-sub: #61675c;
-  --scrollbar-thumb: #737d6c;
-  --scrollbar-thumb-hover: #53604c;
-  --scrollbar-track: #f4f4f3;
+  --text-main: #1c2230;
+  --text-muted: #4c5566;
+  --text-sub: #5f697b;
+  --scrollbar-thumb: #c5cad3;
+  --scrollbar-thumb-hover: #a3aab7;
+  --scrollbar-track: transparent;
 
-  --accent-copper: #985029;
-  --accent-copper-hover: #833e11;
-  --accent-copper-active: #6e330d;
-  --accent-copper-dim: #f4e9dd;
-  --accent-copper-glow: rgba(154, 76, 23, 0.2);
-  /* 实心填充（主按钮/选中标签）专用：白字对比度 ≥4.5:1 */
-  --accent-copper-fill: #985029;
-  --accent-copper-fill-hover: #833e11;
-  --accent-copper-fill-active: #6e330d;
+  --accent-copper: #2747a8;
+  --accent-copper-hover: #1f3a8c;
+  --accent-copper-active: #192f72;
+  --accent-copper-dim: #e8edfa;
+  --accent-copper-glow: rgba(39, 71, 168, 0.22);
+  --accent-copper-fill: #2747a8;
+  --accent-copper-fill-hover: #1f3a8c;
+  --accent-copper-fill-active: #192f72;
   --text-on-accent: #ffffff;
 
-  --badge-green: #296745;
-  --badge-green-bg: #e8f2eb;
-  --badge-amber: #865d15;
-  --badge-amber-bg: #faf0d8;
-  --badge-red: #b63737;
-  --badge-red-bg: #fceceb;
-  --badge-blue: #326398;
-  --badge-blue-bg: #eaf1f9;
+  --badge-green: #22704a;
+  --badge-green-bg: #e3f1e8;
+  --badge-amber: #855a0c;
+  --badge-amber-bg: #faf0d4;
+  --badge-red: #b5362d;
+  --badge-red-bg: #fbe8e5;
+  --badge-blue: #2b56a3;
+  --badge-blue-bg: #e6eefb;
 
-  --titlebar-bg: #f7f7f6;
-  --navrail-bg: #f7f7f6;
-  --footer-bg: #f7f7f6;
+  --titlebar-bg: var(--bg-base);
+  --navrail-bg: var(--bg-base);
+  --footer-bg: var(--bg-base);
   --drawer-bg: #ffffff;
   --modal-bg: #ffffff;
-  --modal-overlay: rgba(15, 23, 42, 0.5);
+  --modal-overlay: rgba(28, 34, 48, 0.26);
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+  --sheet-edge: #e0e3e8;
+  --sheet-under: #f6f7f9;
+  --dot: #d6dae1;
+  --pen-mark: rgba(39, 71, 168, 0.72);
+  --selection: rgba(39, 71, 168, 0.16);
+  --tab-sage: #dcebe1;
+  --tab-sage-ink: #23533a;
+  --tab-blue: #dfe8f8;
+  --tab-blue-ink: #26457f;
+  --tab-sand: #f5ecc8;
+  --tab-sand-ink: #6b5413;
+  --tab-rose: #f6e0da;
+  --tab-rose-ink: #8a3a2a;
+  --brand-copper: #c8643a;
+
+  --shadow-sm: 0 1px 2px rgba(20, 30, 50, 0.07);
+  --shadow-md: 0 10px 26px -12px rgba(20, 30, 50, 0.3), 0 1px 2px rgba(20, 30, 50, 0.06);
+  --shadow-lg: 0 30px 64px -24px rgba(20, 30, 50, 0.4), 0 2px 6px rgba(20, 30, 50, 0.07);
+  --shadow-sheet: 0 0 0 1px var(--sheet-edge), 0 1px 2px rgba(20, 30, 50, 0.05), 0 18px 40px -26px rgba(20, 30, 50, 0.34);
+  --shadow-press: 0 0 0 1px var(--sheet-edge), 0 1px 1px rgba(20, 30, 50, 0.06);
+  --focus-ring: 0 0 0 3px rgba(39, 71, 168, 0.2);
 }

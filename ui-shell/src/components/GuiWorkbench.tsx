@@ -7,7 +7,6 @@ import {
   Box,
   ChevronDown,
   ChevronUp,
-  Layers3,
   Plus,
   Save,
   Trash2
@@ -25,6 +24,7 @@ import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadTok
   specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
 import { EditorRecoveryNotice } from './EditorRecoveryNotice';
 import { confirmEditorRead } from '../bridge/editorRecovery';
+import { ElementPlate } from './ElementPlate';
 
 interface GuiWorkbenchProps {
   element: ModElementSummary;
@@ -486,12 +486,12 @@ const GuiEditor: React.FC<GuiWorkbenchProps & { sessionKey: string }> = ({ eleme
 
   return (
     <div data-testid="gui-workbench" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
-      <header style={{ height: 52, padding: '0 14px', display: 'flex', alignItems: 'center', gap: 10,
+      <header className="editor-header" style={{ height: 52, padding: '0 14px', display: 'flex', alignItems: 'center', gap: 10,
         background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <button type="button" onClick={onClose} aria-label={tr("返回元素列表")} className="btn-secondary" style={{ padding: 6 }}>
-          <ArrowLeft size={14} />
+        <button type="button" onClick={onClose} aria-label={tr("返回元素列表")} title={tr("返回元素列表")} className="btn-secondary editor-back">
+          <ArrowLeft size={16} />
         </button>
-        <Layers3 size={17} color="var(--accent-copper)" />
+        <ElementPlate type="gui" />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>{element.displayName}</div>
           <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("界面（GUI）编辑 · 布局、组件与事件")}</div>
