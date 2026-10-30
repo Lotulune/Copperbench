@@ -119,5 +119,5 @@ export const UI_SUPPORTED_SCHEMA_VERSIONS = ['1.0'];
 
 export const UI_CLIENT_IDENTITY: HandshakeClient = {
   id: 'product_shell',
-  version: '0.1.18'
+  version: '0.1.19'
 };

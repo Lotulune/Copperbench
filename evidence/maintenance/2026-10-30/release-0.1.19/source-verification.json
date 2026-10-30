@@ -1,0 +1,62 @@
+{
+  "status": "merged_with_all_ci_passed",
+  "date": "2026-10-30",
+  "pullRequest": "https://github.com/Lotulune/Copperbench/pull/168",
+  "testedCommit": "9ca1277dc1dfc04d0f1a6aa2c74da28b238a24a5",
+  "latestReviewedCommit": "9ca1277dc1dfc04d0f1a6aa2c74da28b238a24a5",
+  "mergeCommit": "8e03f1886d6ff794d55cf94256226cbb74744283",
+  "scope": "Source-candidate verification before 0.1.19 packaging; not installer acceptance.",
+  "checks": {
+    "uiUnit": 81,
+    "uiCore": 50,
+    "chromiumAndCompactFullRun": {
+      "total": 1098,
+      "passed": 1096,
+      "failed": 2,
+      "failedCase": "asset-browser heading case (one per project), fixed before merge"
+    },
+    "adjustedSpecsAfterFix": 48,
+    "composerMenuSpecsAfterLinuxFix": 68,
+    "visualMatrix": 4,
+    "productionBuild": "passed",
+    "browserPreviewScreens": "passed",
+    "nativeJcef": "passed for mode switch, inspector, create dialog, Agent panel, dark theme, composer menu and delivery dialog; agent conversations, Blockbench and gameplay not exercised"
+  },
+  "ci": [
+    {
+      "runId": 41019280923,
+      "jobs": [
+        {
+          "name": "Select checks for changed layers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Java tests and Javadoc",
+          "conclusion": "success"
+        },
+        {
+          "name": "MCP conformance",
+          "conclusion": "success"
+        },
+        {
+          "name": "UI contract, build, and smoke tests",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "runId": 41019281136,
+      "jobs": [
+        {
+          "name": "Ubuntu 24.04 package candidate smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Qualify NeoForge 26.3 Linux dependency graph",
+          "conclusion": "skipped"
+        }
+      ]
+    }
+  ],
+  "localSummary": "output/ui-notebook-port-20261030/summary.md (local, untracked)"
+}

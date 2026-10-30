@@ -1,0 +1,17 @@
+# Windows and Linux 0.1.19 release preparation
+
+The user requested publishing new installation packages on 2026-10-30 after [PR #168](https://github.com/Lotulune/Copperbench/pull/168) was reviewed, fixed and merged as `8e03f1886d6ff794d55cf94256226cbb74744283`. This release contains the Notebook interface redesign, professional Agent approvals that stay visible above the run settings, shared CLI permission guidance for both workbenches, and the backend transaction and ordered workspace-event fixes merged after 0.1.18. Product identity, first-party release fixtures, About/help and the UI handshake advance to 0.1.19 together.
+
+## Source verification
+
+The reviewed PR head `9ca1277dc1dfc04d0f1a6aa2c74da28b238a24a5` has the same tracked tree as the integration merge. [Build and test](https://github.com/Lotulune/Copperbench/actions/runs/41019280923) and [Linux candidate checks](https://github.com/Lotulune/Copperbench/actions/runs/41019281136) passed on that head. The previous head failed one compact Chromium case on Linux fonts: the composer option menus inherited a listbox entrance that started 6 px above their final position, so an upward menu crossed its 12 px viewport margin for its first frames. The follow-up gives composer menus a scale-only entrance.
+
+Local source verification on Windows passed 81 UI unit tests, 50 UI-Core contracts, the production UI build, and the full Chromium and compact-1366 Playwright projects. The last full run had 1,096 of 1,098 cases passing; its two failures (the asset-browser heading case, one per project) were fixed and their spec files re-run, 48/48. The four visual-matrix baselines were regenerated and pass. Two cases now wait for a view's 320 ms entrance before measuring or clicking it. The [retained source summary](../../evidence/maintenance/2026-10-30/release-0.1.19/source-verification.json) records these counts and the CI jobs.
+
+Browser-preview screenshots covered simple and professional modes in light and dark themes, the inspector, Agent panel, create/export/setup dialogs, composer menus and the 500 px title bar. A native JCEF window (JBR 25) was then launched from the release-preparation source on an isolated workspace and checked with computer use: the mode switch, professional overview, inspector type plate and 3D preview, create dialog, Agent panel, dark theme, the upward effort menu and the delivery dialog rendered as intended. No assistant prompt, element change or export was performed, and the theme preference was restored. Agent conversations, Blockbench editing and gameplay were not exercised.
+
+## Package and publication boundary
+
+Official 0.1.19 packages are not published at this source snapshot. The signed Windows latest-main build and the frozen Linux producer/consumer/promotion must pass before [current downloads](../releases/current.md) advances from 0.1.18. Package metadata, checksums, provenance and post-publication receipts will identify the actual bytes; source verification does not establish installer acceptance.
+
+The redesign changes styling, copy and motion only; workspace formats, generator support and Minecraft gameplay code are unchanged. Full installer upgrades, Linux GNOME/Wayland certification and player-controlled gameplay were not repeated in the source verification. Linux retains `formalSupportClaim=false`; historical support records keep their original scope. Windows packages remain Authenticode unsigned.
