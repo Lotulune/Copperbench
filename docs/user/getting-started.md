@@ -8,7 +8,7 @@
 
 从[当前下载](../releases/current.md)选择对应平台的稳定包，并查看该版本的验证范围。Windows 与 Linux 的版本分别列出。目标平台为 Windows 11 x64（build 22000 及以上）与 Ubuntu 24.04 LTS x86_64；其他 Linux 发行版与架构未验证。
 
-0.1.18 新增模型与元素静态预览、专业工作台 Agent，并修复 Blockbench 打开响应和保存同步。具体平台变更见 [Windows 版本说明](../releases/v0.1.18.md)、[Linux 版本说明](../releases/v0.1.18-linux.md)和[状态页](../status.md)。
+0.1.19 换上全新的 Notebook 界面，专业工作台 Agent 的待批准请求保持可见，两个工作台共享 CLI 权限提示，并修复后端事务与工作区事件顺序。具体平台变更见 [Windows 版本说明](../releases/v0.1.19.md)、[Linux 版本说明](../releases/v0.1.19-linux.md)和[状态页](../status.md)。
 
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 

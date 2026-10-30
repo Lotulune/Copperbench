@@ -23,9 +23,9 @@
 
 Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge。先用可视化编辑器创建方块，再用手写 Java 扩展行为，让外部 Agent 通过本机会话检查同一个工作区、修复构建并交付可审阅的产物。revision、源码 hash 和 generated/manual 归属保护各步骤间的修改。
 
-**当前稳定版：Windows 0.1.18、Linux 0.1.18。** 新增模型与元素静态预览、专业工作台 Agent，并修复 Blockbench 打开响应和保存同步。安装包和验证记录见[当前下载](docs/releases/current.md)。
+**当前稳定版：Windows 0.1.19、Linux 0.1.19。** 换上全新的 Notebook 界面，专业工作台 Agent 的待批准请求保持可见，两个工作台共享 CLI 权限提示，并修复后端事务与工作区事件顺序。安装包和验证记录见[当前下载](docs/releases/current.md)。
 
-源码身份、安装包哈希和验证范围分别记录在 [Windows 0.1.18 发布记录](docs/testing/maintenance-release-0.1.18.md)和 [Linux 0.1.18 发布记录](docs/testing/linux-publication-0.1.18.md)中。
+源码身份、安装包哈希和验证范围分别记录在 [Windows 0.1.19 发布记录](docs/testing/maintenance-release-0.1.19.md)和 [Linux 0.1.19 发布记录](docs/testing/linux-publication-0.1.19.md)中。
 
 <a id="getting-started"></a>
 
@@ -33,10 +33,10 @@ Copperbench 是基于 MCreator 的桌面工作台，支持 Fabric 和 NeoForge�
 
 | 平台 | 当前版本 | 安装包 | 指南 |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.18](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.18) | EXE · 便携 ZIP · MSIX · 应用内更新组件 | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.18](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.18-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz · 应用内更新组件 | [Linux 安装](docs/user/linux-installation.md) |
+| Windows 11 x64 | [0.1.19](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.19) | EXE · 便携 ZIP · MSIX · 应用内更新组件 | [快速开始](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.19](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.19-linux-stable) | 图形安装 Setup.tar.gz · Debian .deb · 便携 .tar.gz · 应用内更新组件 | [Linux 安装](docs/user/linux-installation.md) |
 
-版本说明：[Windows 0.1.18](docs/releases/v0.1.18.md) · [Linux 0.1.18](docs/releases/v0.1.18-linux.md)。后续更新可在「帮助与关于」中选择「检查更新」。
+版本说明：[Windows 0.1.19](docs/releases/v0.1.19.md) · [Linux 0.1.19](docs/releases/v0.1.19-linux.md)。后续更新可在「帮助与关于」中选择「检查更新」。
 
 1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
 2. 在「简洁创作」中点击「新建作品」，或切换「专业工作台」使用手动编辑教程；选择加载器、Minecraft 版本和新的工作区目录。
