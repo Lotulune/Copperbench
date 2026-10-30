@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Box, ChevronRight, Search, X } from 'lucide-react';
+import { ArrowRight, Box, Search, X } from 'lucide-react';
 import { useWorkbench, type NavView } from '../context/WorkbenchContext';
 import { uiText } from '../i18n';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { OPEN_WORKBENCH_SEARCH_EVENT, workbenchNavigation } from './workbenchNavigation';
 
 import { WorkspaceActions } from './WorkspaceActions';
+import { elementVisual } from './elementVisual';
 
 export const WorkbenchNavigationBar: React.FC = () => {
   const { activeView, setActiveView, state, selectedElement, setSelectedElementId } = useWorkbench();
@@ -37,7 +38,7 @@ export const WorkbenchNavigationBar: React.FC = () => {
   useEffect(() => { if (open) searchRef.current?.focus(); }, [open]);
   const normalized = query.trim().toLowerCase();
   const results = [
-    ...navigation.map(item => ({ id: item.id, label: item.label, detail: uiText('打开视图', 'Open view'), icon: item.icon,
+    ...navigation.map(item => ({ id: item.id, label: item.label, detail: '', icon: item.icon,
       run: () => setActiveView(item.id) })),
     ...state.elements.map(element => ({ id: element.id, label: element.displayName, detail: element.name, icon: Box,
       run: () => { setSelectedElementId(element.id); setActiveView('elements'); } }))
@@ -83,21 +84,18 @@ export const WorkbenchNavigationBar: React.FC = () => {
         }}>
         {visibleTabs.map(view => { const item = navigation.find(item => item.id === view)!;
           const label = view === 'elements' && selectedElement ? selectedElement.displayName : item.label;
+          const TabIcon = view === 'elements' && selectedElement ? elementVisual(selectedElement.type).Icon : item.icon;
           return <div key={view} className={`workbench-view-tab${activeView === view ? ' is-active' : ''}`}>
             <button type="button" role="tab" aria-selected={activeView === view} tabIndex={activeView === view ? 0 : -1} data-testid={`workbench-tab-${view}`}
-              onClick={() => setActiveView(view)} title={item.label}><item.icon size={14} aria-hidden="true" /><span>{label}</span></button>
+              onClick={() => setActiveView(view)} title={item.label}><TabIcon size={14} aria-hidden="true" /><span>{label}</span></button>
             {view !== 'hub' && <button type="button" className="workbench-tab-close" onClick={() => closeTab(view)}
               aria-label={uiText(`关闭视图：${item.label}`, `Close view: ${item.label}`)}><X size={12} aria-hidden="true" /></button>}
           </div>;
         })}
       </div>
     </div>
+    {/* The active tab already names the location; the strip keeps only workspace actions. */}
     <div className="workbench-context-toolbar">
-      <nav className="workbench-breadcrumb" aria-label={uiText('当前位置', 'Current location')}>
-        <button type="button" onClick={() => setActiveView('hub')}>{state.workbench?.workspace.name ?? 'Copperbench'}</button>
-        <ChevronRight size={12} aria-hidden="true" />
-        <span>{activeView === 'elements' && selectedElement ? selectedElement.displayName : navigation.find(item => item.id === activeView)?.label}</span>
-      </nav>
       <WorkspaceActions />
     </div>
     {open && <div className="modal-overlay workbench-command-overlay" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
@@ -117,7 +115,7 @@ export const WorkbenchNavigationBar: React.FC = () => {
           {results.map((item, index) => <button key={item.id} type="button" role="option" id={`workbench-command-${index}`}
             aria-selected={index === selection} className={index === selection ? 'is-selected' : ''}
             onClick={() => { item.run(); setOpen(false); }}><item.icon size={16} aria-hidden="true" />
-            <span>{item.label}<small>{item.detail}</small></span><ArrowRight size={13} aria-hidden="true" /></button>)}
+            <span>{item.label}{item.detail && <small>{item.detail}</small>}</span><ArrowRight size={13} aria-hidden="true" /></button>)}
           {!results.length && <p>{uiText('没有匹配的元素或视图。', 'No matching elements or views.')}</p>}
         </div>
       </div>

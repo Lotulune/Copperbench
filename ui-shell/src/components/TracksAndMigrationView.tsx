@@ -9,7 +9,8 @@ import {
   Play,
   Plus,
   Lock,
-  MoveRight
+  MoveRight,
+  Check
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
@@ -417,7 +418,8 @@ export const TracksAndMigrationView: React.FC = () => {
   const getStatusBadge = (status: TrackStatus) => {
     switch (status) {
       case 'supported':
-        return <span className="badge badge-green" data-testid="status-supported">{tr("正式支持")}</span>;
+        // Supported is the norm; a check mark says it without repeating the word on every row.
+        return <span className="badge badge-green badge-icon" data-testid="status-supported" title={tr("正式支持")}><Check size={12} aria-hidden="true" /><span className="sr-only">{tr("正式支持")}</span></span>;
       case 'preview':
         return <span className="badge badge-amber" data-testid="status-preview">{tr("技术预览")}</span>;
       case 'unavailable':

@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronUp,
   Grid3X3,
-  Layers3,
   Plus,
   Save,
   Trash2
@@ -26,6 +25,7 @@ import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadTok
   specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
 import { EditorRecoveryNotice } from './EditorRecoveryNotice';
 import { confirmEditorRead } from '../bridge/editorRecovery';
+import { ElementPlate } from './ElementPlate';
 
 interface OverlayWorkbenchProps {
   element: ModElementSummary;
@@ -369,10 +369,10 @@ const OverlayEditor: React.FC<OverlayWorkbenchProps & { sessionKey: string }> = 
 
   return (
     <div data-testid="overlay-workbench" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <header style={{ height: 52, padding: '0 14px', display: 'flex', alignItems: 'center', gap: 10,
+      <header className="editor-header" style={{ height: 52, padding: '0 14px', display: 'flex', alignItems: 'center', gap: 10,
         background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <button type="button" onClick={onClose} aria-label={tr("返回元素列表")} className="btn-secondary" style={{ padding: 6 }}><ArrowLeft size={14} /></button>
-        <Layers3 size={17} color="var(--accent-copper)" />
+        <button type="button" onClick={onClose} aria-label={tr("返回元素列表")} title={tr("返回元素列表")} className="btn-secondary editor-back"><ArrowLeft size={16} /></button>
+        <ElementPlate type="overlay" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>{element.displayName}</div>
           <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("叠加层布局")}</div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 const STORAGE_KEY = 'copperbench.theme';
@@ -46,7 +47,11 @@ export function useTheme() {
 
   const toggleTheme = useCallback(() => {
     const next: ThemePreference = themePreference === 'system' ? 'light' : themePreference === 'light' ? 'dark' : 'system';
-    setThemePreference(next);
+    // Crossfade the whole window between themes where the engine supports view transitions.
+    const transition = (document as Document & { startViewTransition?: (update: () => void) => unknown }).startViewTransition;
+    if (transition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      transition.call(document, () => flushSync(() => setThemePreference(next)));
+    } else setThemePreference(next);
     try { localStorage.setItem(STORAGE_KEY, next); } catch { /* Keep the session choice if storage is unavailable. */ }
   }, [themePreference]);
 

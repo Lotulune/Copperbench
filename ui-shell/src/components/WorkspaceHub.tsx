@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowRight, Box, ChevronDown, FileCode2, Hammer, LockKeyhole, Plus, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronDown, FileCode2, Hammer, LockKeyhole, Plus, X } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { sourceBridge } from '../bridge/sourceBridge';
 import { elementLabel, elementShortLabel, valueLabel } from '../i18n/labels';
@@ -7,6 +7,7 @@ import { englishCount, t, uiText } from '../i18n';
 import type { WorkspaceSourceIndex } from '../types/contract';
 import { BlockbenchOnboarding } from './BlockbenchOnboarding';
 import './workspaceHub.css';
+import { ElementPlate } from './ElementPlate';
 
 export const WorkspaceHub = () => {
   const { state, workspaceHealth, setActiveView, setSelectedElementId, setIsCreateModalOpen,
@@ -86,7 +87,7 @@ export const WorkspaceHub = () => {
           <button type="button" className="overview-link" onClick={() => setActiveView('elements')}>{uiText('全部元素', 'All elements')}<ArrowRight size={13} aria-hidden="true" /></button></div>
         {recentElements.length ? <div className="overview-recent-list">{recentElements.slice(0, 6).map(element => <button type="button" className="overview-recent-item" key={element.id} data-element-id={element.id}
           onClick={() => { setSelectedElementId(element.id); setActiveView('elements'); }}>
-          <Box size={18} aria-hidden="true" /><span className="overview-item-copy"><strong>{element.displayName}</strong><code>{element.name}</code></span>
+          <ElementPlate type={element.type} /><span className="overview-item-copy"><strong>{element.displayName}</strong><code>{element.name}</code></span>
           <span className="overview-element-type" title={elementLabel(element.type)}>{elementShortLabel(element.type)}</span>
           {element.state !== 'valid' && <span className={`overview-element-state state-${element.state}`}>{valueLabel(element.state)}</span>}
           <ArrowRight size={14} aria-hidden="true" />

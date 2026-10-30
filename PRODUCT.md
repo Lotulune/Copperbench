@@ -30,7 +30,7 @@ The React interface runs inside the existing Java/JCEF desktop application. Exis
 
 ## Brand Commitments
 
-Retain Copperbench's existing copper accent, light/dark/system themes, typography, icons, and desktop conventions. Use concise Chinese and English action labels. Display real state and actionable failures; generation imagery is a discussion reference, not shipping game-preview content.
+Copper is the brand mark (application icon and workspace glyph). Since 2026-10-30 the interface uses the user-chosen Notebook world described in DESIGN.md, with a pen-blue accent; keep light/dark/system themes, Lucide icons and desktop conventions. Use concise Chinese and English action labels, and omit interface copy that repeats what the surrounding chrome already shows. Display real state and actionable failures; generation imagery is a discussion reference, not shipping game-preview content.
 
 ## Evidence on Hand
 

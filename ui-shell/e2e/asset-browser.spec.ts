@@ -6,6 +6,8 @@ test.describe('U3 asset browser', () => {
     await page.waitForSelector('[data-testid="app-shell"]');
     await page.click('[data-testid="nav-assets"]');
     await expect(page.locator('[data-testid="asset-browser"]')).toBeVisible();
+    // Clicking a still-rising view makes Playwright retry with other scroll alignments; start once the entrance has settled.
+    await page.waitForFunction(() => document.getAnimations().every(animation => (animation as CSSAnimation).animationName !== 'rise-in' || animation.playState !== 'running'));
   });
 
   test('filtering and selecting assets keeps the page heading in place', async ({ page }) => {

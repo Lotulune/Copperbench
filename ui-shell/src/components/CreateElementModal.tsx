@@ -2,11 +2,12 @@ import { tr, uiText } from '../i18n/locale';
 import { renderUiMessage, uiMessage, type UiMessage } from '../i18n';
 import { elementLabel, elementShortLabel } from '../i18n/labels';
 import React, { useEffect, useState } from 'react';
-import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
+import { elementVisual } from './elementVisual';
 
 export const CreateElementModal: React.FC = () => {
   const { isCreateModalOpen, setIsCreateModalOpen, createModElement, workspacePreviewTarget } = useWorkbench();
@@ -15,7 +16,6 @@ export const CreateElementModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<UiMessage[] | null>(null);
   const [nameInvalid, setNameInvalid] = useState(false);
-  const typeIcons: Record<string, typeof Box> = { block: Box, item: Compass, recipe: Scroll, procedure: Terminal, function: FileCode2, loottable: Gift, achievement: Trophy };
 
   const dialogRef = useDialogA11y(isCreateModalOpen, () => setIsCreateModalOpen(false));
   const supportedTypes = workspacePreviewTarget?.capabilities.elementTypes?.filter(type => type.supported).map(type => type.elementType);
@@ -113,34 +113,23 @@ export const CreateElementModal: React.FC = () => {
                 {tr("元素类型")}</label>
               <div className="create-type-grid" role="group" aria-label={tr("元素类型")}>
                 {ALL_MOD_ELEMENT_TYPES.map((type) => {
-                  const Icon = typeIcons[type] ?? Compass;
-                  const item = { type, label: elementLabel(type), icon: Icon };
+                  const { Icon, tone } = elementVisual(type);
+                  const item = { type, label: elementLabel(type) };
                   const isSel = elementType === item.type;
                   return (
                     <button
                       key={item.type}
                       type="button"
+                      className="create-type-option"
                       data-testid={`create-element-type-${item.type}`}
                       disabled={supportedTypes !== undefined && !supportedTypes.includes(type)}
                       onClick={() => setElementType(item.type as ModElementType)}
                       aria-label={item.label}
                       title={item.label}
                       aria-pressed={isSel}
-                      style={{
-                        padding: '10px',
-                        background: isSel ? 'var(--accent-copper-dim)' : 'var(--bg-panel)',
-                        border: isSel ? '1px solid var(--accent-copper)' : '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        color: isSel ? 'var(--accent-copper)' : 'var(--text-main)',
-                        fontWeight: isSel ? 600 : 500,
-                        textAlign: 'left'
-                      }}
                     >
-                      <Icon size={16} />
-                      <span style={{ fontSize: '12px' }}>{elementShortLabel(item.type)}</span>
+                      <span className={`create-type-plate tone-${tone}`} aria-hidden="true"><Icon size={16} /></span>
+                      <span><strong>{elementShortLabel(item.type)}</strong></span>
                     </button>
                   );
                 })}

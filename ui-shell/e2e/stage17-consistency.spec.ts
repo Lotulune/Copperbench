@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 test('asset resource count stays accurate and readable at supported window widths', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
+  // The view rises into place on arrival; measure geometry once that entrance has settled.
+  await page.waitForFunction(() => document.getAnimations().every(animation => (animation as CSSAnimation).animationName !== 'rise-in' || animation.playState !== 'running'));
   const header = page.locator('.asset-library-heading');
   const count = header.getByText(/^\d+ 个资源文件$/);
   await expect(count).toHaveText(/^[1-9]\d* 个资源文件$/);
