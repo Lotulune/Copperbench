@@ -26,6 +26,7 @@
 .professional-agent-tabs button { padding: 9px 0; border-bottom: 2px solid transparent; color: var(--text-muted); }
 .professional-agent-tabs [aria-selected="true"] { color: var(--text-main); border-bottom-color: var(--accent-copper); }
 .professional-agent-body { flex: 1; overflow: auto; min-height: 80px; padding: 20px; scrollbar-gutter: stable; }
+.professional-agent-approvals { flex-shrink: 0; max-height: 40%; overflow: auto; padding: 12px 20px 0; border-top: 1px solid var(--border-subtle); }
 .professional-agent-body h3 { margin: 0 0 9px; font-size: 14px; font-weight: 600; }
 .professional-agent-body p { margin: 0 0 12px; line-height: 1.65; overflow-wrap: anywhere; }
 .professional-agent-empty { padding: 20px 0; }

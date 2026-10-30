@@ -24,6 +24,8 @@ import { confirmEditorRead } from '../bridge/editorRecovery';
 import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
 import { functionFields, functionHasChanges, getFunctionSession, loadedFunction, subscribeFunctionSessions, updateFunctionSession } from '../hooks/functionEditorSessions';
 import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
+import { ElementPlate } from './ElementPlate';
+import { elementVisual } from './elementVisual';
 
 interface FunctionWorkbenchProps {
   element: ModElementSummary;
@@ -262,6 +264,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
     >
       {/* Top Toolbar */}
       <header
+        className="editor-header"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -277,37 +280,23 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             type="button"
-            className="btn-secondary"
+            className="btn-secondary editor-back"
             onClick={onClose}
             aria-label={tr("返回元素列表")}
+            title={tr("返回元素列表")}
             data-testid="function-back-btn"
-            style={{ padding: '5px 10px', fontSize: '12px' }}
           >
-            <ArrowLeft size={14} />
-            <span>{tr("返回")}</span>
+            <ArrowLeft size={16} />
           </button>
 
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--badge-blue-bg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--badge-blue)'
-            }}
-          >
-            <FileCode2 size={18} />
-          </div>
+          <ElementPlate type="function" />
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {element.displayName}
               </span>
-              <span className="badge badge-copper">{tr("函数")}</span>
+              <span className={`badge tone-${elementVisual('function').tone}`}>{tr("函数")}</span>
               <span
                 className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}
               >

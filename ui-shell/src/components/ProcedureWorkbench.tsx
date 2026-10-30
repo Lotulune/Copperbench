@@ -40,6 +40,7 @@ import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
 import { getProcedureSession, nextProcedureReadToken, updateProcedureSession, useProcedureEditorSession } from '../hooks/procedureEditorSessions';
 import { EditorRecoveryNotice } from './EditorRecoveryNotice';
 import { confirmEditorRead } from '../bridge/editorRecovery';
+import { ElementPlate } from './ElementPlate';
 
 let blocksRegistered = false;
 const blocklyChineseMessages = Object.fromEntries(
@@ -1048,10 +1049,11 @@ const ProcedureEditor: React.FC<ProcedureWorkbenchProps & { sessionKey: string }
 
   return (
     <section className="procedure-workbench" data-testid="procedure-workbench">
-      <header className="procedure-toolbar">
-        <button className="procedure-icon-button" onClick={onClose} aria-label={tr("返回元素列表")} title={tr("返回元素列表")}>
+      <header className="procedure-toolbar editor-header">
+        <button className="procedure-icon-button editor-back" onClick={onClose} aria-label={tr("返回元素列表")} title={tr("返回元素列表")}>
           <ArrowLeft size={16} />
         </button>
+        <ElementPlate type="procedure" />
         <div className="procedure-title">
           <strong>{element.displayName}</strong>
           <span>{tr("过程（Procedure）· ")}{dirty ? tr("有未保存变更") : `r${projection?.baseRevision ?? '-'}`}</span>

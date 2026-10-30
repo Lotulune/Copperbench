@@ -24,6 +24,8 @@ import { commitSpecializedSession, getSpecializedSession, nextSpecializedReadTok
   specializedEditorKey, updateSpecializedSession, useSpecializedEditorSession } from '../hooks/specializedEditorSessions';
 import { EditorRecoveryNotice } from './EditorRecoveryNotice';
 import { confirmEditorRead } from '../bridge/editorRecovery';
+import { ElementPlate } from './ElementPlate';
+import { elementVisual } from './elementVisual';
 
 interface AdvancementWorkbenchProps {
   element: ModElementSummary;
@@ -405,6 +407,7 @@ const AdvancementEditor: React.FC<AdvancementWorkbenchProps & { sessionKey: stri
     >
       {/* Top Header */}
       <header
+        className="editor-header"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -420,37 +423,23 @@ const AdvancementEditor: React.FC<AdvancementWorkbenchProps & { sessionKey: stri
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             type="button"
-            className="btn-secondary"
+            className="btn-secondary editor-back"
             onClick={onClose}
             aria-label={tr("返回元素列表")}
+            title={tr("返回元素列表")}
             data-testid="advancement-back-btn"
-            style={{ padding: '5px 10px', fontSize: '12px' }}
           >
-            <ArrowLeft size={14} />
-            <span>{tr("返回")}</span>
+            <ArrowLeft size={16} />
           </button>
 
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--badge-amber-bg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--badge-amber)'
-            }}
-          >
-            <Trophy size={18} />
-          </div>
+          <ElementPlate type="achievement" />
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {achievementName}
               </span>
-              <span className="badge badge-copper">{tr("进度")}</span>
+              <span className={`badge tone-${elementVisual('achievement').tone}`}>{tr("进度")}</span>
               <span
                 className={`badge badge-${
                   achievementType === 'challenge'

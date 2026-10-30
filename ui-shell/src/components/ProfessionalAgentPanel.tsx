@@ -9,7 +9,7 @@ import { renderUiMessage, uiMessage, uiText, useUiLocale } from '../i18n';
 import { formatDateTime } from '../i18n/dateTime';
 import { AgentProviderSelect } from './AgentProviderSelect';
 import { AgentProviderIcon } from './AgentProviderIcon';
-import { AgentApprovalPrompt } from './AgentApprovalPrompt';
+import { AgentApprovalPrompt, permissionDeniedHint } from './AgentApprovalPrompt';
 import { AgentModelSelect } from './AgentModelSelect';
 import { AgentOptionSelect } from './AgentOptionSelect';
 import { AgentMessageBody } from './AgentMessageBody';
@@ -52,7 +52,9 @@ export function AgentPanelToggle({ activity = false }: { activity?: boolean }) {
   const { mode } = useWorkbenchMode();
   const busy = agentIsActive(agent.snapshot?.state) || Boolean(agent.snapshot?.activeVerification) || Boolean(agent.snapshot?.checking);
   if (activity && (!busy || agent.panelOpen && mode === 'professional')) return null;
-  const label = busy ? uiText('Agent · 运行中', 'Agent · Running') : 'Agent';
+  // A collapsed panel still says when the agent is blocked on the user rather than merely running.
+  const waiting = agent.snapshot?.state === 'waiting_approval';
+  const label = waiting ? uiText('Agent · 等待你的处理', 'Agent · Waiting for your input') : busy ? uiText('Agent · 运行中', 'Agent · Running') : 'Agent';
   return <button type="button" className={activity ? 'agent-activity btn-secondary' : 'agent-panel-toggle btn-secondary'}
     data-testid={activity ? 'agent-activity' : 'professional-agent-toggle'} disabled={!state.workbench}
     aria-label={label} title={label}
@@ -87,6 +89,7 @@ export function ProfessionalAgentPanel() {
   const attached = useAgentAttachments(workspaceId || undefined, draftKey, visible);
   const effectiveProvider = snapshot?.provider ?? provider;
   const info = snapshot?.providers.find(item => item.id === effectiveProvider);
+  const permissionHint = permissionDeniedHint(info, agent.error || snapshot?.error);
   const settingsKey = `${draftKey}:${effectiveProvider}`;
   const settings = settingsDrafts[settingsKey] ?? snapshot?.settings ?? DEFAULT_AGENT_SETTINGS;
   const run = snapshot?.run;
@@ -229,6 +232,7 @@ export function ProfessionalAgentPanel() {
         <p>{uiText('使用本机已安装的工具和已有登录。项目编辑功能可照常使用。', 'Use an installed tool and its existing sign-in. Project editing remains available.')}</p>
         <button type="button" className="btn-secondary" onClick={() => void agent.invoke({ operation: 'openSetup', provider: effectiveProvider })}>{uiText('官方安装指引', 'Official installation guide')}</button></div>}
       {(agent.error || snapshot?.error || info?.error) && <p role="alert" className="professional-agent-error">{agent.error || agentText(snapshot?.error, snapshot?.errorText) || agentText(info?.error, info?.errorText)}</p>}
+      {permissionHint && <p className="professional-agent-error">{permissionHint}</p>}
       {snapshot?.runHistoryCapacity?.level === 'full' && <p role="status">{uiText('运行记录已满，请在会话历史中导出并删除已结束的会话。', 'Run history is full. Export and delete finished conversations in conversation history.')}<button type="button" className="btn-secondary" onClick={() => setHistoryOpen(true)}>{uiText('整理记录', 'Manage history')}</button></p>}
       {snapshot?.writeBlocked && <p role="alert">{uiText('上次任务的停止尚未确认。请核对执行详情中的进程及其工具活动；当前项目暂不接受新写入。', 'The previous task has not confirmed stopping. Check the recorded process and its tool activity; new writes to this project are blocked.')}</p>}
       {snapshot?.enabled === false && <p>{uiText('新任务已停用；历史和停止操作仍可用。', 'New tasks are disabled; history and stop controls remain available.')}</p>}
@@ -242,7 +246,6 @@ export function ProfessionalAgentPanel() {
               <AgentAttachments key={`${workspaceId}:${message.id}`} files={message.attachments ?? []} />
               {message.delivery === 'pending' && <small>{uiText('正在发送…', 'Sending…')}</small>}{message.delivery === 'failed' && <small>{uiText('未发送给模型，草稿已保留。', 'Not sent to the model. The draft is retained.')}</small>}</div></article>)}
         </div>
-        {snapshot?.approvals.map(approval => <AgentApprovalPrompt variant="professional" key={approval.id} approval={approval} disabled={Boolean(agent.pending)} onRespond={answer => void agent.invoke({ operation: 'approve', id: approval.id, ...answer })} />)}
       </> : run ? <div className="professional-agent-results">
         <label>{uiText('执行记录', 'Run history')}<select aria-label={uiText('Agent 执行记录', 'Agent run history')} value={run.runId} onChange={event => void agent.invoke({ operation: 'selectRun', runId: event.target.value })}>
           {snapshot?.runs?.map(item => <option key={item.runId} value={item.runId}>{formatDateTime(new Date(item.createdAt).toISOString())} · {agentRunLabel(item)}</option>)}</select></label>
@@ -281,6 +284,10 @@ export function ProfessionalAgentPanel() {
         {snapshot?.exportedRun?.runId === run.runId && <p role="status" className="professional-agent-path">{uiText('已保存：', 'Saved: ')}{snapshot.exportedRun.path}</p>}
       </div> : <p>{uiText('提交任务后，这里会保存变化和验证结果。', 'After you submit a task, its changes and verification results appear here.')}</p>}
     </div>
+    {/* As in the simple workbench, pending approvals stay beside the composer on every tab. */}
+    {Boolean(snapshot?.approvals.length) && <div className="professional-agent-approvals">
+      {snapshot?.approvals.map(approval => <AgentApprovalPrompt variant="professional" key={approval.id} approval={approval} disabled={Boolean(agent.pending)} onRespond={answer => void agent.invoke({ operation: 'approve', id: approval.id, ...answer })} />)}
+    </div>}
     <AgentRunSettingsControl provider={info} settings={settings} disabled={Boolean(disabled || attached.uploading)} onChange={next => void changeSettings(next)} />
     <form className="professional-agent-composer" onSubmit={event => { event.preventDefault(); void send(); }}>
       <input ref={fileInput} type="file" multiple hidden onChange={event => { void attached.addFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />

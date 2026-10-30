@@ -1,40 +1,110 @@
-/* Motion explains disclosure and focus. Window corner geometry belongs to native DWM. */
+/*
+ * Motion grammar for the notebook world. Feedback is immediate (≈110 ms), routine state
+ * changes settle in ≈220 ms and new sheets arrive in ≈320 ms. Exits are faster than
+ * entrances. Window corner geometry belongs to native DWM.
+ */
 :root {
   --motion-reveal: 240ms;
-  --motion-dismiss: 180ms;
-  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-dismiss: 170ms;
+  --motion-ease: var(--ease-out);
 }
 
+/* Press feedback: every control acknowledges the pointer before its result arrives. */
+button, [role="button"], summary, .workbench-view-tab > [role="tab"] {
+  transition: background-color var(--dur-quick) ease, border-color var(--dur-quick) ease, color var(--dur-quick) ease,
+    box-shadow var(--dur-quick) ease, opacity var(--dur-quick) ease, transform var(--dur-press) var(--ease-out);
+}
+button:not(:disabled):active, [role="button"]:not([aria-disabled="true"]):active, summary:active { transform: scale(0.965); }
+:is(.element-card, .asset-card, .hub-recent-item, .hub-source-entry, .nav-item, .creation-work, .creation-conversation-list > button,
+  .workbench-command-results > button, .create-type-option, .new-workspace-generator, .workspace-actions-popover > button):not(:disabled):active {
+  transform: scale(0.985);
+}
+
+/* The pen mark: a fine underline drawn left-to-right beneath the selected label. */
+.nb-mark, .nav-item .nav-item-label, .creation-work strong, .creation-conversation-list span {
+  background-image: linear-gradient(var(--pen-mark), var(--pen-mark));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1.5px;
+  padding-bottom: 1px;
+  transition: background-size 380ms var(--ease-out);
+}
+.nav-item[aria-current="page"] .nav-item-label,
+.creation-work[aria-pressed="true"] strong,
+.creation-conversation-list [aria-pressed="true"] span,
+.nb-mark.is-marked { background-size: 100% 1.5px; }
+.nb-mark-draw { animation: nb-mark-draw 460ms var(--ease-out) both; }
+@keyframes nb-mark-draw { from { background-size: 0% 1.5px; } to { background-size: 100% 1.5px; } }
+
+/* Disclosure */
 .nav-tools-toggle svg { transition: transform var(--motion-reveal) var(--motion-ease); }
 .nav-tools-disclosure {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: grid-template-rows var(--motion-dismiss) var(--motion-ease),
-    opacity var(--motion-dismiss) ease, visibility 0s var(--motion-dismiss);
+  display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; pointer-events: none;
+  transition: grid-template-rows var(--motion-dismiss) var(--motion-ease), opacity var(--motion-dismiss) ease, visibility 0s var(--motion-dismiss);
 }
 .nav-tools-disclosure-content { min-height: 0; overflow: hidden; }
 .nav-tools-disclosure[data-expanded="true"] {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: grid-template-rows var(--motion-reveal) var(--motion-ease),
-    opacity var(--motion-reveal) ease, visibility 0s;
+  grid-template-rows: 1fr; opacity: 1; visibility: visible; pointer-events: auto;
+  transition: grid-template-rows var(--motion-reveal) var(--motion-ease), opacity var(--motion-reveal) ease, visibility 0s;
 }
+details > summary svg { transition: transform var(--dur-base) var(--ease-out); }
 
+/* Overlays arrive as a sheet lifted onto the desk. */
 @keyframes overlay-reveal { from { opacity: 0; } to { opacity: 1; } }
-@keyframes dialog-reveal { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } }
-@keyframes menu-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-.modal-overlay { animation: overlay-reveal 160ms ease-out; }
-.modal-overlay .modal-card { animation: dialog-reveal 200ms var(--motion-ease); transform-origin: center; }
-.workspace-actions-menu[open] > .workspace-actions-popover {
-  animation: menu-reveal 160ms var(--motion-ease); transform-origin: top right;
+@keyframes sheet-lift { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes menu-reveal { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes menu-settle { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes drawer-rise { from { opacity: 0.4; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes notice-in { from { opacity: 0; transform: translateX(18px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nb-spin { to { transform: rotate(360deg); } }
+@keyframes nb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes nb-shimmer { from { background-position: -240px 0; } to { background-position: 240px 0; } }
+
+.modal-overlay { animation: overlay-reveal 180ms ease-out; }
+.modal-overlay :is(.modal-card, .workbench-command-palette, [role="dialog"]) { animation: sheet-lift 300ms var(--ease-out); transform-origin: 50% 40%; }
+.workspace-actions-menu[open] > .workspace-actions-popover,
+.compact-run-actions[open] > .compact-run-popover,
+[role="listbox"]:not(.workbench-command-results), [role="menu"] { animation: menu-reveal 180ms var(--ease-out); transform-origin: top right; }
+/* Composer menus may open above or below their trigger against a viewport margin, so they settle in place without travelling past it. */
+.creation-select-menu[role], .creation-provider-listbox[role] { animation: menu-settle 180ms var(--ease-out); transform-origin: center; }
+.creation-select-menu [role="listbox"] { animation: none; }
+.task-drawer { animation: drawer-rise 300ms var(--ease-out); }
+.feedback-notice { animation: notice-in 280ms var(--ease-out); }
+.professional-agent-panel { animation: rise-in 280ms var(--ease-out); }
+
+/* Lists appear as lists: a short, capped stagger. */
+:is(.elements-grid > *, .asset-card-grid > *, .hub-recent-list > *, .hub-source-list > *, .creation-works > *, .history-point, .create-type-grid > *) {
+  animation: rise-in 300ms var(--ease-out) both;
+}
+:is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > :nth-child(2) { animation-delay: 25ms; }
+:is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > :nth-child(3) { animation-delay: 50ms; }
+:is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > :nth-child(4) { animation-delay: 75ms; }
+:is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > :nth-child(5) { animation-delay: 100ms; }
+:is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > :nth-child(n+6) { animation-delay: 120ms; }
+.creation-message, .creation-tool-message, .creation-approval, .creation-working { animation: rise-in 320ms var(--ease-out) both; }
+.creation-preview-scroll [role="tabpanel"]:not([hidden]), .settings-content > *, .tab-panel-enter { animation: fade-in 220ms ease-out; }
+
+.nb-skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-panel) 0, var(--bg-hover) 50%, var(--bg-panel) 100%) 0 0 / 480px 100% var(--bg-panel);
+  animation: nb-shimmer 1.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Spatial entrances are removed; colour and state changes still read through their short transitions. */
+  .modal-overlay, .modal-overlay :is(.modal-card, .workbench-command-palette, [role="dialog"]), .task-drawer, .feedback-notice,
+  .professional-agent-panel, .workspace-actions-popover, .compact-run-popover, [role="listbox"], [role="menu"], .creation-select-menu,
+  .workbench-view-content > *, .workbench-persistent-view, .creation-home, .creation-existing-view, .creation-sidebar-content,
+  :is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > *, .history-point,
+  .creation-message, .creation-tool-message, .creation-approval, .creation-working, .nb-mark-draw { animation: none !important; }
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+  button:active, [role="button"]:active, summary:active, :is(.element-card, .asset-card, .nav-item, .creation-work):active { transform: none !important; }
   .nav-tools-disclosure, .nav-tools-toggle svg { transition: none; }
-  .modal-overlay, .modal-overlay .modal-card, .workspace-actions-menu[open] > .workspace-actions-popover { animation: none; }
+  .nb-mark, .nav-item .nav-item-label, .creation-work strong, .creation-conversation-list span { transition: background-size 1ms; }
+  .creation-spinner, .nb-spin { animation: none !important; }
 }
+
+/* Theme changes crossfade the window instead of snapping. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: var(--ease-out); }
