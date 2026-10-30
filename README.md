@@ -54,16 +54,16 @@ Windows packages remain unsigned for Authenticode; first builds need network acc
 
 | Simple creation | Professional workbench |
 | :---: | :---: |
-| ![Light-theme Simple creation: content, conversation and element settings](assets/screenshots/2026-10-24/en/simple-creation-light.png) | ![Light-theme professional workbench: project overview and navigation](assets/screenshots/2026-10-24/en/workbench-light.png) |
+| ![Light-theme Simple creation: content, conversation and element settings](assets/screenshots/2026-10-31/en/simple-creation-light.png) | ![Light-theme professional workbench: project overview and navigation](assets/screenshots/2026-10-31/en/workbench-light.png) |
 | Project content, assistant conversation and common settings in one view. | Open editors, inspect project status, and build or run from the overview. |
 | **Mod Element editing** | **Java source** |
-| ![Light-theme Mod Element editor: element list and block properties](assets/screenshots/2026-10-24/en/elements-light.png) | ![Light-theme Java source editor](assets/screenshots/2026-10-24/en/source-light.png) |
+| ![Light-theme Mod Element editor: element list and block properties](assets/screenshots/2026-10-31/en/elements-light.png) | ![Light-theme Java source editor](assets/screenshots/2026-10-31/en/source-light.png) |
 | Browse elements and edit their fields in the inspector. | Browse, search and edit manual files; generated files carry a read-only label. |
 | **Python workbench** | **Relationships** |
-| ![Light-theme Python workbench: built-in script, console and current context](assets/screenshots/2026-10-24/en/python-light.png) | ![Light-theme workspace relationship graph](assets/screenshots/2026-10-24/en/relations-light.png) |
+| ![Light-theme Python workbench: built-in script, console and current context](assets/screenshots/2026-10-31/en/python-light.png) | ![Light-theme workspace relationship graph](assets/screenshots/2026-10-31/en/relations-light.png) |
 | Script editor, console and current workspace context. | Browse, search and locate workspace elements and assets by category. |
 
-Captured on 2026-10-24 from this checkout's light-theme browser preview with bundled Copper Trails example data. [Source and capture instructions](assets/screenshots/README.md)
+Captured on 2026-10-31 from the 0.1.19 Notebook interface's light-theme browser preview with bundled Copper Trails example data; not native desktop screenshots. [Source and capture instructions](assets/screenshots/README.md)
 
 ## What you can do
 
