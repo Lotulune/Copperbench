@@ -23,9 +23,9 @@ Start in [Simple creation](docs/user/simple-creation.en.md) for a guided convers
 
 Copperbench is a desktop workbench built on MCreator, with Fabric and NeoForge support. Start a block in the visual editor, extend behavior in manual Java, then let an external Agent inspect the same workspace, repair a build and return a reviewable artifact through a local session. Revisions, source hashes and generated/manual ownership protect the handoff between these steps.
 
-**Current stable releases: Windows 0.1.18 and Linux 0.1.18.** This release adds static model and element previews, the professional Agent workflow, and fixes for Blockbench responsiveness and saved-model synchronization. See [current downloads](docs/releases/current.md) for packages and verification records.
+**Current stable releases: Windows 0.1.19 and Linux 0.1.19.** This release introduces the Notebook interface, keeps professional Agent approvals visible, shares CLI permission guidance between both workbenches, and fixes backend transaction and workspace-event ordering. See [current downloads](docs/releases/current.md) for packages and verification records.
 
-Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.18](docs/testing/maintenance-release-0.1.18.md) and [Linux 0.1.18](docs/testing/linux-publication-0.1.18.md).
+Source identity, package hashes and verification scope are recorded separately for [Windows 0.1.19](docs/testing/maintenance-release-0.1.19.md) and [Linux 0.1.19](docs/testing/linux-publication-0.1.19.md).
 
 <a id="getting-started"></a>
 
@@ -33,10 +33,10 @@ Source identity, package hashes and verification scope are recorded separately f
 
 | Platform | Current release | Packages | Guide |
 | --- | --- | --- | --- |
-| Windows 11 x64 | [0.1.18](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.18) | EXE · Portable ZIP · MSIX · In-app update components | [Quick start](docs/user/getting-started.en.md) |
-| Ubuntu 24.04 LTS x86_64 | [0.1.18](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.18-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz · In-app update components | [Linux installation](docs/user/linux-installation.en.md) |
+| Windows 11 x64 | [0.1.19](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.19) | EXE · Portable ZIP · MSIX · In-app update components | [Quick start](docs/user/getting-started.en.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.19](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.19-linux-stable) | Graphical Setup.tar.gz · Debian .deb · Portable .tar.gz · In-app update components | [Linux installation](docs/user/linux-installation.en.md) |
 
-Release notes: [Windows 0.1.18](docs/releases/v0.1.18.md) · [Linux 0.1.18](docs/releases/v0.1.18-linux.md). For later updates, choose **Check for updates** in **Help & about**.
+Release notes: [Windows 0.1.19](docs/releases/v0.1.19.md) · [Linux 0.1.19](docs/releases/v0.1.19-linux.md). For later updates, choose **Check for updates** in **Help & about**.
 
 1. Download your platform's package and verify it against the attached checksum manifest.
 2. Choose **New creation** in **Simple creation**, or switch to **Professional** for the manual editing tutorial. Choose a loader, Minecraft version and a new workspace directory.

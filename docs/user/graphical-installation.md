@@ -4,9 +4,9 @@
 
 This page describes Copperbench's bilingual offline graphical installer. Choose your platform's version and check its package-specific verification in [current downloads](../releases/current.md).
 
-0.1.18 安装包的发布与验证见 [Windows 记录](../testing/maintenance-release-0.1.18.md)和 [Linux 记录](../testing/linux-publication-0.1.18.md)。
+0.1.19 安装包的发布与验证见 [Windows 记录](../testing/maintenance-release-0.1.19.md)和 [Linux 记录](../testing/linux-publication-0.1.19.md)。
 
-For the 0.1.18 installers, see the [Windows publication](../testing/maintenance-release-0.1.18.md) and [Linux publication](../testing/linux-publication-0.1.18.md) records.
+For the 0.1.19 installers, see the [Windows publication](../testing/maintenance-release-0.1.19.md) and [Linux publication](../testing/linux-publication-0.1.19.md) records.
 
 ## 简体中文
 
