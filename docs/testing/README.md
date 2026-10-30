@@ -15,6 +15,8 @@
 
 测试源码位于 [Java](../../src/test/)、[UI](../../ui-shell/e2e/)、[UI-Core](../../ui-core/tests/)、[脚本](../../scripts/tests/)和 [SDK](../../sdk/python/)。
 
+0.1.19 的源码验证与发布进度见[发布记录](maintenance-release-0.1.19.md)。
+
 0.1.18 的发布与验证见 [Windows 记录](maintenance-release-0.1.18.md)、[Linux 记录](linux-publication-0.1.18.md)和[图形安装器验收](installed-release-0.1.18.md)。
 
 ## 保留记录与历史
