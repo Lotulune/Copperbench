@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-linux-immutable-candidate",
+  "status": "development-not-certified",
+  "formalSupportClaim": false,
+  "exactBinaryPromotionEligible": false,
+  "candidateId": "sha256:088650890e4ac7d1f5a42669f63b2b04a0c2cc1336da97f507825aa55235cd57",
+  "productId": "dev.copperbench.studio",
+  "productVersion": "0.1.19",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "primaryDesktopSession": "GNOME Wayland",
+    "compatibilityDesktopSession": "GNOME on Xorg"
+  },
+  "source": {
+    "commit": "a6851b3b16a071a922c833d66b3e7ae99008b58f",
+    "ref": "refs/heads/main",
+    "workflowRunId": "41025635804",
+    "workflowRunAttempt": "1"
+  },
+  "assets": {
+    "portable": {
+      "role": "portable",
+      "name": "Copperbench 0.1.19 Linux x86_64.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1114310353,
+      "sha256": "936db85bcb361d75460aa95cf6e87f957a0aec8fb60076653a622fd8e2008ef5"
+    },
+    "deb": {
+      "role": "deb",
+      "name": "copperbench_0.1.19_amd64.deb",
+      "mediaType": "application/vnd.debian.binary-package",
+      "size": 1031363732,
+      "sha256": "af40c52ada059be26e1b56f86c5cbedd8ce641ee7cf7552d4790c13ece53e93e"
+    },
+    "sbom": {
+      "role": "sbom",
+      "name": "copperbench-linux.spdx.json",
+      "mediaType": "application/spdx+json",
+      "size": 5676497,
+      "sha256": "a044354f155dab6c99e2d3b5cf6c8dad420ed037edb96cf1ed08e3c8ed0f3036"
+    },
+    "manifest": {
+      "role": "manifest",
+      "name": "linux-candidate-manifest.json",
+      "mediaType": "application/json",
+      "size": 6708,
+      "sha256": "5c1655f8cc968ec7535dff123b7262d88a83cf5a0cd59adde4416d995d25d382"
+    },
+    "setup": {
+      "role": "setup",
+      "name": "Copperbench 0.1.19 Linux x86_64 Setup.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 1117293947,
+      "sha256": "d71214cf321ae72298ccf8513c28c232aff8951ca413f7bd924783c3372e6d19"
+    },
+    "update0": {
+      "role": "update0",
+      "name": "copperbench-update-linux-x64-application.zip",
+      "mediaType": "application/zip",
+      "size": 24615275,
+      "sha256": "01c0649467f6193990cb356246da776e287aa0b1dc33962c74df6406e327ea5c"
+    },
+    "update1": {
+      "role": "update1",
+      "name": "copperbench-update-linux-x64-gradle-8.8-bin.zip",
+      "mediaType": "application/zip",
+      "size": 138068016,
+      "sha256": "6c441ca22e52b1c7d1a7227b0644bb8edc2e31ff9c4e3d314ce89df51553f868"
+    },
+    "update2": {
+      "role": "update2",
+      "name": "copperbench-update-linux-x64-gradle-9.6.0-bin.zip",
+      "mediaType": "application/zip",
+      "size": 140757737,
+      "sha256": "69fb5b5bf8a76969b13e782ab1fd48a53dc108e9d2895b9799dff9a31e42339e"
+    },
+    "update3": {
+      "role": "update3",
+      "name": "copperbench-update-linux-x64-gradle-9.6.1-bin.zip",
+      "mediaType": "application/zip",
+      "size": 140759308,
+      "sha256": "1084357d04fa49bda034238242ed9f4f678b40f8fe53e374e97286d359214f24"
+    },
+    "update4": {
+      "role": "update4",
+      "name": "copperbench-update-linux-x64-gradle-9.7.0-bin.zip",
+      "mediaType": "application/zip",
+      "size": 150386410,
+      "sha256": "8df29973eb34ea207d3820d88349a774b92dbf89e6995fb38b56ab12bd78a7dd"
+    },
+    "update5": {
+      "role": "update5",
+      "name": "copperbench-update-linux-x64-jdk.zip",
+      "mediaType": "application/zip",
+      "size": 325235938,
+      "sha256": "3658eb3be4f0e0a9d4b7e1a8c3dc37795b6e24cffb36ba6b7238936f8af4efe3"
+    },
+    "update6": {
+      "role": "update6",
+      "name": "copperbench-update-linux-x64-jdk21.zip",
+      "mediaType": "application/zip",
+      "size": 150325720,
+      "sha256": "24009fdb64d0ee7c084556705eb5ade730423bac2d2ee64ed6a67f959d685d8d"
+    },
+    "update7": {
+      "role": "update7",
+      "name": "copperbench-update-linux-x64-libraries.zip",
+      "mediaType": "application/zip",
+      "size": 45429171,
+      "sha256": "3fa7d7b24f0f8058797a3ef3ebfd5c6039e4195a068b493b502627c280f18775"
+    },
+    "update8": {
+      "role": "update8",
+      "name": "copperbench-update-linux-x64.properties",
+      "mediaType": "text/plain",
+      "size": 866409,
+      "sha256": "4c02a8927ed1dcea99771cae9a14ac789c23cbd0dd7a37171f2babeb181969ce"
+    }
+  }
+}

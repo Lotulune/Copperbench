@@ -2,32 +2,32 @@
   "schemaVersion": "1.0",
   "kind": "linux-release-authorization",
   "status": "approved",
-  "releaseTag": "v0.1.18-linux-stable",
+  "releaseTag": "v0.1.19-linux-stable",
   "releaseEligible": true,
   "formalSupportClaim": false,
-  "candidateId": "sha256:a2754654513b0c48717c31cccbd90742913a5cdb01cd6e072eee6cf4f03d571c",
-  "candidateSourceCommit": "28b912e94b7bf271e91bafeaef7a02daf1abde98",
-  "candidateWorkflowRunId": "39956381252",
-  "debSha256": "fca5a3706d279a02f78e3c12c78dde8dbceb3c9c61c810f720ebb4b5a90e16fa",
-  "portableSha256": "c1c1c0496b9257ab36ef8d986b665bde0157918ccb49f0778f088da468001874",
-  "validationReportPath": "docs/testing/maintenance-linux-0.1.18.md",
-  "validationReportSha256": "2a7184314cbe3ceda757afed6d35b95052c80237caa7ebe6ae4cf13c920c612d",
-  "acceptancePolicy": "maintenance-ci-0.1.18",
+  "candidateId": "sha256:088650890e4ac7d1f5a42669f63b2b04a0c2cc1336da97f507825aa55235cd57",
+  "candidateSourceCommit": "a6851b3b16a071a922c833d66b3e7ae99008b58f",
+  "candidateWorkflowRunId": "41025635804",
+  "debSha256": "af40c52ada059be26e1b56f86c5cbedd8ce641ee7cf7552d4790c13ece53e93e",
+  "portableSha256": "936db85bcb361d75460aa95cf6e87f957a0aec8fb60076653a622fd8e2008ef5",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.19.md",
+  "validationReportSha256": "ba30dacab34e4847d66e9dc8c80ad58d7cc6c764348de04f17c32cc3626ad7e8",
+  "acceptancePolicy": "maintenance-ci-0.1.19",
   "fullInstalledAcceptance": "not-repeated",
   "maintenanceApproval": {
     "approved": true,
-    "releaseTag": "v0.1.18-linux-stable",
-    "date": "2026-10-23",
-    "scope": "The user requested publishing new installers after the reviewed feature/fix integration. Authorize only this exact main candidate after consumer 39959392189 verified every frozen file, signed provenance and package content. Full installed/player acceptance was not repeated for this authorization; formalSupportClaim remains false. Preserve signed latest-main tags, production review, allowed source delta and complete downloaded-draft comparison."
+    "releaseTag": "v0.1.19-linux-stable",
+    "date": "2026-10-30",
+    "scope": "The user requested publishing new installers after the reviewed Notebook interface and Agent approval integration. Authorize only this exact main candidate after consumer 41029948787 verified every frozen file, signed provenance and package content. Full installed/player acceptance was not repeated for this authorization; formalSupportClaim remains false. Preserve signed latest-main tags, production review, allowed source delta and complete downloaded-draft comparison."
   },
   "candidateCi": {
     "run": {
-      "path": "evidence/maintenance/2026-10-23/linux-0118/candidate-run.json",
-      "sha256": "8fd92bbfe6b2947b0bd58f52b7b89a46e582088de6a2c27958bed9bebcf92126"
+      "path": "evidence/maintenance/2026-10-30/linux-0119/candidate-run.json",
+      "sha256": "9edd92fd557651ce33018eaf7406459b3ef941b257beac805f6b72895b500288"
     },
     "jobs": {
-      "path": "evidence/maintenance/2026-10-23/linux-0118/candidate-jobs.json",
-      "sha256": "703b85d6874e2de2ce9b5a98bf749bc9217934aec88dcfe22b7bb4f18bac2712"
+      "path": "evidence/maintenance/2026-10-30/linux-0119/candidate-jobs.json",
+      "sha256": "f29effd1ee60a900b78b7fc0a7720f0709f76fa9de7f584327b9f544c2060d85"
     }
   }
 }

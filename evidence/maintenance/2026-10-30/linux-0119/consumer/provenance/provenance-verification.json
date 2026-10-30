@@ -1,0 +1,97 @@
+{
+  "status": "passed",
+  "sourceCommit": "a6851b3b16a071a922c833d66b3e7ae99008b58f",
+  "sourceRef": "refs/heads/main",
+  "workflow": "stage15-linux-candidate.yml",
+  "runId": "41025635804",
+  "attempt": "1",
+  "verifiedStatementCount": 1,
+  "files": [
+    {
+      "name": "Copperbench 0.1.19 Linux x86_64 Setup.tar.gz",
+      "size": 1117293947,
+      "sha256": "d71214cf321ae72298ccf8513c28c232aff8951ca413f7bd924783c3372e6d19"
+    },
+    {
+      "name": "Copperbench 0.1.19 Linux x86_64 Setup.tar.gz.build.json",
+      "size": 312,
+      "sha256": "c537e0fca05d08c121be1f35e901d825536a8d6411f9c7b31556635d6dfd6ca1"
+    },
+    {
+      "name": "Copperbench 0.1.19 Linux x86_64.tar.gz",
+      "size": 1114310353,
+      "sha256": "936db85bcb361d75460aa95cf6e87f957a0aec8fb60076653a622fd8e2008ef5"
+    },
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "size": 4295,
+      "sha256": "450ed0dfbcb554e2aafb99ca4fabf2572ae07033f5190a7312b852173b519855"
+    },
+    {
+      "name": "copperbench-linux.spdx.json",
+      "size": 5676497,
+      "sha256": "a044354f155dab6c99e2d3b5cf6c8dad420ed037edb96cf1ed08e3c8ed0f3036"
+    },
+    {
+      "name": "copperbench-update-linux-x64-application.zip",
+      "size": 24615275,
+      "sha256": "01c0649467f6193990cb356246da776e287aa0b1dc33962c74df6406e327ea5c"
+    },
+    {
+      "name": "copperbench-update-linux-x64-gradle-8.8-bin.zip",
+      "size": 138068016,
+      "sha256": "6c441ca22e52b1c7d1a7227b0644bb8edc2e31ff9c4e3d314ce89df51553f868"
+    },
+    {
+      "name": "copperbench-update-linux-x64-gradle-9.6.0-bin.zip",
+      "size": 140757737,
+      "sha256": "69fb5b5bf8a76969b13e782ab1fd48a53dc108e9d2895b9799dff9a31e42339e"
+    },
+    {
+      "name": "copperbench-update-linux-x64-gradle-9.6.1-bin.zip",
+      "size": 140759308,
+      "sha256": "1084357d04fa49bda034238242ed9f4f678b40f8fe53e374e97286d359214f24"
+    },
+    {
+      "name": "copperbench-update-linux-x64-gradle-9.7.0-bin.zip",
+      "size": 150386410,
+      "sha256": "8df29973eb34ea207d3820d88349a774b92dbf89e6995fb38b56ab12bd78a7dd"
+    },
+    {
+      "name": "copperbench-update-linux-x64-jdk.zip",
+      "size": 325235938,
+      "sha256": "3658eb3be4f0e0a9d4b7e1a8c3dc37795b6e24cffb36ba6b7238936f8af4efe3"
+    },
+    {
+      "name": "copperbench-update-linux-x64-jdk21.zip",
+      "size": 150325720,
+      "sha256": "24009fdb64d0ee7c084556705eb5ade730423bac2d2ee64ed6a67f959d685d8d"
+    },
+    {
+      "name": "copperbench-update-linux-x64-libraries.zip",
+      "size": 45429171,
+      "sha256": "3fa7d7b24f0f8058797a3ef3ebfd5c6039e4195a068b493b502627c280f18775"
+    },
+    {
+      "name": "copperbench-update-linux-x64.properties",
+      "size": 866409,
+      "sha256": "4c02a8927ed1dcea99771cae9a14ac789c23cbd0dd7a37171f2babeb181969ce"
+    },
+    {
+      "name": "copperbench_0.1.19_amd64.deb",
+      "size": 1031363732,
+      "sha256": "af40c52ada059be26e1b56f86c5cbedd8ce641ee7cf7552d4790c13ece53e93e"
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "size": 6708,
+      "sha256": "5c1655f8cc968ec7535dff123b7262d88a83cf5a0cd59adde4416d995d25d382"
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "size": 1923,
+      "sha256": "275c70e0e91f4e770b01431c71383edca014273a575671b8936b7a0c9f4b3d58"
+    }
+  ],
+  "scope": "Verified SLSA statement signature using metadata subject; every payload byte digest is covered by that same verified statement."
+}

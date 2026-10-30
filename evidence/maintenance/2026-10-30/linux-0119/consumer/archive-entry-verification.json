@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "archive": "Copperbench 0.1.19 Linux x86_64.tar.gz",
+  "sourceCommit": "a6851b3b16a071a922c833d66b3e7ae99008b58f",
+  "productVersion": "0.1.19",
+  "entries": {
+    "docs/build/development-setup.md": {
+      "entry": "Copperbench0119/docs/build/development-setup.md",
+      "size": 6371,
+      "sha256": "d8bbe79b159e3a4ff1e7f4bfe23bd0d809c2d3f960e4b3698182acf137729a7a"
+    },
+    "docs/releases/current.md": {
+      "entry": "Copperbench0119/docs/releases/current.md",
+      "size": 2381,
+      "sha256": "9ca7e5839bb996228a9347615c59fbf278be4627da712cbbf262f6ff76691e5a"
+    },
+    "docs/user/linux-installation.md": {
+      "entry": "Copperbench0119/docs/user/linux-installation.md",
+      "size": 4918,
+      "sha256": "23ae6781e8180d036379f7f59d5d0d5aa998e94a83100136b864e6b9da442d3b"
+    },
+    "lib/copperbench.jar": {
+      "entry": "Copperbench0119/lib/copperbench.jar",
+      "size": 8833302,
+      "sha256": "cfbdc1ce40bf416fb155a38e2735d22e985df9e978bce1e9f380a1aa3a0ca6c8",
+      "productVersion": "0.1.19",
+      "archiveRequestClassSha256": "04024d0c1363a3a9422148f6a3af9c442c234189bc2a90fcccf0758180a03e65",
+      "dataPackGatewayClassSha256": "13125e8172c5d61af0b08803a4f5fcbd2a5bdd1070b5b6f0d65afdc4ad534d26"
+    },
+    "license/Copperbench UI Dependency Licenses.txt": {
+      "entry": "Copperbench0119/license/Copperbench UI Dependency Licenses.txt",
+      "size": 69123,
+      "sha256": "e0bf667519d677902d6aa3ccde353a79e6bfad80f7bd1c410f98fafa2b1312b5"
+    },
+    "license/Three.js License.txt": {
+      "entry": "Copperbench0119/license/Three.js License.txt",
+      "size": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    },
+    "plugins/generator-1.20.1.zip": {
+      "entry": "Copperbench0119/plugins/generator-1.20.1.zip",
+      "size": 1076574,
+      "sha256": "e36787de48e1d510fcc1fadf3c491652f9f174084f56b89ba85f517f787cfc5b",
+      "sourceEntries": {
+        "datapack-1.20.1/generator.yaml": "525fff7a7b1bb6503a479e68e364ee1f4232bcb54e18334645d0c17cc6397200",
+        "datapack-1.20.1/workspacebase/gradle/wrapper/gradle-wrapper.properties": "fe7efbcfecf51c6f046eeb53d5543e103215db4c160babfc98d6bafef0662e02"
+      }
+    }
+  },
+  "scope": "Selected source-bound documents and UI license notices, packaged application version, legacy fix markers and template bytes; no installed or gameplay acceptance."
+}
