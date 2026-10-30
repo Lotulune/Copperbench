@@ -1,6 +1,15 @@
 import { useState } from 'react';
-import { agentText, type AgentApproval, type AgentApprovalAnswer } from '../bridge/agentBridge';
+import { agentText, type AgentApproval, type AgentApprovalAnswer, type AgentProvider } from '../bridge/agentBridge';
 import { uiText } from '../i18n';
+import { AGENT_PROVIDER_NAMES } from './AgentProviderIcon';
+
+/** CLIs without interactive approval deny operations their own configuration does not allow; both workbenches explain the fix. */
+export function permissionDeniedHint(provider: AgentProvider | undefined, error: string | null | undefined): string | null {
+  if (!provider || (provider.capabilities?.interactivePermission ?? provider.id !== 'antigravity')) return null;
+  if (!/permission|denied|approval|权限|拒绝/i.test(error ?? '')) return null;
+  const name = AGENT_PROVIDER_NAMES[provider.id];
+  return uiText(`请在 ${name} 的配置中允许所需操作，然后重新发送请求。`, `Allow the required operation in ${name} settings, then send your request again.`);
+}
 
 function PermissionDetail({ detail }: { detail: string }) {
   let command: string | undefined, reason: string | undefined, cwd: string | undefined;

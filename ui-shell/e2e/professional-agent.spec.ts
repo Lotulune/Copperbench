@@ -236,6 +236,11 @@ test('professional approval choices have normal button spacing and still return 
   expect(left.height).toBeGreaterThanOrEqual(32); expect(right.x - left.x - left.width).toBeGreaterThanOrEqual(8);
   await expect(page.getByTestId('professional-agent-prompt')).toBeInViewport();
   await page.screenshot({ path: '../output/professional-agent-ui-polish/approval-1366.png', fullPage: true, animations: 'disabled' });
+  const panel = page.getByTestId('professional-agent-panel');
+  await panel.getByRole('tab', { name: '变化与验证' }).click(); await expect(approval).toBeVisible(); await expect(deny).toBeInViewport();
+  await panel.getByRole('button', { name: '收起 Agent 面板' }).click();
+  await expect(page.getByTestId('professional-agent-toggle')).toHaveText('Agent · 等待你的处理');
+  await page.getByTestId('professional-agent-toggle').click();
   await deny.click(); await expect(approval).toHaveCount(0);
   const responses = await calls(page, 'approve'); expect(responses).toHaveLength(1); expect(responses[0].choice).toBe('deny');
 });

@@ -21,7 +21,7 @@ import { AgentProviderSelect } from './AgentProviderSelect';
 import { AgentModelSelect } from './AgentModelSelect';
 import { AgentOptionSelect } from './AgentOptionSelect';
 import { AgentAttachments } from './AgentAttachments';
-import { AgentApprovalPrompt } from './AgentApprovalPrompt';
+import { AgentApprovalPrompt, permissionDeniedHint } from './AgentApprovalPrompt';
 import { AgentMessageBody } from './AgentMessageBody';
 import { AgentSetupDialog, providerStatus } from './AgentSetupDialog';
 import { AgentHistoryDialog } from './AgentHistoryDialog';
@@ -385,7 +385,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
           : snapshot?.state === 'running' ? uiText('正在创作…', 'Working…')
             : snapshot?.state === 'failed' ? uiText('本次任务未完成', 'This task did not complete')
               : providerStatus(providerInfo);
-  const antigravityDenied = effectiveProvider === 'antigravity' && /permission|denied|approval|权限|拒绝/i.test(snapshot?.error ?? agent.error ?? '');
+  const permissionHint = permissionDeniedHint(providerInfo, agent.error || snapshot?.error);
 
   return <div className={`creation-shell${active ? ' is-simple' : ''}`} data-testid="creation-shell" data-active={active}>
     <aside className="creation-sidebar" hidden={!active} data-expanded={mobileNavigationOpen} aria-label={uiText('创作导航', 'Creation navigation')}
@@ -474,7 +474,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
                 <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'detect' })}><RefreshCw size={14} />{uiText('重新检测', 'Check again')}</button>
               </div></div>}
             {(agent.error || snapshot?.error) && <div className="creation-chat-error" role="alert" data-testid="simple-agent-error"><p>{agent.error || agentText(snapshot?.error, snapshot?.errorText)}</p>
-              {antigravityDenied && <p>{uiText('请在 Antigravity 的配置中允许所需操作，然后重新发送请求。', 'Allow the required operation in Antigravity settings, then send your request again.')}</p>}
+              {permissionHint && <p>{permissionHint}</p>}
               <button type="button" disabled={Boolean(agent.pending)} onClick={() => void agent.invoke({ operation: 'status' })}>{uiText('刷新状态', 'Refresh status')}</button>
             </div>}
             {providerInfo?.error && <p className="creation-chat-error" role="alert">{agentText(providerInfo.error, providerInfo.errorText)}</p>}
