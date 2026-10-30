@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "kind": "cloud-candidate-byte-verification",
+  "sourceCommit": "a6851b3b16a071a922c833d66b3e7ae99008b58f",
+  "productVersion": "0.1.19",
+  "candidateRun": "41025635804",
+  "candidateId": "sha256:088650890e4ac7d1f5a42669f63b2b04a0c2cc1336da97f507825aa55235cd57",
+  "verificationRun": "41029948787",
+  "harnessCommit": "a6851b3b16a071a922c833d66b3e7ae99008b58f",
+  "scope": "All downloaded candidate files match the verified signed statement; source-bound documents, packaged version, UI license notices and legacy class/template markers checked; no installed/player acceptance"
+}
