@@ -54,16 +54,16 @@ Windows 安装包未做 Authenticode 签名，首次构建需要联网。Blockbe
 
 | 简洁创作 | 专业工作台 |
 | :---: | :---: |
-| ![亮色简洁创作：作品内容、对话与元素设置](assets/screenshots/2026-10-24/zh-CN/simple-creation-light.png) | ![亮色专业工作台：项目总览与导航](assets/screenshots/2026-10-24/zh-CN/workbench-light.png) |
+| ![亮色简洁创作：作品内容、对话与元素设置](assets/screenshots/2026-10-31/zh-CN/simple-creation-light.png) | ![亮色专业工作台：项目总览与导航](assets/screenshots/2026-10-31/zh-CN/workbench-light.png) |
 | 作品内容、助手对话和常用设置集中在一个界面。 | 从总览进入编辑器，查看项目状态并执行构建与运行。 |
 | **模组元素编辑** | **Java 源码** |
-| ![亮色模组元素编辑器：元素列表与方块属性](assets/screenshots/2026-10-24/zh-CN/elements-light.png) | ![亮色 Java 源码编辑器](assets/screenshots/2026-10-24/zh-CN/source-light.png) |
+| ![亮色模组元素编辑器：元素列表与方块属性](assets/screenshots/2026-10-31/zh-CN/elements-light.png) | ![亮色 Java 源码编辑器](assets/screenshots/2026-10-31/zh-CN/source-light.png) |
 | 浏览元素，在检查器中编辑字段。 | 浏览、搜索和编辑手写文件，生成文件带有只读标识。 |
 | **Python 工作台** | **关系图** |
-| ![亮色 Python 工作台：内置脚本示例、控制台与当前上下文](assets/screenshots/2026-10-24/zh-CN/python-light.png) | ![亮色工作区关系图](assets/screenshots/2026-10-24/zh-CN/relations-light.png) |
+| ![亮色 Python 工作台：内置脚本示例、控制台与当前上下文](assets/screenshots/2026-10-31/zh-CN/python-light.png) | ![亮色工作区关系图](assets/screenshots/2026-10-31/zh-CN/relations-light.png) |
 | 脚本编辑器、控制台和当前工程上下文。 | 按分类浏览、搜索并定位工作区中的元素与资产。 |
 
-2026-10-24 从当前检出的亮色浏览器预览截取，使用内置 Copper Trails 示例数据。[截图来源与复拍方法](assets/screenshots/README.md)
+2026-10-31 从 0.1.19 Notebook 界面的亮色浏览器预览截取，使用内置 Copper Trails 示例数据；并非桌面原生截图。[截图来源与复拍方法](assets/screenshots/README.md)
 
 ## 能做什么
 
