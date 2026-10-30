@@ -53,6 +53,7 @@ details > summary svg { transition: transform var(--dur-base) var(--ease-out); }
 @keyframes overlay-reveal { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sheet-lift { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
 @keyframes menu-reveal { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes menu-settle { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes drawer-rise { from { opacity: 0.4; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 @keyframes notice-in { from { opacity: 0; transform: translateX(18px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -66,6 +67,9 @@ details > summary svg { transition: transform var(--dur-base) var(--ease-out); }
 .workspace-actions-menu[open] > .workspace-actions-popover,
 .compact-run-actions[open] > .compact-run-popover,
 [role="listbox"]:not(.workbench-command-results), [role="menu"] { animation: menu-reveal 180ms var(--ease-out); transform-origin: top right; }
+/* Composer menus may open above or below their trigger against a viewport margin, so they settle in place without travelling past it. */
+.creation-select-menu[role], .creation-provider-listbox[role] { animation: menu-settle 180ms var(--ease-out); transform-origin: center; }
+.creation-select-menu [role="listbox"] { animation: none; }
 .task-drawer { animation: drawer-rise 300ms var(--ease-out); }
 .feedback-notice { animation: notice-in 280ms var(--ease-out); }
 .professional-agent-panel { animation: rise-in 280ms var(--ease-out); }
@@ -91,7 +95,7 @@ details > summary svg { transition: transform var(--dur-base) var(--ease-out); }
 @media (prefers-reduced-motion: reduce) {
   /* Spatial entrances are removed; colour and state changes still read through their short transitions. */
   .modal-overlay, .modal-overlay :is(.modal-card, .workbench-command-palette, [role="dialog"]), .task-drawer, .feedback-notice,
-  .professional-agent-panel, .workspace-actions-popover, .compact-run-popover, [role="listbox"], [role="menu"],
+  .professional-agent-panel, .workspace-actions-popover, .compact-run-popover, [role="listbox"], [role="menu"], .creation-select-menu,
   .workbench-view-content > *, .workbench-persistent-view, .creation-home, .creation-existing-view, .creation-sidebar-content,
   :is(.elements-grid, .asset-card-grid, .hub-recent-list, .hub-source-list, .creation-works, .create-type-grid) > *, .history-point,
   .creation-message, .creation-tool-message, .creation-approval, .creation-working, .nb-mark-draw { animation: none !important; }
