@@ -174,9 +174,9 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 				Path.of("plugins/generator-1.20.1/fabric-1.20.1/templates/item/overrides_model.java.ftl"),
 				Path.of("plugins/generator-1.21.1/fabric-1.21.1/templates/item/overrides_model.java.ftl"),
 				Path.of("plugins/generator-fabric-26.1.2/fabric-26.1.2/templates/item/overrides_model.java.ftl"),
-				Path.of("plugins/generator-fabric-26.2/fabric-26.2/templates/item/overrides_model.java.ftl"),
+				fabric262Template("templates/item/overrides_model.java.ftl"),
 				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/item/overrides_model.java.ftl"),
-				Path.of("plugins/generator-26.2/neoforge-26.2/templates/item/overrides_model.java.ftl"))) {
+				neoforge262Template("templates/item/overrides_model.java.ftl"))) {
 			String source = Files.readString(template);
 			assertTrue(source.contains("property.get(itemStack, level, entity, seed, displayContext) == value"),
 					template.toString());
@@ -268,7 +268,7 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 		for (Path template : List.of(
 				Path.of("plugins/generator-1.21.1/neoforge-1.21.1/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/modbase/mod.java.ftl"),
-				Path.of("plugins/generator-26.2/neoforge-26.2/templates/modbase/mod.java.ftl"))) {
+				neoforge262Template("templates/modbase/mod.java.ftl"))) {
 			String text = Files.readString(template);
 			assertFalse(text.contains("<#if w.hasElementsOfType(\"gui\") || w.hasElementsOfType(\"keybind\")"
 					+ " || w.hasVariables()>"), template.toString());
@@ -281,7 +281,7 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 		for (Path template : List.of(
 				Path.of("plugins/generator-1.21.1/neoforge-1.21.1/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/modbase/mod.java.ftl"),
-				Path.of("plugins/generator-26.2/neoforge-26.2/templates/modbase/mod.java.ftl"))) {
+				neoforge262Template("templates/modbase/mod.java.ftl"))) {
 			String text = Files.readString(template);
 			int registration = text.indexOf("NeoForge.EVENT_BUS.register(this);");
 			assertTrue(registration >= 0, template + " is missing main event-bus registration");
@@ -300,12 +300,61 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 				Path.of("plugins/generator-1.21.1/neoforge-1.21.1/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-fabric-26.1.2/fabric-26.1.2/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/modbase/mod.java.ftl"),
-				Path.of("plugins/generator-fabric-26.2/fabric-26.2/templates/modbase/mod.java.ftl"),
-				Path.of("plugins/generator-26.2/neoforge-26.2/templates/modbase/mod.java.ftl"))) {
+				fabric262Template("templates/modbase/mod.java.ftl"),
+				neoforge262Template("templates/modbase/mod.java.ftl"))) {
 			String text = Files.readString(template);
 			for (String block : List.of("mod constructor", "mod init", "mod methods")) {
 				assertTrue(text.contains("// Start of user code block " + block), template + " missing " + block);
 				assertTrue(text.contains("// End of user code block " + block), template + " missing " + block);
+			}
+		}
+	}
+
+	@Test void minecraft262GeneratorsInheritUnchangedFilesFromTheir261Baseline() throws Exception {
+		assertInheritsBaseline(FABRIC_262, FABRIC_261, "fabric-26.1.2", "generator-fabric-26.1.2");
+		assertInheritsBaseline(NEOFORGE_262, NEOFORGE_261, "neoforge-26.1.2", "generator-26.1.x");
+	}
+
+	private static final Path FABRIC_262 = Path.of("plugins/generator-fabric-26.2/fabric-26.2");
+	private static final Path FABRIC_261 = Path.of("plugins/generator-fabric-26.1.2/fabric-26.1.2");
+	private static final Path NEOFORGE_262 = Path.of("plugins/generator-26.2/neoforge-26.2");
+	private static final Path NEOFORGE_261 = Path.of("plugins/generator-26.1.x/neoforge-26.1.2");
+
+	/** Folders resolved through generator imports. Mappings merge key by key, so each track keeps its own copy. */
+	private static final List<String> IMPORTED_FOLDERS = List.of("templates", "procedures", "triggers", "aitasks",
+			"cmdargs", "utils", "features");
+
+	private static Path fabric262Template(String relative) {
+		return ownOrBaseline(FABRIC_262, FABRIC_261, relative);
+	}
+
+	private static Path neoforge262Template(String relative) {
+		return ownOrBaseline(NEOFORGE_262, NEOFORGE_261, relative);
+	}
+
+	/** Mirrors generator import order: a file in the 26.2 folder wins, otherwise the 26.1.2 baseline is used. */
+	private static Path ownOrBaseline(Path generator, Path baseline, String relative) {
+		Path own = generator.resolve(relative);
+		return Files.isRegularFile(own) ? own : baseline.resolve(relative);
+	}
+
+	private static void assertInheritsBaseline(Path generator, Path baseline, String baselineGenerator,
+			String baselinePlugin) throws Exception {
+		String yaml = Files.readString(generator.resolve("generator.yaml")).replace("\r\n", "\n");
+		assertTrue(yaml.contains("import:\n  - " + baselineGenerator + ":\n    exclude:\n      - mappings\n"),
+				generator + " must import " + baselineGenerator + " first and keep its own mappings");
+		assertTrue(Files.readString(generator.getParent().resolve("plugin.json"))
+				.contains("\"" + baselinePlugin + "\""), generator + " must declare its baseline plugin dependency");
+		for (String folder : IMPORTED_FOLDERS) {
+			Path root = generator.resolve(folder);
+			if (!Files.isDirectory(root))
+				continue;
+			try (var paths = Files.walk(root)) {
+				for (Path own : paths.filter(Files::isRegularFile).toList()) {
+					Path inherited = baseline.resolve(generator.relativize(own));
+					assertFalse(Files.isRegularFile(inherited) && Files.mismatch(own, inherited) == -1,
+							own + " duplicates the imported baseline file and should be removed");
+				}
 			}
 		}
 	}

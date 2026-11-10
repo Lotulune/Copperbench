@@ -4,6 +4,9 @@ buildfileversion: 0.158.0
 subversion: 5
 
 import:
+  - fabric-26.1.2:
+    exclude:
+      - mappings
   - datapack-26.1.x
   - neoforge-26.1.2:
     exclude:
