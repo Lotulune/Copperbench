@@ -2,4 +2,4 @@ These projections were captured from Fabric263ItemTest through the real UI/Core 
 
 `fabric-item-new-editor.json` is the empty `initialValues` creation projection, including stack size 64 and zero fuel/composting defaults. The browser create flow starts with this projection and applies edits through the controls. `fabric-item-editor.json` captures the edited sample and its field contract.
 
-The corresponding `neoforge-item-*` projections come from `NeoForge263ItemTest` through its actual NeoForge 26.3 UI/Core session. The same normalization and empty-creation rules apply.
+The NeoForge projections were captured from `NeoForge263ItemTest` through its actual NeoForge 26.3 UI/Core session, with the same normalization and empty-creation rules. They matched the Fabric captures except for the values listed in `neoforge-overrides.json`, so only those values are stored; `ui-shell/e2e/previewProjection.ts` applies them to the Fabric file.

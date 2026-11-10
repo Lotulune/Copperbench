@@ -1,15 +1,15 @@
 import { test, expect, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { previewProjection } from './previewProjection';
 
 // Core-generated contract and editor projection; only workspace/element identity is normalized.
 const projections = Object.fromEntries(['fabric', 'neoforge'].map(loader => [loader, {
-  editor: JSON.parse(readFileSync(new URL(`../../ui-core/fixtures/extensions/preview-code/${loader}-code-editor.json`, import.meta.url), 'utf8')),
-  newEditor: JSON.parse(readFileSync(new URL(`../../ui-core/fixtures/extensions/preview-code/${loader}-code-new-editor.json`, import.meta.url), 'utf8'))
+  editor: previewProjection('preview-code', loader, 'code-editor'),
+  newEditor: previewProjection('preview-code', loader, 'code-new-editor')
 }]));
 
 async function fixture(page: Page, loader: 'fabric' | 'neoforge') {
   const { editor, newEditor } = projections[loader];
-  const contract = JSON.parse(readFileSync(new URL(`../../ui-core/fixtures/extensions/preview-code/${loader}-code-contract.json`, import.meta.url), 'utf8'));
+  const contract = previewProjection('preview-code', loader, 'code-contract');
   const targetId = `${loader}-26.3`;
   await page.addInitScript(({ editor, newEditor, targetId, loader, contract }) => {
     const corePromise = import('/src/mock/mockBridge.ts').then(({ MockCoreBridge }) => {
