@@ -10,58 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  victim:
-    name: Kill ${{ matrix.victim }} then run a Node action
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        victim: [none, explorer, winlogon, worker-conhost, sysprops]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: "DIAG: snapshot before"
-        shell: pwsh
-        run: pwsh -NoProfile -File ./scripts/ci/diag-runner-state.ps1 -Phase before
-      - name: Kill the candidate victim
-        shell: pwsh
-        env:
-          VICTIM: ${{ matrix.victim }}
-        run: |
-          New-Item -ItemType Directory -Force build/victim | Out-Null
-          Set-Content build/victim/marker.txt $env:VICTIM
-          $worker = Get-Process -Name Runner.Worker | Select-Object -First 1
-          $session = $worker.SessionId
-          Write-Host "Runner.Worker pid=$($worker.Id) session=$session"
-          $targets = switch ($env:VICTIM) {
-            'none' { @() }
-            'explorer' { @(Get-CimInstance Win32_Process -Filter "Name = 'explorer.exe'") }
-            'winlogon' { @(Get-CimInstance Win32_Process -Filter "Name = 'winlogon.exe'") }
-            'sysprops' { @(Get-CimInstance Win32_Process -Filter "Name = 'SystemPropertiesPerformance.exe'") }
-            'worker-conhost' { @(Get-CimInstance Win32_Process -Filter "Name = 'conhost.exe' AND ParentProcessId = $($worker.Id)") }
-          }
-          foreach ($target in $targets) {
-            Write-Host "KILLING $($target.Name) pid=$($target.ProcessId) ppid=$($target.ParentProcessId) session=$($target.SessionId)"
-            Stop-Process -Id $target.ProcessId -Force -ErrorAction Continue
-          }
-          Write-Host "kill step finished"
-      - name: "DIAG: health after kill"
-        if: ${{ always() }}
-        shell: pwsh
-        run: pwsh -NoProfile -File ./scripts/ci/diag-runner-state.ps1 -Phase health
-      - name: Upload marker with a Node action
-        uses: actions/upload-artifact@v7
-        if: ${{ always() }}
-        with:
-          name: victim-${{ matrix.victim }}
-          path: build/victim/
-          if-no-files-found: error
-          retention-days: 1
-      - name: "DIAG: state after upload"
-        if: ${{ always() }}
-        shell: pwsh
-        run: pwsh -NoProfile -File ./scripts/ci/diag-runner-state.ps1 -Phase post-upload
-
   stress:
     name: Suite stress loop ${{ matrix.attempt }}
     runs-on: windows-latest

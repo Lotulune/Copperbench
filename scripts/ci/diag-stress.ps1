@@ -21,14 +21,15 @@ Write-Host "STRESS baseline watched processes: $($baseline -join ', ')"
 for ($i = 1; $i -le $Iterations; $i++) {
 	$started = Get-Date
 	& pwsh -NoProfile -File (Join-Path $PSScriptRoot '..\verify-mcp-conformance.ps1') -OutputDirectory "build/mcp-conformance-results-$i" 2>&1 |
-		ForEach-Object { if ("$_" -match 'STALE-PARENT|name=GONE|Exception|exited before|did not') { Write-Host "  [$i] $_" } }
+		ForEach-Object { if ("$_" -match 'WARNING|Exception|exited before|did not') { Write-Host "  [$i] $_" } }
 	$suiteExit = $LASTEXITCODE
 	$nodeOutput = & $runnerNode -e "console.log(process.version)" 2>&1
 	$nodeExit = $LASTEXITCODE
+	$leftover = @(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -match 'mcp-conformance-[0-9a-f]{32}|mcp-conformance-proxy|modelcontextprotocol|runMcpConformanceServer' } | ForEach-Object { "$($_.Name)#$($_.ProcessId)" })
 	$now = @(Get-Watched)
 	$missing = @($baseline | Where-Object { $_ -notin $now })
-	Write-Host ("STRESS iteration {0}: suiteExit={1} seconds={2:n0} runnerNodeExit={3} (0x{3:X8}) nodeOutput={4} missingWatched=[{5}]" -f $i, $suiteExit, ((Get-Date) - $started).TotalSeconds, $nodeExit, $nodeOutput, ($missing -join ', '))
-	if ($suiteExit -ne 0 -or $nodeExit -ne 0 -or $missing.Count -gt 0) {
+	Write-Host ("STRESS iteration {0}: suiteExit={1} seconds={2:n0} runnerNodeExit={3} (0x{3:X8}) nodeOutput={4} missingWatched=[{5}] leftover=[{6}]" -f $i, $suiteExit, ((Get-Date) - $started).TotalSeconds, $nodeExit, $nodeOutput, ($missing -join ', '), ($leftover -join ', '))
+	if ($suiteExit -ne 0 -or $nodeExit -ne 0 -or $missing.Count -gt 0 -or $leftover.Count -gt 0) {
 		Write-Host "STRESS anomaly detected at iteration $i; collecting state"
 		& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'diag-runner-state.ps1') -Phase after
 		Get-ChildItem "build/mcp-conformance-results-$i" -Filter '*.log' -ErrorAction SilentlyContinue | Where-Object Length -gt 0 | ForEach-Object {
