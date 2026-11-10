@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-	[Parameter(Mandatory)] [ValidateSet('before', 'after', 'post-upload')] [string] $Phase
+	[Parameter(Mandatory)] [ValidateSet('before', 'after', 'post-upload', 'health')] [string] $Phase
 )
 
 # Temporary runner diagnostics for the MCP conformance job. Never fails the step.
@@ -13,6 +13,7 @@ function Get-ProcessSnapshot {
 			Pid = $_.ProcessId
 			ParentPid = $_.ParentProcessId
 			Name = $_.Name
+			Session = $_.SessionId
 			Created = if ($_.CreationDate) { 't' + $_.CreationDate.ToUniversalTime().ToString('yyyyMMddHHmmssfffffff') } else { '' }
 			CommandLine = $_.CommandLine
 		}
@@ -31,7 +32,7 @@ $current = @(Get-ProcessSnapshot)
 if ($Phase -eq 'before') {
 	$current | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $snapshotPath -Encoding UTF8
 	Write-Section 'process tree (all)'
-	$current | Sort-Object Pid | Format-Table Pid, ParentPid, Name, Created, CommandLine -AutoSize | Out-String -Width 400 | Write-Host
+	$current | Sort-Object Pid | Format-Table Pid, ParentPid, Session, Name, Created, CommandLine -AutoSize | Out-String -Width 400 | Write-Host
 } elseif (Test-Path -LiteralPath $snapshotPath) {
 	$before = @(Get-Content -Raw -LiteralPath $snapshotPath | ConvertFrom-Json)
 	$beforeKeys = @{}
@@ -40,10 +41,10 @@ if ($Phase -eq 'before') {
 	foreach ($p in $current) { $currentKeys["$($p.Pid)|$($p.Created)"] = $p }
 	Write-Section 'processes that DISAPPEARED since before-suite snapshot'
 	$before | Where-Object { -not $currentKeys.ContainsKey("$($_.Pid)|$($_.Created)") } |
-		Format-Table Pid, ParentPid, Name, Created, CommandLine -AutoSize | Out-String -Width 400 | Write-Host
+		Format-Table Pid, ParentPid, Session, Name, Created, CommandLine -AutoSize | Out-String -Width 400 | Write-Host
 	Write-Section 'processes that are NEW since before-suite snapshot'
 	$current | Where-Object { -not $beforeKeys.ContainsKey("$($_.Pid)|$($_.Created)") } |
-		Format-Table Pid, ParentPid, Name, Created, CommandLine -AutoSize | Out-String -Width 400 | Write-Host
+		Format-Table Pid, ParentPid, Session, Name, Created, CommandLine -AutoSize | Out-String -Width 400 | Write-Host
 }
 
 Write-Section 'environment names mentioning NODE / NPM and file-command sizes'
