@@ -13,7 +13,7 @@ function Get-ProcessSnapshot {
 			Pid = $_.ProcessId
 			ParentPid = $_.ParentProcessId
 			Name = $_.Name
-			Created = if ($_.CreationDate) { $_.CreationDate.ToString('o') } else { '' }
+			Created = if ($_.CreationDate) { 't' + $_.CreationDate.ToUniversalTime().ToString('yyyyMMddHHmmssfffffff') } else { '' }
 			CommandLine = $_.CommandLine
 		}
 	}

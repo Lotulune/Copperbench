@@ -11,8 +11,12 @@ permissions:
 
 jobs:
   mcp-conformance:
-    name: MCP conformance (diagnostics)
+    name: MCP conformance (diagnostics ${{ matrix.attempt }})
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        attempt: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -60,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
-          name: windows-filesystem-results
+          name: windows-filesystem-results-${{ matrix.attempt }}
           path: |
             build/test-results/test/
             build/reports/tests/test/
@@ -99,7 +103,7 @@ jobs:
         uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
-          name: mcp-conformance-results
+          name: mcp-conformance-results-${{ matrix.attempt }}
           path: build/mcp-conformance-results/
           if-no-files-found: error
           retention-days: 3
