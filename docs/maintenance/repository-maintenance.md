@@ -4,7 +4,7 @@
 
 | 目录 | 内容 |
 | --- | --- |
-| `src/`、`plugins/`、`vendor/`、`lib/`、`gradle/` | Java 产品、生成器、上游资源与构建输入 |
+| `src/`、`plugins/`、`lib/`、`gradle/` | Java 产品、生成器、上游资源与构建输入 |
 | `ui-shell/`、`ui-core/` | 产品界面与 UI/Core 契约 |
 | `sdk/`、`scripts/`、`tools/` | SDK、构建与验证工具 |
 | `docs/user/`、`docs/ai/`、`docs/build/` | 用户、Agent 与开发指南 |

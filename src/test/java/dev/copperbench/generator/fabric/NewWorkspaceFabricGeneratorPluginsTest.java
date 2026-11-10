@@ -187,8 +187,7 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 	@Test void fabricDoesNotSilentlyMapUnsupportedNeoForgeAttributesToArmor() throws Exception {
 		for (Path mapping : List.of(
 				Path.of("plugins/generator-fabric-26.1.2/fabric-26.1.2/mappings/attributes.yaml"),
-				Path.of("plugins/generator-fabric-26.2/fabric-26.2/mappings/attributes.yaml"),
-				Path.of("vendor/fabric-generator/src/main/resources/fabric-26.1.2/mappings/attributes.yaml"))) {
+				Path.of("plugins/generator-fabric-26.2/fabric-26.2/mappings/attributes.yaml"))) {
 			String source = Files.readString(mapping);
 			assertTrue(source.contains("_unsupported:"), mapping.toString());
 			assertTrue(source.contains("- SWIM_SPEED"), mapping.toString());
