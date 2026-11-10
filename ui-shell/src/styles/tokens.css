@@ -17,6 +17,8 @@
   --bg-card: #1d2129;
   --bg-card-hover: #252a35;
   --bg-input: #191c23;
+  /* Legacy alias: fields authored against the old canvas token follow the input surface. */
+  --bg-canvas: var(--bg-input);
   --bg-hover: rgba(255, 255, 255, 0.05);
   --bg-active: rgba(255, 255, 255, 0.09);
 

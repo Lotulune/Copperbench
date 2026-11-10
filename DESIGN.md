@@ -257,6 +257,17 @@ Corners are restrained and nested: controls 6px, cards and plates 8px, sheets 12
 - **Focus:** pen border plus a 3px pen-tinted ring. Fields embedded in a composite (search boxes, the composer) let the container take the ring.
 - **Error / Disabled:** red ink for invalid help text, which appears only when the value is invalid; disabled fields at 60% opacity.
 
+- **Switch:** on/off preferences are a 36×20px switch built on the native checkbox; a pen fill marks on, and the knob slides 220ms. Checkboxes remain for confirmations and multi-select.
+
+### Dialogs and notices
+- **Dialog:** a sheet with 14px corners; actions sit bottom-right with the primary last, under a 1px rule.
+- **Confirmation:** one short question at 440px, the message in muted ink, no rule above its actions, focus on Cancel.
+- **Notice:** floats under the title bar at the top right (380px), never in layout flow; an error keeps a red edge and its words.
+- **Outcome banner:** a tinted note (sage, sand or rose) with its icon, one line of fact and its next actions on the right.
+
+### Forms that create
+A creating form scrolls inside its view while the confirmation and the primary action stay in a bar at the foot. The bar shows the destination beside its checkbox, and names the first unmet requirement beside the disabled action instead of a standing warning. Choices in a small matrix (game version by loader) are one row per version with the options as 34px chips; the selected chip takes the pen ring.
+
 ### Navigation
 - **Rail:** rows 36px with 6px corners; hover fills with the active tint; the selected row becomes a lifted white sheet with a pen-blue icon and a pen underline drawn under its label.
 - **Mode switch:** a collapsible two-segment track. At rest it shows only the active mode on a white thumb; on hover or focus it widens to both options, and the thumb slides 280ms between "简洁创作" and "专业工作台".
@@ -282,3 +293,5 @@ A sheet with a 1px active border and 16px soft shadow at the foot of the dot-gri
 - **Don't** use coloured side stripes, zero-blur offset shadows, gradient text or glass as decoration.
 - **Don't** reintroduce copper as an interface accent or a brown-black dark theme.
 - **Don't** repeat a name the surrounding chrome already shows (a breadcrumb under its own tab, a view title under the desk title).
+- **Don't** keep a standing hint that restates a field's rule once an error says it, or show one path in two places on the same screen.
+- **Don't** let the simple-creation control reset reach views embedded from the workbench; they keep their own button styles.

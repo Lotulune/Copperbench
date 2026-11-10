@@ -422,7 +422,8 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
           title={`${agentText(session.title, session.titleText)} · ${providerNames[session.provider]}`} onClick={() => { setActiveView('hub'); following.current = true; void agent.invoke({ operation: 'select', conversationId: session.id }); }}>
           <AgentProviderIcon provider={session.provider} size={16} /><span>{agentText(session.title, session.titleText) || uiText('新对话', 'New conversation')}</span>
         </button>)}</div>
-        <button type="button" className="creation-history-manage" data-testid="simple-manage-conversations" disabled={!agent.available || !workspaceId} onClick={() => setHistoryOpen(true)}>{uiText('整理对话记录', 'Manage conversations')}</button>
+        {/* Nothing to manage until a conversation exists or storage needs attention. */}
+        {Boolean(snapshot?.sessions.length || snapshot?.storageBlocked || snapshot?.history && snapshot.history.level !== 'ok') && <button type="button" className="creation-history-manage" data-testid="simple-manage-conversations" disabled={!agent.available || !workspaceId} onClick={() => setHistoryOpen(true)}>{uiText('整理对话记录', 'Manage conversations')}</button>}
         {snapshot?.history && snapshot.history.level !== 'ok' && <p className="creation-capacity-note">{uiText('对话空间需要整理', 'Conversation storage needs attention')}</p>}
       </section>
       <nav className="creation-utilities" aria-label={uiText('作品工具', 'Creation tools')}>
@@ -437,11 +438,13 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
       <header className="creation-header" hidden={!active}>
         <div className="creation-heading">{!home && <button type="button" className="creation-back" onClick={() => setActiveView('hub')} aria-label={uiText('返回创作', 'Back to creation')} data-testid="simple-back"><ArrowLeft size={18} /></button>}
           {/* The sidebar already names the work; the heading names what is open in it. */}
-          <div><h1>{home ? conversationTitle ?? workspace?.name ?? uiText('开始创作', 'Start creating') : workbenchNavigation().find(item => item.id === activeView)?.label}</h1>
+          <div><h1>{home ? conversationTitle ?? workspace?.name ?? uiText('开始创作', 'Start creating')
+            : activeView === 'new-workspace' ? uiText('新建作品', 'New creation') : workbenchNavigation().find(item => item.id === activeView)?.label}</h1>
             {home && conversationTitle && <span className="creation-version">{providerNames[effectiveProvider]}</span>}</div>
         </div>
         <div className="creation-header-actions">
-          <button type="button" className="creation-secondary" data-testid="simple-tour" onClick={openTour}><HelpCircle size={16} />{uiText('快速教程', 'Quick tour')}</button>
+          <button type="button" className="creation-secondary creation-icon-action" data-testid="simple-tour" onClick={openTour}
+            aria-label={uiText('快速教程', 'Quick tour')} title={uiText('快速教程', 'Quick tour')}><HelpCircle size={16} aria-hidden="true" /></button>
           <button type="button" className="creation-primary" data-testid="simple-playtest" disabled={!workspace || playPending || taskRunning || running || hasParameterDrafts}
             onClick={() => void playtest()}><Play size={16} />{uiText('在游戏中试玩', 'Playtest in game')}</button>
           <button type="button" className="creation-secondary" data-testid="simple-export" disabled={!workspace || running || taskRunning} onClick={openDelivery}><FileArchive size={16} />{uiText('导出', 'Export')}</button>
