@@ -1,0 +1,109 @@
+name: Diagnose MCP conformance runner failure
+
+# Temporary diagnostics; this file exists only on diag/** branches.
+on:
+  push:
+    branches:
+      - "diag/**"
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-conformance:
+    name: MCP conformance (diagnostics)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Python for Windows SDK tests
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Set up JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - name: Install UI shell dependencies
+        working-directory: ui-shell
+        run: npm ci
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Test filesystem boundaries and native accessibility on Windows
+        shell: pwsh
+        run: >-
+          .\gradlew.bat --no-daemon --no-build-cache test
+          --tests dev.copperbench.agent.*
+          --tests dev.copperbench.core.workspace.WorkspaceFilesTest
+          --tests dev.copperbench.core.application.PreviewAccessTest
+          --tests dev.copperbench.core.workspace.mcreator.VersionCopyExecutionTest
+          --tests dev.copperbench.shell.Stage9NativeJcefAccessibilityTest
+          --tests dev.copperbench.shell.Stage10NativeJcefDiagnosticsBundleTest
+          --tests dev.copperbench.history.LegacyHistoryRuntimeFilesTest
+          --tests dev.copperbench.assets.ResourcePackExportServiceTest
+          --tests dev.copperbench.migration.LoaderMigrationServiceTest
+          --tests dev.copperbench.migration.UpstreamWorkspaceImportServiceTest
+          --tests dev.copperbench.gradle.GradleCachePolicyTest
+          --tests dev.copperbench.gradle.GradleCacheProcessTest
+          --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest
+      - name: Upload Windows filesystem test results
+        uses: actions/upload-artifact@v7
+        if: ${{ always() }}
+        with:
+          name: windows-filesystem-results
+          path: |
+            build/test-results/test/
+            build/reports/tests/test/
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Test NSIS tool setup and partial-cache recovery
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/test-nsis-setup.ps1
+      - name: Build and verify Windows launcher application identity
+        shell: pwsh
+        run: |
+          .\gradlew.bat --no-daemon exportWin64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify-windows-application-identity.py --product-root build/export/win64 --output build/windows-application-identity
+      - name: Verify signed release-source gate
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/tests/verify-release-source.tests.ps1
+      - name: Run Stage 9 clean Windows harness regression tests
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/tests/Stage9CleanWindowsHarness.tests.ps1
+      - name: Verify Stage 15 Linux candidate metadata contract
+        run: node --test scripts/tests/linux-candidate-metadata.tests.mjs
+      - name: Verify protocol evaluation scope and compatible reports
+        run: python -m unittest discover -s scripts/tests -p 'test_eval_contracts.py'
+      - name: "DIAG: snapshot before suite"
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/ci/diag-runner-state.ps1 -Phase before
+      - name: Run MCP conformance suite
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results
+      - name: "DIAG: state after suite"
+        if: ${{ always() }}
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/ci/diag-runner-state.ps1 -Phase after
+      - name: Upload MCP conformance report
+        uses: actions/upload-artifact@v7
+        if: ${{ always() }}
+        with:
+          name: mcp-conformance-results
+          path: build/mcp-conformance-results/
+          if-no-files-found: error
+          retention-days: 3
+      - name: "DIAG: state after upload"
+        if: ${{ always() }}
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/ci/diag-runner-state.ps1 -Phase post-upload

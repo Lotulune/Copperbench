@@ -53,10 +53,15 @@ function Initialize-ConformanceCli {
 }
 
 function Stop-ProcessTree([int] $ProcessId) {
+	$self = Get-CimInstance Win32_Process -Filter "ProcessId = $ProcessId" -ErrorAction SilentlyContinue
+	$selfCreated = if ($self) { $self.CreationDate.ToString('o') } else { 'GONE' }
 	$children = Get-CimInstance Win32_Process -Filter "ParentProcessId = $ProcessId" -ErrorAction SilentlyContinue
 	foreach ($child in $children) {
+		$stale = if (-not $self -or $child.CreationDate -lt $self.CreationDate) { 'STALE-PARENT' } else { 'child' }
+		[Console]::Out.WriteLine("DIAG kill-tree parent=$ProcessId($selfCreated) -> $stale pid=$($child.ProcessId) name=$($child.Name) created=$($child.CreationDate.ToString('o')) cmd=$($child.CommandLine)")
 		Stop-ProcessTree -ProcessId $child.ProcessId
 	}
+	[Console]::Out.WriteLine("DIAG kill pid=$ProcessId name=$(if ($self) { $self.Name } else { 'GONE' }) created=$selfCreated cmd=$(if ($self) { $self.CommandLine })")
 	Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
 }
 
