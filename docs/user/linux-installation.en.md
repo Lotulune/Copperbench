@@ -8,28 +8,28 @@ Open the Release linked from the Linux row in [current downloads](../releases/cu
 
 Use the same release's `linux-candidate-sha256.txt`, candidate metadata, provenance and `LINUX-RELEASE-AUTHORIZATION.json`. Verify against your downloaded version's manifest; the hashes below apply only to their named versions.
 
-The [Linux 0.1.19 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.19-linux-stable) published these hashes, which apply only to that version:
+The [Linux 0.1.20 release](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.20-linux-stable) published these hashes, which apply only to that version:
 
-- `copperbench_0.1.19_amd64.deb`: `af40c52ada059be26e1b56f86c5cbedd8ce641ee7cf7552d4790c13ece53e93e`.
-- `Copperbench.0.1.19.Linux.x86_64.tar.gz`: `936db85bcb361d75460aa95cf6e87f957a0aec8fb60076653a622fd8e2008ef5`.
-- `Copperbench.0.1.19.Linux.x86_64.Setup.tar.gz`: `d71214cf321ae72298ccf8513c28c232aff8951ca413f7bd924783c3372e6d19`.
+- `copperbench_0.1.20_amd64.deb`: `a474240e1978a9f0f610b0dbb1a57b616f67b4449fa8649e6e241e7f7c7e3af9`.
+- `Copperbench.0.1.20.Linux.x86_64.tar.gz`: `52756c3736bb18c4c7089c7c1c203897a2f0e7afc52b9f4c1c0687358b15e889`.
+- `Copperbench.0.1.20.Linux.x86_64.Setup.tar.gz`: `735ff64e7033005a32e194182d148113df8818ae6b795bbca4b5c73288a2e2ed`.
 
 For the graphical wizard, extract `Setup.tar.gz` and run `Install Copperbench`. Follow the [English wizard instructions](graphical-installation.md#english).
 
-The commands below use 0.1.19; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
+The commands below use 0.1.20; for another version, use that Release's filenames and extracted directory. From the download directory, install the Debian package, then start Copperbench from the applications menu or with `copperbench`:
 
 ```sh
-sudo apt install ./copperbench_0.1.19_amd64.deb
+sudo apt install ./copperbench_0.1.20_amd64.deb
 ```
 
-For the 0.1.19 portable package:
+For the 0.1.20 portable package:
 
 ```sh
-tar -xzf Copperbench.0.1.19.Linux.x86_64.tar.gz
-./Copperbench0119/copperbench.sh
+tar -xzf Copperbench.0.1.20.Linux.x86_64.tar.gz
+./Copperbench0120/copperbench.sh
 ```
 
-GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.19 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
+GitHub normalizes spaces in candidate filenames to dots. The original manifest uses `Copperbench 0.1.20 Linux x86_64.tar.gz`; the normalized published filename has the same bytes and SHA-256. A checker using original candidate names needs that original filename.
 
 ## Settings, scope and removal
 
@@ -39,11 +39,11 @@ GNOME automatic login can require unlocking the keyring through the normal syste
 
 Uninstall the Debian package with `sudo apt remove copperbench`; preferences and user workspaces remain. Continue with [Trail Block](first-creation.en.md). If your installed version has no first-launch tour, follow the tutorial's manual Fabric 1.21.1 workspace route.
 
-## 0.1.19 publication and verification
+## 0.1.20 publication and verification
 
-Version 0.1.19 introduces the Notebook interface, keeps professional Agent approvals visible, shares CLI permission guidance between both workbenches and fixes backend transaction and workspace-event ordering. Thirteen candidate gates, the independent consumer, provenance and complete downloaded-draft comparison passed. See the [publication record](../testing/linux-publication-0.1.19.md) for public-package and installation/upgrade/removal checks. Full GNOME/Wayland desktop and player-controlled gameplay certification remain outside this release's new claims; `formalSupportClaim=false`.
+Version 0.1.20 refines the Notebook new-workspace view, settings, dialogs and the views opened from simple creation, and lets composer option menus open below when there is no room above. Thirteen candidate gates, the independent consumer, provenance and complete downloaded-draft comparison passed. See the [publication record](../testing/linux-publication-0.1.20.md) for public-package and installation/upgrade/removal checks. Full GNOME/Wayland desktop and player-controlled gameplay certification remain outside this release's new claims; `formalSupportClaim=false`.
 
-Changes for that version are in the [Linux 0.1.19 notes](../releases/v0.1.19-linux.md); current platform versions remain in [current downloads](../releases/current.md).
+Changes for that version are in the [Linux 0.1.20 notes](../releases/v0.1.20-linux.md); current platform versions remain in [current downloads](../releases/current.md).
 
 ## Historical 0.1.7 package verification
 

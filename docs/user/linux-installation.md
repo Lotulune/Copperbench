@@ -6,30 +6,30 @@
 
 ## 校验与安装
 
-核对同一 Release 附带的 `linux-candidate-sha256.txt`、`LINUX-RELEASE-AUTHORIZATION.json` 及 GitHub 来源证明。以下文件名和哈希对应 0.1.19；其他版本应使用自己的校验清单。
+核对同一 Release 附带的 `linux-candidate-sha256.txt`、`LINUX-RELEASE-AUTHORIZATION.json` 及 GitHub 来源证明。以下文件名和哈希对应 0.1.20；其他版本应使用自己的校验清单。
 
-[Linux 0.1.19](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.19-linux-stable) 的公开文件哈希如下，仅适用于该版本：
+[Linux 0.1.20](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.20-linux-stable) 的公开文件哈希如下，仅适用于该版本：
 
-- `copperbench_0.1.19_amd64.deb`：`af40c52ada059be26e1b56f86c5cbedd8ce641ee7cf7552d4790c13ece53e93e`。
-- `Copperbench.0.1.19.Linux.x86_64.tar.gz`：`936db85bcb361d75460aa95cf6e87f957a0aec8fb60076653a622fd8e2008ef5`。
-- `Copperbench.0.1.19.Linux.x86_64.Setup.tar.gz`：`d71214cf321ae72298ccf8513c28c232aff8951ca413f7bd924783c3372e6d19`。
+- `copperbench_0.1.20_amd64.deb`：`a474240e1978a9f0f610b0dbb1a57b616f67b4449fa8649e6e241e7f7c7e3af9`。
+- `Copperbench.0.1.20.Linux.x86_64.tar.gz`：`52756c3736bb18c4c7089c7c1c203897a2f0e7afc52b9f4c1c0687358b15e889`。
+- `Copperbench.0.1.20.Linux.x86_64.Setup.tar.gz`：`735ff64e7033005a32e194182d148113df8818ae6b795bbca4b5c73288a2e2ed`。
 
 图形安装：解压 Setup 包，运行 `Install Copperbench`，按[双语向导说明](graphical-installation.md)完成安装。
 
-下面以 0.1.19 为例；安装其他版本时使用对应 Release 的文件名与解压目录。在下载文件所在目录执行：
+下面以 0.1.20 为例；安装其他版本时使用对应 Release 的文件名与解压目录。在下载文件所在目录执行：
 
 ```sh
-sudo apt install ./copperbench_0.1.19_amd64.deb
+sudo apt install ./copperbench_0.1.20_amd64.deb
 ```
 
-然后从应用菜单启动 Copperbench，或运行 `copperbench`。0.1.19 便携版解压后运行：
+然后从应用菜单启动 Copperbench，或运行 `copperbench`。0.1.20 便携版解压后运行：
 
 ```sh
-tar -xzf Copperbench.0.1.19.Linux.x86_64.tar.gz
-./Copperbench0119/copperbench.sh
+tar -xzf Copperbench.0.1.20.Linux.x86_64.tar.gz
+./Copperbench0120/copperbench.sh
 ```
 
-GitHub 将候选包文件名中的空格规范化为点；原候选清单仍使用 `Copperbench 0.1.19 Linux x86_64.tar.gz`。两者字节和 SHA-256 相同；使用原候选校验器时，将下载文件保存为清单中的原名。
+GitHub 将候选包文件名中的空格规范化为点；原候选清单仍使用 `Copperbench 0.1.20 Linux x86_64.tar.gz`。两者字节和 SHA-256 相同；使用原候选校验器时，将下载文件保存为清单中的原名。
 
 ## 设置与使用
 
@@ -39,11 +39,11 @@ GNOME 自动登录会话可能需要通过系统提示正常解锁密钥环，JC
 
 Debian 包可用 `sudo apt remove copperbench` 卸载；用户设置和自行选择的工作区保留。继续按[第一件作品](first-creation.md)创作；若该安装版本没有首启引导，可按教程手动新建 Fabric 1.21.1 工作区。
 
-## 0.1.19 发布与验证
+## 0.1.20 发布与验证
 
-0.1.19 换上全新的 Notebook 界面，专业工作台 Agent 的待批准请求保持可见，两个工作台共享 CLI 权限提示，并修复后端事务与工作区事件顺序。13 项候选门禁、独立消费者、来源证明与完整草稿下载比对通过。公开包及安装、升级、卸载的验证范围见[发布记录](../testing/linux-publication-0.1.19.md)。完整 GNOME/Wayland 桌面和玩家操作认证保持原范围，`formalSupportClaim=false`。
+0.1.20 打磨 Notebook 界面的新建工作区、设置与对话框，修复简洁创作中打开的视图的按钮样式，并让 Agent 输入框的选项菜单在上方放不下时向下展开。13 项候选门禁、独立消费者、来源证明与完整草稿下载比对通过。公开包及安装、升级、卸载的验证范围见[发布记录](../testing/linux-publication-0.1.20.md)。完整 GNOME/Wayland 桌面和玩家操作认证保持原范围，`formalSupportClaim=false`。
 
-该版本变更见 [0.1.19 Linux 说明](../releases/v0.1.19-linux.md)；各平台当前版本见[当前下载](../releases/current.md)。
+该版本变更见 [0.1.20 Linux 说明](../releases/v0.1.20-linux.md)；各平台当前版本见[当前下载](../releases/current.md)。
 
 ## 历史 0.1.7 包的核验记录
 
