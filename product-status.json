@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.19",
+    "version": "0.1.20",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -35,17 +35,17 @@
       "limitations": "Exact frozen candidates only. Ubuntu combines separately validated installation/client pairs. Public release, historical gates and eight published generator declarations are unchanged."
     },
     "stableRelease": {
-      "tag": "v0.1.19",
-      "linuxTag": "v0.1.18-linux-stable",
+      "tag": "v0.1.20",
+      "linuxTag": "v0.1.19-linux-stable",
       "status": "ready",
       "linuxStatus": "public-stable",
       "decision": "approved",
-      "decisionDate": "2026-10-30",
-      "scope": "Prepare Windows and Linux 0.1.19 with the Notebook interface redesign, professional-workbench approvals that stay visible, shared CLI permission guidance, and the backend transaction and workspace-event fixes merged after 0.1.18. Public downloads remain 0.1.18 until each platform is verified and published.",
+      "decisionDate": "2026-11-11",
+      "scope": "Prepare Windows and Linux 0.1.20 with the refined new-workspace view, settings switches, narrower dialogs, restored controls in views embedded in simple creation, composer menus that open below when there is no room above, and the repository reductions merged after 0.1.19. Public downloads remain 0.1.19 until each platform is verified and published.",
       "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.19.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.19.md",
-      "previousReleaseState": "evidence/maintenance/2026-10-30/release-0.1.19/previous-release-state.json",
+      "developmentEvidence": "docs/testing/maintenance-release-0.1.20.md",
+      "integrationReport": "docs/testing/maintenance-release-0.1.20.md",
+      "previousReleaseState": "evidence/maintenance/2026-11-11/release-0.1.20/previous-release-state.json",
       "sourceVerification": {
         "requiredCi": {
           "status": "pending"
@@ -53,9 +53,9 @@
         "documentation": {
           "status": "pending"
         },
-        "installedPackageAcceptance": "pending; source browser regressions and a native JCEF interface check of the release source passed",
+        "installedPackageAcceptance": "pending; source browser regressions of the release source passed",
         "fullGameplayAcceptance": "not-repeated; this release changes the desktop interface and no Minecraft gameplay code",
-        "nativeUiEvidence": "docs/testing/maintenance-release-0.1.19.md"
+        "nativeUiEvidence": "docs/testing/maintenance-release-0.1.20.md"
       }
     },
     "linuxMaintenanceRelease": {

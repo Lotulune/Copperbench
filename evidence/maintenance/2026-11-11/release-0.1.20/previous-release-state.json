@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-11-11",
+  "sourceCommit": "9632b323a7fe9728984a5c8fc03920f14e13934f",
+  "product": {
+    "id": "dev.copperbench.studio",
+    "name": "Copperbench",
+    "version": "0.1.19",
+    "stage": 17,
+    "channel": "stable",
+    "targetPlatforms": [
+      "windows-11-x64",
+      "ubuntu-24.04-x86_64"
+    ],
+    "license": "GPL-3.0-only",
+    "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
+    "betaEligible": true
+  },
+  "stableRelease": {
+    "tag": "v0.1.19",
+    "linuxTag": "v0.1.18-linux-stable",
+    "status": "ready",
+    "linuxStatus": "public-stable",
+    "decision": "approved",
+    "decisionDate": "2026-10-30",
+    "scope": "Prepare Windows and Linux 0.1.19 with the Notebook interface redesign, professional-workbench approvals that stay visible, shared CLI permission guidance, and the backend transaction and workspace-event fixes merged after 0.1.18. Public downloads remain 0.1.18 until each platform is verified and published.",
+    "sourcePolicy": "Signed latest-main tags, protected build/promotion workflows, source provenance and exact asset hashes remain required. Historical gates keep their original source and binary scope.",
+    "developmentEvidence": "docs/testing/maintenance-release-0.1.19.md",
+    "integrationReport": "docs/testing/maintenance-release-0.1.19.md",
+    "previousReleaseState": "evidence/maintenance/2026-10-30/release-0.1.19/previous-release-state.json",
+    "sourceVerification": {
+      "requiredCi": {
+        "status": "pending"
+      },
+      "documentation": {
+        "status": "pending"
+      },
+      "installedPackageAcceptance": "pending; source browser regressions and a native JCEF interface check of the release source passed",
+      "fullGameplayAcceptance": "not-repeated; this release changes the desktop interface and no Minecraft gameplay code",
+      "nativeUiEvidence": "docs/testing/maintenance-release-0.1.19.md"
+    }
+  },
+  "publicWindowsTag": "v0.1.19",
+  "publicLinuxTag": "v0.1.19-linux-stable"
+}
