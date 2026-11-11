@@ -13,15 +13,15 @@
 | **预览与协商边界** | 26.3 需显式预览；editor schema 1.1、字段发现、doctor、生成预检和版本复制仍按各自合同与授权范围使用 | [编辑器](ai/editor-schema.md) · [版本复制](ai/version-copy-upgrade.md) · [Agent](ai/getting-started.md) |
 | **包级验收边界** | 最终包安装／升级／卸载、GNOME Wayland/Xorg、Blockbench 往返、偏好迁移、玩家玩法和同世界重开按各包记录确认；旧性能和缓存结论保留原范围 | [平台验证范围](releases/current.md) |
 
-## 0.1.19 发布快照
+## 0.1.20 发布快照
 
-Windows 与 Linux **0.1.19** 已公开，下载链接与核验见[当前下载](releases/current.md)。两平台二进制源码为 `a6851b3b16a071a922c833d66b3e7ae99008b58f`；Linux 签名发布标签指向 `de5049224dfaa5b39438e059fd2fce2aa8b61555`。
+Windows 与 Linux **0.1.20** 已公开，下载链接与核验见[当前下载](releases/current.md)。两平台二进制源码为 `5e1ab97f0a10ebf2792e2622ad0d563f8b4ffc29`；Linux 签名发布标签指向 `bfb0375420965f133a10c66d5f002bfd4938ad07`。
 
 | 层次 | 范围 | 入口与证据 |
 | --- | --- | --- |
-| **0.1.19 更新** | Notebook 界面改版、专业工作台 Agent 待批准请求常驻、共享 CLI 权限提示、后端事务与工作区事件顺序修复 | [Windows 变更](releases/v0.1.19.md) · [Linux 变更](releases/v0.1.19-linux.md) |
-| **发布验证** | Windows 公开资产与更新组件核验；Linux 候选、独立消费者、签名授权及完整草稿比对 | [Windows 记录](testing/maintenance-release-0.1.19.md) · [Linux 记录](testing/linux-publication-0.1.19.md) |
-| **验证范围** | 源码浏览器回归、原生 JCEF 界面检查、发布校验和云端安装验收分别记录；完整桌面与玩家认证未扩展，Linux `formalSupportClaim=false` | [包级验收](testing/installed-release-0.1.19.md) · [Linux 固定授权](testing/maintenance-linux-0.1.19.md) |
+| **0.1.20 更新** | 新建工作区、设置与对话框打磨，简洁创作内嵌视图按钮修复，Agent 选项菜单向下展开 | [Windows 变更](releases/v0.1.20.md) · [Linux 变更](releases/v0.1.20-linux.md) |
+| **发布验证** | Windows 公开资产与更新组件核验；Linux 候选、独立消费者、签名授权及完整草稿比对 | [Windows 记录](testing/maintenance-release-0.1.20.md) · [Linux 记录](testing/linux-publication-0.1.20.md) |
+| **验证范围** | 源码浏览器回归、发布校验和云端安装验收分别记录，改动的产品界面未在原生 JCEF 窗口中复查；完整桌面与玩家认证未扩展，Linux `formalSupportClaim=false` | [包级验收](testing/installed-release-0.1.20.md) · [Linux 固定授权](testing/maintenance-linux-0.1.20.md) |
 
 ## 支持范围
 
