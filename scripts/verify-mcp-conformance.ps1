@@ -48,16 +48,23 @@ function Initialize-ConformanceCli {
 			throw "Conformance CLI preparation failed (exit $($process.ExitCode)). See $stdoutPath and $stderrPath"
 		}
 	} finally {
-		if (-not $process.HasExited) { Stop-ProcessTree -ProcessId $process.Id }
+		if (-not $process.HasExited) { Stop-ProcessTree -Process $process }
 	}
 }
 
-function Stop-ProcessTree([int] $ProcessId) {
-	$children = Get-CimInstance Win32_Process -Filter "ParentProcessId = $ProcessId" -ErrorAction SilentlyContinue
-	foreach ($child in $children) {
-		Stop-ProcessTree -ProcessId $child.ProcessId
+function Stop-ProcessTree([Diagnostics.Process] $Process) {
+	# Do not select descendants by Win32_Process.ParentProcessId alone. Windows
+	# keeps that id after the parent exits and later reuses it, so a suite process
+	# that receives the id of the long-exited smss.exe appears to own csrss.exe,
+	# wininit.exe or winlogon.exe; killing those leaves every later step of the
+	# job failing with 0xC0000142. Process.Kill($true) holds a handle to each
+	# process it inspects and accepts a child only if it started after its parent.
+	try {
+		$Process.Kill($true)
+		[void] $Process.WaitForExit(10000)
+	} catch {
+		Write-Warning "Could not stop the process tree of $($Process.Id): $($_.Exception.Message)"
 	}
-	Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
 }
 
 function Invoke-ConformanceScenario([string] $Scenario) {
@@ -108,12 +115,12 @@ function Invoke-ConformanceScenario([string] $Scenario) {
 		# libuv on Windows. The report is authoritative, so do not wait for the CLI
 		# process after checks.json is durable; reclaim its process tree instead.
 		if (-not $process.HasExited) {
-			Stop-ProcessTree -ProcessId $process.Id
+			Stop-ProcessTree -Process $process
 		}
 		return $checksPath
 	} finally {
 		if (-not $process.HasExited) {
-			Stop-ProcessTree -ProcessId $process.Id
+			Stop-ProcessTree -Process $process
 		}
 	}
 }
@@ -187,8 +194,8 @@ try {
 	[IO.File]::WriteAllText((Join-Path $outputPath 'summary.json'),
 		($result | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
 } finally {
-	if ($proxyProcess) { Stop-ProcessTree -ProcessId $proxyProcess.Id }
-	if ($gradleProcess) { Stop-ProcessTree -ProcessId $gradleProcess.Id }
+	if ($proxyProcess) { Stop-ProcessTree -Process $proxyProcess }
+	if ($gradleProcess) { Stop-ProcessTree -Process $gradleProcess }
 	if (Test-Path -LiteralPath $runDirectory) {
 		Get-ChildItem -LiteralPath $runDirectory -File -Filter '*.log' -ErrorAction SilentlyContinue |
 			Copy-Item -Destination $outputPath -Force
