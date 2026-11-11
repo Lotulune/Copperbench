@@ -4,9 +4,11 @@ import { X } from 'lucide-react';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { uiText } from '../i18n';
 
-export function Dialog({ open, title, children, footer, onClose, testId, initialFocus }: {
+export function Dialog({ open, title, children, footer, onClose, testId, initialFocus, compact = false }: {
   open: boolean; title: string; children: ReactNode; footer: ReactNode;
   onClose: (() => void) | null; testId?: string; initialFocus?: () => HTMLElement | null;
+  /** A short question with one decision: narrower, with no rule above the actions. */
+  compact?: boolean;
 }) {
   const titleId = useId();
   const ref = useDialogA11y(open, onClose);
@@ -18,7 +20,7 @@ export function Dialog({ open, title, children, footer, onClose, testId, initial
   }, [open]);
   if (!open) return null;
   return createPortal(<div className="modal-overlay">
-    <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} className="modal-card" data-testid={testId}>
+    <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} className={compact ? 'modal-card modal-card-compact' : 'modal-card'} data-testid={testId}>
       <div className="modal-header"><h2 id={titleId}>{title}</h2>
         {onClose && <button type="button" aria-label={uiText('关闭', 'Close')} onClick={onClose}><X size={16} aria-hidden="true" /></button>}
       </div>
@@ -33,7 +35,7 @@ export function ConfirmDialog({ open, title, children, confirmLabel, onConfirm, 
   onConfirm: () => void; onCancel: () => void; danger?: boolean; testId?: string; confirmTestId?: string;
 }) {
   const cancel = useRef<HTMLButtonElement>(null);
-  return <Dialog open={open} title={title} onClose={onCancel} testId={testId} initialFocus={() => cancel.current}
+  return <Dialog open={open} title={title} onClose={onCancel} testId={testId} initialFocus={() => cancel.current} compact
     footer={<>
       <button ref={cancel} type="button" className="btn-secondary" onClick={onCancel}>{uiText('取消', 'Cancel')}</button>
       <button type="button" className={danger ? 'btn-danger' : 'btn-primary'} onClick={onConfirm} data-testid={confirmTestId}>{confirmLabel}</button>

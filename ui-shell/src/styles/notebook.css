@@ -108,13 +108,41 @@ details > summary::-webkit-details-marker { display: none; }
 .workspace-actions-popover > button, .compact-run-action { border-radius: var(--radius-sm); }
 .workspace-actions-popover > button:hover:not(:disabled), .compact-run-action:hover { background: var(--bg-hover); color: var(--text-main); }
 
-.feedback-notices { top: 58px; right: 18px; gap: 10px; }
+/* A confirmation is one short question: narrower, the message in muted ink, no rule above its actions. */
+.modal-card-compact { max-width: 440px; }
+.modal-card-compact .modal-body { padding-bottom: 12px; color: var(--text-muted); font-size: 13.5px; line-height: 1.65; }
+.modal-card-compact .modal-body > p { margin: 0; }
+.modal-card-compact .modal-footer { border-top: 0; padding-top: 8px; }
+.open-workspace-dialog { max-width: 480px; }
+/* The form wraps body and footer, which stay the card's own flex children. */
+.open-workspace-form { display: contents; }
+.open-workspace-dialog .modal-body { gap: 8px; }
+.open-workspace-dialog label { font-size: 12.5px; font-weight: 600; }
+.open-workspace-row { display: flex; gap: 8px; min-width: 0; }
+.open-workspace-row input { flex: 1; min-width: 0; }
+.open-workspace-row .btn-secondary { flex-shrink: 0; }
+.open-workspace-message { margin: 2px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--text-muted); overflow-wrap: anywhere; }
+.open-workspace-message.is-error { color: var(--badge-red); }
+
+/* Notices float under the title bar and never take layout space. */
+.feedback-notices {
+  position: fixed; top: 58px; right: 18px; z-index: 1100; display: flex; flex-direction: column; gap: 10px;
+  width: min(380px, calc(100vw - 36px)); pointer-events: none;
+}
 .feedback-notice {
-  border: 0; border-radius: var(--radius-md); padding: 12px 14px; background: var(--sheet);
+  pointer-events: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: start; gap: 6px 10px;
+  border: 0; border-radius: var(--radius-md); padding: 12px 12px 12px 14px; background: var(--sheet);
   box-shadow: 0 0 0 1px var(--sheet-edge), var(--shadow-md);
 }
-.feedback-notice.error { border-left: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--badge-red) 40%, transparent), var(--shadow-md); }
-.feedback-notice > button:last-child { border-radius: var(--radius-sm); }
+.feedback-notice > p { margin: 0; padding-top: 3px; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.feedback-notice > details { grid-column: 1 / -1; grid-row: 2; font-size: 12px; color: var(--text-muted); overflow-wrap: anywhere; }
+.feedback-notice > details > summary { width: fit-content; cursor: pointer; color: var(--text-sub); }
+.feedback-notice > details p { margin: 6px 0 0; }
+.feedback-notice > .btn-secondary { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
+.feedback-notice.error { box-shadow: 0 0 0 1px color-mix(in srgb, var(--badge-red) 40%, transparent), var(--shadow-md); }
+.feedback-notice.error > p { color: var(--badge-red); }
+.feedback-notice > button:last-child { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--radius-sm); color: var(--text-sub); }
+.feedback-notice > button:last-child:hover { background: var(--bg-hover); color: var(--text-main); }
 
 /* ---------- Title bar on the desk ---------- */
 .titlebar {
@@ -451,13 +479,3 @@ button.status-item:hover { background: var(--bg-active); color: var(--text-main)
 :is([data-testid="gui-workbench"], [data-testid="overlay-workbench"]) aside > div:first-child > div:first-child { flex: 1 1 100% !important; display: flex; align-items: baseline; gap: 6px; }
 :is([data-testid="gui-workbench"], [data-testid="overlay-workbench"]) aside > div:first-child select { flex: 1 1 0; min-width: 0; width: auto; max-width: none !important; }
 [data-testid="overlay-workbench"] main > div { flex-wrap: wrap; row-gap: 8px; }
-
-/* ---------- New workspace ---------- */
-.new-workspace-card { border: 0 !important; border-radius: var(--radius-lg) !important; background: var(--bg-panel) !important; }
-.new-workspace-generator-options > button {
-  border: 0 !important; border-radius: var(--radius-md) !important; background: var(--sheet) !important;
-  box-shadow: 0 0 0 1px var(--border-subtle); transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-press) var(--ease-out);
-}
-.new-workspace-generator-options > button:hover:not(:disabled) { box-shadow: 0 0 0 1px var(--border-active), var(--shadow-md); }
-.new-workspace-generator-options > button[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--accent-copper), 0 8px 18px -12px var(--accent-copper-glow); }
-.new-workspace-selected-generator { border: 0 !important; background: var(--sheet) !important; }

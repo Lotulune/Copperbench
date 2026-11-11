@@ -8,14 +8,15 @@
 .creation-existing-view { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
 .creation-shell.is-simple button, .creation-shell.is-simple input, .creation-shell.is-simple select, .creation-shell.is-simple textarea { font: inherit; }
 .creation-shell.is-simple { font-size: 13px; line-height: 1.5; color: var(--text-main); background: transparent; }
-.creation-shell.is-simple button {
+/* The creation chrome resets its own controls; views embedded from the workbench keep theirs. */
+.creation-shell.is-simple button:where(:not(.creation-existing-view *)) {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border: 1px solid transparent;
   border-radius: var(--radius-sm); background: transparent; color: inherit;
 }
-.creation-shell.is-simple button:hover:not(:disabled) { background: var(--bg-active); }
-.creation-shell.is-simple button:disabled { opacity: .45; cursor: not-allowed; }
+.creation-shell.is-simple button:where(:not(.creation-existing-view *)):hover:not(:disabled) { background: var(--bg-active); }
+.creation-shell.is-simple button:where(:not(.creation-existing-view *)):disabled { opacity: .45; cursor: not-allowed; }
 .creation-shell.is-simple :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
-.creation-shell.is-simple :is(input, select, textarea) { color: var(--text-main); background-color: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); }
+.creation-shell.is-simple :is(input, select, textarea):where(:not(.creation-existing-view *)) { color: var(--text-main); background-color: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); }
 .creation-shell.is-simple :is(h1, h2, h3, p) { margin: 0; }
 .creation-shell.is-simple .creation-primary {
   min-height: 36px; padding: 7px 16px; border-radius: var(--radius-sm); background: var(--accent-copper-fill); color: var(--text-on-accent); font-weight: 600;
@@ -79,6 +80,7 @@
 .creation-heading h1 { font-size: 21px; line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .creation-version { display: block; margin-top: 2px; color: var(--text-sub); font-size: 11.5px; }
 .creation-header-actions { display: flex; flex-shrink: 0; gap: 8px; }
+.creation-shell.is-simple .creation-header-actions .creation-icon-action { width: 36px; padding: 0; color: var(--text-muted); }
 .creation-shell.is-simple .creation-back { width: 34px; height: 34px; flex-shrink: 0; color: var(--text-muted); }
 .creation-home { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(280px, 34%); gap: 12px; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
 .creation-home:not([hidden]) { animation: rise-in var(--dur-view) var(--ease-out) both; }

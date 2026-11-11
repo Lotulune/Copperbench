@@ -45,7 +45,7 @@
 .delivery-facts dt { color: var(--text-muted); }
 .delivery-facts dd { margin: 0; overflow-wrap: anywhere; }
 .delivery-output-label { display: block; margin: 14px 0 6px; }
-.delivery-dialog input:not([type="checkbox"]), .open-workspace-dialog input { width: 100%; padding: 9px 11px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-canvas); color: var(--text-main); }
+.delivery-dialog input:not([type="checkbox"]) { width: 100%; }
 .delivery-dialog input[aria-invalid="true"] { border-color: var(--badge-red); }
 .first-creation-buttons { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
 .delivery-export-actions { align-items: center; }
