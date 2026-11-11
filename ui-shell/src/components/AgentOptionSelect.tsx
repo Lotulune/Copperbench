@@ -3,14 +3,15 @@ import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import './agentModels.css';
 
-/** Compact turn settings share the model picker's presentation and open above the composer. */
+/** Compact turn settings share the model picker's presentation. They open above the composer, or below it when only that side has room. */
 export function AgentOptionSelect<T extends string>({ value, options, icon, label, describedBy, title, testId, disabled, active, onChange }: {
   value: T; options: readonly { value: T; label: string }[]; icon: ReactNode; label: string; describedBy?: string; title?: string;
   testId: string; disabled: boolean; active: boolean; onChange: (value: T) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
-  const [position, setPosition] = useState({ left: 0, bottom: 0, width: 240, maxHeight: 350 });
+  const [position, setPosition] = useState<{ left: number; width: number; maxHeight: number; top: number | 'auto'; bottom: number | 'auto' }>(
+    { left: 0, top: 'auto', bottom: 0, width: 240, maxHeight: 350 });
   const trigger = useRef<HTMLButtonElement>(null), menu = useRef<HTMLDivElement>(null);
   const id = useId();
   const optionId = (index: number) => `${id}-option-${index}`;
@@ -33,8 +34,14 @@ export function AgentOptionSelect<T extends string>({ value, options, icon, labe
       const bounds = trigger.current?.getBoundingClientRect();
       if (!bounds) return;
       const width = Math.min(240, window.innerWidth - 24);
-      setPosition({ left: Math.max(12, Math.min(bounds.left, window.innerWidth - width - 12)),
-        bottom: window.innerHeight - bounds.top + 6, width, maxHeight: Math.max(0, Math.min(350, bounds.top - 18)) });
+      const above = bounds.top - 18, below = window.innerHeight - bounds.bottom - 18;
+      // scrollHeight is the untruncated list, so a clamped menu does not talk itself into staying clamped.
+      const needed = Math.min(350, (menu.current?.scrollHeight ?? 0) + 2);
+      // Above is the home position; a scrolled compact conversation can leave room only below.
+      const showAbove = above >= needed || above >= below;
+      setPosition({ left: Math.max(12, Math.min(bounds.left, window.innerWidth - width - 12)), width,
+        maxHeight: Math.max(0, Math.min(350, showAbove ? above : below)),
+        top: showAbove ? 'auto' : bounds.bottom + 6, bottom: showAbove ? window.innerHeight - bounds.top + 6 : 'auto' });
     };
     const outside = (event: PointerEvent) => {
       if (event.target instanceof Node && !trigger.current?.contains(event.target) && !menu.current?.contains(event.target)) setOpen(false);

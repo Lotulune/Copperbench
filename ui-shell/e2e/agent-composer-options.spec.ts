@@ -333,7 +333,10 @@ for (const dark of [false, true]) for (const compact of [false, true])
   test(`turn menus match the model picker and open upward (${dark ? 'dark' : 'light'}, ${compact ? 'compact' : 'desktop'})`, async ({ page }, info) => {
     if (compact) await page.setViewportSize({ width: 500, height: 600 });
     await fixture(page, { dark, english: compact });
-    const triggerStyle = (element: HTMLElement | SVGElement) => {
+    // Clicking a still-rising view makes Playwright retry with other scroll alignments, which scrolls the compact
+    // conversation and leaves no room above the composer; start once the entrance has settled.
+    await page.waitForFunction(() => document.getAnimations().every(animation => (animation as CSSAnimation).animationName !== 'rise-in' || animation.playState !== 'running'));
+    const triggerStyle =(element: HTMLElement | SVGElement) => {
       const style = getComputedStyle(element);
       return [style.fontSize, style.color, style.padding, style.borderRadius, style.minHeight];
     };
@@ -372,6 +375,36 @@ for (const dark of [false, true]) for (const compact of [false, true])
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
+
+test('a turn menu opens below the composer when a scrolled compact conversation leaves no room above', async ({ page }) => {
+  await page.setViewportSize({ width: 500, height: 600 });
+  await fixture(page, { english: true });
+  await page.waitForFunction(() => document.getAnimations().every(animation => (animation as CSSAnimation).animationName !== 'rise-in' || animation.playState !== 'running'));
+  const trigger = page.getByTestId('simple-effort');
+  // Bring the trigger just under the top edge of the scrolling conversation area.
+  await trigger.evaluate(element => {
+    const home = element.closest('.creation-home')!;
+    home.scrollTop += element.getBoundingClientRect().top - home.getBoundingClientRect().top - 8;
+  });
+  await trigger.click();
+  const menu = page.getByRole('listbox', { name: 'Reasoning effort', exact: true });
+  await expect(menu).toBeVisible();
+  const bounds = (await menu.boundingBox())!, anchor = (await trigger.boundingBox())!, viewport = page.viewportSize()!;
+  // The five efforts need more room than is left above the trigger.
+  expect(anchor.y - 18).toBeLessThan(bounds.height);
+  expect(bounds.y).toBeGreaterThanOrEqual(anchor.y + anchor.height + 5);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height - 12);
+  for (const option of await menu.getByRole('option').all()) await expect(option).toBeInViewport();
+  await trigger.press('Escape'); await expect(trigger).toBeFocused();
+  // A short menu that still fits above keeps its home position.
+  const permission = page.getByTestId('simple-permission');
+  await permission.click();
+  const short = page.getByRole('listbox', { name: 'Execution permissions', exact: true });
+  await expect(short).toBeVisible();
+  const shortBounds = (await short.boundingBox())!, shortAnchor = (await permission.boundingBox())!;
+  expect(shortBounds.y).toBeGreaterThanOrEqual(12);
+  expect(shortBounds.y + shortBounds.height).toBeLessThanOrEqual(shortAnchor.y - 5);
+});
 
 test('desktop file button uses the native selector and keeps attachments before send', async ({ page }) => {
   await fixture(page, { nativeSelection: true });

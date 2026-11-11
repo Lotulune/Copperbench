@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ExternalLink, RotateCcw, Search, Settings2 } from 'lucide-react';
+import { Check, ChevronDown, ExternalLink, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { windowBridge, type AppPreferenceEntry, type AppPreferencesSnapshot, type AppPreferenceValue } from '../bridge/windowBridge';
 import { uiText, useUiLocale } from '../i18n/locale';
 import { renderUiMessage, type UiMessage } from '../i18n';
@@ -10,6 +10,8 @@ import './settings.css';
 type Section = AppPreferenceEntry['section'];
 type Draft = Record<string, AppPreferenceValue>;
 const nativeEditorKeys = new Set(['ide.editorTheme', 'ide.autocomplete', 'ide.autocompleteMode', 'ide.autocompleteDocWindow', 'ide.errorInfoEnable']);
+// Workspace preferences that only affect native editors share one group label instead of a tag on every row.
+const nativeWorkspaceKeys = new Set(['ui.remindOfUnsavedChanges', 'ui.autoReloadTabs', 'ui.expandSectionsByDefault']);
 
 function labels(): Record<string, [string, string]> {
   return {
@@ -133,13 +135,13 @@ export function SettingsView() {
   const visible = (snapshot?.entries ?? []).filter(entry => query
     ? [entry.key, ...(copy[entry.key] ?? [])].join(' ').toLocaleLowerCase().includes(query)
     : entry.section === section);
-  function renderEntry(entry: AppPreferenceEntry) {
+  function renderEntry(entry: AppPreferenceEntry, tagged = false) {
     const [name, hint] = copy[entry.key] ?? [entry.key, ''];
     const id = `preference-${entry.key}`;
     const fieldValid = valid(entry, draft[entry.key]);
     return <div className="settings-row" key={entry.key}>
       <div className="settings-label"><label htmlFor={id} title={hint}>{name}</label>
-        {['ui.remindOfUnsavedChanges', 'ui.autoReloadTabs', 'ui.expandSectionsByDefault'].includes(entry.key) && <small>{uiText('原生编辑器', 'Native editors')}</small>}
+        {tagged && nativeWorkspaceKeys.has(entry.key) && <small>{uiText('原生编辑器', 'Native editors')}</small>}
         <p id={`${id}-hint`} className={entry.key === 'gradle.offline' ? undefined : 'settings-sr-only'}>{hint}</p>
         {!fieldValid && <p className="settings-field-error" id={`${id}-error`}>{uiText('请输入范围内的整数', 'Enter a whole number in range')}: {entry.min}–{entry.max}</p>}</div>
       {entry.type === 'boolean' ? <input id={id} type="checkbox" checked={draft[entry.key] === true}
@@ -163,7 +165,7 @@ export function SettingsView() {
       {error && <div className="settings-error" role="alert"><strong>{uiText('无法完成操作', 'Could not complete the operation')}</strong><p>{renderUiMessage(error)}</p>
         {windowBridge.canManagePreferences && !current.saveUnknown && dirty && <span>{uiText('当前更改尚未保存。重新加载将丢弃页面中的更改。', 'Your changes have not been saved. Reloading discards changes on this page.')}</span>}</div>}
       {!windowBridge.canManagePreferences ? <div className="settings-unavailable">
-        <Settings2 size={24} /><h2>{uiText('应用设置不可用', 'Application settings are unavailable')}</h2>
+        <Settings2 size={22} aria-hidden="true" /><h2>{uiText('应用设置不可用', 'Application settings are unavailable')}</h2>
         <p>{uiText('请在桌面应用中打开。', 'Open this page in the desktop app.')}</p>
       </div> : <>
         <div className="settings-controls">
@@ -183,15 +185,21 @@ export function SettingsView() {
           : <form onSubmit={event => { event.preventDefault(); void save(); }}>
             <fieldset className="settings-fields" disabled={saving}>
               <legend className="settings-sr-only">{query ? uiText('搜索结果', 'Search results') : groups.find(([key]) => key === section)?.[1]}</legend>
-              {visible.filter(entry => query || !nativeEditorKeys.has(entry.key)).map(renderEntry)}
+              {/* Search results mix categories, so each row names its group; a category lists the group once. */}
+              {query ? visible.map(entry => renderEntry(entry, true))
+                : visible.filter(entry => !nativeEditorKeys.has(entry.key) && !nativeWorkspaceKeys.has(entry.key)).map(entry => renderEntry(entry))}
+              {!query && visible.some(entry => nativeWorkspaceKeys.has(entry.key)) && <div className="settings-group" role="group" aria-labelledby="settings-native-editors">
+                <h2 id="settings-native-editors">{uiText('原生编辑器', 'Native editors')}</h2>
+                {visible.filter(entry => nativeWorkspaceKeys.has(entry.key)).map(entry => renderEntry(entry))}
+              </div>}
               {!query && section === 'ide' && visible.some(entry => nativeEditorKeys.has(entry.key)) && <details className="settings-advanced-editor">
-                <summary>{uiText('原生代码编辑器', 'Native code editor')}</summary>
-                {visible.filter(entry => nativeEditorKeys.has(entry.key)).map(renderEntry)}
+                <summary>{uiText('原生代码编辑器', 'Native code editor')}<ChevronDown size={14} aria-hidden="true" /></summary>
+                {visible.filter(entry => nativeEditorKeys.has(entry.key)).map(entry => renderEntry(entry))}
               </details>}
               {visible.length === 0 && <p className="settings-empty">{query ? uiText('没有匹配的设置。', 'No matching settings.') : uiText('此分类暂无可用设置。', 'No settings are available in this category.')}</p>}
             </fieldset>
             <footer className="settings-savebar">
-              <span role="status">{saving ? uiText('正在保存…', 'Saving…') : current.saveUnknown ? uiText('保存结果待确认', 'Save result unknown') : dirty ? uiText('有未保存的更改', 'Unsaved changes')
+              <span role="status" className={dirty && !saving && !current.saveUnknown ? 'is-dirty' : undefined}>{saving ? uiText('正在保存…', 'Saving…') : current.saveUnknown ? uiText('保存结果待确认', 'Save result unknown') : dirty ? uiText('有未保存的更改', 'Unsaved changes')
                 : saved ? <><Check size={14} />{uiText('设置已保存', 'Settings saved')}</> : null}</span>
               <div><button type="button" className="settings-secondary" disabled={loading || saving} onClick={() => { void reload(); }}>
                 <RotateCcw size={14} />{dirty ? uiText('放弃并重新加载', 'Discard & reload') : uiText('重新加载', 'Reload')}</button>
