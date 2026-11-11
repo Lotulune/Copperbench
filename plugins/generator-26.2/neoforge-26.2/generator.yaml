@@ -3,6 +3,9 @@ status: experimental
 buildfileversion: 26.2.0.63
 
 import:
+  - neoforge-26.1.2:
+    exclude:
+      - mappings
   - datapack-26.1.x
 
 # gradle task definitions

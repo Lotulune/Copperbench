@@ -7,6 +7,7 @@
     "version": "0.1.0",
     "description": "Copperbench 将内置 Goldorion Fabric 26.1.2 生成器重定向至 Minecraft 26.2",
     "author": "Copperbench contributors",
-    "credits": "Based on Fabric-Generator-MCreator by Goldorion, NerdyPuzzle and Spectrall"
+    "credits": "Based on Fabric-Generator-MCreator by Goldorion, NerdyPuzzle and Spectrall",
+    "dependencies": ["generator-26.1.x", "generator-fabric-26.1.2"]
   }
 }

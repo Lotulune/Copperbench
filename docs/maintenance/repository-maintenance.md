@@ -4,7 +4,7 @@
 
 | 目录 | 内容 |
 | --- | --- |
-| `src/`、`plugins/`、`vendor/`、`lib/`、`gradle/` | Java 产品、生成器、上游资源与构建输入 |
+| `src/`、`plugins/`、`lib/`、`gradle/` | Java 产品、生成器、上游资源与构建输入 |
 | `ui-shell/`、`ui-core/` | 产品界面与 UI/Core 契约 |
 | `sdk/`、`scripts/`、`tools/` | SDK、构建与验证工具 |
 | `docs/user/`、`docs/ai/`、`docs/build/` | 用户、Agent 与开发指南 |
@@ -31,6 +31,8 @@
 - [旧 PRD](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/PRD.md) · [后续阶段需求](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/PRD-NEXT.md)
 - [阶段路线](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/roadmap) · [交接稿](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/handoffs) · [调研](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/research)
 - [历史测试记录](https://github.com/Lotulune/Copperbench/tree/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/testing) · [旧维护记录](https://github.com/Lotulune/Copperbench/blob/07924ba11a00a8bab9ac1b720bbc01867f27a506/docs/maintenance/repository-maintenance.md)
+
+`evidence/stage16/` 中未被文档、测试、脚本或发布清单引用的截图、世界存档、压缩包和 200 KB 以上的转储（228 个文件，约 62 MB）保留在提交 [`ad0bc231810c`](https://github.com/Lotulune/Copperbench/tree/ad0bc231810c536c21374c36ac476defcab11ea0/evidence/stage16)；该目录的清单、回执和日志仍在当前目录，清单中的哈希可用于核对取回的文件。
 
 本地查看原文：
 

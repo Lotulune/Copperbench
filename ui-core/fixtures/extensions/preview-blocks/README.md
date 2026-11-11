@@ -1,1 +1,3 @@
 These fixtures are actual Fabric263BlockTest UI/Core projections. Only element identity and timestamp were normalized; source-management paths were omitted. The new-editor projection comes from empty initialValues. The existing specialized block field contract is retained; browser transport is mocked and runtime evidence is separate.
+
+The NeoForge projections were captured the same way from `NeoForge263BlockTest`. They matched the Fabric captures except for the values listed in `neoforge-overrides.json`, so only those values are stored; `ui-shell/e2e/previewProjection.ts` applies them to the Fabric file.

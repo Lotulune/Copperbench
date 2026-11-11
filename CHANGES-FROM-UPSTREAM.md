@@ -30,6 +30,8 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Removed the in-tree `vendor/fabric-generator` copy of the Fabric generator source. The bundled `plugins/generator-fabric-26.1.2` plugin is the maintained copy, the upstream tag and commit stay pinned in `compliance/baseline.lock.json`, and `scripts/stage0/Test-Baseline.ps1` checks a separately cloned upstream checkout against that lock.
+- Resolve unchanged Fabric and NeoForge 26.2 templates, procedures and triggers from their 26.1.2 generators through generator imports instead of shipping byte-identical copies; each 26.2 plugin keeps its own mappings, definitions, variables, workspace base and changed templates, and declares its baseline plugin as a dependency.
 - Keep task entry points bound to their selected task, preserve log reading position with readable follow-status text, and confine keyboard navigation to the topmost product-shell dialog with focus restored after pairing completes.
 - Refresh authorization, history, function snippets and workspace group labels with the selected locale while retaining user drafts and selections.
 - Add explicit desktop MCP pairing recovery with old-credential/session invalidation, unchanged permissions and task ownership, and complete-configuration copying only after token reveal.

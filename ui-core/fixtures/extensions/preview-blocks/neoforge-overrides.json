@@ -1,0 +1,15 @@
+{
+  "block-contract": {
+    "fieldContract.generatorId": "neoforge-26.3"
+  },
+  "block-editor": {
+    "element.id": "22222222-2222-4222-8222-222222222217",
+    "configuration.sourceFingerprint": "cb0249ebd5b58898bdcb09e434ac8dad47e007d0a1ff931f08deff585f3132a4",
+    "fieldContract.generatorId": "neoforge-26.3"
+  },
+  "block-new-editor": {
+    "element.id": "22222222-2222-4222-8222-222222222217",
+    "configuration.sourceFingerprint": "3ad96e4e3632b8a1d9b3dafa632e64bebfbbbb08969a37d63d05660640b441e5",
+    "fieldContract.generatorId": "neoforge-26.3"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "recipe-contract": {
+    "generatorId": "neoforge-26.3"
+  },
+  "recipe-editor": {
+    "fieldContract.generatorId": "neoforge-26.3"
+  },
+  "recipe-new-editor": {
+    "fieldContract.generatorId": "neoforge-26.3"
+  }
+}

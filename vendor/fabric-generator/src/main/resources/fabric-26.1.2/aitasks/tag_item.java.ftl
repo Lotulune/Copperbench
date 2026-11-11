@@ -1,1 +1,0 @@
-(itemstack -> itemstack.is(TagKey.create(Registries.ITEM, Identifier.parse("${field$tag?lower_case}"))))

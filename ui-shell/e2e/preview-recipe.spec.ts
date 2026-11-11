@@ -1,10 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { previewProjection } from './previewProjection';
 
 // Core-generated contract and editor projection; only workspace/element identity is normalized.
 const projections = Object.fromEntries(['fabric', 'neoforge'].map(loader => [loader, {
-  editor: JSON.parse(readFileSync(new URL(`../../ui-core/fixtures/extensions/preview-recipes/${loader}-recipe-editor.json`, import.meta.url), 'utf8')),
-  newEditor: JSON.parse(readFileSync(new URL(`../../ui-core/fixtures/extensions/preview-recipes/${loader}-recipe-new-editor.json`, import.meta.url), 'utf8'))
+  editor: previewProjection('preview-recipes', loader, 'recipe-editor'),
+  newEditor: previewProjection('preview-recipes', loader, 'recipe-new-editor')
 }]));
 
 async function fixture(page: Page, loader: 'fabric' | 'neoforge') {
