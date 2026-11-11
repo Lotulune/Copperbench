@@ -1,0 +1,69 @@
+{
+  "status": "merged_with_required_ci_passed",
+  "date": "2026-11-11",
+  "pullRequests": [
+    {
+      "url": "https://github.com/Lotulune/Copperbench/pull/175",
+      "mergeCommit": "1a60a3edea56b8644de612214b99948d3fc866cf"
+    },
+    {
+      "url": "https://github.com/Lotulune/Copperbench/pull/173",
+      "testedCommit": "7552596b0eb2ae5414e9aa5d248f1b7bcc1db6c6",
+      "mergeCommit": "89e0e962483b3f6859aff5127eaebb6f9ee82e86"
+    },
+    {
+      "url": "https://github.com/Lotulune/Copperbench/pull/174",
+      "testedCommit": "6c6f62d9253000b5514aa950c96f9f9fdce9d84b",
+      "mergeCommit": "9632b323a7fe9728984a5c8fc03920f14e13934f"
+    }
+  ],
+  "scope": "Source-candidate verification before 0.1.20 packaging; not installer acceptance.",
+  "checks": {
+    "uiUnit": 81,
+    "uiCore": 50,
+    "productStatus": "passed",
+    "pr174JavaTargeted": {
+      "passed": 72,
+      "skipped": 3,
+      "failed": 0
+    },
+    "pr174PreviewPlaywrightChromium": 23,
+    "nativeJcef": "launcher, first-run prompts and Swing new-workspace dialog rendered and closed normally with an isolated COPPERBENCH_HOME; product-shell views of PR #173 not exercised natively"
+  },
+  "ci": [
+    {
+      "runId": 42963331552,
+      "head": "7552596b0",
+      "jobs": {
+        "Java tests and Javadoc": "success",
+        "UI contract, build, and smoke tests": "success",
+        "MCP conformance": "success"
+      }
+    },
+    {
+      "runId": 42966056970,
+      "head": "6c6f62d92",
+      "jobs": {
+        "Select checks for changed layers": "success",
+        "Java tests and Javadoc": "success",
+        "UI contract, build, and smoke tests": "success",
+        "MCP conformance": "success"
+      }
+    },
+    {
+      "runId": 42966057121,
+      "head": "6c6f62d92",
+      "jobs": {
+        "M1 protocol and adapter contracts": "success",
+        "M1 real Fabric delivery": "success"
+      }
+    },
+    {
+      "runId": 42966057000,
+      "head": "6c6f62d92",
+      "jobs": {
+        "Ubuntu 24.04 package candidate smoke": "failure on attempt 1 (NeoForge 1.21.1 fixture bootstrap timed out after 420 s); re-run requested"
+      }
+    }
+  ]
+}
