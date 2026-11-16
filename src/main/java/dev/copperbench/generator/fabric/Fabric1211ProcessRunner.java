@@ -71,15 +71,7 @@ import java.util.function.Supplier;
 			boolean windows = platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
 			boolean clientRun = isClientRun(arguments);
 
-			String configuredGradle = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
-			List<String> command = new ArrayList<>();
-			if (windows) {
-				command.add("cmd.exe");
-				command.add("/c");
-				command.add(configuredGradle == null || configuredGradle.isBlank() ? "gradlew.bat" : configuredGradle);
-			} else {
-				command.add(configuredGradle == null || configuredGradle.isBlank() ? "./gradlew" : configuredGradle);
-			}
+			List<String> command = wrapperCommand(windows, System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE"));
 			command.add("--no-daemon");
 			var preferences = net.mcreator.preferences.PreferencesManager.PREFERENCES;
 			if (preferences != null && preferences.gradle.offline.get()
@@ -235,6 +227,23 @@ import java.util.function.Supplier;
 			return serverReadyAt != null
 					&& Duration.between(serverReadyAt, now).compareTo(SERVER_STABILITY_WINDOW) >= 0;
 		}
+	}
+
+	/**
+	 * The workspace wrapper is addressed relative to the process directory. A bare {@code gradlew.bat} relies on
+	 * cmd's current-directory search, which {@code NoDefaultCurrentDirectoryInExePath} disables.
+	 */
+	static List<String> wrapperCommand(boolean windows, String configuredGradle) {
+		boolean configured = configuredGradle != null && !configuredGradle.isBlank();
+		List<String> command = new ArrayList<>();
+		if (windows) {
+			command.add("cmd.exe");
+			command.add("/c");
+			command.add(configured ? configuredGradle : ".\\gradlew.bat");
+		} else {
+			command.add(configured ? configuredGradle : "./gradlew");
+		}
+		return command;
 	}
 
 	static boolean isClientRun(List<String> arguments) {

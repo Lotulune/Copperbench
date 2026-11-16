@@ -111,6 +111,7 @@ export const en: Record<string, string> = {
   'field.growapableSpawnType': 'Growable plant type',
   'field.aiPathNodeType': 'AI path node type',
   'field.customDrop': 'Custom drop',
+  'field.dropAmount': 'Drop amount',
   'material.wood': 'Wood',
   'material.stone': 'Stone',
   'material.metal': 'Metal',

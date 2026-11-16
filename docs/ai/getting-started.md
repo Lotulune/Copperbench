@@ -14,6 +14,14 @@
 
 对实际暴露[任务授权与自动验收](./task-authorization-and-acceptance.md)合同的宿主，本机用户可批准目录、操作和期限，Agent 携带该授权使用文件快照、GameTest 宿主和报告。先核对实际工具／环境能力，不将“源码可用”或当前下载版本号当作全部接口已暴露的证明。
 
+## 默认路线：直接写代码，用 Copperbench 验证
+
+默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。结构化元素、Procedure 和模板是可选捷径，适合时再用；写代码之前不需要先读字段契约。
+
+- `list_workspace_files` 或 `read_workspace_file` 结果中 `ownership` 为 `generated` 的文件归生成器所有，不要修改。手写文件可以用自己的工具编辑，也可以经 Core 用 Native `write_file(path, text, expected_sha256=...)` 替换；不传哈希的 `write_file(path, text)` 新建文件，文件已存在时拒绝。经 Core 的写入会先建立恢复点。
+- 纹理、声音和模型用 Native `import_asset(本机文件, 目标相对路径)` 导入：同一用户的宿主为该文件签发导入授权，再走原有的预览、恢复点和引用检查。不支持该授权的旧宿主返回 `NATIVE_OPERATION_UNAVAILABLE`。
+- 先构建，再用 GameTest 证明行为：`prepare_game_tests()` 一次，在 `src/gametest/java` 下编写测试方法，然后 `run_game_tests()` 并等待原任务。构建出的 JAR 不等于玩法验收。
+
 ## 配对与丢失令牌后的恢复
 
 在「工具 → AI 与 MCP」先显示一次令牌，再复制完整配置。单独的「复制 URL」只复制地址，不包含鉴权信息。令牌只交给本机受信任客户端，不写入聊天、仓库或日志。

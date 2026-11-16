@@ -70,6 +70,25 @@ class Fabric1211ProcessRunnerTest {
 		assertTrue(output.contains("OBSERVED_GRADLE_HOME=" + expected.get("GRADLE_USER_HOME")), output.toString());
 	}
 
+	@Test void windowsWrapperIsFoundWhenCmdCurrentDirectoryLookupIsDisabled() throws Exception {
+		org.junit.jupiter.api.Assumptions.assumeTrue(
+				RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS);
+		// Same location as the other process tests: some hosts deny CreateProcess with the JUnit temp directory as cwd.
+		java.nio.file.Path root = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build").toAbsolutePath(), "wrapper-lookup-");
+		java.nio.file.Files.writeString(root.resolve("gradlew.bat"), "@echo off\r\necho OBSERVED_WRAPPER\r\n");
+		List<String> command = new java.util.ArrayList<>(Fabric1211ProcessRunner.wrapperCommand(true, null));
+		ProcessBuilder builder = new ProcessBuilder(command).directory(root.toFile()).redirectErrorStream(true);
+		// Agent shells and some managed environments set this; cmd then ignores the current directory for bare names.
+		builder.environment().put("NoDefaultCurrentDirectoryInExePath", "1");
+		Process process = builder.start();
+		String output = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+		assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+		assertEquals(0, process.exitValue(), output);
+		assertTrue(output.contains("OBSERVED_WRAPPER"), output);
+		assertEquals(List.of("cmd.exe", "/c", "custom.cmd"), Fabric1211ProcessRunner.wrapperCommand(true, "custom.cmd"));
+		assertEquals(List.of("./gradlew"), Fabric1211ProcessRunner.wrapperCommand(false, " "));
+	}
+
 	@Test void recognizesTheObservedWindowsOpenGlDriverFailure() {
 		assertEquals("WINDOWS_OPENGL_INITIALIZATION_FAILED", Fabric1211ProcessRunner.graphicalFailureCode(
 				RuntimePlatform.OperatingSystem.WINDOWS,

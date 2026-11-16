@@ -22,7 +22,8 @@ final class WorkspaceSourceService {
 	static final int MAX_FILE_BYTES = 1024 * 1024;
 	private static final int MAX_FILES = 2000, MAX_VISITED = 10000, MAX_INDEX_BYTES = 16 * 1024 * 1024, MAX_EVIDENCE = 300;
 	private static final Set<String> EXTENSIONS = Set.of("java", "json", "mcmeta", "xml", "properties", "toml", "yaml", "yml", "txt", "md", "gradle", "kts", "vert", "frag", "glsl", "vsh", "fsh", "lang");
-	private static final Set<String> ROOT_FILES = Set.of("build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "mcreator.gradle", "gradle.properties", "README.md", "pack.mcmeta");
+	private static final Set<String> ROOT_FILES = Set.of("build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "mcreator.gradle", "gradle.properties", "README.md", "pack.mcmeta",
+			dev.copperbench.generator.GameTestSupport.CONFIG_FILE);
 	private static final Set<String> EXCLUDED = Set.of("build", "target", "out", "run", "node_modules", "output", "logs", "cache", "caches");
 	private final Path root;
 	private final Map<String, String> ownership;
@@ -65,16 +66,24 @@ final class WorkspaceSourceService {
 		JsonObject description = describe(relative, before.length);
 		if (!description.get("editable").getAsBoolean()) throw failure("WORKSPACE_SOURCE_READ_ONLY", "This source file is read-only; use its owning editor or generator.");
 		if (!sha256(before).equals(expectedSha256)) throw failure("WORKSPACE_SOURCE_CONFLICT", "The file changed on disk. Reload it before saving.");
-		ByteBuffer encoded;
-		try { encoded = StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
-				.onUnmappableCharacter(CodingErrorAction.REPORT).encode(CharBuffer.wrap(content)); }
-		catch (java.nio.charset.CharacterCodingException exception) { throw failure("WORKSPACE_SOURCE_ENCODING", "Source content must be valid UTF-8 text."); }
-		if (encoded.remaining() > MAX_FILE_BYTES) throw failure("WORKSPACE_SOURCE_TOO_LARGE", "Source text exceeds the 1 MiB limit.");
-		byte[] after = new byte[encoded.remaining()]; encoded.get(after);
-		return new Edit(relative, before, after);
+		return new Edit(relative, before, encode(content));
+	}
+
+	/**
+	 * Prepares a new hand-written file. The path follows the same allow-list and generator-ownership rules as edits;
+	 * an existing file is a conflict so that replacing it always goes through a hash-checked read.
+	 */
+	Edit prepareCreate(String relative, String content) throws IOException {
+		if (content.length() > MAX_FILE_BYTES) throw failure("WORKSPACE_SOURCE_TOO_LARGE", "Source text exceeds the 1 MiB limit.");
+		resolveAbsent(relative);
+		JsonObject description = describe(relative, 0);
+		if (!description.get("editable").getAsBoolean()) throw failure("WORKSPACE_SOURCE_READ_ONLY",
+				"This path is owned by the generator or the workspace is read-only; use its owning editor or generator.");
+		return new Edit(relative, null, encode(content));
 	}
 
 	void verify(Edit edit) throws IOException {
+		if (edit.creates()) { resolveAbsent(edit.relativePath()); return; }
 		if (!sha256(readBytes(edit.relativePath())).equals(sha256(edit.before())))
 			throw failure("WORKSPACE_SOURCE_CONFLICT", "The file changed on disk. Reload it before saving.");
 	}
@@ -82,6 +91,7 @@ final class WorkspaceSourceService {
 	/** The callback persists the revision/reloads source-backed projections; failure restores this file only. */
 	void apply(Edit edit, Commit commit) throws Exception {
 		verify(edit);
+		if (edit.creates()) { create(edit, commit); return; }
 		atomicWrite(edit.relativePath(), edit.after(), sha256(edit.before()));
 		try { commit.run(); }
 		catch (Exception exception) {
@@ -89,6 +99,59 @@ final class WorkspaceSourceService {
 			catch (Exception rollback) { exception.addSuppressed(rollback); }
 			throw exception;
 		}
+	}
+
+	private void create(Edit edit, Commit commit) throws Exception {
+		Path target = resolveAbsent(edit.relativePath());
+		List<Path> createdDirectories = new ArrayList<>();
+		boolean written = false;
+		try {
+			List<Path> missing = new ArrayList<>();
+			for (Path directory = target.getParent(); !Files.exists(directory, LinkOption.NOFOLLOW_LINKS); directory = directory.getParent())
+				missing.addFirst(directory);
+			for (Path directory : missing) {
+				// A directory created concurrently is not ours to remove on rollback.
+				try { Files.createDirectory(directory); createdDirectories.add(directory); }
+				catch (FileAlreadyExistsException ignored) { }
+			}
+			// Re-check after creating directories so a link raced into the chain is never followed.
+			resolveAbsent(edit.relativePath());
+			Path temporary = Files.createTempFile(target.getParent(), ".copperbench-source-", ".tmp");
+			try {
+				Files.write(temporary, edit.after());
+				// Without REPLACE_EXISTING the move fails instead of overwriting a concurrently created file.
+				Files.move(temporary, target);
+				written = true;
+			} catch (FileAlreadyExistsException exception) {
+				throw failure("WORKSPACE_SOURCE_CONFLICT", "The file was created on disk during save. Read it before saving.");
+			} finally { Files.deleteIfExists(temporary); }
+			commit.run();
+		} catch (Exception exception) {
+			try { removeCreated(edit, target, written, createdDirectories); }
+			catch (Exception rollback) { exception.addSuppressed(rollback); }
+			throw exception;
+		}
+	}
+
+	private void removeCreated(Edit edit, Path target, boolean written, List<Path> createdDirectories) throws IOException {
+		// Leave a file that someone else changed after the write; only the bytes written here are rolled back.
+		if (written && Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)
+				&& sha256(Files.readAllBytes(target)).equals(sha256(edit.after())))
+			Files.delete(target);
+		for (Path directory : createdDirectories.reversed()) {
+			try { Files.deleteIfExists(directory); }
+			catch (DirectoryNotEmptyException ignored) { return; }
+		}
+	}
+
+	private static byte[] encode(String content) throws SourceFailure {
+		ByteBuffer encoded;
+		try { encoded = StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+				.onUnmappableCharacter(CodingErrorAction.REPORT).encode(CharBuffer.wrap(content)); }
+		catch (java.nio.charset.CharacterCodingException exception) { throw failure("WORKSPACE_SOURCE_ENCODING", "Source content must be valid UTF-8 text."); }
+		if (encoded.remaining() > MAX_FILE_BYTES) throw failure("WORKSPACE_SOURCE_TOO_LARGE", "Source text exceeds the 1 MiB limit.");
+		byte[] after = new byte[encoded.remaining()]; encoded.get(after);
+		return after;
 	}
 
 	private void atomicWrite(String relative, byte[] content, String expected) throws IOException {
@@ -134,6 +197,26 @@ final class WorkspaceSourceService {
 		}
 		if (!Files.isRegularFile(current, LinkOption.NOFOLLOW_LINKS)) throw failure("WORKSPACE_SOURCE_PATH_INVALID", "Select an existing regular source file.");
 		return current;
+	}
+
+	/** Resolves a supported path whose file does not exist; existing ancestors must be real directories inside the root. */
+	private Path resolveAbsent(String relative) throws IOException {
+		if (!allowed(relative)) throw failure("WORKSPACE_SOURCE_PATH_INVALID", "Select a supported workspace-relative source path.");
+		if (Files.isSymbolicLink(root)) throw failure("WORKSPACE_SOURCE_PATH_INVALID", "Symbolic workspace roots are not supported for source access.");
+		Path realRoot = root.toRealPath(), current = realRoot;
+		String[] parts = relative.split("/");
+		for (int index = 0; index < parts.length; index++) {
+			current = current.resolve(parts[index]);
+			if (Files.isSymbolicLink(current)) throw failure("WORKSPACE_SOURCE_PATH_INVALID", "Source access cannot follow symbolic links or junctions.");
+			if (!Files.exists(current, LinkOption.NOFOLLOW_LINKS)) return realRoot.resolve(relative).normalize();
+			if (!current.toRealPath().startsWith(realRoot) || !current.toRealPath().equals(current.toAbsolutePath().normalize()))
+				throw failure("WORKSPACE_SOURCE_PATH_INVALID", "Source access cannot follow symbolic links or junctions.");
+			if (index == parts.length - 1) throw failure("WORKSPACE_SOURCE_CONFLICT",
+					"The file already exists. Read it and pass its sha256 as expectedSha256 to replace it.");
+			if (!Files.isDirectory(current, LinkOption.NOFOLLOW_LINKS))
+				throw failure("WORKSPACE_SOURCE_PATH_INVALID", "A parent of this source path is not a directory.");
+		}
+		throw failure("WORKSPACE_SOURCE_PATH_INVALID", "Select a supported workspace-relative source path.");
 	}
 
 	private byte[] readBytes(String relative) throws IOException {
@@ -315,8 +398,10 @@ final class WorkspaceSourceService {
 		catch (NoSuchAlgorithmException exception) { throw new IllegalStateException(exception); }
 	}
 	private record Inventory(List<String> paths, boolean truncated) {}
+	/** {@code before} is null when the edit creates a new file. */
 	record Edit(String relativePath, byte[] before, byte[] after) {
-		boolean changed() { return !Arrays.equals(before, after); }
+		boolean creates() { return before == null; }
+		boolean changed() { return creates() || !Arrays.equals(before, after); }
 		JsonObject result() { JsonObject result = new JsonObject(); result.addProperty("relativePath", relativePath);
 			result.addProperty("sha256", sha256(after)); result.addProperty("size", after.length); result.addProperty("changed", changed()); return result; }
 	}

@@ -163,6 +163,13 @@ test('workspace source edits require a disk hash, revision and bounded text whil
   update.payload.content = 'class Entry {}';
   update.payload.force = true;
   assert.equal(command(update), false, 'there is no force-overwrite escape hatch');
+  delete update.payload.force;
+  update.payload.createNew = true;
+  assert.equal(command(update), false, 'creating a file cannot also claim a replaced file hash');
+  delete update.payload.expectedSha256;
+  assert.equal(command(update), true, JSON.stringify(command.errors));
+  update.payload.createNew = false;
+  assert.equal(command(update), false, 'createNew=false is not a hash-free replacement');
   assert.equal(query(operationRequest('query', 'read_workspace_file', { relativePath: 'src/main/java/example/Entry.java' })), true);
   assert.equal(query(operationRequest('query', 'read_workspace_file', {})), false);
   assert.equal(query(operationRequest('query', 'list_workspace_files', { limit: 200, offset: 0, search: 'Entry' })), true);

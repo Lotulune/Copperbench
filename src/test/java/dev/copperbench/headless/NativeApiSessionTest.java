@@ -218,6 +218,56 @@ class NativeApiSessionTest {
         assertTrue(output.toString().contains("NATIVE_REQUEST_TOO_LARGE"));
     }
 
+    @Test void nativeHostGrantsALocalFileForTheGuardedAssetImport(@org.junit.jupiter.api.io.TempDir java.nio.file.Path temp)
+            throws Exception {
+        var workspace = java.nio.file.Files.createDirectories(temp.resolve("workspace"));
+        var texture = java.nio.file.Files.write(temp.resolve("ember_wand.png"), new byte[] { 7, 7, 7 });
+        UUID workspaceId = UUID.randomUUID();
+        var store = new RevisionedWorkspaceStore();
+        store.register(new WorkspaceState(workspaceId, "Import", "mod", 0, false, JsonParser.parseString(
+                "{\"id\":\"fabric-1.21.1\",\"loader\":\"fabric\",\"minecraftVersion\":\"1.21.1\",\"state\":\"ready\"}").getAsJsonObject(),
+                new JsonObject(), List.of()));
+        try (var history = dev.copperbench.history.JGitLocalHistoryService.open(workspace, Clock.systemUTC())) {
+            var service = new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID),
+                    dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history, null, ignored -> workspace,
+                    Clock.systemUTC(), UUID::randomUUID);
+            var api = new NativeApiSession(new HeadlessWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE), workspaceId);
+            StringWriter ready = new StringWriter();
+            api.serve(new StringReader(""), new PrintWriter(ready));
+            assertTrue(ready.toString().contains("\"hostOperations\":[\"grant_asset_import_source\"]"), ready.toString());
+
+            JsonObject path = new JsonObject(); path.addProperty("path", texture.toString());
+            var granted = api.dispatch(request("host", "grant_asset_import_source", 0, path.toString())).getAsJsonObject("result");
+            assertEquals("succeeded", granted.get("status").getAsString());
+            assertEquals("ember_wand.png", granted.getAsJsonObject("data").get("fileName").getAsString());
+            JsonObject preview = new JsonObject();
+            preview.addProperty("sourceGrantId", granted.getAsJsonObject("data").get("sourceGrantId").getAsString());
+            preview.addProperty("targetRelativePath", "assets/example/textures/item/ember_wand.png");
+            var plan = api.dispatch(request("query", "preview_asset_import", 0, preview.toString())).getAsJsonObject("result");
+            assertEquals("succeeded", plan.get("status").getAsString(), plan.toString());
+            JsonObject apply = new JsonObject(); apply.addProperty("planToken", plan.getAsJsonObject("data").get("planToken").getAsString());
+            var imported = api.dispatch(request("command", "import_asset", 0, apply.toString())).getAsJsonObject("result");
+            assertEquals("committed", imported.get("status").getAsString(), imported.toString());
+            assertArrayEquals(new byte[] { 7, 7, 7 }, java.nio.file.Files.readAllBytes(
+                    workspace.resolve("assets/example/textures/item/ember_wand.png")));
+
+            path.addProperty("path", "relative/ember_wand.png");
+            assertEquals("ASSET_IMPORT_SOURCE_UNAVAILABLE", api.dispatch(request("host", "grant_asset_import_source", 0, path.toString()))
+                    .getAsJsonObject("error").get("code").getAsString());
+            path.addProperty("path", temp.resolve("missing.png").toString());
+            assertEquals("ASSET_IMPORT_SOURCE_UNAVAILABLE", api.dispatch(request("host", "grant_asset_import_source", 0, path.toString()))
+                    .getAsJsonObject("error").get("code").getAsString());
+            assertEquals("NATIVE_INVALID_REQUEST", api.dispatch(request("host", "read_any_file", 0, path.toString()))
+                    .getAsJsonObject("error").get("code").getAsString());
+            var session = java.nio.file.Files.createDirectories(temp.resolve(".copperbench/python-sessions"))
+                    .resolve("session.json");
+            java.nio.file.Files.writeString(session, "{\"token\":\"not-for-workspaces\"}");
+            path.addProperty("path", session.toString());
+            assertEquals("ASSET_IMPORT_SOURCE_PRIVATE", api.dispatch(request("host", "grant_asset_import_source", 0, path.toString()))
+                    .getAsJsonObject("error").get("code").getAsString());
+        }
+    }
+
     @Test void scriptingContextUsesRealElementIdsWithoutChangingWorkspaceRevision() {
         var api = session(PermissionProfile.WORKSPACE);
         var created = api.dispatch(request("command", "create_mod_element", 0,

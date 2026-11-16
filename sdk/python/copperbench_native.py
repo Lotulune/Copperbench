@@ -124,6 +124,7 @@ class Workspace:
             self.workspace_id = ready["workspaceId"]
             self._task_authorized_operations = frozenset(ready.get("taskAuthorizedOperations", []))
             self.operations = tuple(ready.get('operations', []))
+            self.host_operations = frozenset(ready.get('hostOperations', []))
             self.get_workspace()
             return self
         except BaseException:
@@ -189,6 +190,7 @@ class Workspace:
             self.workspace_id = ready['workspaceId']
             self._task_authorized_operations = frozenset(ready.get('taskAuthorizedOperations', []))
             self.operations = tuple(ready.get('operations', []))
+            self.host_operations = frozenset(ready.get('hostOperations', []))
             self.get_workspace()
             return self
         except BaseException as error:
@@ -505,6 +507,42 @@ class Workspace:
                           mappingSource=mapping_source, search=search, offset=offset, limit=limit)
     def get_workspace_environment(self) -> dict[str, Any]:
         return self.query("get_workspace_environment")
+
+    def read_file(self, relative_path: str) -> dict[str, Any]:
+        """Read a workspace source file; ``data.sha256`` guards a later replacement."""
+        return self.query("read_workspace_file", relativePath=relative_path)
+
+    def write_file(self, relative_path: str, content: str, *, expected_sha256: str | None = None,
+                   expected_revision: int | None = None) -> dict[str, Any]:
+        """Create a hand-written file, or replace one with the sha256 from :meth:`read_file`.
+
+        Without ``expected_sha256`` the file must not exist yet. Generator-owned
+        paths stay read-only either way, and Core takes a recovery point first.
+        """
+        if expected_sha256 is None:
+            return self.command("update_workspace_file", expected_revision=expected_revision,
+                                relativePath=relative_path, content=content, createNew=True)
+        return self.command("update_workspace_file", expected_revision=expected_revision,
+                            relativePath=relative_path, content=content, expectedSha256=expected_sha256)
+
+    def import_asset(self, source: str | Path, target_relative_path: str, *, confirm_replace: bool = False,
+                     expected_revision: int | None = None) -> dict[str, Any]:
+        """Import a local texture, sound or model through Core's preview, recovery point and reference checks.
+
+        Replacing a different existing asset requires ``confirm_replace=True``.
+        Hosts that predate local import grants raise ``NATIVE_OPERATION_UNAVAILABLE``.
+        """
+        if "grant_asset_import_source" not in getattr(self, "host_operations", frozenset()):
+            raise NativeApiError("This Copperbench host cannot import local files; update Copperbench",
+                                 "NATIVE_OPERATION_UNAVAILABLE")
+        path = Path(source).resolve(strict=True)
+        grant = self._call("host", "grant_asset_import_source", {"path": str(path)})
+        preview = self.query("preview_asset_import", sourceGrantId=grant["data"]["sourceGrantId"],
+                             targetRelativePath=target_relative_path)
+        payload: dict[str, Any] = {"planToken": preview["data"]["planToken"]}
+        if confirm_replace:
+            payload["confirmReplace"] = True
+        return self.command("import_asset", expected_revision=expected_revision, **payload)
 
     def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
                                expected_revision: int | None = None,

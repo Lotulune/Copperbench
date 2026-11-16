@@ -12,6 +12,14 @@
 
 Use the [minimal executable examples](../../sdk/agent-workflows.md). Open the workspace and use **Tools → AI & MCP** for pairing; this route does not depend on the **Connect external Agent** help entry in older startup windows. Help text never issues a token. A lost desktop session never automatically becomes an independent writing host.
 
+## Default route: write code, verify through Copperbench
+
+Write the mod as Java, JSON and resources in the workspace, then build and verify it with Copperbench. Structured elements, Procedures and templates are optional shortcuts for content they clearly cover; you do not need to read field contracts before writing code.
+
+- Leave files whose `ownership` is `generated` (from `list_workspace_files` or `read_workspace_file`) to the generator. Edit hand-written files with your own tools, or through Core with Native `write_file(path, text, expected_sha256=...)`. Without a hash, `write_file(path, text)` adds a new file and fails if it already exists. Core writes take a recovery point first.
+- Import textures, sounds and models with Native `import_asset(local_file, target_relative_path)`. It grants the local file to the same-user host, then runs the existing preview, recovery point and reference checks. Hosts without this grant report `NATIVE_OPERATION_UNAVAILABLE`.
+- Build, then prove behavior with GameTest: `prepare_game_tests()` once, test methods under `src/gametest/java`, then `run_game_tests()` and wait for the original task. A built JAR is not gameplay acceptance.
+
 ## Pairing and recovery after losing a token
 
 In **Tools → AI & MCP**, reveal the one-time token before copying the complete configuration. **Copy URL** copies only the address, without authentication. Supply tokens only to a trusted local client, never to a conversation, repository or log.

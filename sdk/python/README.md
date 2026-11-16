@@ -97,7 +97,23 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 
 ## 修改与任务
 
+默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。经 Core 写入时，每次写入前都会建立恢复点；生成器拥有的文件（`list_workspace_files` 或 `read_file` 结果中 `ownership` 为 `generated`）保持只读。
+
 ```python
+# 新建手写文件：文件必须尚不存在。
+workspace.write_file("src/main/java/com/example/bell/CopperBellItem.java",
+                     "package com.example.bell;\n\npublic class CopperBellItem {}\n")
+
+# 替换已有文件：传入当前读取得到的 sha256，磁盘内容变化时返回 WORKSPACE_SOURCE_CONFLICT。
+current = workspace.read_file("src/main/java/com/example/bell/CopperBellItem.java")["data"]
+workspace.write_file(current["relativePath"], current["content"].replace("{}", "{ }"),
+                     expected_sha256=current["sha256"])
+
+# 导入本机纹理、声音或模型：经过预览、恢复点与引用检查；替换不同内容需 confirm_replace=True。
+workspace.import_asset("D:/Art/copper_bell.png",
+                       "src/main/resources/assets/example/textures/item/copper_bell.png")
+
+# 结构化元素、Procedure 与模板是可选捷径，适合时再用；先用 discover_field_contract() 确认字段。
 created = workspace.create_mod_element(
     elementType="item",
     name="copper_bell",
@@ -111,6 +127,8 @@ if accepted["status"] == "accepted":
     if result["data"]["task"]["state"] != "succeeded":
         raise RuntimeError(result["data"])
 ```
+
+`import_asset()` 需要支持本机导入授权的宿主；旧宿主返回 `NATIVE_OPERATION_UNAVAILABLE`。不带 `expected_sha256` 的 `write_file()` 在旧宿主上被拒绝为无效请求，不会覆盖文件。
 
 以上调用须放在 `Workspace.open(...)` 或 `Workspace.connect(...)` 的会话内部。`build()` / `generate()` / `validate()` / `run_client()` / `run_server()` / `run_game_tests()` 返回任务受理结果；受理不等于成功。`get_task()`、`wait_task()` 和 `cancel_task()` 用于跟进任务；取消成功返回 `cancelled`。`wait_task()` 返回终态及等待期间收集的日志，其超时只结束等待，任务仍可查询或取消。独立会话关闭时会释放工作区并关闭其任务执行器，需运行客户端时应保持独立会话存活；连接桌面的脚本断开不关闭桌面任务。
 

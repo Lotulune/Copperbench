@@ -96,6 +96,15 @@ class Stage17BlockConsistencyTest {
                 assertFalse(source.contains("Shapes.empty()"), source);
                 assertTrue(workspace.getModElementByName("resonance_forge").getAssociatedFiles().stream()
                         .anyMatch(f -> f.getName().endsWith("BlockEntity.java")));
+                assertEquals(1, block.dropAmount, "Core-created blocks drop themselves, as editor-created blocks do");
+                Path lootTable = workspace.getModElementByName("resonance_forge").getAssociatedFiles().stream()
+                        .map(java.io.File::toPath)
+                        .filter(path -> path.getFileName().toString().equals("resonance_forge.json")
+                                && path.toString().replace('\\', '/').matches(".*/loot_tables?/blocks/resonance_forge\\.json"))
+                        .findFirst().orElseThrow();
+                String loot = Files.readString(lootTable);
+                assertTrue(loot.contains("\"pools\"") && loot.contains("\"structured_forge:resonance_forge\""), loot);
+                assertFalse(loot.contains("minecraft:air"), loot);
                 assertTrue(workspace.getGenerator().generateBase());
                 Path assets = root.resolve("src/main/resources/assets/structured_forge");
                 JsonObject model = JsonParser.parseString(Files.readString(

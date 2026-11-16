@@ -62,7 +62,8 @@ public class GradleDaemonUtils {
 		}
 
 		if (OS.getOS() == OS.WINDOWS) {
-			stdin.println("gradlew " + paramsBuilder + " --stop");
+			// Explicit relative path: NoDefaultCurrentDirectoryInExePath disables cmd's current-directory lookup.
+			stdin.println(".\\gradlew " + paramsBuilder + " --stop");
 		} else {
 			stdin.println("chmod 777 gradlew");
 			stdin.println("./gradlew " + paramsBuilder + " --stop");

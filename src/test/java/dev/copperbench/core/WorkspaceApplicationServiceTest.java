@@ -694,6 +694,12 @@ class WorkspaceApplicationServiceTest {
 			CommandOutcome created = fixture.service.execute(
 					createElementCommand(uuid(sequence++), type, "depth_" + type, initialValues), context);
 			assertEquals("committed", created.result().status(), type + " minimal Stage 12 create should commit");
+			if (type.equals("plant")) {
+				UUID plantId = UUID.fromString(created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString());
+				assertEquals(1, fixture.store.read(WORKSPACE_ID).orElseThrow().element(plantId).values()
+						.get("dropAmount").getAsInt(), "a plant created without drop fields drops itself, not air");
+			}
 			JsonArray sections = editorSections(fixture, created, uuid(sequence++), context);
 			assertTrue(sections.size() > 1, type + " should expose Stage 12 domain sections");
 			Set<String> paths = new HashSet<>();

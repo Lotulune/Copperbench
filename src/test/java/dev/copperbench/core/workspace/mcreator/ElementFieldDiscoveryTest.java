@@ -120,6 +120,9 @@ class ElementFieldDiscoveryTest {
         assertTrue(field(item, "/states").get("inputSchema").toString().contains("Property names must be unique"));
         assertTrue(field(item, "/specialInformation").get("inputSchema").toString().contains("fixedValue"));
         assertFalse(item.getAsJsonObject("generatorRestrictions").get("scope").getAsString().isBlank());
+        JsonObject inlineTexture = field(item, "/textureBase64");
+        assertEquals("product_metadata_backend_dependent", inlineTexture.get("generatorSupport").getAsString());
+        assertTrue(inlineTexture.get("guidance").getAsString().contains("import_asset"), inlineTexture.toString());
         assertNotNull(GenericFieldInputContract.validate(Item.class.getField("specialInformation"), JsonParser.parseString("{\"fixedValue\":1}"), "/specialInformation"));
         assertNull(GenericFieldInputContract.validate(Item.class.getField("specialInformation"), JsonParser.parseString("{\"fixedValue\":[\"tip\"]}"), "/specialInformation"));
         assertEquals("FIELD_VALUE_OUT_OF_RANGE", ElementMappingSupport.unsupportedChange("item", new JsonObject(), JsonParser.parseString("{\"maxStackSize\":100}").getAsJsonObject()).code());
