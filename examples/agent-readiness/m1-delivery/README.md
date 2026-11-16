@@ -1,9 +1,15 @@
-# M1 fixed delivery fixture
+# M1 element-based delivery fixture
 
-The source of this fixture is this repository revision plus the exact per-file
-SHA-256 values recorded by `runAgentReadinessDelivery`. It uses Fabric 1.21.1
-and the active installed generator's Loader/API versions; the report records
-the resolved environment.
+This fixture builds the M1 mod from structured elements. Published releases
+predate the native-route APIs, so the installed and published-release checks
+(`scripts/verify-agent-readiness-installed.py` and
+`scripts/cloud-acceptance/native.py`) keep using it. The source gate
+`runAgentReadinessDelivery` now uses the [native-route fixture](../m1-native/README.md).
+
+The source of this fixture is the repository revision plus the exact per-file
+SHA-256 values those checks record. It uses Fabric 1.21.1 and the active
+installed generator's Loader/API versions; the report records the resolved
+environment.
 
 The Native SDK consumes the published item and recipe minimum examples, changes
 the recipe output to `CUSTOM:discovery_item`, and creates a manual Code element
@@ -11,18 +17,6 @@ from [recovery_probe.java](recovery_probe.java). The item stacks to 16. One stic
 crafts one item. Five independently compiled host tests check registration/stack
 size, actual recipe matching/output, rejection of the wrong ingredient, item
 serialization and independent expected values for the repaired manual code.
-
-Run from the repository root:
-
-```text
-./gradlew --no-daemon runAgentReadinessDelivery -PnativePythonExecutable=python
-```
-
-On the Windows development host:
-
-```powershell
-pwsh -NoProfile -File scripts/run-gradle-external.ps1 --no-daemon runAgentReadinessDelivery
-```
 
 The harness creates a new workspace under `build/m1-workspaces`, retains logs,
 reports, failed task observations and exported bytes under

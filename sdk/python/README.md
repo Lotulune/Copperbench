@@ -34,7 +34,8 @@ options = workspace.field_reference_options(
 早期草稿的错误码及详情字段迁移见 [SDK 兼容说明](READINESS.md)。
 查询不创建探针元素。字段默认值、嵌套输入形状、条件要求、
 引用入口和生成器限制来自 Core；最小示例进入八轨道的保存、生成与重开验证。
-真实构建与可信导出的固定样本位于源码仓库
+真实构建与可信导出的固定样本位于源码仓库：原生代码路线见
+`examples/agent-readiness/m1-native/README.md`，结构化元素路线见
 `examples/agent-readiness/m1-delivery/README.md`。
 
 在包含本功能的 Copperbench 构建中，SDK 位于 `sdk/python`。也可使用源码中的同名目录：
@@ -97,7 +98,7 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 
 ## 修改与任务
 
-默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。经 Core 写入时，每次写入前都会建立恢复点；生成器拥有的文件（`list_workspace_files` 或 `read_file` 结果中 `ownership` 为 `generated`）保持只读。
+默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。经 Core 写入时，每次写入前都会建立恢复点；生成器拥有的文件（`list_workspace_files` 或 `read_file` 结果中 `ownership` 为 `generated`）保持只读，只有 `read_file` 结果 `userCodeBlocks` 列出的用户代码块内容可以修改，块外字节必须保持不变。
 
 ```python
 # 新建手写文件：文件必须尚不存在。

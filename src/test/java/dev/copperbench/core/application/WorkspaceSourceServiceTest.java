@@ -141,6 +141,46 @@ class WorkspaceSourceServiceTest {
 		assertFalse(Files.exists(root.resolve("src/main/java/ReadOnly.java")));
 	}
 
+	@Test void generatedJavaAcceptsChangesOnlyInsideUserCodeBlocks() throws Exception {
+		String path = "src/main/java/example/ExampleMod.java";
+		String generated = """
+				public class ExampleMod {
+					public void onInitialize() {
+						// Start of user code block mod init
+						// End of user code block mod init
+					}
+				}
+				""".replace("\n", "\r\n");
+		write(path, generated);
+		write("src/main/java/example/NoBlocks.java", "class NoBlocks {}");
+		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of(path, "generated",
+				"src/main/java/example/NoBlocks.java", "generated"), true);
+		JsonObject read = service.read(path);
+		assertFalse(read.get("editable").getAsBoolean(), "the file as a whole stays generator-owned");
+		assertEquals("[\"mod init\"]", read.getAsJsonArray("userCodeBlocks").toString());
+
+		String hooked = generated.replace("// Start of user code block mod init\r\n",
+				"// Start of user code block mod init\r\n\t\tmy.content.Content.register();\r\n");
+		WorkspaceSourceService.Edit edit = service.prepare(path, hooked, read.get("sha256").getAsString());
+		service.apply(edit, () -> { });
+		assertEquals(hooked, Files.readString(root.resolve(path)));
+
+		String sha = service.read(path).get("sha256").getAsString();
+		for (String outside : new String[]{hooked.replace("onInitialize", "onInit"), hooked.replace("\r\n", "\n"),
+				hooked.replace("// End of user code block mod init", "// End of user code block other"),
+				hooked + "// Start of user code block extra\r\n// End of user code block extra\r\n"})
+			assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> service.prepare(path, outside, sha)).code);
+		String noBlocksSha = service.read("src/main/java/example/NoBlocks.java").get("sha256").getAsString();
+		assertFalse(service.read("src/main/java/example/NoBlocks.java").has("userCodeBlocks"));
+		assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+				() -> service.prepare("src/main/java/example/NoBlocks.java", "class NoBlocks {}", noBlocksSha)).code);
+		WorkspaceSourceService readOnly = new WorkspaceSourceService(root, Map.of(path, "generated"), false);
+		assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+				() -> readOnly.prepare(path, hooked.replace("register()", "register(); "), sha)).code);
+		assertEquals(hooked, Files.readString(root.resolve(path)));
+	}
+
 	@Test void failedCreationRemovesOnlyItsOwnFileAndDirectoriesAndRacesBecomeConflicts() throws Exception {
 		write("src/main/java/Keep.java", "keep");
 		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of(), true);

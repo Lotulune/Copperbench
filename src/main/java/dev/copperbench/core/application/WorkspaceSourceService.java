@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.copperbench.core.workspace.UserCodeRegions;
 import org.jboss.forge.roaster._shade.org.eclipse.jdt.core.dom.*;
 
 import java.io.IOException;
@@ -54,7 +55,14 @@ final class WorkspaceSourceService {
 	JsonObject read(String relative) throws IOException {
 		byte[] bytes = readBytes(relative);
 		JsonObject result = describe(relative, bytes.length);
-		result.addProperty("content", decode(bytes)); result.addProperty("sha256", sha256(bytes));
+		String content = decode(bytes);
+		result.addProperty("content", content); result.addProperty("sha256", sha256(bytes));
+		if ("GENERATED_SOURCE".equals(stringOrNull(result, "reasonCode")) && "java".equals(result.get("language").getAsString())) {
+			try {
+				List<String> blocks = UserCodeRegions.parse(content).names();
+				if (!blocks.isEmpty()) { JsonArray names = new JsonArray(); blocks.forEach(names::add); result.add("userCodeBlocks", names); }
+			} catch (UserCodeRegions.InvalidRegions ignored) { /* no editable regions are advertised */ }
+		}
 		return result;
 	}
 
@@ -64,9 +72,31 @@ final class WorkspaceSourceService {
 		if (content.length() > MAX_FILE_BYTES) throw failure("WORKSPACE_SOURCE_TOO_LARGE", "Source text exceeds the 1 MiB limit.");
 		byte[] before = readBytes(relative);
 		JsonObject description = describe(relative, before.length);
-		if (!description.get("editable").getAsBoolean()) throw failure("WORKSPACE_SOURCE_READ_ONLY", "This source file is read-only; use its owning editor or generator.");
+		// describe() reports GENERATED_SOURCE before WORKSPACE_READ_ONLY, so check the session separately.
+		if (!description.get("editable").getAsBoolean() && !(writable && userCodeOnly(description, before, content)))
+			throw failure("WORKSPACE_SOURCE_READ_ONLY", !writable ? "This workspace session is read-only."
+					: "GENERATED_SOURCE".equals(stringOrNull(description, "reasonCode"))
+					? "Generated source is read-only outside its user code blocks. Change only the lines between '"
+							+ UserCodeRegions.START + "<name>' and its end marker, and keep every other byte unchanged."
+					: "This source file is read-only; use its owning editor or generator.");
 		if (!sha256(before).equals(expectedSha256)) throw failure("WORKSPACE_SOURCE_CONFLICT", "The file changed on disk. Reload it before saving.");
 		return new Edit(relative, before, encode(content));
+	}
+
+	/** Regeneration preserves user code blocks, so changing only their contents keeps the generator's ownership intact. */
+	private static boolean userCodeOnly(JsonObject description, byte[] before, String after) throws IOException {
+		if (!"GENERATED_SOURCE".equals(stringOrNull(description, "reasonCode")) || !"java".equals(description.get("language").getAsString()))
+			return false;
+		try {
+			UserCodeRegions.Parsed original = UserCodeRegions.parse(decode(before));
+			return !original.names().isEmpty() && original.equals(UserCodeRegions.parse(after));
+		} catch (UserCodeRegions.InvalidRegions invalid) {
+			return false;
+		}
+	}
+
+	private static String stringOrNull(JsonObject object, String property) {
+		return object.has(property) && object.get(property).isJsonPrimitive() ? object.get(property).getAsString() : null;
 	}
 
 	/**

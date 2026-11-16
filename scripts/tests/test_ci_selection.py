@@ -164,6 +164,7 @@ class WorkflowRoutingTest(unittest.TestCase):
             "gradle/wrapper/gradle-wrapper.properties", "platform/setup.gradle",
             "ui-shell/package-lock.json", "ui-shell/scripts/build-dependency-evidence.mjs",
             "scripts/tests/test_ci_selection.py", "sdk/python/agent_readiness_delivery.py",
+            "examples/agent-readiness/m1-native/DeliveryContent.java",
         ):
             with self.subTest(path=path):
                 self.assertTrue(any(fnmatch.fnmatchcase(path, pattern) for pattern in paths), path)

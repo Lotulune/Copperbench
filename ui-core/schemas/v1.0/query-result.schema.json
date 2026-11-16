@@ -646,7 +646,9 @@
       "properties": {
         "relativePath": {"type": "string", "minLength": 1}, "name": {"type": "string", "minLength": 1}, "language": {"type": "string"},
         "size": {"type": "integer", "minimum": 0}, "ownership": {"enum": ["manual", "generated"]},
-        "editable": {"type": "boolean"}, "reasonCode": {"type": ["string", "null"]}
+        "editable": {"type": "boolean"}, "reasonCode": {"type": ["string", "null"]},
+        "userCodeBlocks": {"type": "array", "items": {"type": "string", "minLength": 1},
+          "description": "Read only: named regions of a generated Java file whose contents update_workspace_file may change while every other byte stays the same."}
       }
     }
   },

@@ -18,7 +18,7 @@
 
 默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。结构化元素、Procedure 和模板是可选捷径，适合时再用；写代码之前不需要先读字段契约。
 
-- `list_workspace_files` 或 `read_workspace_file` 结果中 `ownership` 为 `generated` 的文件归生成器所有，不要修改。手写文件可以用自己的工具编辑，也可以经 Core 用 Native `write_file(path, text, expected_sha256=...)` 替换；不传哈希的 `write_file(path, text)` 新建文件，文件已存在时拒绝。经 Core 的写入会先建立恢复点。
+- `list_workspace_files` 或 `read_workspace_file` 结果中 `ownership` 为 `generated` 的文件归生成器所有，不要修改；唯一例外是生成的 Java 文件里的用户代码块。`read_workspace_file` 用 `userCodeBlocks` 列出这些块（例如主类的 `mod init`），重新生成时会保留块内内容。经 Core 替换时，块外每个字节都必须保持不变，否则会被拒绝。在主类的 `mod init` 块里加一行调用，就能在启动时运行自己的类。手写文件可以用自己的工具编辑，也可以经 Core 用 Native `write_file(path, text, expected_sha256=...)` 替换；不传哈希的 `write_file(path, text)` 新建文件，文件已存在时拒绝。经 Core 的写入会先建立恢复点。
 - 纹理、声音和模型用 Native `import_asset(本机文件, 目标相对路径)` 导入：同一用户的宿主为该文件签发导入授权，再走原有的预览、恢复点和引用检查。不支持该授权的旧宿主返回 `NATIVE_OPERATION_UNAVAILABLE`。
 - 先构建，再用 GameTest 证明行为：`prepare_game_tests()` 一次，在 `src/gametest/java` 下编写测试方法，然后 `run_game_tests()` 并等待原任务。构建出的 JAR 不等于玩法验收。
 

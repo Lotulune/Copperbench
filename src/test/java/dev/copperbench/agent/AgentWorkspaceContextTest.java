@@ -17,7 +17,8 @@ class AgentWorkspaceContextTest {
 
         // Native code and resources are the default; Core keeps a recovery point and generator ownership.
         for (String expected : new String[]{"Workspace.connect(workspace_file)", "create_recovery_point", "list_workspace_files",
-                "'generated'", "normal file tools", "ws.write_file(path, text)", "expected_sha256=sha", "ws.import_asset(", "build.gradle"})
+                "'generated'", "normal file tools", "ws.write_file(path, text)", "expected_sha256=sha", "ws.import_asset(", "build.gradle",
+                "user code block", "userCodeBlocks"})
             assertTrue(instructions.contains(expected), expected);
         assertTrue(instructions.contains("Structured elements, Procedures and templates are optional shortcuts"));
         assertFalse(instructions.contains("Read the SDK README.md"), "reading SDK documents is no longer a prerequisite");

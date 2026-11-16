@@ -158,8 +158,32 @@ class MCreatorGenerationPreparationTest {
         }
     }
 
+    @Test void elementFreeColdBuildPreparesDependenciesBeforeCompilingGeneratedBaseFiles() throws Exception {
+        try (Workspace workspace = cold()) {
+            // Only hand-written code: no managed elements and no pending generation, but the import index is missing,
+            // so the generated base files would compile without their imports.
+            assertTrue(MCreatorGenerationPreparation.managedElements(workspace).isEmpty());
+            assertNull(workspace.getMetadata(MCreatorGenerationPreparation.PENDING));
+            var state = new MCreatorWorkspaceStateMapper().map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(UUID.randomUUID()));
+            var store = new RevisionedWorkspaceStore(); store.register(state);
+            var calls = new java.util.concurrent.atomic.AtomicInteger();
+            var logs = new java.util.ArrayList<String>();
+            var preparation = new MCreatorGenerationPreparation(workspace, store, javaHome -> (folder, arguments, timeout, output) -> {
+                calls.incrementAndGet();
+                return new dev.copperbench.generator.fabric.Fabric1211ProcessRunner.ProcessResult(1, false);
+            });
+            var failure = assertThrows(WorkspaceTaskGateway.GenerationPreparationException.class,
+                    () -> preparation.prepare(state, root, Operation.BUILD_WORKSPACE, logs::add));
+            assertEquals("GENERATOR_DEPENDENCIES_UNAVAILABLE", failure.code());
+            assertEquals(1, calls.get(), "the first build requests the dependency setup that indexes imports");
+            assertTrue(logs.stream().anyMatch(line -> line.startsWith("GENERATOR_DEPENDENCIES_PREPARING")), logs.toString());
+        }
+    }
+
     @Test void buildRestoresMissingGeneratedGradleIncludeWithoutReplacingAnExistingInclude() throws Exception {
         try (Workspace workspace = cold()) {
+            // Without a wrapper JAR no dependency setup is possible; only the include is restored.
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
             var metadata = workspace.getFileManager().loadOrCreateProductMetadata(UUID.randomUUID());
             var state = new MCreatorWorkspaceStateMapper().map(workspace, metadata);
             var store = new RevisionedWorkspaceStore(); store.register(state);
