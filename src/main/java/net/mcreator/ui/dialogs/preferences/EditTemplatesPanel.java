@@ -51,11 +51,7 @@ class EditTemplatesPanel {
 		else
 			preferencesDialog.addTemplateSection(name);
 
-		JPanel sectionPanel = new JPanel(new BorderLayout(0, 0));
-
 		JComponent titlebar = L10N.label("dialog.preferences.change_language", name.toLowerCase(), templateExt);
-		titlebar.setBorder(BorderFactory.createEmptyBorder(0, 10, 5, 10));
-		sectionPanel.add("North", titlebar);
 
 		JPanel opts = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
@@ -111,11 +107,16 @@ class EditTemplatesPanel {
 		}
 
 		panel.add(PanelUtils.totalCenterInPanel(L10N.label("dialog.preferences.no_templates")), "EMPTY");
-		panel.add(new JScrollPane(templates), "LIST");
+		templates.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+		JScrollPane templatesScroll = new JScrollPane(templates);
+		templatesScroll.setBorder(BorderFactory.createEmptyBorder());
+		panel.add(templatesScroll, "LIST");
+		panel.setBorder(BorderFactory.createLineBorder(PreferencesDialog.lineColor()));
 
-		sectionPanel.add("Center", PanelUtils.northAndCenterElement(opts, panel, 5, 5));
+		JPanel content = PanelUtils.northAndCenterElement(opts, panel, 10, 10);
+		content.setBorder(BorderFactory.createEmptyBorder(16, 16, 20, 16));
 
-		preferencesDialog.preferences.add(sectionPanel, name);
+		preferencesDialog.preferences.add(PreferencesDialog.page(titlebar, content), name);
 
 		updateVisibility(tmodel);
 	}

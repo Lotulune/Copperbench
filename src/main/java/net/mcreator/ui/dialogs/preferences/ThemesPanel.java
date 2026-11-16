@@ -41,12 +41,6 @@ public class ThemesPanel {
 		JList<Theme> themes = new JList<>(tmodel);
 		themes.setCellRenderer(new ThemesListCellRenderer());
 
-		JPanel sectionPanel = new JPanel(new BorderLayout(0, 0));
-
-		JComponent titlebar = L10N.label("dialog.preferences.themes");
-		titlebar.setBorder(BorderFactory.createEmptyBorder(0, 10, 15, 10));
-		sectionPanel.add("North", titlebar);
-
 		JPanel top = new JPanel(new BorderLayout());
 
 		String themeName = L10N.t("preferences.themes.select_theme");
@@ -66,14 +60,16 @@ public class ThemesPanel {
 
 		themes.setSelectedValue(ThemeManager.getTheme(PreferencesManager.PREFERENCES.hidden.uiTheme.get()), true);
 
+		JScrollPane themesScroll = new JScrollPane(themes);
+		themesScroll.setBorder(BorderFactory.createLineBorder(PreferencesDialog.lineColor()));
+
 		JComponent main = PanelUtils.northAndCenterElement(top,
-				PanelUtils.northAndCenterElement(L10N.label("dialog.preferences.themes.list"), new JScrollPane(themes)),
+				PanelUtils.northAndCenterElement(L10N.label("dialog.preferences.themes.list"), themesScroll, 6, 6),
 				5, 5);
-		main.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+		main.setBorder(BorderFactory.createEmptyBorder(16, 16, 20, 16));
 
-		sectionPanel.add("Center", main);
-
-		dialog.preferences.add(sectionPanel, L10N.t("dialog.preferences.page_themes"));
+		dialog.preferences.add(PreferencesDialog.page(L10N.label("dialog.preferences.themes"), main),
+				L10N.t("dialog.preferences.page_themes"));
 	}
 
 	private void reloadThemesList() {

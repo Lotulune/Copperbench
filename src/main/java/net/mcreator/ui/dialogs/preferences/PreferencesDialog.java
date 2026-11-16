@@ -89,12 +89,12 @@ public class PreferencesDialog extends MCreatorDialog {
 
 		preferences.setLayout(preferencesLayout);
 
-		JSplitPane spne = new JSplitPane();
-		spne.setRightComponent(preferences);
-		spne.setLeftComponent(new JScrollPane(sections));
-		spne.setContinuousLayout(true);
-		spne.setDividerLocation(185);
-		add("Center", spne);
+		sections.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
+		JScrollPane navigation = new JScrollPane(sections);
+		navigation.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor()));
+		navigation.setPreferredSize(new Dimension(204, 0));
+		add("West", navigation);
+		add("Center", preferences);
 
 		sections.setBackground(UIManager.getColor("Panel.background"));
 		ComponentUtils.deriveFont(sections, 13);
@@ -125,7 +125,11 @@ public class PreferencesDialog extends MCreatorDialog {
 		JPanel buttonsleft = new JPanel();
 		buttonsleft.add(reset);
 
-		add("South", PanelUtils.westAndEastElement(buttonsleft, buttons));
+		JPanel buttonBar = PanelUtils.westAndEastElement(buttonsleft, buttons);
+		buttonBar.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor()),
+				BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+		add("South", buttonBar);
 
 		sections.addTreeSelectionListener(_ -> {
 			String section = getSelectedSection();
@@ -151,7 +155,7 @@ public class PreferencesDialog extends MCreatorDialog {
 		pack();
 		Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 		setSize(Math.min(1000, screen.width - 48), Math.min(660, screen.height - 72));
-		setMinimumSize(new Dimension(Math.min(760, screen.width - 48), Math.min(420, screen.height - 72)));
+		setMinimumSize(new Dimension(Math.min(900, screen.width - 48), Math.min(420, screen.height - 72)));
 		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
@@ -244,13 +248,15 @@ public class PreferencesDialog extends MCreatorDialog {
 
 		JPanel sectionPanel = new JPanel(new GridBagLayout());
 		sectionPanel.setOpaque(false);
+		sectionPanel.setBorder(BorderFactory.createLineBorder(lineColor()));
 
-		JLabel titlebar = new JLabel("<html><div style='width:460px'><b>" + name + "</b><br><br>" + description + "</div></html>");
-		titlebar.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+		JLabel titlebar = new JLabel("<html><div style='width:520px'><font style=\"font-size: 16px;\">" + name
+				+ "</font><br><font style=\"font-size: 9px; color: gray;\">" + description + "</font></div></html>");
 
-		JScrollPane scrollPane = new JScrollPane(PanelUtils.pullElementUp(sectionPanel));
+		JScrollPane scrollPane = new JScrollPane(new SheetHolder(sectionPanel));
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		scrollPane.getVerticalScrollBar().setUnitIncrement(10);
-		preferences.add(PanelUtils.northAndCenterElement(titlebar, scrollPane, 0, 0), name);
+		preferences.add(page(titlebar, scrollPane), name);
 
 		sectionPanels.put(section, sectionPanel);
 	}
@@ -282,9 +288,18 @@ public class PreferencesDialog extends MCreatorDialog {
 		if (description == null)
 			description = "";
 
-		JComponent label = new JLabel("<html><div style='width:310px'>" + name + "<br><small>" + description + "</small></div></html>");
+		JComponent label = new JLabel("<html><div style='width:300px'>" + name + (description.isEmpty() ?
+				"" :
+				"<br><small><font color=gray>" + description + "</font></small>") + "</div></html>");
+		JPanel row = new JPanel(new BorderLayout(24, 0));
+		row.setOpaque(false);
+		row.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(placeInside.getComponentCount() == 0 ? 0 : 1, 0, 0, 0, lineColor()),
+				BorderFactory.createEmptyBorder(9, 16, 9, 14)));
 		JComponent component = entry.getComponent(parent, _ -> markChanged());
 		if (component != null) {
+			// Only one component may hold BorderLayout's center; the unknown-type message below replaces this label.
+			row.add("Center", label);
 			JPanel wrap = new JPanel(new BorderLayout()) {
 				@Override public Dimension getPreferredSize() {
 					Dimension retval = super.getPreferredSize();
@@ -295,23 +310,97 @@ public class PreferencesDialog extends MCreatorDialog {
 					return retval;
 				}
 			};
+			wrap.setOpaque(false);
 			wrap.add("Center", component);
-			placeInside.add(PanelUtils.westAndEastElement(label, PanelUtils.pullElementUp(wrap)), getConstraints());
+			row.add("East", PanelUtils.totalCenterInPanel(wrap));
 		} else {
-			placeInside.add(L10N.label("dialog.preferences.unknown_property_type", name), getConstraints());
+			row.add("Center", L10N.label("dialog.preferences.unknown_property_type", name));
 		}
+		placeInside.add(row, getConstraints());
 		return component;
 	}
 
 	private GridBagConstraints getConstraints() {
 		GridBagConstraints cons = new GridBagConstraints();
 		cons.anchor = GridBagConstraints.NORTH;
-		cons.fill = GridBagConstraints.BOTH;
+		cons.fill = GridBagConstraints.HORIZONTAL;
 		cons.gridx = 0;
 		cons.weightx = 1;
-		cons.weighty = 1;
-		cons.insets = new Insets(5, 10, 5, 10);
 		return cons;
+	}
+
+	/**
+	 * @return The colour of the rules and frames that separate the areas of this dialog.
+	 */
+	static Color lineColor() {
+		Color color = UIManager.getColor("Component.borderColor");
+		return color != null ? color : Theme.current().getAltBackgroundColor();
+	}
+
+	/**
+	 * Lays out one page of the dialog: its heading above a rule, then its content.
+	 */
+	static JComponent page(JComponent heading, JComponent content) {
+		JPanel head = new JPanel(new BorderLayout());
+		head.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, lineColor()),
+				BorderFactory.createEmptyBorder(14, 16, 12, 16)));
+		head.add("Center", heading);
+		JPanel page = new JPanel(new BorderLayout());
+		page.add("North", head);
+		page.add("Center", content);
+		return page;
+	}
+
+	/**
+	 * Keeps a sheet of preference rows at the top left of its scroll pane. The sheet follows the width of the
+	 * viewport up to a readable measure and scrolls sideways only when the viewport is narrower than its rows.
+	 */
+	private static final class SheetHolder extends JPanel implements Scrollable {
+
+		private static final int MAX_SHEET_WIDTH = 760;
+
+		private final JComponent sheet;
+
+		private SheetHolder(JComponent sheet) {
+			super(null);
+			this.sheet = sheet;
+			setOpaque(false);
+			setBorder(BorderFactory.createEmptyBorder(16, 16, 20, 16));
+			add(sheet);
+		}
+
+		@Override public Dimension getPreferredSize() {
+			Insets insets = getInsets();
+			Dimension size = sheet.getPreferredSize();
+			return new Dimension(size.width + insets.left + insets.right, size.height + insets.top + insets.bottom);
+		}
+
+		@Override public void doLayout() {
+			Insets insets = getInsets();
+			Dimension size = sheet.getPreferredSize();
+			int width = Math.max(size.width, Math.min(MAX_SHEET_WIDTH, getWidth() - insets.left - insets.right));
+			sheet.setBounds(insets.left, insets.top, width, size.height);
+		}
+
+		@Override public Dimension getPreferredScrollableViewportSize() {
+			return getPreferredSize();
+		}
+
+		@Override public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+			return 16;
+		}
+
+		@Override public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+			return orientation == SwingConstants.VERTICAL ? visibleRect.height : visibleRect.width;
+		}
+
+		@Override public boolean getScrollableTracksViewportWidth() {
+			return getParent() != null && getParent().getWidth() >= getPreferredSize().width;
+		}
+
+		@Override public boolean getScrollableTracksViewportHeight() {
+			return false;
+		}
 	}
 
 	public void markChanged() {

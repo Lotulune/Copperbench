@@ -49,11 +49,6 @@ class PluginsPanel {
 		JList<Plugin> plugins = new JList<>(tmodel);
 		plugins.setCellRenderer(new PluginsListCellRenderer());
 
-		JPanel sectionPanel = new JPanel(new BorderLayout(15, 15));
-
-		sectionPanel.add("North", L10N.label("dialog.preferences.manage_plugins"));
-		sectionPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 15, 10));
-
 		JPanel opts = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
 		JButton add = L10N.button("dialog.preferences.load_plugins");
@@ -94,11 +89,18 @@ class PluginsPanel {
 		openPluginFolder.addActionListener(
 				e -> DesktopUtils.openSafe(UserFolderManager.getFileFromUserFolder("plugins")));
 
-		sectionPanel.add("Center", PanelUtils.northAndCenterElement(PanelUtils.northAndCenterElement(opts, box, 10, 10),
-				PanelUtils.northAndCenterElement(L10N.label("dialog.preferences.plugins_list"),
-						new JScrollPane(plugins), 3, 3), 10, 10));
+		plugins.setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
+		JScrollPane pluginsScroll = new JScrollPane(plugins);
+		pluginsScroll.setBorder(BorderFactory.createLineBorder(PreferencesDialog.lineColor()));
 
-		preferencesDialog.preferences.add(sectionPanel, L10N.t("dialog.preferences.page_plugins"));
+		JPanel content = PanelUtils.northAndCenterElement(PanelUtils.northAndCenterElement(opts, box, 10, 10),
+				PanelUtils.northAndCenterElement(L10N.label("dialog.preferences.plugins_list"), pluginsScroll, 6, 6),
+				10, 10);
+		content.setBorder(BorderFactory.createEmptyBorder(16, 16, 20, 16));
+
+		preferencesDialog.preferences.add(
+				PreferencesDialog.page(L10N.label("dialog.preferences.manage_plugins"), content),
+				L10N.t("dialog.preferences.page_plugins"));
 	}
 
 	private void reloadPluginList() {
