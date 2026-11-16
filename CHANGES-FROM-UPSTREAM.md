@@ -2,6 +2,10 @@
 
 This distribution is based on MCreator `2026.2.33518` at commit `361429609b772039a3eb9ab81662c25b225f1d0d`. The built-in Fabric generator is based on `26.1.2-2026.2-2.8` at commit `abfe19329126b679a26baafe5cade5a75d455528`.
 
+## 2026-11-14 Preferences dialog layout (unreleased source)
+
+- Laid out the preferences dialog as a fixed navigation column and bordered pages: each page has its heading above a rule, preference rows sit in one framed sheet separated by rules, and the plugin, theme and template lists are framed. The minimum width is 900 px where the screen allows it.
+
 ## 2026-11-11 Notebook refinements and repository reductions
 
 - Refined the new-workspace view, settings, confirmation and open-workspace dialogs, scoped the simple-creation control reset away from embedded workbench views, and let composer option menus open below when there is no room above, for 0.1.20.
