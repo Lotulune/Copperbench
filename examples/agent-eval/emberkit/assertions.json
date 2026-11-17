@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1",
+  "tasks": {
+    "t1": {
+      "entrypoint": "copperbench.eval.EmberkitT1Tests",
+      "assertions": [
+        {"id": "blockRegistered", "kind": "gametest", "requirement": "Block emberkit:ember_bricks is registered"},
+        {"id": "blockHardness", "kind": "gametest", "requirement": "Hardness is 2.0"},
+        {"id": "blockExplosionResistance", "kind": "gametest", "requirement": "Explosion resistance is 6.0"},
+        {"id": "requiresPickaxe", "kind": "gametest", "requirement": "Needs the correct tool for drops and is in minecraft:mineable/pickaxe"},
+        {"id": "anyPickaxeHarvests", "kind": "gametest", "requirement": "Every pickaxe tier, wooden to netherite, is a correct tool"},
+        {"id": "otherToolsCannotHarvest", "kind": "gametest", "requirement": "Bare hand, shovel and axe are not correct tools"},
+        {"id": "pickaxeDropsItself", "kind": "gametest", "requirement": "Breaking it with a pickaxe drops one Ember Bricks"},
+        {"id": "blockItemRegistered", "kind": "gametest", "requirement": "The block has a block item emberkit:ember_bricks"},
+        {"id": "blockItemInBuildingBlocks", "kind": "gametest", "requirement": "The block item is in the Building Blocks tab (server-side tab contents)"},
+        {"id": "dustRegistered", "kind": "gametest", "requirement": "Item emberkit:ember_dust is registered"},
+        {"id": "dustStacksTo64", "kind": "gametest", "requirement": "Ember Dust stacks to 64"},
+        {"id": "dustInIngredients", "kind": "gametest", "requirement": "Ember Dust is in the Ingredients tab (server-side tab contents)"},
+        {"id": "recipeIsShaped", "kind": "gametest", "requirement": "Recipe emberkit:ember_bricks exists and is a shaped crafting recipe"},
+        {"id": "recipeProducesFour", "kind": "gametest", "requirement": "The specified pattern matches this recipe and produces 4 Ember Bricks"},
+        {"id": "recipeNeedsDust", "kind": "gametest", "requirement": "The pattern without Ember Dust in the centre does not match this recipe"},
+        {"id": "langEnUs", "kind": "static", "requirement": "en_us names the block and the item"},
+        {"id": "langZhCn", "kind": "static", "requirement": "zh_cn names the block and the item"},
+        {"id": "blockModelAndTexture", "kind": "static", "requirement": "Blockstate, block model and its textures are in the JAR"},
+        {"id": "blockItemModel", "kind": "static", "requirement": "The block item model and its textures are in the JAR"},
+        {"id": "dustModelAndTexture", "kind": "static", "requirement": "The Ember Dust item model and its texture are in the JAR"}
+      ],
+      "notAsserted": ["Stone sound and material (the task text does not define a check)", "Client rendering of textures and names"]
+    },
+    "t2": {
+      "entrypoint": "copperbench.eval.EmberkitT2Tests",
+      "assertions": [
+        {"id": "lanternRegistered", "kind": "gametest", "requirement": "Item emberkit:ember_lantern is registered"},
+        {"id": "lanternUnstackable", "kind": "gametest", "requirement": "The lantern does not stack"},
+        {"id": "lanternDurability64", "kind": "gametest", "requirement": "The lantern has 64 durability"},
+        {"id": "lanternInToolsAndUtilities", "kind": "gametest", "requirement": "The lantern is in the Tools & Utilities tab (server-side tab contents)"},
+        {"id": "targetsGlow", "kind": "gametest", "requirement": "With targets: an entity 3 blocks away glows for 200 ticks"},
+        {"id": "radiusAndUserExcluded", "kind": "gametest", "requirement": "With targets: an entity 12 blocks away and the user do not glow"},
+        {"id": "targetsCostDurability", "kind": "gametest", "requirement": "With targets: the lantern loses 1 durability"},
+        {"id": "targetsCooldown100", "kind": "gametest", "requirement": "With targets: a cooldown that lasts 100 ticks"},
+        {"id": "noTargetsNoCost", "kind": "gametest", "requirement": "Without targets: no durability loss and no cooldown"},
+        {"id": "noTargetsActionBar", "kind": "gametest", "requirement": "Without targets: action bar message with key message.emberkit.no_targets"},
+        {"id": "langEnUs", "kind": "static", "requirement": "en_us has the item name and the no-targets message"},
+        {"id": "langZhCn", "kind": "static", "requirement": "zh_cn has the item name and the no-targets message"},
+        {"id": "lanternModelAndTexture", "kind": "static", "requirement": "The lantern item model and its texture are in the JAR"}
+      ],
+      "notAsserted": ["The sound played at the player", "Client-side use does nothing (needs a client)"]
+    }
+  }
+}
