@@ -200,6 +200,56 @@ class MCreatorGenerationPreparationTest {
         }
     }
 
+    @Test void preparedWorkspaceRegistryEditRefreshesGeneratedLanguageFilesBeforeTheNextBuild() throws Exception {
+        try (Workspace workspace = cold()) {
+            // Without a wrapper JAR the workspace counts as prepared, like a product-created one after setup.
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+            Path lang = root.resolve("src/main/resources/assets/cold_fields/lang");
+            assertTrue(workspace.getGenerator().generateBase());
+            String before = Files.readString(lang.resolve("en_us.json"));
+            try (var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
+                    new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+                JsonObject payload = com.google.gson.JsonParser.parseString("{\"registry\":\"languageKeys\",\"entry\":{"
+                        + "\"key\":\"block.cold_fields.ember\",\"translations\":{\"en_us\":\"Ember\",\"zh_cn\":\"余烬\"}}}").getAsJsonObject();
+                var result = session.uiEntry().execute(Command.of(UUID.randomUUID(), session.workspaceId(), 0,
+                        Operation.CREATE_REGISTRY_ENTRY, payload)).result();
+                assertEquals("committed", result.status(), result.diagnostics().toString());
+                // The build skips generation for a prepared workspace without pending work, so the edit itself must
+                // leave the generator-owned language files current (2026-11-19 native-first comparison, T1).
+                var english = com.google.gson.JsonParser.parseString(Files.readString(lang.resolve("en_us.json"))).getAsJsonObject();
+                var chinese = com.google.gson.JsonParser.parseString(Files.readString(lang.resolve("zh_cn.json"))).getAsJsonObject();
+                assertAll(() -> assertNotEquals(before, Files.readString(lang.resolve("en_us.json"))),
+                        () -> assertEquals("Ember", english.get("block.cold_fields.ember").getAsString()),
+                        () -> assertEquals("余烬", chinese.get("block.cold_fields.ember").getAsString()));
+            }
+        }
+    }
+
+    @Test void rejectedRegistryEditRestoresTheRegeneratedLanguageFiles() throws Exception {
+        try (Workspace workspace = cold()) {
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+            Path lang = root.resolve("src/main/resources/assets/cold_fields/lang");
+            assertTrue(workspace.getGenerator().generateBase());
+            byte[] english = Files.readAllBytes(lang.resolve("en_us.json"));
+            UUID id = UUID.randomUUID();
+            var metadata = workspace.getFileManager().loadOrCreateProductMetadata(id);
+            var before = new MCreatorWorkspaceStateMapper().map(workspace, metadata);
+            var after = before.copy();
+            JsonObject registries = before.registries().deepCopy();
+            registries.getAsJsonArray("languageKeys").add(com.google.gson.JsonParser.parseString(
+                    "{\"key\":\"block.cold_fields.ember\",\"translations\":{\"en_us\":\"Ember\",\"zh_cn\":\"余烬\"}}"));
+            after.replaceRegistries(registries);
+            // A durable revision conflict is detected after the language files were regenerated.
+            workspace.getFileManager().synchronizeProductRevision(id, metadata.revision() + 1);
+            var gateway = new MCreatorWorkspaceMutationGateway(workspace, id);
+            Exception failure = assertThrows(Exception.class,
+                    () -> gateway.persistWorkspaceData(before, after, Operation.CREATE_REGISTRY_ENTRY));
+            assertInstanceOf(dev.copperbench.core.workspace.ProductMetadataManager.RevisionConflictException.class, failure);
+            assertArrayEquals(english, Files.readAllBytes(lang.resolve("en_us.json")));
+            assertFalse(Files.exists(lang.resolve("zh_cn.json")), "A language file created by the rejected edit is removed");
+        }
+    }
+
     @Test void setupFailureClassificationPreservesDeferredDefinitions() throws Exception {
         try (Workspace workspace = cold(); var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
                 new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
