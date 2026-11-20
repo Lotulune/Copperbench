@@ -218,10 +218,12 @@ class NativeApiSessionTest {
         assertTrue(output.toString().contains("NATIVE_REQUEST_TOO_LARGE"));
     }
 
-    @Test void nativeHostGrantsALocalFileForTheGuardedAssetImport(@org.junit.jupiter.api.io.TempDir java.nio.file.Path temp)
+    @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void nativeHostGrantsALocalFileForTheGuardedAssetImport(boolean fromAgentScratch, @org.junit.jupiter.api.io.TempDir java.nio.file.Path temp)
             throws Exception {
         var workspace = java.nio.file.Files.createDirectories(temp.resolve("workspace"));
-        var texture = java.nio.file.Files.write(temp.resolve("ember_wand.png"), new byte[] { 7, 7, 7 });
+        var source = fromAgentScratch ? java.nio.file.Files.createDirectories(workspace.resolve(".gradle/copperbench-agent")) : temp;
+        var texture = java.nio.file.Files.write(source.resolve("ember_wand.png"), new byte[] { 7, 7, 7 });
         UUID workspaceId = UUID.randomUUID();
         var store = new RevisionedWorkspaceStore();
         store.register(new WorkspaceState(workspaceId, "Import", "mod", 0, false, JsonParser.parseString(

@@ -47,6 +47,8 @@ class GameTestWorkflowTest {
         RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
         JsonObject generator = new JsonObject(); generator.addProperty("id", "fabric-1.21.1");
         store.register(new WorkspaceState(id, "native_mod", "mod", 0, false, generator, new JsonObject(), List.of()));
+        Path scratch = root.resolve(".gradle/copperbench-agent");
+        if (outcome.equals("pass")) write(scratch.resolve("cb_initial.py"), "bootstrap");
         AtomicInteger invocations = new AtomicInteger();
         Fabric1211ProcessRunner runner = (working, args, timeout, output) -> {
             invocations.incrementAndGet();
@@ -77,6 +79,13 @@ class GameTestWorkflowTest {
                 if (!outcome.equals("missing")) write(report, "<testsuite>" + testcase + "</testsuite>");
                 if (outcome.equals("stale")) Files.setLastModifiedTime(report, FileTime.from(Instant.now().minusSeconds(300)));
                 if (outcome.equals("artifact_changed")) jar(deployed, "changed after test start");
+                if (outcome.equals("pass")) {
+                    // Scripts can finish and write receipts after the test snapshot is frozen.
+                    assertFalse(Files.exists(working.resolveSibling("workspace").resolve(".gradle/copperbench-agent/cb_initial.py")));
+                    Files.delete(scratch.resolve("cb_initial.py"));
+                    write(scratch.resolve("run_gametest.result.json"), "{\"state\":\"running\"}");
+                    write(scratch.resolve("draft.png"), "new draft");
+                }
                 if (outcome.equals("source_changed")) write(root.resolve("src/main/java/custom/Native.java"), "newer implementation");
                 if (outcome.equals("process_exit")) return new Fabric1211ProcessRunner.ProcessResult(1, false);
             }
@@ -103,6 +112,7 @@ class GameTestWorkflowTest {
             assertEquals("existing player world", Files.readString(root.resolve("run/world/level.dat")));
             assertEquals(outcome.equals("source_changed") ? "newer implementation" : "native implementation bytes", Files.readString(root.resolve("src/main/java/custom/Native.java")));
             assertEquals(!outcome.equals("source_changed"), report.get("sourceCurrentAtCompletion").getAsBoolean());
+            if (outcome.equals("source_changed")) assertEquals("GAMETEST_SOURCE_CHANGED", report.get("reasonCode").getAsString());
         }
     }
 

@@ -698,12 +698,15 @@ class Workspace:
         """Locate the conventional Fabric Java main without listing the workspace or changing it.
 
         ``ready`` describes the files read, not permission to edit them. ``needs_discovery``
-        gives the reason to inspect a custom layout. No inventory scan or retry is implicit.
+        gives the reason to inspect a custom layout. ``scratchDir`` is workspace-relative,
+        for disposable scripts, receipts and import sources. This call does not create it.
+        No inventory scan or retry is implicit.
         """
         env = self.get_workspace_environment(field_contracts="summary")["data"]
         execution = env.get("execution", {})
         generator = env.get("generator", {})
-        brief = {"status": "needs_discovery", "generator": generator.get("id"),
+        brief = {"status": "needs_discovery", "scratchDir": ".gradle/copperbench-agent",
+                 "generator": generator.get("id"),
                  "minecraftVersion": generator.get("minecraftVersion"),
                  "sourceRoot": execution.get("sourceRoot"), "resourceRoot": execution.get("resourceRoot"),
                  "gameTests": execution.get("testing", {}).get("state")}

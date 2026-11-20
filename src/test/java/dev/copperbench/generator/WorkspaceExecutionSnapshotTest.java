@@ -106,6 +106,23 @@ class WorkspaceExecutionSnapshotTest {
         assertEquals(snapshot.sha256(), second.sha256());
     }
 
+    @Test void onlyTheReservedScratchLocationIsOutsideTheFingerprintNotLookalikeInputs() throws Exception {
+        Path root = temp.resolve("native-project"), scratch = root.resolve(".gradle/copperbench-agent");
+        write(root.resolve("build.gradle"), "// project");
+        String baseline = WorkspaceExecutionSnapshot.fingerprint(root, () -> false);
+        write(scratch.resolve("cb_initial.py"), "script");
+        write(scratch.resolve("cb_scratch/receipt.json"), "pending");
+        Files.writeString(scratch.resolve("cb_scratch/receipt.json"), "complete");
+        Files.delete(scratch.resolve("cb_initial.py"));
+        assertEquals(baseline, WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+        for (String input : new String[]{"cb_initial.py", "cb_scratch/receipt.json", "src/main/resources/data/cb_scratch/recipe.json",
+                "src/gametest/java/Behavior.java"}) {
+            write(root.resolve(input), "authored");
+            assertNotEquals(baseline, WorkspaceExecutionSnapshot.fingerprint(root, () -> false), input);
+            Files.delete(root.resolve(input));
+        }
+    }
+
     @Test void newerOwnedDeliveriesRemainExcludedUntilTheirBytesChange() throws Exception {
         Path root = temp.resolve("delivered");
         Path input = root.resolve("build.gradle");

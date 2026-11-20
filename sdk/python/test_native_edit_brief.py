@@ -27,13 +27,15 @@ class NativeEditBriefTest(unittest.TestCase):
         data = self.ws.native_edit_brief()
         self.assertEqual(('ready', MAIN, 'river', 'generated', False, ['mod init'], 'mappings loom.officialMojangMappings()'),
                          tuple(data[k] for k in ('status', 'main', 'modId', 'ownership', 'editable', 'userCodeBlocks', 'mappings')))
+        self.assertEqual('.gradle/copperbench-agent', data['scratchDir'])
         self.assertNotIn('content', data)
         self.ws.get_workspace_environment.assert_called_once_with(field_contracts='summary')
         self.assertEqual([call(MANIFEST), call('build.gradle'), call(MAIN)], self.ws.read_file.call_args_list)
 
     def test_unrecognized_layouts_stop_without_inventing_a_source_path(self):
         self.env['execution']['loader'] = 'neoforge'
-        self.assertEqual('needs_discovery', self.ws.native_edit_brief()['status'])
+        brief = self.ws.native_edit_brief()
+        self.assertEqual(('needs_discovery', '.gradle/copperbench-agent'), (brief['status'], brief['scratchDir']))
         self.ws.read_file.assert_not_called()
         self.env['execution']['loader'] = 'fabric'
         for main in ([], ['a.A', 'b.B'], ['a.A::init'], ['../Other'], [{'adapter': 'kotlin', 'value': 'dev.Object'}]):

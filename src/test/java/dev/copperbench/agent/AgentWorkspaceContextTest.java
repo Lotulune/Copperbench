@@ -25,6 +25,9 @@ class AgentWorkspaceContextTest {
         for (String expected : new String[]{"ws.native_edit_brief()", "Only for needs_discovery", "ws.insert_user_code(",
                 "registry='languageKeys'", "'translations': {'en_us'"})
             assertTrue(instructions.contains(expected), expected);
+        assertTrue(instructions.indexOf(".gradle/copperbench-agent/") >= 0
+                && instructions.indexOf(".gradle/copperbench-agent/") < instructions.indexOf("ws.native_edit_brief()"),
+                "The location must be known before writing the first helper script");
         assertFalse(instructions.contains("Read the SDK README.md"), "reading SDK documents is no longer a prerequisite");
 
         // Verification goes beyond a successful build.
