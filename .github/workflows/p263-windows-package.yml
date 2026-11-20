@@ -1,9 +1,6 @@
 name: P263 Windows frozen packages
 on:
   workflow_dispatch:
-  push:
-    branches: [codex/p263-unique-cases]
-    paths: [.github/workflows/p263-windows-package.yml]
 permissions:
   contents: read
 jobs:

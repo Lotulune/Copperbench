@@ -34,7 +34,8 @@ options = workspace.field_reference_options(
 早期草稿的错误码及详情字段迁移见 [SDK 兼容说明](READINESS.md)。
 查询不创建探针元素。字段默认值、嵌套输入形状、条件要求、
 引用入口和生成器限制来自 Core；最小示例进入八轨道的保存、生成与重开验证。
-真实构建与可信导出的固定样本位于源码仓库
+真实构建与可信导出的固定样本位于源码仓库：原生代码路线见
+`examples/agent-readiness/m1-native/README.md`，结构化元素路线见
 `examples/agent-readiness/m1-delivery/README.md`。
 
 在包含本功能的 Copperbench 构建中，SDK 位于 `sdk/python`。也可使用源码中的同名目录：
@@ -95,9 +96,52 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 
 独立打开采用独占写锁。如果桌面编辑器或另一个脚本已打开该工作区，会返回 `WORKSPACE_WRITE_LOCKED`。需要操作桌面当前工作区时，使用上面的 `Workspace.connect(...)`，也可选择 MCP 客户端。
 
-## 修改与任务
+### 多个脚本共用一个 Core
+
+每次 `Workspace.open` 都要启动一次产品（实测约 6–8 秒），Agent 分多个短脚本工作时这部分开销会重复累积。`Workspace.attach` 先尝试连接桌面或已在运行的后台宿主；两者都没有时，启动 `headless --workspace <file> serve`，再连接它：
 
 ```python
+with Workspace.attach(r"D:\ModProjects\bell\bell.mcreator",
+                      launcher=r"D:\Apps\Copperbench\copperbench.exe") as workspace:
+    accepted = workspace.build()
+# 下一个脚本再次 attach 时只建立本机连接，并可用 wait_task() 接着等待上一个任务。
+```
+
+后台宿主与桌面使用同一份仅当前系统用户可读的连接记录和令牌，只监听 `127.0.0.1`，期间持有工作区写锁。没有已连接脚本、也没有排队或运行中的任务，持续 `idle_timeout` 秒（默认 900，范围 5–28800）后自动退出，并删除连接记录。关闭 `attach` 得到的会话只断开连接，不停止宿主或任务。两个脚本同时启动宿主时，后启动的一方收到写锁冲突后会改连先启动的宿主。
+
+## 修改与任务
+
+先调用 `workspace.native_edit_brief()` 获取开工摘要。标准 Java Fabric 工程（单个类入口、常规目录、显式 Mojang 映射）返回 `ready`，列出入口路径、Core 报告的归属、用户代码块和映射声明。摘要只读，不创建恢复点、不扫描源码树。遇到 `needs_discovery` 时按 `reason` 和 `path` 检查自定义布局，必要时再用 `list_workspace_files`。`ready` 不是写入许可；其他文件的归属仍需分别确认。
+
+临时脚本、任务 ID／回执和待导入的草稿资产放在**当前工作区**的 `.gradle/copperbench-agent/`，不要放在工程根目录或共享的 `GRADLE_USER_HOME`。开工摘要的 `scratchDir` 返回这个相对路径；按需用 `Path(workspace_file).parent / brief["scratchDir"]` 定位并创建。草稿可以作为 `workspace.import_asset()` 的输入，最终资源仍写入 `src/main/resources`。这里不是源码目录：不要让构建或 GameTest 依赖其中的文件。
+
+默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。经 Core 写入时，每次写入前都会建立恢复点；生成器拥有的文件（`list_workspace_files` 或 `read_file` 结果中 `ownership` 为 `generated`）保持只读，只有 `read_file` 结果 `userCodeBlocks` 列出的用户代码块内容可以修改，块外字节必须保持不变。
+
+```python
+# 新建手写文件：文件必须尚不存在。
+workspace.write_file("src/main/java/com/example/bell/CopperBellItem.java",
+                     "package com.example.bell;\n\npublic class CopperBellItem {}\n")
+
+# 替换已有文件：传入当前读取得到的 sha256，磁盘内容变化时返回 WORKSPACE_SOURCE_CONFLICT。
+current = workspace.read_file("src/main/java/com/example/bell/CopperBellItem.java")["data"]
+workspace.write_file(current["relativePath"], current["content"].replace("{}", "{ }"),
+                     expected_sha256=current["sha256"])
+
+# 在生成主类的用户代码块末尾追加一行：保留文件原有的 CRLF/LF 换行和缩进，
+# 代码已在块内时不重复写入，并按读取时的 sha256 防止覆盖外部修改。
+workspace.insert_user_code("src/main/java/com/example/bell/BellMod.java", "mod init",
+                           "com.example.bell.content.BellContent.register();")
+
+# 语言文件由生成器维护：通过 languageKeys 注册表添加名称，下一次构建会写出各语言文件。
+workspace.command("create_registry_entry", registry="languageKeys",
+                  entry={"key": "item.bell.copper_bell",
+                         "translations": {"en_us": "Copper Bell", "zh_cn": "铜铃"}})
+
+# 导入本机纹理、声音或模型：经过预览、恢复点与引用检查；替换不同内容需 confirm_replace=True。
+workspace.import_asset("D:/Art/copper_bell.png",
+                       "src/main/resources/assets/example/textures/item/copper_bell.png")
+
+# 结构化元素、Procedure 与模板是可选捷径，适合时再用；先用 discover_field_contract() 确认字段。
 created = workspace.create_mod_element(
     elementType="item",
     name="copper_bell",
@@ -112,13 +156,15 @@ if accepted["status"] == "accepted":
         raise RuntimeError(result["data"])
 ```
 
+`import_asset()` 需要支持本机导入授权的宿主；旧宿主返回 `NATIVE_OPERATION_UNAVAILABLE`。不带 `expected_sha256` 的 `write_file()` 在旧宿主上被拒绝为无效请求，不会覆盖文件。
+
 以上调用须放在 `Workspace.open(...)` 或 `Workspace.connect(...)` 的会话内部。`build()` / `generate()` / `validate()` / `run_client()` / `run_server()` / `run_game_tests()` 返回任务受理结果；受理不等于成功。`get_task()`、`wait_task()` 和 `cancel_task()` 用于跟进任务；取消成功返回 `cancelled`。`wait_task()` 返回终态及等待期间收集的日志，其超时只结束等待，任务仍可查询或取消。独立会话关闭时会释放工作区并关闭其任务执行器，需运行客户端时应保持独立会话存活；连接桌面的脚本断开不关闭桌面任务。
 
 所有 Core 操作还可以通过统一入口访问：
 
 断线恢复时传入原 taskId 和最后保存的日志序列，不重新调用 `build()`。例如 `workspace.wait_task(task_id, after_log_sequence=last_sequence, on_update=save_increment)`；`on_update` 在下一次查询前接收本次原始增量回执。超时 `NativeApiError.details` 保留本次全部已收到日志与任务身份／状态，任务不会自动取消。传输错误保留原始 details，使用上次成功保存的回执重连。`wait_task()` 返回的 `failed`／`cancelled` 终态仍须由调用者判定业务结果。
 
-`workspace.require_schema()` 在写前确认 Core 握手和普通操作的 `1.0` 合同；`workspace.get_workspace_environment()` 返回生成器、工具链及 `data.fieldContracts`。可把该回执传给 `workspace.field_contract("block", environment=environment)`，避免再次完整读取。Native 缺类型合同使用 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，畸形元数据使用 `NATIVE_INVALID_RESPONSE`；MCP Python／TypeScript 的旧环境提取便捷方法仍使用 `FIELD_CONTRACT_NOT_EXPOSED`。现代字段发现 API 与这些旧环境提取方法分别保留合同。SDK 不自动缓存 revision、hash 或合同。
+`workspace.require_schema()` 在写前确认 Core 握手和普通操作的 `1.0` 合同；`workspace.get_workspace_environment()` 返回生成器、工具链及 `data.fieldContracts`。完整字段合同约 18 万字符；只写原生代码时用 `get_workspace_environment(field_contracts="summary")`，每个合同只保留版本、可用性和字段数量（`data.fieldContractDetail` 为 `summary`），其余环境字段不变。摘要直接从 `data.fieldContracts` 读取；需要某一类型的创建字段时调用 `workspace.discover_field_contract("item")`。只有完整环境回执可传给 `workspace.field_contract("block", environment=environment)`；传摘要会返回 `NATIVE_FIELD_CONTRACT_SUMMARY`，不会隐式发起查询。Native 缺类型合同使用 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，畸形元数据使用 `NATIVE_INVALID_RESPONSE`；MCP Python／TypeScript 的旧环境提取便捷方法仍使用 `FIELD_CONTRACT_NOT_EXPOSED`。现代字段发现 API 与这些旧环境提取方法分别保留合同。SDK 不自动缓存 revision、hash 或合同。
 
 Native `get_mod_element_editor` 与 MCP `read_mod_element` 的 SDK 编辑器读取默认明确选择 `1.1`；显式传 `schema_version="1.0"` 可保留旧投影。编辑器版本独立于普通操作的 `1.0`，详见[editor schema](../../docs/ai/editor-schema.md)。主线已有的 doctor、生成预检、26.3 预览和版本复制仍按各自协商与授权边界使用。
 

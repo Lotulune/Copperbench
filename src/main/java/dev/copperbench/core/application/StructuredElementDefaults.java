@@ -33,6 +33,10 @@ public final class StructuredElementDefaults {
         block.frequencyPerChunks = 10;
         block.frequencyOnChunk = 16;
         block.maxGenerateHeight = 64;
+        // Match the block editor: drop the block itself once. The int field otherwise stays 0, which generates
+        // a loot table that drops air.
+        block.dropAmount = 1;
+        block.customDrop = new MItemBlock(workspace, "");
         return block;
     }
 

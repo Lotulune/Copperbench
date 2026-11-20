@@ -2,7 +2,9 @@ package dev.copperbench.headless;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.copperbench.assets.AssetImportService;
 import dev.copperbench.core.application.HeadlessWorkspaceEntryAdapter;
+import dev.copperbench.core.application.WorkspaceApplicationService;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -17,6 +19,8 @@ import java.util.UUID;
 /** Persistent local scripting boundary. Uses Core envelopes, with no MCP server or transport. */
 public final class NativeApiSession {
     private static final int MAX_REQUEST_CHARS = 4 * 1024 * 1024;
+    /** Host-level, not UI-Core: browser code must never name local paths. */
+    static final String GRANT_ASSET_IMPORT_SOURCE = "grant_asset_import_source";
     private final HeadlessWorkspaceEntryAdapter adapter;
     private final UUID workspaceId;
     private final PythonContext context;
@@ -46,6 +50,9 @@ public final class NativeApiSession {
         }
         ready.add("taskAuthorizedOperations", authorizedOperations);
         ready.add("operations", operations);
+        var hostOperations = new com.google.gson.JsonArray();
+        hostOperations.add(GRANT_ASSET_IMPORT_SOURCE);
+        ready.add("hostOperations", hostOperations);
         write(output, ready);
         BufferedReader reader = new BufferedReader(input);
         while (true) {
@@ -102,6 +109,28 @@ public final class NativeApiSession {
                     case "version_copy_upgrade" -> adapter.versionCopyUpgrade(requestId, workspaceId, extension);
                     default -> adapter.acceptance(requestId, workspaceId, extension);
                 });
+                return response;
+            }
+            if ("host".equals(request.get("kind").getAsString())) {
+                if (!GRANT_ASSET_IMPORT_SOURCE.equals(name)) throw new IllegalArgumentException("Unknown host operation: " + name);
+                java.nio.file.Path source = java.nio.file.Path.of(request.getAsJsonObject("payload").get("path").getAsString());
+                WorkspaceApplicationService.AssetImportSelectionGrant grant;
+                try {
+                    grant = adapter.grantAssetImportSource(source);
+                } catch (AssetImportService.AssetImportException exception) {
+                    return error(id, exception.code(), exception.getMessage());
+                }
+                JsonObject data = new JsonObject();
+                data.addProperty("sourceGrantId", grant.id());
+                data.addProperty("fileName", grant.fileName());
+                data.addProperty("size", grant.size());
+                data.addProperty("expiresAt", grant.expiresAt());
+                JsonObject result = new JsonObject();
+                result.addProperty("status", "succeeded");
+                result.add("data", data);
+                JsonObject response = new JsonObject();
+                response.addProperty("id", id);
+                response.add("result", result);
                 return response;
             }
             Operation operation = UiCore.wireGson().fromJson(request.get("operation"), Operation.class);

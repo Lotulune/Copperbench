@@ -2,6 +2,11 @@
 
 This distribution is based on MCreator `2026.2.33518` at commit `361429609b772039a3eb9ab81662c25b225f1d0d`. The built-in Fabric generator is based on `26.1.2-2026.2-2.8` at commit `abfe19329126b679a26baafe5cade5a75d455528`.
 
+## 2026-11-17 Agent route and creation defaults (unreleased source)
+
+- Start the Gradle wrapper as `.\gradlew` from `GradleDaemonUtils.stopAllDaemons` and the Fabric task runner, so builds and daemon stops still find the workspace wrapper when `NoDefaultCurrentDirectoryInExePath` is set.
+- Give blocks created through Core the block editor's drop defaults (`dropAmount` 1, empty `customDrop`); they previously generated a loot table that dropped nothing. Plants created through Core also default `dropAmount` to 1.
+
 ## 2026-11-11 Notebook refinements and repository reductions
 
 - Refined the new-workspace view, settings, confirmation and open-workspace dialogs, scoped the simple-creation control reset away from embedded workbench views, and let composer option menus open below when there is no room above, for 0.1.20.

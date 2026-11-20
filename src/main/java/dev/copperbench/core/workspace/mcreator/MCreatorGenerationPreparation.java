@@ -166,9 +166,9 @@ final class MCreatorGenerationPreparation implements dev.copperbench.core.applic
         Path source = opened.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
         target = target.toAbsolutePath().normalize();
         // Older cold workspaces predate pending metadata but still need their managed sources prepared.
-        // Code elements and locked sources remain outside generation ownership.
-        if (pending(opened) == null && operation != Operation.GENERATE_WORKSPACE
-                && (!needsDependencies(opened) || managedElements(opened).isEmpty())) {
+        // Code elements and locked sources remain outside generation ownership. A cold workspace with only
+        // hand-written code still needs this: its generated base files get their imports from the same index.
+        if (pending(opened) == null && operation != Operation.GENERATE_WORKSPACE && !needsDependencies(opened)) {
             restoreBuildInclude(opened, target);
             return;
         }
@@ -294,25 +294,14 @@ final class MCreatorGenerationPreparation implements dev.copperbench.core.applic
         if (!Files.isRegularFile(path)) throw new SourceConflict(null, "NOT_REGULAR_FILE", "unknown", "expected a regular file", null);
         if (!path.getFileName().toString().endsWith(".java")) return WorkspaceExecutionSnapshot.sha256(path);
         String content = Files.readString(path);
-        StringBuilder protectedCode = new StringBuilder();
-        String active = null;
-        Set<String> names = new HashSet<>();
-        String start = "// Start of user code block ", end = "// End of user code block ";
-        for (String line : content.split("(?<=\\n)", -1)) {
-            String trimmed = line.strip();
-            if (trimmed.startsWith(start)) {
-                String name = trimmed.substring(start.length()).strip();
-                if (active != null || name.isEmpty() || !names.add(name)) throw new SourceConflict(null, "USER_CODE_BOUNDARY_INVALID", "generated", "ambiguous user-code region", null);
-                active = name; protectedCode.append(line);
-            } else if (trimmed.startsWith(end)) {
-                if (active == null || !trimmed.equals(end + active)) throw new SourceConflict(null, "USER_CODE_BOUNDARY_INVALID", "generated", "mismatched user-code region", null);
-                active = null; protectedCode.append(line);
-            } else if (active == null) protectedCode.append(line);
+        String protectedCode;
+        try { protectedCode = dev.copperbench.core.workspace.UserCodeRegions.parse(content).skeleton(); }
+        catch (dev.copperbench.core.workspace.UserCodeRegions.InvalidRegions invalid) {
+            throw new SourceConflict(null, "USER_CODE_BOUNDARY_INVALID", "generated", invalid.getMessage(), null);
         }
-        if (active != null) throw new SourceConflict(null, "USER_CODE_BOUNDARY_INVALID", "generated", "unclosed user-code region", null);
         try {
             return "generated-v1:" + HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
-                    .digest(protectedCode.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+                    .digest(protectedCode.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         } catch (java.security.NoSuchAlgorithmException impossible) { throw new AssertionError(impossible); }
     }
 

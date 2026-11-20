@@ -158,8 +158,32 @@ class MCreatorGenerationPreparationTest {
         }
     }
 
+    @Test void elementFreeColdBuildPreparesDependenciesBeforeCompilingGeneratedBaseFiles() throws Exception {
+        try (Workspace workspace = cold()) {
+            // Only hand-written code: no managed elements and no pending generation, but the import index is missing,
+            // so the generated base files would compile without their imports.
+            assertTrue(MCreatorGenerationPreparation.managedElements(workspace).isEmpty());
+            assertNull(workspace.getMetadata(MCreatorGenerationPreparation.PENDING));
+            var state = new MCreatorWorkspaceStateMapper().map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(UUID.randomUUID()));
+            var store = new RevisionedWorkspaceStore(); store.register(state);
+            var calls = new java.util.concurrent.atomic.AtomicInteger();
+            var logs = new java.util.ArrayList<String>();
+            var preparation = new MCreatorGenerationPreparation(workspace, store, javaHome -> (folder, arguments, timeout, output) -> {
+                calls.incrementAndGet();
+                return new dev.copperbench.generator.fabric.Fabric1211ProcessRunner.ProcessResult(1, false);
+            });
+            var failure = assertThrows(WorkspaceTaskGateway.GenerationPreparationException.class,
+                    () -> preparation.prepare(state, root, Operation.BUILD_WORKSPACE, logs::add));
+            assertEquals("GENERATOR_DEPENDENCIES_UNAVAILABLE", failure.code());
+            assertEquals(1, calls.get(), "the first build requests the dependency setup that indexes imports");
+            assertTrue(logs.stream().anyMatch(line -> line.startsWith("GENERATOR_DEPENDENCIES_PREPARING")), logs.toString());
+        }
+    }
+
     @Test void buildRestoresMissingGeneratedGradleIncludeWithoutReplacingAnExistingInclude() throws Exception {
         try (Workspace workspace = cold()) {
+            // Without a wrapper JAR no dependency setup is possible; only the include is restored.
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
             var metadata = workspace.getFileManager().loadOrCreateProductMetadata(UUID.randomUUID());
             var state = new MCreatorWorkspaceStateMapper().map(workspace, metadata);
             var store = new RevisionedWorkspaceStore(); store.register(state);
@@ -173,6 +197,100 @@ class MCreatorGenerationPreparationTest {
             preparation.prepare(state, root, Operation.BUILD_WORKSPACE, ignored -> fail("No dependency setup was requested"));
             assertEquals("// Retained custom include\n", Files.readString(include));
             assertNull(workspace.getGenerator().getGradleCache());
+        }
+    }
+
+    @Test void preparedWorkspaceRegistryEditRefreshesGeneratedLanguageFilesBeforeTheNextBuild() throws Exception {
+        try (Workspace workspace = cold()) {
+            // Without a wrapper JAR the workspace counts as prepared, like a product-created one after setup.
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+            Path lang = root.resolve("src/main/resources/assets/cold_fields/lang");
+            assertTrue(workspace.getGenerator().generateBase());
+            String before = Files.readString(lang.resolve("en_us.json"));
+            try (var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
+                    new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+                JsonObject payload = com.google.gson.JsonParser.parseString("{\"registry\":\"languageKeys\",\"entry\":{"
+                        + "\"key\":\"block.cold_fields.ember\",\"translations\":{\"en_us\":\"Ember\",\"zh_cn\":\"余烬\"}}}").getAsJsonObject();
+                var result = session.uiEntry().execute(Command.of(UUID.randomUUID(), session.workspaceId(), 0,
+                        Operation.CREATE_REGISTRY_ENTRY, payload)).result();
+                assertEquals("committed", result.status(), result.diagnostics().toString());
+                // The build skips generation for a prepared workspace without pending work, so the edit itself must
+                // leave the generator-owned language files current (2026-11-19 native-first comparison, T1).
+                var english = com.google.gson.JsonParser.parseString(Files.readString(lang.resolve("en_us.json"))).getAsJsonObject();
+                var chinese = com.google.gson.JsonParser.parseString(Files.readString(lang.resolve("zh_cn.json"))).getAsJsonObject();
+                assertAll(() -> assertNotEquals(before, Files.readString(lang.resolve("en_us.json"))),
+                        () -> assertEquals("Ember", english.get("block.cold_fields.ember").getAsString()),
+                        () -> assertEquals("余烬", chinese.get("block.cold_fields.ember").getAsString()));
+            }
+        }
+    }
+
+    @Test void tagRenameAndDeleteRetireOnlyTheirGeneratedFilesAndSurviveReopen() throws Exception {
+        UUID id = UUID.randomUUID();
+        Path folder = root.resolve("src/main/resources/data/cold_fields/tags/item");
+        Path old = folder.resolve("old_tag.json"), renamed = folder.resolve("new_tag.json"), manual = folder.resolve("manual.json");
+        var mapper = new MCreatorWorkspaceStateMapper();
+        try (Workspace workspace = cold()) {
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+            var gateway = new MCreatorWorkspaceMutationGateway(workspace, id);
+            var before = mapper.map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(id));
+            JsonObject registries = before.registries();
+            var tag = com.google.gson.JsonParser.parseString("""
+                    {"name":"old_tag","namespace":"mod","category":"items","members":["Items.STICK"]}
+                    """).getAsJsonObject();
+            registries.getAsJsonArray("tags").add(tag);
+            var after = before.copy(); after.replaceRegistries(registries);
+            gateway.persistWorkspaceData(before, after, Operation.CREATE_REGISTRY_ENTRY);
+            assertTrue(Files.readString(old).contains("minecraft:stick"));
+            Files.writeString(manual, "{}");
+
+            before = mapper.map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(id));
+            registries = before.registries();
+            for (var row : registries.getAsJsonArray("tags"))
+                if (row.getAsJsonObject().get("name").getAsString().equals("old_tag")) row.getAsJsonObject().addProperty("name", "new_tag");
+            after = before.copy(); after.replaceRegistries(registries);
+            gateway.persistWorkspacePlan(before, after, List.of(Operation.RENAME_REGISTRY_ENTRY));
+            assertFalse(Files.exists(old));
+            assertTrue(Files.readString(renamed).contains("minecraft:stick"));
+        }
+        Path file = root.resolve("cold_fields.mcreator");
+        try (Workspace reopened = Workspace.readFromFS(file.toFile(), null)) {
+            var before = mapper.map(reopened, reopened.getFileManager().loadOrCreateProductMetadata(id));
+            JsonObject registries = before.registries();
+            var tags = registries.getAsJsonArray("tags").asList();
+            assertFalse(tags.stream().anyMatch(row -> row.getAsJsonObject().get("name").getAsString().equals("old_tag")));
+            assertTrue(tags.removeIf(row -> row.getAsJsonObject().get("name").getAsString().equals("new_tag")));
+            var after = before.copy(); after.replaceRegistries(registries);
+            new MCreatorWorkspaceMutationGateway(reopened, id).persistWorkspaceData(before, after, Operation.DELETE_REGISTRY_ENTRY);
+        }
+        var saved = com.google.gson.JsonParser.parseString(Files.readString(file)).getAsJsonObject().getAsJsonObject("tag_elements");
+        assertFalse(saved.has("ITEMS:mod:new_tag"));
+        assertFalse(Files.exists(renamed));
+        assertEquals("{}", Files.readString(manual));
+    }
+
+    @Test void rejectedRegistryEditRestoresTheRegeneratedLanguageFiles() throws Exception {
+        try (Workspace workspace = cold()) {
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+            Path lang = root.resolve("src/main/resources/assets/cold_fields/lang");
+            assertTrue(workspace.getGenerator().generateBase());
+            byte[] english = Files.readAllBytes(lang.resolve("en_us.json"));
+            UUID id = UUID.randomUUID();
+            var metadata = workspace.getFileManager().loadOrCreateProductMetadata(id);
+            var before = new MCreatorWorkspaceStateMapper().map(workspace, metadata);
+            var after = before.copy();
+            JsonObject registries = before.registries().deepCopy();
+            registries.getAsJsonArray("languageKeys").add(com.google.gson.JsonParser.parseString(
+                    "{\"key\":\"block.cold_fields.ember\",\"translations\":{\"en_us\":\"Ember\",\"zh_cn\":\"余烬\"}}"));
+            after.replaceRegistries(registries);
+            // A durable revision conflict is detected after the language files were regenerated.
+            workspace.getFileManager().synchronizeProductRevision(id, metadata.revision() + 1);
+            var gateway = new MCreatorWorkspaceMutationGateway(workspace, id);
+            Exception failure = assertThrows(Exception.class,
+                    () -> gateway.persistWorkspaceData(before, after, Operation.CREATE_REGISTRY_ENTRY));
+            assertInstanceOf(dev.copperbench.core.workspace.ProductMetadataManager.RevisionConflictException.class, failure);
+            assertArrayEquals(english, Files.readAllBytes(lang.resolve("en_us.json")));
+            assertFalse(Files.exists(lang.resolve("zh_cn.json")), "A language file created by the rejected edit is removed");
         }
     }
 

@@ -492,6 +492,9 @@ public final class WorkspaceApplicationService {
 	}
 
 	private QueryResult workspaceEnvironment(Query query, WorkspaceState state) {
+		String detail = optionalString(query.payload(), "fieldContracts");
+		if (detail != null && !detail.equals("full") && !detail.equals("summary"))
+			return queryFailure(query, state.revision(), invalidPayload("fieldContracts must be full or summary"));
 		try {
 			JsonObject projection = new JsonObject();
 			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
@@ -503,7 +506,10 @@ public final class WorkspaceApplicationService {
 			projection.add("versionTracks", versionTracks(state));
 			JsonObject fieldContracts = FieldContractProjection.environment(optionalString(state.generator(), "id"));
 			fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
-			projection.add("fieldContracts", fieldContracts);
+			// Full contracts are about 180,000 characters; an agent that only needs versions and roots asks for a summary.
+			boolean summary = "summary".equals(detail);
+			projection.add("fieldContracts", summary ? FieldContractProjection.summary(fieldContracts) : fieldContracts);
+			projection.addProperty("fieldContractDetail", summary ? "summary" : "full");
 			projection.addProperty("fieldContractDiscovery", "get_mod_element_field_contract");
 			projection.add("application", ApplicationBuildIdentity.inspect());
 			Path root = workspaceRoot(query.workspaceId());
@@ -5709,6 +5715,8 @@ public final class WorkspaceApplicationService {
 				if (!values.has("growapableSpawnType")) values.addProperty("growapableSpawnType", "Plains");
 				if (!values.has("aiPathNodeType")) values.addProperty("aiPathNodeType", "DEFAULT");
 				if (!values.has("customDrop")) values.addProperty("customDrop", "");
+				// As in the plant editor; an absent int becomes 0, and a 0 drop amount generates an air-only loot table.
+				if (!values.has("dropAmount")) values.addProperty("dropAmount", 1);
 				if (!values.has("unbreakable")) values.addProperty("unbreakable", false);
 			}
 			case "structure" -> {
@@ -5966,7 +5974,16 @@ public final class WorkspaceApplicationService {
 			JsonElement content = command.payload().get("content");
 			if (content == null || !content.isJsonPrimitive() || !content.getAsJsonPrimitive().isString())
 				throw new IllegalArgumentException("content must be a string");
-			WorkspaceSourceService.Edit edit = sources.prepare(path, content.getAsString(), requiredString(command.payload(), "expectedSha256"));
+			// createNew adds a hand-written file; replacing an existing one still requires the hash from a current read.
+			JsonElement createFlag = command.payload().get("createNew");
+			if (createFlag != null && (!createFlag.isJsonPrimitive() || !createFlag.getAsJsonPrimitive().isBoolean()))
+				throw new IllegalArgumentException("createNew must be a boolean");
+			boolean createNew = createFlag != null && createFlag.getAsBoolean();
+			if (createNew == command.payload().has("expectedSha256"))
+				throw WorkspaceSourceService.failure("WORKSPACE_SOURCE_REQUEST_INVALID",
+						"Pass expectedSha256 from a current read to replace a file, or createNew=true to add a new file.");
+			WorkspaceSourceService.Edit edit = createNew ? sources.prepareCreate(path, content.getAsString())
+					: sources.prepare(path, content.getAsString(), requiredString(command.payload(), "expectedSha256"));
 			if (!edit.changed()) {
 				TransactionResult<JsonObject> unchanged = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
 					try { sources.verify(edit); } catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
@@ -5981,7 +5998,7 @@ public final class WorkspaceApplicationService {
 			TransactionResult<RevisionedWorkspaceStore.Replacement> transaction = store.restore(command.workspaceId(), command.expectedRevision(), newRevision -> {
 				WorkspaceState previous = store.read(command.workspaceId()).orElseThrow();
 				sources.verify(edit);
-				recovery.set(history.createRecoveryPoint(new RecoveryPointRequest("Before source edit: " + path,
+				recovery.set(history.createRecoveryPoint(new RecoveryPointRequest((edit.creates() ? "Before source creation: " : "Before source edit: ") + path,
 						context.actor(), Objects.requireNonNullElse(optionalString(command.payload(), "clientMutationId"), command.requestId().toString()), RecoveryPointSource.MANUAL)));
 				AtomicReference<WorkspaceState> reloaded = new AtomicReference<>();
 				try { sources.apply(edit, () -> {

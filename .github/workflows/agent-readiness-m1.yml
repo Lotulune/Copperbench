@@ -66,6 +66,7 @@ on:
       - 'scripts/verify-field-contract-evidence.mjs'
       - 'scripts/tests/test_ci_selection.py'
       - 'examples/agent-readiness/m1-delivery/**'
+      - 'examples/agent-readiness/m1-native/**'
 
 permissions:
   contents: read
@@ -166,7 +167,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Install UI build dependencies
         run: npm ci --prefix ui-shell
-      - name: Build, break, repair, accept, export and reconnect using the real product
+      - name: Write native code through Core, then build, break, repair, accept, export and reconnect
         shell: bash
         env:
           XDG_STATE_HOME: ${{ runner.temp }}/m1-delivery-state

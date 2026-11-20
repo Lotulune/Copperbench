@@ -38,6 +38,32 @@ class LocalHistoryServiceTest {
 
 	@TempDir Path workspace;
 
+	@Test void recoveryPointsDoNotResolveTheHostName() throws Exception {
+		Files.writeString(workspace.resolve("model.json"), "{}");
+		// JGit falls back to user@canonical-host for an unconfigured identity; that reverse DNS lookup
+		// can take seconds. Count only this thread: other tests may use JGit in parallel.
+		Thread current = Thread.currentThread();
+		var lookups = new java.util.concurrent.atomic.AtomicInteger();
+		var original = org.eclipse.jgit.util.SystemReader.getInstance();
+		org.eclipse.jgit.util.SystemReader.setInstance(new org.eclipse.jgit.util.SystemReader.Delegate(original) {
+			@Override public String getHostname() {
+				if (Thread.currentThread() == current) lookups.incrementAndGet();
+				return "copperbench-test-host";
+			}
+		});
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			history.createRecoveryPoint(new RecoveryPointRequest("First", Actor.HEADLESS, ""));
+			Files.writeString(workspace.resolve("model.json"), "{\"changed\":true}");
+			history.createRecoveryPoint(new RecoveryPointRequest("Second", Actor.HEADLESS, ""));
+		} finally {
+			org.eclipse.jgit.util.SystemReader.setInstance(original);
+		}
+		assertEquals(0, lookups.get());
+		try (var repository = new FileRepositoryBuilder().setGitDir(workspace.resolve(".copperbench/local-history.git").toFile()).build()) {
+			assertEquals("local-history@copperbench.invalid", repository.getConfig().getString("user", null, "email"));
+		}
+	}
+
 	@Test void checkpointCapturesContentRewrittenWithTheSameSizeAndTimestamp() throws Exception {
 		Path source = workspace.resolve("model.json");
 		Files.writeString(source, "{\"value\":1}");

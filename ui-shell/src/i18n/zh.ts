@@ -269,6 +269,7 @@ export const zh: Record<string, string> = {
     'field.growapableSpawnType': '可生长植物类型',
     'field.aiPathNodeType': '生物寻路节点类型',
     'field.customDrop': '自定义掉落物',
+    'field.dropAmount': '掉落数量',
   'task.client_exited': 'Minecraft 测试客户端意外退出',
   'task.started': '任务已启动',
   'task.failed': '{backend} 任务失败',

@@ -56,6 +56,8 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 	private static final String ACTOR_HEADER = "Copperbench-Actor: ";
 	private static final String TASK_HEADER = "Copperbench-Task-Id: ";
 	private static final String SOURCE_HEADER = "Copperbench-Source: ";
+	private static final String COMMIT_NAME = "Copperbench";
+	private static final String COMMIT_EMAIL = "local-history@copperbench.invalid";
 
 	private final Clock clock;
 	private final Git git;
@@ -179,7 +181,7 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			throws LocalHistoryException {
 		try {
 			stageCurrentWorkTree();
-			PersonIdent identity = new PersonIdent("Copperbench", "local-history@copperbench.invalid",
+			PersonIdent identity = new PersonIdent(COMMIT_NAME, COMMIT_EMAIL,
 					Date.from(clock.instant()), TimeZone.getTimeZone(ZoneOffset.UTC));
 			String message = "Copperbench recovery point\n\n" + LABEL_HEADER + request.label() + "\n"
 					+ ACTOR_HEADER + request.actor().name() + "\n" + TASK_HEADER + request.taskId() + "\n"
@@ -285,6 +287,11 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 		config.setBoolean("core", null, "autocrlf", false);
 		config.setBoolean("core", null, "filemode", false);
 		config.setBoolean("commit", null, "gpgsign", false);
+		// Without a configured identity JGit derives a default e-mail from InetAddress.getCanonicalHostName().
+		// That reverse DNS lookup took about 11 seconds on a proxied Windows host, once per process, on the
+		// first recovery point. The commit ident is set explicitly; this identity only feeds JGit's defaults.
+		config.setString("user", null, "name", COMMIT_NAME);
+		config.setString("user", null, "email", COMMIT_EMAIL);
 		config.save();
 
 		Path excludes = repository.getDirectory().toPath().resolve("info/exclude");

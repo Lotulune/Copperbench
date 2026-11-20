@@ -34,6 +34,17 @@ public final class GradleCachePolicy {
         throw new IllegalArgumentException("COPPERBENCH_GRADLE_REUSE_EXTERNAL must be true or false");
     }
 
+    /**
+     * Controls whether non-interactive workspace tasks keep a warm Gradle daemon between tasks.
+     * {@code COPPERBENCH_GRADLE_DAEMON=false} restores one single-use daemon per task.
+     */
+    public static boolean reuseDaemon(Map<String, String> environment) {
+        String value = environment.get("COPPERBENCH_GRADLE_DAEMON");
+        if (!present(value) || value.equals("true")) return true;
+        if (value.equals("false")) return false;
+        throw new IllegalArgumentException("COPPERBENCH_GRADLE_DAEMON must be true or false");
+    }
+
     private static boolean present(String value) {
         return value != null && !value.isBlank();
     }

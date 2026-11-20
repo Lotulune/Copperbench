@@ -163,6 +163,13 @@ test('workspace source edits require a disk hash, revision and bounded text whil
   update.payload.content = 'class Entry {}';
   update.payload.force = true;
   assert.equal(command(update), false, 'there is no force-overwrite escape hatch');
+  delete update.payload.force;
+  update.payload.createNew = true;
+  assert.equal(command(update), false, 'creating a file cannot also claim a replaced file hash');
+  delete update.payload.expectedSha256;
+  assert.equal(command(update), true, JSON.stringify(command.errors));
+  update.payload.createNew = false;
+  assert.equal(command(update), false, 'createNew=false is not a hash-free replacement');
   assert.equal(query(operationRequest('query', 'read_workspace_file', { relativePath: 'src/main/java/example/Entry.java' })), true);
   assert.equal(query(operationRequest('query', 'read_workspace_file', {})), false);
   assert.equal(query(operationRequest('query', 'list_workspace_files', { limit: 200, offset: 0, search: 'Entry' })), true);
@@ -931,4 +938,25 @@ test('doctor query is read-only and observations cannot imply a network probe or
   report.networkProbed = false;
   report.findings[0].status = 'assumed';
   assert.equal(validate(report), false);
+});
+
+test('environment summary is opt-in and language entries carry a key with per-locale text', async () => {
+  const { ajv } = await createValidator();
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  for (const payload of [{}, { fieldContracts: 'summary' }, { fieldContracts: 'full' }])
+    assert.equal(query(operationRequest('query', 'get_workspace_environment', payload)), true, JSON.stringify(query.errors));
+  for (const payload of [{ fieldContracts: 'brief' }, { detail: 'summary' }])
+    assert.equal(query(operationRequest('query', 'get_workspace_environment', payload)), false, JSON.stringify(payload));
+
+  const command = ajv.getSchema('urn:ui-core:1.0:command');
+  const entry = (registry, value) => operationRequest('command', 'create_registry_entry',
+    { clientMutationId: operationProbeId, registry, entry: value });
+  const language = { key: 'item.examplemod.ember_dust', translations: { en_us: 'Ember Dust', zh_cn: '余烬粉' } };
+  assert.equal(command(entry('languageKeys', language)), true, JSON.stringify(command.errors));
+  assert.equal(command(entry('languageKeys', { key: 'message.examplemod.empty' })), true, JSON.stringify(command.errors));
+  for (const invalid of [{ translations: language.translations }, { key: 'Item.Upper', translations: {} },
+    { key: language.key, translations: { en_us: 7 } }])
+    assert.equal(command(entry('languageKeys', invalid)), false, JSON.stringify(invalid));
+  assert.equal(command(entry('variables', { name: 'score', dataType: 'number', scope: 'global' })), true,
+    'other registries keep their own entry shape');
 });

@@ -102,6 +102,10 @@ public final class WorkspaceExecutionEnvironment {
                 System.getenv(), System.getProperty("copperbench.gradle.user.home")));
         gradle.addProperty("reuseExternalDistributions",
                 dev.copperbench.gradle.GradleCachePolicy.reuseExternalDistributions(System.getenv()));
+        // Client and server runs always use a single-use daemon; see Fabric1211ProcessRunner.daemonArguments.
+        gradle.addProperty("reuseDaemon", dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(System.getenv()));
+        gradle.addProperty("daemonIdleTimeoutMillis",
+                dev.copperbench.generator.fabric.Fabric1211ProcessRunner.DAEMON_IDLE_TIMEOUT.toMillis());
         String launcher = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
         if (launcher != null && !launcher.isBlank()) gradle.addProperty("launcherOverride", launcher);
         JsonObject tasks = new JsonObject();

@@ -236,6 +236,18 @@ public final class GameTestSupport {
                 """.formatted(annotation), new ArrayList<>());
     }
 
+    // A per-test actor: vanilla 1.21.1 makeMockServerPlayerInLevel() hardcodes isCreative() to true.
+    private static final String FABRIC_1211_SURVIVAL_PLAYER = """
+                // For survival item use and block breaking; not a logged-in client or a packet recorder.
+                private static net.minecraft.server.level.ServerPlayer survivalPlayer(GameTestHelper helper) {
+                    var profile = new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "cb-test");
+                    var player = net.fabricmc.fabric.api.entity.FakePlayer.get(helper.getLevel(), profile);
+                    player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+                    return player;
+                }
+
+            """;
+
     private static String starter(String loader, String version, String modId) {
         String quotedId = new GsonBuilder().disableHtmlEscaping().create().toJson(modId);
         if (loader.equals("fabric")) return """
@@ -244,7 +256,7 @@ public final class GameTestSupport {
                 import net.minecraft.gametest.framework.GameTestHelper;
                 %s
                 public final class AcceptanceTests %s {
-                    %s
+                %s    %s
                     public void modLoads(GameTestHelper helper) {
                         if (!FabricLoader.getInstance().isModLoaded(%s)) throw new IllegalStateException("Tested mod was not loaded");
                         // Replace or extend this smoke check with assertions about your mod's behavior.
@@ -254,6 +266,7 @@ public final class GameTestSupport {
                 """.formatted(version.startsWith("26.") ? "import net.fabricmc.fabric.api.gametest.v1.GameTest;"
                 : "import net.minecraft.gametest.framework.GameTest; import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;",
                 version.startsWith("26.") ? "" : "implements FabricGameTest",
+                version.equals("1.21.1") ? FABRIC_1211_SURVIVAL_PLAYER : "",
                 version.startsWith("26.") ? "@GameTest" : "@GameTest(template = FabricGameTest.EMPTY_STRUCTURE)", quotedId);
         if (version.startsWith("26.")) return neoModernStarter(quotedId);
         String namespace = version.equals("1.20.1") ? "net.minecraftforge" : "net.neoforged.neoforge";

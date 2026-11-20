@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+import errno
 import json
 import hashlib
 import math
@@ -28,6 +30,34 @@ class NativeApiError(RuntimeError):
         super().__init__(message)
         self.code = code
         self.details = details
+
+
+@contextmanager
+def _host_start_lock(workspace: Path, deadline: float):
+    """Only cold starters coordinate; closing the handle also releases it after a crash."""
+    directory = workspace.parent / '.copperbench'
+    directory.mkdir(exist_ok=True)
+    with (directory / 'python-host-start.lock').open('a+b') as lock:
+        if os.name == 'nt':
+            import msvcrt
+            def acquire():
+                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            def acquire():
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        while True:
+            try:
+                acquire()
+                break
+            except OSError as error:
+                if error.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+                    raise
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    raise NativeApiError('Timed out waiting for the other host to start', 'NATIVE_START_TIMEOUT') from error
+                time.sleep(min(0.05, left))
+        yield
 
 
 def _render_message(message: Any, default: str) -> str:
@@ -64,6 +94,28 @@ def _render_message(message: Any, default: str) -> str:
     return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", substitute, fallback)
 
 
+# Skip comments and Java literals when an otherwise exact duplicate could be inside one.
+_JAVA_NON_CODE = re.compile(
+    r'//[^\n]*|/\*.*?(?:\*/|\Z)|"""(?:\\.|(?!""")[^\\])*?(?:"""|\Z)'
+    r'|"(?:\\.|[^"\\\n])*"' r"|'(?:\\.|[^'\\\n])*'", re.DOTALL)
+
+
+def _block_contains(lines: list[str], code: str) -> bool:
+    body = '\n' + '\n'.join(line.strip() for line in lines) + '\n'
+    needle = '\n' + '\n'.join(line.strip() for line in code.splitlines()) + '\n'
+    hit = body.find(needle)
+    if hit < 0 or ('/*' not in body and '"""' not in body):
+        return hit >= 0
+    for token in _JAVA_NON_CODE.finditer(body):
+        if hit + 1 <= token.start():
+            break
+        while hit + 1 < token.end():
+            hit = body.find(needle, hit + 1)
+            if hit < 0:
+                return False
+    return True
+
+
 class Workspace:
     """A Core session opened independently or attached to the live desktop.
 
@@ -83,18 +135,10 @@ class Workspace:
         (for example a Java launcher). No shell is used. cwd may specify the
         distribution root for a development Java command.
         """
-        path = Path(workspace).resolve(strict=True)
-        if not path.is_file() or path.suffix != ".mcreator":
-            raise ValueError("workspace must be an existing .mcreator file")
+        path = cls._workspace_file(workspace)
         cls._check_timeout(startup_timeout)
         cls._check_timeout(request_timeout)
-        if launcher is None:
-            launcher = os.environ.get("COPPERBENCH_EXECUTABLE") or shutil.which("copperbench")
-            if not launcher:
-                raise NativeApiError("Specify launcher= with the Copperbench executable", "NATIVE_LAUNCHER_NOT_FOUND")
-        argv = [os.fspath(launcher)] if isinstance(launcher, (str, Path)) else list(launcher)
-        if not argv or any(not isinstance(item, str) or not item for item in argv):
-            raise ValueError("launcher must be a nonempty executable or argv sequence")
+        argv = cls._launcher_argv(launcher)
         self = cls.__new__(cls)
         self.task_authorization_id = task_authorization_id
         self.metrics = metrics
@@ -124,6 +168,7 @@ class Workspace:
             self.workspace_id = ready["workspaceId"]
             self._task_authorized_operations = frozenset(ready.get("taskAuthorizedOperations", []))
             self.operations = tuple(ready.get('operations', []))
+            self.host_operations = frozenset(ready.get('hostOperations', []))
             self.get_workspace()
             return self
         except BaseException:
@@ -134,6 +179,133 @@ class Workspace:
     def _check_timeout(value: float) -> None:
         if not math.isfinite(value) or value <= 0:
             raise ValueError("timeouts must be positive and finite")
+
+    @staticmethod
+    def _workspace_file(workspace: str | Path) -> Path:
+        path = Path(workspace).resolve(strict=True)
+        if not path.is_file() or path.suffix != ".mcreator":
+            raise ValueError("workspace must be an existing .mcreator file")
+        return path
+
+    @staticmethod
+    def _launcher_argv(launcher: str | Path | Sequence[str] | None) -> list[str]:
+        if launcher is None:
+            launcher = os.environ.get("COPPERBENCH_EXECUTABLE") or shutil.which("copperbench")
+            if not launcher:
+                raise NativeApiError("Specify launcher= with the Copperbench executable", "NATIVE_LAUNCHER_NOT_FOUND")
+        argv = [os.fspath(launcher)] if isinstance(launcher, (str, Path)) else list(launcher)
+        if not argv or any(not isinstance(item, str) or not item for item in argv):
+            raise ValueError("launcher must be a nonempty executable or argv sequence")
+        return argv
+
+    @classmethod
+    def attach(cls, workspace: str | Path, *, launcher: str | Path | Sequence[str] | None = None,
+               idle_timeout: float = 900, startup_timeout: float = 120, request_timeout: float = 30,
+               cwd: str | Path | None = None, task_authorization_id: str | None = None,
+               metrics: ClientMetrics | None = None) -> Workspace:
+        """Share one Core across scripts: the live desktop, or a background host started on first use.
+
+        Use this instead of open() when several short scripts work on the same
+        workspace. The first call starts ``headless ... serve`` (about the cost
+        of open()); later calls only connect. The background host keeps the
+        workspace write lock and exits after idle_timeout seconds without a
+        connected client or a running task. Closing this session only
+        disconnects, so a submitted task keeps running and wait_task() can
+        resume it from the next script.
+        """
+        path = cls._workspace_file(workspace)
+        cls._check_timeout(startup_timeout)
+        cls._check_timeout(request_timeout)
+        if not math.isfinite(idle_timeout) or not 5 <= idle_timeout <= 8 * 3600:
+            raise ValueError("idle_timeout must be between 5 and 28800 seconds")
+        options = {"request_timeout": request_timeout, "task_authorization_id": task_authorization_id, "metrics": metrics}
+        try:
+            return cls.connect(path, **options)
+        except NativeApiError as error:
+            if error.code != "NATIVE_CONNECTION_UNAVAILABLE":
+                raise
+        deadline = time.monotonic() + startup_timeout
+        with _host_start_lock(path, deadline):
+            # A concurrent SDK caller may have published a host since our first lookup.
+            try:
+                return cls.connect(path, **options)
+            except NativeApiError as error:
+                if error.code != "NATIVE_CONNECTION_UNAVAILABLE":
+                    raise
+            argv = cls._launcher_argv(launcher)
+            command = [*argv, "headless", "--workspace", str(path), "serve", "--idle-timeout", str(math.ceil(idle_timeout))]
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise NativeApiError('Timed out starting the background host', 'NATIVE_START_TIMEOUT')
+            ready = cls._start_background_host(command, cwd, remaining)
+        if ready.get("status") != "serving":
+            code = ready.get("code") or "NATIVE_START_FAILED"
+            if code != "WORKSPACE_WRITE_LOCKED":
+                raise NativeApiError("Core could not start a background host for the workspace", code, ready)
+            # A desktop started outside the SDK lock may now offer a connection.
+        try:
+            return cls.connect(path, **options)
+        except NativeApiError as error:
+            if error.code == "NATIVE_CONNECTION_UNAVAILABLE" and ready.get("status") != "serving":
+                raise NativeApiError("The workspace is open in another Copperbench process without Python access",
+                                     "WORKSPACE_WRITE_LOCKED", ready) from error
+            raise
+
+    @staticmethod
+    def _start_background_host(command: list[str], cwd: str | Path | None, startup_timeout: float) -> dict[str, Any]:
+        """Start a detached host and return its first JSON line (readiness or the startup failure)."""
+        options: dict[str, Any] = {}
+        if os.name == "nt":
+            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
+            breakaway = 0x01000000  # CREATE_BREAKAWAY_FROM_JOB: outlive a tool runner's job object when allowed.
+            attempts = [flags | breakaway, flags]
+        else:
+            options["start_new_session"] = True
+            attempts = [0]
+        process = None
+        for index, flags in enumerate(attempts):
+            try:
+                process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                           stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace",
+                                           cwd=cwd, **({"creationflags": flags} if os.name == "nt" else options))
+                break
+            except PermissionError:
+                if index == len(attempts) - 1:
+                    raise
+        assert process is not None
+        lines: queue.Queue[str] = queue.Queue()
+
+        def read_first_line() -> None:
+            try:
+                lines.put(process.stdout.readline())
+            except (OSError, ValueError):
+                lines.put("")
+
+        threading.Thread(target=read_first_line, daemon=True).start()
+        try:
+            line = lines.get(timeout=startup_timeout)
+        except queue.Empty:
+            process.kill()
+            raise NativeApiError("The background host did not report readiness", "NATIVE_START_TIMEOUT")
+        finally:
+            # The host never writes after its readiness line; release this end of the pipe.
+            try:
+                process.stdout.close()
+            except (OSError, ValueError):
+                pass
+        try:
+            value = json.loads(line) if line.strip() else {"status": "exited", "exitCode": process.poll()}
+        except json.JSONDecodeError:
+            value = {"status": "failed", "code": "NATIVE_INVALID_RESPONSE"}
+        if not isinstance(value, dict):
+            value = {"status": "failed", "code": "NATIVE_INVALID_RESPONSE"}
+        if value.get("status") != "serving":
+            # A failed start exits on its own; collect it. A serving host intentionally outlives this script.
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+        return value
 
     @classmethod
     def connect(cls, workspace: str | Path, *, request_timeout: float = 30,
@@ -189,6 +361,7 @@ class Workspace:
             self.workspace_id = ready['workspaceId']
             self._task_authorized_operations = frozenset(ready.get('taskAuthorizedOperations', []))
             self.operations = tuple(ready.get('operations', []))
+            self.host_operations = frozenset(ready.get('hostOperations', []))
             self.get_workspace()
             return self
         except BaseException as error:
@@ -445,6 +618,10 @@ class Workspace:
                     "inspection": {"operation": "get_mod_element_editor",
                                    "requires": ["elementId"], "scope": "existing_element"},
                 })
+        if data.get('fieldContractDetail') == 'summary':
+            raise NativeApiError('This environment contains summaries, not full field contracts. '
+                                 'Use discover_field_contract() for creation fields or supply a full environment.',
+                                 'NATIVE_FIELD_CONTRACT_SUMMARY')
         return contracts[element_type]
 
     def discover_field_contract(self, element_type: str) -> dict[str, Any]:
@@ -503,8 +680,151 @@ class Workspace:
         """Page the installed generator's vanilla reference values."""
         return self.query("get_field_reference_options", elementType=element_type,
                           mappingSource=mapping_source, search=search, offset=offset, limit=limit)
-    def get_workspace_environment(self) -> dict[str, Any]:
-        return self.query("get_workspace_environment")
+    def get_workspace_environment(self, *, field_contracts: str = "full") -> dict[str, Any]:
+        """Read the generator, Minecraft version, toolchain and source roots.
+
+        ``field_contracts="summary"`` keeps each structured-element contract's
+        version, availability and field count (about 7,000 instead of 190,000
+        characters). The default ``"full"`` includes every field. Native code
+        work needs only the summary; field_contract() reads the full form.
+        """
+        if field_contracts not in ("full", "summary"):
+            raise ValueError("field_contracts must be 'full' or 'summary'")
+        if field_contracts == "full":
+            return self.query("get_workspace_environment")
+        return self.query("get_workspace_environment", fieldContracts="summary")
+
+    def native_edit_brief(self) -> dict[str, Any]:
+        """Locate the conventional Fabric Java main without listing the workspace or changing it.
+
+        ``ready`` describes the files read, not permission to edit them. ``needs_discovery``
+        gives the reason to inspect a custom layout. ``scratchDir`` is workspace-relative,
+        for disposable scripts, receipts and import sources. This call does not create it.
+        No inventory scan or retry is implicit.
+        """
+        env = self.get_workspace_environment(field_contracts="summary")["data"]
+        execution = env.get("execution", {})
+        generator = env.get("generator", {})
+        brief = {"status": "needs_discovery", "scratchDir": ".gradle/copperbench-agent",
+                 "generator": generator.get("id"),
+                 "minecraftVersion": generator.get("minecraftVersion"),
+                 "sourceRoot": execution.get("sourceRoot"), "resourceRoot": execution.get("resourceRoot"),
+                 "gameTests": execution.get("testing", {}).get("state")}
+        if execution.get("loader") != "fabric":
+            return {**brief, "reason": "not_standard_fabric"}
+
+        def read(path: str) -> dict[str, Any] | None:
+            try:
+                return self.read_file(path)["data"]
+            except NativeApiError as error:
+                # A missing conventional file is reported as Core I/O. Keep its actual diagnostic;
+                # do not guess another path or swallow a denial, revision conflict or protocol error.
+                if error.code != "WORKSPACE_SOURCE_IO":
+                    raise
+                brief.update(reason=error.code, path=path, detail=str(error))
+                return None
+
+        manifest_path = "src/main/resources/fabric.mod.json"
+        manifest_file = read(manifest_path)
+        if manifest_file is None:
+            return brief
+        try:
+            manifest = json.loads(manifest_file["content"])
+        except json.JSONDecodeError as error:
+            return {**brief, "reason": "invalid_fabric_manifest", "path": manifest_path, "detail": str(error)}
+        entrypoints = manifest.get("entrypoints") if isinstance(manifest, dict) else None
+        mains = entrypoints.get("main") if isinstance(entrypoints, dict) else None
+        if (not isinstance(mains, list) or len(mains) != 1 or not isinstance(mains[0], str)
+                or not re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", mains[0], re.ASCII)):
+            return {**brief, "reason": "custom_entrypoints", "path": manifest_path}
+        if not isinstance(manifest.get("id"), str) or not manifest["id"]:
+            return {**brief, "reason": "missing_mod_id", "path": manifest_path}
+        brief["modId"] = manifest["id"]
+        build = read("build.gradle")
+        if build is None:
+            return brief
+        # Quote simple declarations as evidence; never infer mappings from the loader version.
+        lines = [line.strip() for line in build["content"].splitlines()]
+        mappings = [line for line in lines if re.match(r"^mappings(?:\s|\()", line)]
+        if mappings != ["mappings loom.officialMojangMappings()"]:
+            return {**brief, "reason": "inspect_build_mappings", "path": "build.gradle"}
+        source = read("src/main/java/" + mains[0].replace(".", "/") + ".java")
+        if source is None:
+            return brief
+        return {**brief, "status": "ready", "mappings": mappings[0],
+                "loaderVersion": execution.get("loaderVersion"), "fabricApiVersion": execution.get("fabricApiVersion"),
+                "main": source["relativePath"], "ownership": source["ownership"], "editable": source["editable"],
+                "userCodeBlocks": source.get("userCodeBlocks", [])}
+
+    def read_file(self, relative_path: str) -> dict[str, Any]:
+        """Read a workspace source file; ``data.sha256`` guards a later replacement."""
+        return self.query("read_workspace_file", relativePath=relative_path)
+
+    def insert_user_code(self, relative_path: str, block: str, code: str) -> dict[str, Any]:
+        """Append code at the end of a user code block in a generated file, such as 'mod init'.
+
+        The file's own line endings (generated Java may use CRLF) and the
+        block's indentation are kept, the write is hash-guarded, and code
+        already present in the block is not inserted again, so a rerun script
+        does not register content twice. Returns the write result, or
+        ``{"status": "unchanged", ...}`` when the code is already there.
+        """
+        if not isinstance(block, str) or not block.strip():
+            raise ValueError("block must name a user code block, for example 'mod init'")
+        if not isinstance(code, str) or not code.strip():
+            raise ValueError("code must be nonempty")
+        current = self.read_file(relative_path)["data"]
+        lines = current["content"].splitlines(keepends=True)
+        start_marker = "// Start of user code block " + block.strip()
+        end_marker = "// End of user code block " + block.strip()
+        starts = [index for index, line in enumerate(lines) if line.strip() == start_marker]
+        ends = [index for index, line in enumerate(lines) if line.strip() == end_marker]
+        if len(starts) != 1 or len(ends) != 1 or ends[0] <= starts[0]:
+            raise NativeApiError(f"User code block {block!r} is not in {relative_path} exactly once",
+                                 "NATIVE_USER_CODE_BLOCK_NOT_FOUND",
+                                 {"relativePath": relative_path, "userCodeBlocks": current.get("userCodeBlocks")})
+        start, end = starts[0], ends[0]
+        newline = "\r\n" if lines[start].endswith("\r\n") else "\n"
+        indent = re.match(r"[ \t]*", lines[start]).group(0)
+        code = code.strip("\r\n")
+        if _block_contains(lines[start + 1:end], code):
+            return {"status": "unchanged", "relativePath": relative_path, "sha256": current["sha256"]}
+        inserted = "".join((indent + line if line.strip() else "") + newline
+                           for line in code.splitlines())
+        text = "".join(lines[:end]) + inserted + "".join(lines[end:])
+        return self.write_file(relative_path, text, expected_sha256=current["sha256"])
+
+    def write_file(self, relative_path: str, content: str, *, expected_sha256: str | None = None,
+                   expected_revision: int | None = None) -> dict[str, Any]:
+        """Create a hand-written file, or replace one with the sha256 from :meth:`read_file`.
+
+        Without ``expected_sha256`` the file must not exist yet. Generator-owned
+        paths stay read-only either way, and Core takes a recovery point first.
+        """
+        if expected_sha256 is None:
+            return self.command("update_workspace_file", expected_revision=expected_revision,
+                                relativePath=relative_path, content=content, createNew=True)
+        return self.command("update_workspace_file", expected_revision=expected_revision,
+                            relativePath=relative_path, content=content, expectedSha256=expected_sha256)
+
+    def import_asset(self, source: str | Path, target_relative_path: str, *, confirm_replace: bool = False,
+                     expected_revision: int | None = None) -> dict[str, Any]:
+        """Import a local texture, sound or model through Core's preview, recovery point and reference checks.
+
+        Replacing a different existing asset requires ``confirm_replace=True``.
+        Hosts that predate local import grants raise ``NATIVE_OPERATION_UNAVAILABLE``.
+        """
+        if "grant_asset_import_source" not in getattr(self, "host_operations", frozenset()):
+            raise NativeApiError("This Copperbench host cannot import local files; update Copperbench",
+                                 "NATIVE_OPERATION_UNAVAILABLE")
+        path = Path(source).resolve(strict=True)
+        grant = self._call("host", "grant_asset_import_source", {"path": str(path)})
+        preview = self.query("preview_asset_import", sourceGrantId=grant["data"]["sourceGrantId"],
+                             targetRelativePath=target_relative_path)
+        payload: dict[str, Any] = {"planToken": preview["data"]["planToken"]}
+        if confirm_replace:
+            payload["confirmReplace"] = True
+        return self.command("import_asset", expected_revision=expected_revision, **payload)
 
     def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
                                expected_revision: int | None = None,

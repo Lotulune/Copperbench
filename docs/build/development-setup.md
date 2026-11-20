@@ -112,6 +112,11 @@ Pop-Location
 Gradle 缓存目录；该选项只阻止跨目录借用，保留所选目录自身的复用能力。
 `true` 恢复默认行为，其他非空值会被拒绝。程序不会清空任何已有缓存。
 
+构建、GameTest、datagen、导出和生成器准备默认复用常驻 Gradle 守护进程，空闲 10 分钟后
+自动退出；启动客户端或服务器仍使用一次性守护进程，停止任务时会一并结束游戏进程。
+工作区 `gradle.properties` 中的 `org.gradle.daemon=false` 仍然生效。需要每个任务都使用
+一次性守护进程时，为产品进程设置 `COPPERBENCH_GRADLE_DAEMON=false`；其他非空值会被拒绝。
+
 `get_workspace_environment.execution.gradle` 会报告 `userHome`、`userHomeSource`
 和 `reuseExternalDistributions`，doctor 使用同一后端事实。它们说明实际配置，
 不证明缓存内容完整或下载已经通过摘要校验。冷/热缓存安装回放及记录方式见

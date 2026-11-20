@@ -22,8 +22,11 @@ if mode == 'startup_hang':
 if mode == 'startup_failure':
     print(json.dumps({'status': 'failed', 'code': 'WORKSPACE_WRITE_LOCKED'}), flush=True)
     sys.exit(1)
-print(json.dumps({'status': 'ready', 'nativeApiVersion': '1', 'workspaceId': 'fixture',
-                  'taskAuthorizedOperations': ['build_workspace']}), flush=True)
+ready = {'status': 'ready', 'nativeApiVersion': '1', 'workspaceId': 'fixture',
+         'taskAuthorizedOperations': ['build_workspace']}
+if mode != 'legacy_host':
+    ready['hostOperations'] = ['grant_asset_import_source']
+print(json.dumps(ready), flush=True)
 revision = 0
 polls = 0
 for line in sys.stdin:
@@ -86,6 +89,13 @@ for line in sys.stdin:
             result['data']['fieldContracts'] = []
         if mode == 'invalid_contract':
             contracts['item'] = None
+    if request['kind'] == 'host':
+        source = pathlib.Path(request['payload']['path'])
+        result = {'status': 'succeeded', 'data': {'sourceGrantId': 'grant-1', 'fileName': source.name,
+                                                  'size': source.stat().st_size, 'expiresAt': 'later'}}
+    if operation == 'preview_asset_import':
+        result['data'] = {'planToken': 'plan-for-' + request['payload']['sourceGrantId'],
+                          'targetRelativePath': request['payload']['targetRelativePath']}
     if operation == 'reject_diagnostic':
         result = {'status': 'rejected', 'revision': revision, 'data': {},
                   'diagnostics': [{'code': 'FIELD_TYPE_INVALID', 'path': '/commands/0',
@@ -136,6 +146,39 @@ class NativeApiTest(unittest.TestCase):
 
     def requests(self):
         return [json.loads(line) for line in self.host.with_suffix('.requests').read_text(encoding='utf-8').splitlines()]
+
+    def test_file_helpers_create_without_a_hash_and_replace_with_the_read_hash(self):
+        client = self.open()
+        client.write_file('src/main/java/example/EmberWand.java', 'class EmberWand {}')
+        client.write_file('src/main/java/example/EmberWand.java', 'class EmberWand { }', expected_sha256='a' * 64)
+        writes = [r for r in self.requests() if r['operation'] == 'update_workspace_file']
+        self.assertEqual({'relativePath': 'src/main/java/example/EmberWand.java', 'content': 'class EmberWand {}',
+                          'createNew': True}, writes[0]['payload'])
+        self.assertEqual('a' * 64, writes[1]['payload']['expectedSha256'])
+        self.assertNotIn('createNew', writes[1]['payload'])
+        self.assertEqual([0, 1], [r['expectedRevision'] for r in writes])
+
+    def test_import_asset_grants_the_absolute_source_then_previews_and_imports_once(self):
+        texture = self.root / 'ember wand.png'
+        texture.write_bytes(b'\x89PNG')
+        client = self.open()
+        result = client.import_asset(texture, 'assets/example/textures/item/ember_wand.png', confirm_replace=True)
+        self.assertEqual('committed', result['status'])
+        sent = [r for r in self.requests() if r['operation'] != 'get_workbench']
+        self.assertEqual(['grant_asset_import_source', 'preview_asset_import', 'import_asset'], [r['operation'] for r in sent])
+        self.assertEqual('host', sent[0]['kind'])
+        self.assertEqual(str(texture.resolve()), sent[0]['payload']['path'])
+        self.assertEqual('grant-1', sent[1]['payload']['sourceGrantId'])
+        self.assertEqual({'planToken': 'plan-for-grant-1', 'confirmReplace': True}, sent[2]['payload'])
+
+    def test_import_asset_on_an_older_host_is_explicitly_unavailable(self):
+        texture = self.root / 'lamp.png'
+        texture.write_bytes(b'\x89PNG')
+        client = self.open('legacy_host')
+        with self.assertRaises(NativeApiError) as failure:
+            client.import_asset(texture, 'assets/example/textures/block/lamp.png')
+        self.assertEqual('NATIVE_OPERATION_UNAVAILABLE', failure.exception.code)
+        self.assertEqual(['get_workbench'], [r['operation'] for r in self.requests()])
 
     def test_schema_negotiation_returns_incompatibility_without_closing_session(self):
         client = self.open()

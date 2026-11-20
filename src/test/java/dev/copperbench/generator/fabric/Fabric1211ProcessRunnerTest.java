@@ -70,6 +70,25 @@ class Fabric1211ProcessRunnerTest {
 		assertTrue(output.contains("OBSERVED_GRADLE_HOME=" + expected.get("GRADLE_USER_HOME")), output.toString());
 	}
 
+	@Test void windowsWrapperIsFoundWhenCmdCurrentDirectoryLookupIsDisabled() throws Exception {
+		org.junit.jupiter.api.Assumptions.assumeTrue(
+				RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS);
+		// Same location as the other process tests: some hosts deny CreateProcess with the JUnit temp directory as cwd.
+		java.nio.file.Path root = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build").toAbsolutePath(), "wrapper-lookup-");
+		java.nio.file.Files.writeString(root.resolve("gradlew.bat"), "@echo off\r\necho OBSERVED_WRAPPER\r\n");
+		List<String> command = new java.util.ArrayList<>(Fabric1211ProcessRunner.wrapperCommand(true, null));
+		ProcessBuilder builder = new ProcessBuilder(command).directory(root.toFile()).redirectErrorStream(true);
+		// Agent shells and some managed environments set this; cmd then ignores the current directory for bare names.
+		builder.environment().put("NoDefaultCurrentDirectoryInExePath", "1");
+		Process process = builder.start();
+		String output = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+		assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+		assertEquals(0, process.exitValue(), output);
+		assertTrue(output.contains("OBSERVED_WRAPPER"), output);
+		assertEquals(List.of("cmd.exe", "/c", "custom.cmd"), Fabric1211ProcessRunner.wrapperCommand(true, "custom.cmd"));
+		assertEquals(List.of("./gradlew"), Fabric1211ProcessRunner.wrapperCommand(false, " "));
+	}
+
 	@Test void recognizesTheObservedWindowsOpenGlDriverFailure() {
 		assertEquals("WINDOWS_OPENGL_INITIALIZATION_FAILED", Fabric1211ProcessRunner.graphicalFailureCode(
 				RuntimePlatform.OperatingSystem.WINDOWS,
@@ -119,6 +138,31 @@ class Fabric1211ProcessRunnerTest {
 			preference.set(previous);
 			net.mcreator.preferences.PreferencesManager.PREFERENCES = previousPreferences;
 		}
+	}
+
+	@Test void nonInteractiveTasksReuseAnIdleLimitedDaemonWhileGameRunsStaySingleUse() {
+		String idle = "-Dorg.gradle.daemon.idletimeout=" + Fabric1211ProcessRunner.DAEMON_IDLE_TIMEOUT.toMillis();
+		for (var tasks : List.of(List.of("build"), List.of("runGameTest"), List.of("runDatagen"), List.of("help", "--console=plain")))
+			assertEquals(List.of(idle), Fabric1211ProcessRunner.daemonArguments(tasks, true), tasks.toString());
+		for (var tasks : List.of(List.of("runClient"), List.of(":pack:runClient"), List.of("runServer")))
+			assertEquals(List.of("--no-daemon"), Fabric1211ProcessRunner.daemonArguments(tasks, true), tasks.toString());
+		assertEquals(List.of("--no-daemon"), Fabric1211ProcessRunner.daemonArguments(List.of("build"), false));
+		assertTrue(Fabric1211ProcessRunner.DAEMON_IDLE_TIMEOUT.toMinutes() <= 30, "an idle daemon must not hold memory for hours");
+	}
+
+	@Test void automatedFabricBuildAndGameTestDoNotRemapIdeDependencySources() {
+		for (String task : List.of("build", "runGameTest"))
+			assertEquals(List.of("-Dfabric.loom.ci=true", task), Fabric1211WorkspaceTaskGateway.headlessBuildArgs(List.of(task)));
+		for (var args : List.of(List.of("runClient"), List.of("genSources"), List.of("-Dfabric.loom.ci=false", "build")))
+			assertEquals(args, Fabric1211WorkspaceTaskGateway.headlessBuildArgs(args));
+	}
+
+	@Test void daemonReuseIsOnByDefaultAndAcceptsOnlyExplicitBooleans() {
+		assertTrue(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of()));
+		assertTrue(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "true")));
+		assertFalse(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "false")));
+		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+				() -> dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "0")));
 	}
 
 	@Test void recognizesRootAndQualifiedRunClientTasks() {

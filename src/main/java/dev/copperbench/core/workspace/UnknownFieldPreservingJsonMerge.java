@@ -31,6 +31,11 @@ public final class UnknownFieldPreservingJsonMerge {
 			return gson.toJson(generated);
 
 		JsonElement existing = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+		// In a workspace this is a complete map of tag IDs to string lists, not extensible object fields.
+		// Merging its old keys would resurrect deleted or renamed tags on the next open.
+		if (file.getFileName().toString().endsWith(".mcreator") && existing.isJsonObject()
+				&& generated.isJsonObject() && generated.getAsJsonObject().has("tag_elements"))
+			existing.getAsJsonObject().remove("tag_elements");
 		JsonElement merged = merge(existing, generated);
 		removeKnownNulls(merged, generated, JsonParser.parseString(serializedKnownShape));
 		return gson.toJson(merged);

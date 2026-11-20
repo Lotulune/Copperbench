@@ -33,6 +33,8 @@ public final class ResourceDependencyCapture {
             String captureId = UUID.randomUUID().toString().replace("-", "");
             String capturePath = ".copperbench/resource-index/capture-" + captureId + ".json";
             String fingerprint = WorkspaceExecutionSnapshot.fingerprint(root, () -> Thread.currentThread().isInterrupted());
+            // Read before the pending state below replaces the earlier index.
+            var previous = previousHashes(root.resolve(INDEX));
             JsonObject pending = new JsonObject();
             pending.addProperty("state", "collecting"); pending.addProperty("generator", generator);
             pending.addProperty("inputSha256", fingerprint);
@@ -41,7 +43,7 @@ public final class ResourceDependencyCapture {
             command.add("-PcopperbenchResourceSnapshotOutput=" + capturePath);
             command.add("-PcopperbenchResourceCaptureTask=copperbenchCaptureResourceContext" + captureId);
             command.add("copperbenchCaptureResourceContext" + captureId);
-            return new Capture(root, capturePath, generator, fingerprint, log);
+            return new Capture(root, capturePath, generator, fingerprint, log, java.util.Map.copyOf(previous));
         } catch (IOException | RuntimeException exception) {
             log.accept("RESOURCE_INDEX_UNAVAILABLE: runtime dependency capture could not be prepared (" + exception.getClass().getSimpleName() + ")");
             return null;
@@ -60,6 +62,28 @@ public final class ResourceDependencyCapture {
         }
     }
 
+    /** Hashes recorded by an earlier capture, keyed by real path, size and modification time. */
+    static java.util.Map<String, String> previousHashes(Path index) {
+        var result = new java.util.HashMap<String, String>();
+        try {
+            if (!Files.isRegularFile(index, LinkOption.NOFOLLOW_LINKS) || Files.size(index) > 8 * 1024 * 1024) return result;
+            JsonObject value = JsonParser.parseString(Files.readString(index)).getAsJsonObject();
+            if (!value.has("artifacts") || !value.get("artifacts").isJsonArray()) return result;
+            for (var raw : value.getAsJsonArray("artifacts")) {
+                if (!raw.isJsonObject()) continue;
+                JsonObject item = raw.getAsJsonObject();
+                if (!item.has("path") || !item.has("sha256") || !item.has("size") || !item.has("lastModifiedMillis")) continue;
+                String hash = item.get("sha256").getAsString();
+                if (hash.matches("[0-9a-f]{64}"))
+                    result.put(item.get("path").getAsString() + "|" + item.get("size").getAsLong() + "|"
+                            + item.get("lastModifiedMillis").getAsLong(), hash);
+            }
+        } catch (IOException | RuntimeException ignored) {
+            // An unreadable earlier index only means every archive is hashed again.
+        }
+        return result;
+    }
+
     private static void write(Path file, JsonObject value) throws IOException {
         WorkspaceExecutionSnapshot.rejectLinks(file);
         Path pending = file.resolveSibling(file.getFileName() + "." + UUID.randomUUID() + ".pending");
@@ -68,7 +92,8 @@ public final class ResourceDependencyCapture {
         catch (AtomicMoveNotSupportedException exception) { Files.move(pending, file, StandardCopyOption.REPLACE_EXISTING); }
     }
 
-    public record Capture(Path root, String capturePath, String generator, String fingerprint, Consumer<String> log) {
+    public record Capture(Path root, String capturePath, String generator, String fingerprint, Consumer<String> log,
+            java.util.Map<String, String> previousHashes) {
         /** A failed, cancelled or unobserved task cannot establish a fresh dependency context. */
         public void finish(boolean succeeded) {
             JsonObject result = new JsonObject();
@@ -84,6 +109,7 @@ public final class ResourceDependencyCapture {
                     if (data.get("complete").getAsBoolean() && artifacts != null && artifacts.size() <= 4096) {
                         JsonArray verified = new JsonArray();
                         var seen = new java.util.HashSet<Path>();
+                        var previous = previousHashes;
                         for (var raw : artifacts) {
                             JsonObject artifact = raw.getAsJsonObject();
                             Path path = Path.of(artifact.get("path").getAsString()).toRealPath();
@@ -91,8 +117,15 @@ public final class ResourceDependencyCapture {
                             if (Files.isDirectory(path)) throw new IOException("Runtime directory artifacts require an explicit resource context");
                             if (!path.getFileName().toString().endsWith(".jar") || !seen.add(path)) continue;
                             JsonObject item = artifact.deepCopy();
+                            var attributes = Files.readAttributes(path, java.nio.file.attribute.BasicFileAttributes.class);
+                            long size = attributes.size(), modified = attributes.lastModifiedTime().toMillis();
+                            // Dependency JARs rarely change between builds; rehashing about a hundred of them cost seconds on every
+                            // build. Readers re-verify this hash before using an archive, so a stale entry fails safely.
+                            String hash = previous.get(path.toString() + "|" + size + "|" + modified);
                             item.addProperty("path", path.toString());
-                            item.addProperty("sha256", WorkspaceExecutionSnapshot.sha256(path));
+                            item.addProperty("sha256", hash != null ? hash : WorkspaceExecutionSnapshot.sha256(path));
+                            item.addProperty("size", size);
+                            item.addProperty("lastModifiedMillis", modified);
                             verified.add(item);
                         }
                         if (fingerprint.equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> Thread.currentThread().isInterrupted()))) {

@@ -136,18 +136,31 @@ public final class HeadlessProductLauncher {
 			if (stream) { output.println("{\"messageType\":\"task_update\",\"schemaVersion\":\"1.0\",\"status\":\"initializing\"}"); output.flush(); }
 			HeadlessRuntimeBootstrap.ensureInitialized();
 			File workspaceFile = invocation.workspace().toFile();
+			boolean serve = "serve".equals(invocation.commandArguments()[0]);
+			// Validate before taking the workspace write lock.
+			Duration idleTimeout = serve ? HeadlessPythonHost.idleTimeout(invocation.commandArguments()) : null;
+			var gateway = new java.util.concurrent.atomic.AtomicReference<LoaderRoutingWorkspaceTaskGateway>();
 			try (Workspace workspace = Workspace.readFromFS(workspaceFile, null);
 					MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
-							store -> new LoaderRoutingWorkspaceTaskGateway(store,
-									ignored -> workspace.getWorkspaceFolder().toPath(),
-									Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize(),
-									Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+							store -> {
+								var created = new LoaderRoutingWorkspaceTaskGateway(store,
+										ignored -> workspace.getWorkspaceFolder().toPath(),
+										Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize(),
+										Clock.systemUTC(), UUID::randomUUID);
+								gateway.set(created);
+								return created;
+							}, Clock.systemUTC(), UUID::randomUUID)) {
 				Supplier<UUID> ids = UUID::randomUUID;
 				HeadlessWorkspaceEntryAdapter adapter = session.headlessEntry(PermissionProfile.WORKSPACE);
 				if ("api".equals(invocation.commandArguments()[0])) {
 					if (invocation.commandArguments().length != 1)
 						throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> api");
 					return new NativeApiSession(adapter, session.workspaceId()).serve(input, output);
+				}
+				if (serve) {
+					UUID workspaceId = session.workspaceId();
+					return HeadlessPythonHost.serve(invocation.workspace(), workspaceId, adapter,
+							() -> !gateway.get().active(workspaceId).isEmpty(), idleTimeout, output);
 				}
 				HeadlessCli cli = new HeadlessCli(adapter, session.workspaceId(), ids);
 				StringWriter buffered = new StringWriter();
