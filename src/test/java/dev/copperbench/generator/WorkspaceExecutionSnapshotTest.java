@@ -13,6 +13,31 @@ import static org.junit.jupiter.api.Assertions.*;
 class WorkspaceExecutionSnapshotTest {
     @TempDir Path temp;
 
+    @Test void linkChecksStillRejectJunctionsAboveAndInsideAWalkedWorkspace() throws Exception {
+        Path deep = temp.resolve("a/b/c/d/e/f/g/h");
+        write(deep.resolve("Source.java"), "class Source {}");
+        WorkspaceExecutionSnapshot.rejectLinks(deep.resolve("Source.java"));
+        WorkspaceExecutionSnapshot.rejectLinks(deep.resolve("missing/child.json"));
+        assertEquals(1, WorkspaceExecutionSnapshot.observeInputIdentity(temp.resolve("a"), () -> false).fileCount());
+        org.junit.jupiter.api.Assumptions.assumeTrue(System.getProperty("os.name").startsWith("Windows"),
+                "directory junctions need Windows; symbolic links need extra rights there");
+        Path outside = temp.resolve("outside");
+        write(outside.resolve("secret.txt"), "outside the workspace");
+        Path junction = temp.resolve("a/b/linked");
+        Process process = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J", junction.toString(), outside.toString())
+                .redirectErrorStream(true).start();
+        assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+        assertEquals(0, process.exitValue(), new String(process.getInputStream().readAllBytes()));
+        var below = assertThrows(WorkspaceExecutionSnapshot.SnapshotException.class,
+                () -> WorkspaceExecutionSnapshot.rejectLinks(junction.resolve("secret.txt")));
+        assertEquals("WORKSPACE_SNAPSHOT_UNSAFE_PATH", below.code());
+        assertTrue(below.getMessage().contains(junction.resolve("secret.txt").toString()), below.getMessage());
+        assertThrows(WorkspaceExecutionSnapshot.SnapshotException.class,
+                () -> WorkspaceExecutionSnapshot.rejectLinks(junction.resolve("new-file.json")));
+        assertThrows(WorkspaceExecutionSnapshot.SnapshotException.class,
+                () -> WorkspaceExecutionSnapshot.observeInputIdentity(temp.resolve("a"), () -> false));
+    }
+
     @Test void rejectsNewerInputsBeforeReadingLargeContents() throws Exception {
         Path root = temp.resolve("query");
         Path input = root.resolve("reference.bin");

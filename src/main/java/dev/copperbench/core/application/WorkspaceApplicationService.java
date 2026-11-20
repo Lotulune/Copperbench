@@ -492,6 +492,9 @@ public final class WorkspaceApplicationService {
 	}
 
 	private QueryResult workspaceEnvironment(Query query, WorkspaceState state) {
+		String detail = optionalString(query.payload(), "fieldContracts");
+		if (detail != null && !detail.equals("full") && !detail.equals("summary"))
+			return queryFailure(query, state.revision(), invalidPayload("fieldContracts must be full or summary"));
 		try {
 			JsonObject projection = new JsonObject();
 			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
@@ -503,7 +506,10 @@ public final class WorkspaceApplicationService {
 			projection.add("versionTracks", versionTracks(state));
 			JsonObject fieldContracts = FieldContractProjection.environment(optionalString(state.generator(), "id"));
 			fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
-			projection.add("fieldContracts", fieldContracts);
+			// Full contracts are about 180,000 characters; an agent that only needs versions and roots asks for a summary.
+			boolean summary = "summary".equals(detail);
+			projection.add("fieldContracts", summary ? FieldContractProjection.summary(fieldContracts) : fieldContracts);
+			projection.addProperty("fieldContractDetail", summary ? "summary" : "full");
 			projection.addProperty("fieldContractDiscovery", "get_mod_element_field_contract");
 			projection.add("application", ApplicationBuildIdentity.inspect());
 			Path root = workspaceRoot(query.workspaceId());

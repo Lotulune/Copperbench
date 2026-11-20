@@ -2,7 +2,7 @@
 
 [English](getting-started.en.md) · [同一个步道方块](trail-block.md) · [SDK 兼容边界](../../sdk/compatibility.md)
 
-先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端打开工作区后，使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。该路径不依赖旧版本启动窗口中的「连接外部 Agent」帮助入口；帮助文本不会签发 token。
+先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束，多个短脚本处理同一工作区时改用 `Workspace.attach(...)`，共用一个空闲后自动退出的后台宿主（见 [SDK 说明](../../sdk/python/README.md#多个脚本共用一个-core)）；通用 MCP 客户端打开工作区后，使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。该路径不依赖旧版本启动窗口中的「连接外部 Agent」帮助入口；帮助文本不会签发 token。
 
 三个[最小可执行示例](../../sdk/agent-workflows.md)说明当前客户端的入口、前提和退出方式。各平台发布版本与包级验证见[当前下载](../releases/current.md)，实际接口以所连宿主的能力发现为准。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0`；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。原有权限和计划边界继续适用。
 

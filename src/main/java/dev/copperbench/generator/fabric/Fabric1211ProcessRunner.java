@@ -72,7 +72,7 @@ import java.util.function.Supplier;
 			boolean clientRun = isClientRun(arguments);
 
 			List<String> command = wrapperCommand(windows, System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE"));
-			command.add("--no-daemon");
+			command.addAll(daemonArguments(arguments, dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(System.getenv())));
 			var preferences = net.mcreator.preferences.PreferencesManager.PREFERENCES;
 			if (preferences != null && preferences.gradle.offline.get()
 					&& !arguments.contains("--offline") && !arguments.contains("-o"))
@@ -244,6 +244,21 @@ import java.util.function.Supplier;
 			command.add(configured ? configuredGradle : "./gradlew");
 		}
 		return command;
+	}
+
+	/** A reused daemon exits after this much idle time; Gradle's own default keeps it for three hours. */
+	Duration DAEMON_IDLE_TIMEOUT = Duration.ofMinutes(10);
+
+	/**
+	 * Builds, GameTests, datagen and exports reuse a warm daemon. A single-use daemon repeats JVM start,
+	 * plugin loading and Loom configuration for every task: a one-line Fabric 1.21.1 edit built in about
+	 * 27 seconds that way and in about 8 seconds on a warm daemon. Client and server runs stay single-use so
+	 * the game remains a descendant of the wrapper process that a stop request terminates. A workspace's own
+	 * {@code org.gradle.daemon=false} still applies, because no {@code --daemon} flag is passed.
+	 */
+	static List<String> daemonArguments(List<String> arguments, boolean reuseDaemon) {
+		if (!reuseDaemon || isClientRun(arguments) || isServerRun(arguments)) return List.of("--no-daemon");
+		return List.of("-Dorg.gradle.daemon.idletimeout=" + DAEMON_IDLE_TIMEOUT.toMillis());
 	}
 
 	static boolean isClientRun(List<String> arguments) {

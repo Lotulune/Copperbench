@@ -83,18 +83,10 @@ class Workspace:
         (for example a Java launcher). No shell is used. cwd may specify the
         distribution root for a development Java command.
         """
-        path = Path(workspace).resolve(strict=True)
-        if not path.is_file() or path.suffix != ".mcreator":
-            raise ValueError("workspace must be an existing .mcreator file")
+        path = cls._workspace_file(workspace)
         cls._check_timeout(startup_timeout)
         cls._check_timeout(request_timeout)
-        if launcher is None:
-            launcher = os.environ.get("COPPERBENCH_EXECUTABLE") or shutil.which("copperbench")
-            if not launcher:
-                raise NativeApiError("Specify launcher= with the Copperbench executable", "NATIVE_LAUNCHER_NOT_FOUND")
-        argv = [os.fspath(launcher)] if isinstance(launcher, (str, Path)) else list(launcher)
-        if not argv or any(not isinstance(item, str) or not item for item in argv):
-            raise ValueError("launcher must be a nonempty executable or argv sequence")
+        argv = cls._launcher_argv(launcher)
         self = cls.__new__(cls)
         self.task_authorization_id = task_authorization_id
         self.metrics = metrics
@@ -135,6 +127,122 @@ class Workspace:
     def _check_timeout(value: float) -> None:
         if not math.isfinite(value) or value <= 0:
             raise ValueError("timeouts must be positive and finite")
+
+    @staticmethod
+    def _workspace_file(workspace: str | Path) -> Path:
+        path = Path(workspace).resolve(strict=True)
+        if not path.is_file() or path.suffix != ".mcreator":
+            raise ValueError("workspace must be an existing .mcreator file")
+        return path
+
+    @staticmethod
+    def _launcher_argv(launcher: str | Path | Sequence[str] | None) -> list[str]:
+        if launcher is None:
+            launcher = os.environ.get("COPPERBENCH_EXECUTABLE") or shutil.which("copperbench")
+            if not launcher:
+                raise NativeApiError("Specify launcher= with the Copperbench executable", "NATIVE_LAUNCHER_NOT_FOUND")
+        argv = [os.fspath(launcher)] if isinstance(launcher, (str, Path)) else list(launcher)
+        if not argv or any(not isinstance(item, str) or not item for item in argv):
+            raise ValueError("launcher must be a nonempty executable or argv sequence")
+        return argv
+
+    @classmethod
+    def attach(cls, workspace: str | Path, *, launcher: str | Path | Sequence[str] | None = None,
+               idle_timeout: float = 900, startup_timeout: float = 120, request_timeout: float = 30,
+               cwd: str | Path | None = None, task_authorization_id: str | None = None,
+               metrics: ClientMetrics | None = None) -> Workspace:
+        """Share one Core across scripts: the live desktop, or a background host started on first use.
+
+        Use this instead of open() when several short scripts work on the same
+        workspace. The first call starts ``headless ... serve`` (about the cost
+        of open()); later calls only connect. The background host keeps the
+        workspace write lock and exits after idle_timeout seconds without a
+        connected client or a running task. Closing this session only
+        disconnects, so a submitted task keeps running and wait_task() can
+        resume it from the next script.
+        """
+        path = cls._workspace_file(workspace)
+        cls._check_timeout(startup_timeout)
+        cls._check_timeout(request_timeout)
+        if not math.isfinite(idle_timeout) or not 5 <= idle_timeout <= 8 * 3600:
+            raise ValueError("idle_timeout must be between 5 and 28800 seconds")
+        options = {"request_timeout": request_timeout, "task_authorization_id": task_authorization_id, "metrics": metrics}
+        try:
+            return cls.connect(path, **options)
+        except NativeApiError as error:
+            if error.code != "NATIVE_CONNECTION_UNAVAILABLE":
+                raise
+        argv = cls._launcher_argv(launcher)
+        command = [*argv, "headless", "--workspace", str(path), "serve", "--idle-timeout", str(math.ceil(idle_timeout))]
+        ready = cls._start_background_host(command, cwd, startup_timeout)
+        if ready.get("status") != "serving":
+            code = ready.get("code") or "NATIVE_START_FAILED"
+            if code != "WORKSPACE_WRITE_LOCKED":
+                raise NativeApiError("Core could not start a background host for the workspace", code, ready)
+            # Another script may have started the host first; its connection record is then current.
+        try:
+            return cls.connect(path, **options)
+        except NativeApiError as error:
+            if error.code == "NATIVE_CONNECTION_UNAVAILABLE" and ready.get("status") != "serving":
+                raise NativeApiError("The workspace is open in another Copperbench process without Python access",
+                                     "WORKSPACE_WRITE_LOCKED", ready) from error
+            raise
+
+    @staticmethod
+    def _start_background_host(command: list[str], cwd: str | Path | None, startup_timeout: float) -> dict[str, Any]:
+        """Start a detached host and return its first JSON line (readiness or the startup failure)."""
+        options: dict[str, Any] = {}
+        if os.name == "nt":
+            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
+            breakaway = 0x01000000  # CREATE_BREAKAWAY_FROM_JOB: outlive a tool runner's job object when allowed.
+            attempts = [flags | breakaway, flags]
+        else:
+            options["start_new_session"] = True
+            attempts = [0]
+        process = None
+        for index, flags in enumerate(attempts):
+            try:
+                process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                           stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace",
+                                           cwd=cwd, **({"creationflags": flags} if os.name == "nt" else options))
+                break
+            except PermissionError:
+                if index == len(attempts) - 1:
+                    raise
+        assert process is not None
+        lines: queue.Queue[str] = queue.Queue()
+
+        def read_first_line() -> None:
+            try:
+                lines.put(process.stdout.readline())
+            except (OSError, ValueError):
+                lines.put("")
+
+        threading.Thread(target=read_first_line, daemon=True).start()
+        try:
+            line = lines.get(timeout=startup_timeout)
+        except queue.Empty:
+            process.kill()
+            raise NativeApiError("The background host did not report readiness", "NATIVE_START_TIMEOUT")
+        finally:
+            # The host never writes after its readiness line; release this end of the pipe.
+            try:
+                process.stdout.close()
+            except (OSError, ValueError):
+                pass
+        try:
+            value = json.loads(line) if line.strip() else {"status": "exited", "exitCode": process.poll()}
+        except json.JSONDecodeError:
+            value = {"status": "failed", "code": "NATIVE_INVALID_RESPONSE"}
+        if not isinstance(value, dict):
+            value = {"status": "failed", "code": "NATIVE_INVALID_RESPONSE"}
+        if value.get("status") != "serving":
+            # A failed start exits on its own; collect it. A serving host intentionally outlives this script.
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+        return value
 
     @classmethod
     def connect(cls, workspace: str | Path, *, request_timeout: float = 30,
@@ -505,12 +613,58 @@ class Workspace:
         """Page the installed generator's vanilla reference values."""
         return self.query("get_field_reference_options", elementType=element_type,
                           mappingSource=mapping_source, search=search, offset=offset, limit=limit)
-    def get_workspace_environment(self) -> dict[str, Any]:
-        return self.query("get_workspace_environment")
+    def get_workspace_environment(self, *, field_contracts: str = "full") -> dict[str, Any]:
+        """Read the generator, Minecraft version, toolchain and source roots.
+
+        ``field_contracts="summary"`` keeps each structured-element contract's
+        version, availability and field count (about 7,000 instead of 190,000
+        characters). The default ``"full"`` includes every field. Native code
+        work needs only the summary; field_contract() reads the full form.
+        """
+        if field_contracts not in ("full", "summary"):
+            raise ValueError("field_contracts must be 'full' or 'summary'")
+        if field_contracts == "full":
+            return self.query("get_workspace_environment")
+        return self.query("get_workspace_environment", fieldContracts="summary")
 
     def read_file(self, relative_path: str) -> dict[str, Any]:
         """Read a workspace source file; ``data.sha256`` guards a later replacement."""
         return self.query("read_workspace_file", relativePath=relative_path)
+
+    def insert_user_code(self, relative_path: str, block: str, code: str) -> dict[str, Any]:
+        """Append code at the end of a user code block in a generated file, such as 'mod init'.
+
+        The file's own line endings (generated Java may use CRLF) and the
+        block's indentation are kept, the write is hash-guarded, and code
+        already present in the block is not inserted again, so a rerun script
+        does not register content twice. Returns the write result, or
+        ``{"status": "unchanged", ...}`` when the code is already there.
+        """
+        if not isinstance(block, str) or not block.strip():
+            raise ValueError("block must name a user code block, for example 'mod init'")
+        if not isinstance(code, str) or not code.strip():
+            raise ValueError("code must be nonempty")
+        current = self.read_file(relative_path)["data"]
+        lines = current["content"].splitlines(keepends=True)
+        start_marker = "// Start of user code block " + block.strip()
+        end_marker = "// End of user code block " + block.strip()
+        starts = [index for index, line in enumerate(lines) if line.strip() == start_marker]
+        ends = [index for index, line in enumerate(lines) if line.strip() == end_marker]
+        if len(starts) != 1 or len(ends) != 1 or ends[0] <= starts[0]:
+            raise NativeApiError(f"User code block {block!r} is not in {relative_path} exactly once",
+                                 "NATIVE_USER_CODE_BLOCK_NOT_FOUND",
+                                 {"relativePath": relative_path, "userCodeBlocks": current.get("userCodeBlocks")})
+        start, end = starts[0], ends[0]
+        newline = "\r\n" if lines[start].endswith("\r\n") else "\n"
+        indent = re.match(r"[ \t]*", lines[start]).group(0)
+        wanted = [line.strip() for line in code.strip("\r\n").splitlines()]
+        existing = [line.strip() for line in lines[start + 1:end]]
+        if any(existing[index:index + len(wanted)] == wanted for index in range(len(existing) - len(wanted) + 1)):
+            return {"status": "unchanged", "relativePath": relative_path, "sha256": current["sha256"]}
+        inserted = "".join((indent + line if line.strip() else "") + newline
+                           for line in code.strip("\r\n").splitlines())
+        text = "".join(lines[:end]) + inserted + "".join(lines[end:])
+        return self.write_file(relative_path, text, expected_sha256=current["sha256"])
 
     def write_file(self, relative_path: str, content: str, *, expected_sha256: str | None = None,
                    expected_revision: int | None = None) -> dict[str, Any]:

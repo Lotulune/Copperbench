@@ -135,7 +135,7 @@ public final class WorkspaceExecutionSnapshot {
                 checkCancelled(cancelled);
                 if (!directory.equals(root) && excluded(root.relativize(directory))) return FileVisitResult.SKIP_SUBTREE;
                 if (attributes.isSymbolicLink()) throw unsafe("Snapshot input contains a symbolic link: " + directory);
-                rejectLinks(directory);
+                if (!directory.equals(root)) rejectLinkedEntry(directory, attributes);
                 return FileVisitResult.CONTINUE;
             }
             @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
@@ -144,7 +144,7 @@ public final class WorkspaceExecutionSnapshot {
                 if (excluded(relative)) return FileVisitResult.CONTINUE;
                 if (!attributes.isRegularFile() || attributes.isSymbolicLink())
                     throw unsafe("Snapshot input is not a regular file: " + relative);
-                rejectLinks(file);
+                rejectLinkedEntry(file, attributes);
                 String hash = null, ownedHash = deliveries.get(file.toAbsolutePath().normalize());
                 if (ownedHash != null) {
                     hash = sha256(file);
@@ -189,7 +189,7 @@ public final class WorkspaceExecutionSnapshot {
                 checkCancelled(cancelled);
                 if (!directory.equals(normalized) && excluded(normalized.relativize(directory)))
                     return FileVisitResult.SKIP_SUBTREE;
-                rejectLinks(directory);
+                if (!directory.equals(normalized)) rejectLinkedEntry(directory, attributes);
                 return FileVisitResult.CONTINUE;
             }
             @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
@@ -222,13 +222,34 @@ public final class WorkspaceExecutionSnapshot {
 
     public static void rejectLinks(Path path) throws IOException {
         Path absolute = path.toAbsolutePath().normalize();
+        boolean resolved = false;
         for (Path current = absolute; current != null; current = current.getParent()) {
             if (Files.isSymbolicLink(current)) throw unsafe("Symbolic links are not allowed: " + current);
-            if (Files.exists(current, LinkOption.NOFOLLOW_LINKS)
-                    && (!current.toRealPath().equals(current.toRealPath(LinkOption.NOFOLLOW_LINKS))
-                    || Files.readAttributes(current, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS).isOther()))
-                throw unsafe("A path redirects outside its declared location: " + current);
+            BasicFileAttributes attributes;
+            try {
+                attributes = Files.readAttributes(current, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            } catch (IOException missing) {
+                continue;
+            }
+            // A link or junction at or above the deepest existing entry changes that entry's resolved path, so one
+            // comparison covers every ancestor. Comparing each ancestor again repeated the per-component Windows
+            // path resolution for every level, which dominated input fingerprints and task log writes.
+            if (!resolved) {
+                resolved = true;
+                if (!current.toRealPath().equals(current.toRealPath(LinkOption.NOFOLLOW_LINKS)))
+                    throw unsafe("A path redirects outside its declared location: " + current);
+            }
+            if (attributes.isOther()) throw unsafe("A path redirects outside its declared location: " + current);
         }
+    }
+
+    /**
+     * Rejects a walked entry from the attributes {@link Files#walkFileTree} read without following links. The walk's
+     * root and each entered directory were already checked, so only the entry itself can redirect.
+     */
+    static void rejectLinkedEntry(Path entry, BasicFileAttributes attributes) throws SnapshotException {
+        if (attributes.isSymbolicLink()) throw unsafe("Symbolic links are not allowed: " + entry);
+        if (attributes.isOther()) throw unsafe("A path redirects outside its declared location: " + entry);
     }
 
     /** Resolves ordinary Windows short-name aliases while rejecting symbolic links and junctions. */

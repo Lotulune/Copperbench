@@ -104,6 +104,32 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(contract, editor.data().getAsJsonObject().get("fieldContract"));
 	}
 
+	@Test void environmentSummaryKeepsContractNamesWithoutTheirFieldsAndFullStaysTheDefault() {
+		Fixture fixture = fixture();
+		HeadlessWorkspaceEntryAdapter reader = new HeadlessWorkspaceEntryAdapter(fixture.service, PermissionProfile.READ_ONLY);
+		var full = reader.query(Query.of(uuid(93), WORKSPACE_ID, Operation.GET_WORKSPACE_ENVIRONMENT, new JsonObject()));
+		JsonObject summaryPayload = new JsonObject(); summaryPayload.addProperty("fieldContracts", "summary");
+		var summary = reader.query(Query.of(uuid(94), WORKSPACE_ID, Operation.GET_WORKSPACE_ENVIRONMENT, summaryPayload));
+		assertEquals("succeeded", summary.status());
+		JsonObject fullData = full.data().getAsJsonObject(), summaryData = summary.data().getAsJsonObject();
+		assertEquals("full", fullData.get("fieldContractDetail").getAsString());
+		assertEquals("summary", summaryData.get("fieldContractDetail").getAsString());
+		JsonObject fullContracts = fullData.getAsJsonObject("fieldContracts"), summaryContracts = summaryData.getAsJsonObject("fieldContracts");
+		assertEquals(fullContracts.keySet(), summaryContracts.keySet());
+		JsonObject block = summaryContracts.getAsJsonObject("block");
+		assertEquals(fullContracts.getAsJsonObject("block").get("supported"), block.get("supported"));
+		assertEquals(fullContracts.getAsJsonObject("block").getAsJsonArray("fields").size(), block.get("fieldCount").getAsInt());
+		assertFalse(block.has("fields"));
+		assertTrue(summaryData.toString().length() < fullData.toString().length());
+		for (var contract : summaryContracts.entrySet())
+			assertFalse(contract.getValue().getAsJsonObject().has("fields"), contract.getKey() + " must not carry its fields");
+		for (String key : List.of("generator", "execution", "versionTracks", "workspaceRoot", "agentWorkflow"))
+			assertEquals(fullData.get(key), summaryData.get(key), key);
+
+		JsonObject invalid = new JsonObject(); invalid.addProperty("fieldContracts", "brief");
+		assertNotEquals("succeeded", reader.query(Query.of(uuid(95), WORKSPACE_ID, Operation.GET_WORKSPACE_ENVIRONMENT, invalid)).status());
+	}
+
 	@Test void stage12BiomeAndDimensionExposeCanonicalElementReferencePickers() {
 		Fixture fixture = fixture();
 		assertEquals("committed", fixture.service.execute(

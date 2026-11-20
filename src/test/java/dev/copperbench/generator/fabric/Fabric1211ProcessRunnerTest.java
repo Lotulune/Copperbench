@@ -140,6 +140,24 @@ class Fabric1211ProcessRunnerTest {
 		}
 	}
 
+	@Test void nonInteractiveTasksReuseAnIdleLimitedDaemonWhileGameRunsStaySingleUse() {
+		String idle = "-Dorg.gradle.daemon.idletimeout=" + Fabric1211ProcessRunner.DAEMON_IDLE_TIMEOUT.toMillis();
+		for (var tasks : List.of(List.of("build"), List.of("runGameTest"), List.of("runDatagen"), List.of("help", "--console=plain")))
+			assertEquals(List.of(idle), Fabric1211ProcessRunner.daemonArguments(tasks, true), tasks.toString());
+		for (var tasks : List.of(List.of("runClient"), List.of(":pack:runClient"), List.of("runServer")))
+			assertEquals(List.of("--no-daemon"), Fabric1211ProcessRunner.daemonArguments(tasks, true), tasks.toString());
+		assertEquals(List.of("--no-daemon"), Fabric1211ProcessRunner.daemonArguments(List.of("build"), false));
+		assertTrue(Fabric1211ProcessRunner.DAEMON_IDLE_TIMEOUT.toMinutes() <= 30, "an idle daemon must not hold memory for hours");
+	}
+
+	@Test void daemonReuseIsOnByDefaultAndAcceptsOnlyExplicitBooleans() {
+		assertTrue(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of()));
+		assertTrue(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "true")));
+		assertFalse(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "false")));
+		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+				() -> dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "0")));
+	}
+
 	@Test void recognizesRootAndQualifiedRunClientTasks() {
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of("runClient")));
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of(":packloader:runClient")));

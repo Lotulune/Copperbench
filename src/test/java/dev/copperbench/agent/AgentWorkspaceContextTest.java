@@ -21,6 +21,10 @@ class AgentWorkspaceContextTest {
                 "user code block", "userCodeBlocks"})
             assertTrue(instructions.contains(expected), expected);
         assertTrue(instructions.contains("Structured elements, Procedures and templates are optional shortcuts"));
+        // Measured detours: a 190,000-character environment, CRLF user-code markers and an undocumented language entry.
+        for (String expected : new String[]{"get_workspace_environment(field_contracts='summary')", "ws.insert_user_code(",
+                "registry='languageKeys'", "'translations': {'en_us'"})
+            assertTrue(instructions.contains(expected), expected);
         assertFalse(instructions.contains("Read the SDK README.md"), "reading SDK documents is no longer a prerequisite");
 
         // Verification goes beyond a successful build.
