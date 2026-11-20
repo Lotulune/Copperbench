@@ -2653,7 +2653,7 @@ language support instance actually installed on it.</div>
 <dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/generator/WorkspaceExecutionSnapshot.html#capture(java.nio.file.Path,java.nio.file.Path,java.util.UUID,long,java.time.Clock,java.util.function.BooleanSupplier)" class="member-name-link">capture(Path, Path, UUID, long, Clock, BooleanSupplier)</a> - Static method in class dev.copperbench.generator.<a href="dev/copperbench/generator/WorkspaceExecutionSnapshot.html" title="class in dev.copperbench.generator">WorkspaceExecutionSnapshot</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="dev/copperbench/generator/ResourceDependencyCapture.Capture.html#%3Cinit%3E(java.nio.file.Path,java.lang.String,java.lang.String,java.lang.String,java.util.function.Consumer)" class="member-name-link">Capture(Path, String, String, String, Consumer)</a> - Constructor for record class dev.copperbench.generator.<a href="dev/copperbench/generator/ResourceDependencyCapture.Capture.html" title="class in dev.copperbench.generator">ResourceDependencyCapture.Capture</a></dt>
+<dt><a href="dev/copperbench/generator/ResourceDependencyCapture.Capture.html#%3Cinit%3E(java.nio.file.Path,java.lang.String,java.lang.String,java.lang.String,java.util.function.Consumer,java.util.Map)" class="member-name-link">Capture(Path, String, String, String, Consumer, Map)</a> - Constructor for record class dev.copperbench.generator.<a href="dev/copperbench/generator/ResourceDependencyCapture.Capture.html" title="class in dev.copperbench.generator">ResourceDependencyCapture.Capture</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>Capture</code> record class.</div>
 </dd>
@@ -4342,6 +4342,14 @@ language support instance actually installed on it.</div>
 </dl>
 <h2 class="title" id="I:D">D</h2>
 <dl class="index">
+<dt><a href="dev/copperbench/generator/fabric/Fabric1211ProcessRunner.html#DAEMON_IDLE_TIMEOUT" class="member-name-link">DAEMON_IDLE_TIMEOUT</a> - Static variable in interface dev.copperbench.generator.fabric.<a href="dev/copperbench/generator/fabric/Fabric1211ProcessRunner.html" title="interface in dev.copperbench.generator.fabric">Fabric1211ProcessRunner</a></dt>
+<dd>
+<div class="block">A reused daemon exits after this much idle time; Gradle's own default keeps it for three hours.</div>
+</dd>
+<dt><a href="dev/copperbench/generator/fabric/Fabric1211ProcessRunner.html#daemonArguments(java.util.List,boolean)" class="member-name-link">daemonArguments(List, boolean)</a> - Static method in interface dev.copperbench.generator.fabric.<a href="dev/copperbench/generator/fabric/Fabric1211ProcessRunner.html" title="interface in dev.copperbench.generator.fabric">Fabric1211ProcessRunner</a></dt>
+<dd>
+<div class="block">Builds, GameTests, datagen and exports reuse a warm daemon.</div>
+</dd>
 <dt><a href="dev/copperbench/gradle/GradleRuntimeCompatibility.html#daemonStartupOption()" class="member-name-link">daemonStartupOption()</a> - Static method in class dev.copperbench.gradle.<a href="dev/copperbench/gradle/GradleRuntimeCompatibility.html" title="class in dev.copperbench.gradle">GradleRuntimeCompatibility</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/element/types/Projectile.html#damage" class="member-name-link">damage</a> - Variable in class net.mcreator.element.types.<a href="net/mcreator/element/types/Projectile.html" title="class in net.mcreator.element.types">Projectile</a></dt>
@@ -5601,6 +5609,8 @@ language support instance actually installed on it.</div>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/util/EncryptUtils.html#%3Cinit%3E()" class="member-name-link">EncryptUtils()</a> - Constructor for class net.mcreator.util.<a href="net/mcreator/util/EncryptUtils.html" title="class in net.mcreator.util">EncryptUtils</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.html#END" class="member-name-link">END</a> - Static variable in class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.html" title="class in dev.copperbench.core.workspace">UserCodeRegions</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/bridge/JcefCoreBridgeTransport.html#endpoint()" class="member-name-link">endpoint()</a> - Method in class dev.copperbench.bridge.<a href="dev/copperbench/bridge/JcefCoreBridgeTransport.html" title="class in dev.copperbench.bridge">JcefCoreBridgeTransport</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/ui/component/ConsolePane.html#endTransaction()" class="member-name-link">endTransaction()</a> - Method in class net.mcreator.ui.component.<a href="net/mcreator/ui/component/ConsolePane.html" title="class in net.mcreator.ui.component">ConsolePane</a></dt>
@@ -6013,6 +6023,10 @@ and run tasks.</div>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
 <dt><a href="dev/copperbench/core/workspace/RevisionedWorkspaceStore.TransactionResult.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a></dt>
+<dd>
+<div class="block">Indicates whether some other object is "equal to" this one.</div>
+</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a></dt>
 <dd>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
@@ -12704,6 +12718,10 @@ for this <code>requiredMod</code>.</div>
 <dd>
 <div class="block">Loom 1.7.4 ships with Gradle 8.8 (fabric-loom 1.7 branch wrapper).</div>
 </dd>
+<dt><a href="dev/copperbench/core/application/HeadlessWorkspaceEntryAdapter.html#grantAssetImportSource(java.nio.file.Path)" class="member-name-link">grantAssetImportSource(Path)</a> - Method in class dev.copperbench.core.application.<a href="dev/copperbench/core/application/HeadlessWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">HeadlessWorkspaceEntryAdapter</a></dt>
+<dd>
+<div class="block">Grants a local file for a later <code>preview_asset_import</code>.</div>
+</dd>
 <dt><a href="dev/copperbench/core/application/WorkspaceApplicationService.html#grantAssetImportSource(java.nio.file.Path)" class="member-name-link">grantAssetImportSource(Path)</a> - Method in class dev.copperbench.core.application.<a href="dev/copperbench/core/application/WorkspaceApplicationService.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService</a></dt>
 <dd>
 <div class="block">Creates a short-lived capability for a file explicitly selected by the native desktop host.</div>
@@ -13286,6 +13304,10 @@ for this <code>requiredMod</code>.</div>
 <div class="block">Returns a hash code value for this object.</div>
 </dd>
 <dt><a href="dev/copperbench/core/workspace/RevisionedWorkspaceStore.TransactionResult.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/RevisionedWorkspaceStore.TransactionResult.html" title="class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult</a></dt>
+<dd>
+<div class="block">Returns a hash code value for this object.</div>
+</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a></dt>
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
 </dd>
@@ -18429,6 +18451,10 @@ and NOT already included as names of objects like <a href="net/mcreator/generato
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/generator/mapping/NameMapper.html#%3Cinit%3E(net.mcreator.workspace.Workspace,java.lang.String)" class="member-name-link">NameMapper(Workspace, String)</a> - Constructor for class net.mcreator.generator.mapping.<a href="net/mcreator/generator/mapping/NameMapper.html" title="class in net.mcreator.generator.mapping">NameMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#names()" class="member-name-link">names()</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#param-names"><code>names</code></a> record component.</div>
+</dd>
 <dt><a href="net/mcreator/element/NamespacedGeneratableElement.html#namespace" class="member-name-link">namespace</a> - Variable in class net.mcreator.element.<a href="net/mcreator/element/NamespacedGeneratableElement.html" title="class in net.mcreator.element">NamespacedGeneratableElement</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/element/parts/TextureHolder.html#namespace()" class="member-name-link">namespace()</a> - Method in class net.mcreator.element.parts.<a href="net/mcreator/element/parts/TextureHolder.html" title="class in net.mcreator.element.parts">TextureHolder</a></dt>
@@ -20190,10 +20216,16 @@ program assigned to that file type.</div>
 <dd>
 <div class="block">Validates the supplied digest as well as the complete manifest; unknown fields fail closed.</div>
 </dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.html#parse(java.lang.String)" class="member-name-link">parse(String)</a> - Static method in class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.html" title="class in dev.copperbench.core.workspace">UserCodeRegions</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/window/WindowChromeSnapshot.html#parse(java.lang.String)" class="member-name-link">parse(String)</a> - Static method in record class dev.copperbench.window.<a href="dev/copperbench/window/WindowChromeSnapshot.html" title="class in dev.copperbench.window">WindowChromeSnapshot</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/generator/template/TemplateExpressionParser.html#parseCondition(net.mcreator.generator.Generator,java.lang.String,java.lang.Object)" class="member-name-link">parseCondition(Generator, String, Object)</a> - Static method in class net.mcreator.generator.template.<a href="net/mcreator/generator/template/TemplateExpressionParser.html" title="class in net.mcreator.generator.template">TemplateExpressionParser</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#%3Cinit%3E(java.lang.String,java.util.List)" class="member-name-link">Parsed(String, List)</a> - Constructor for record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a></dt>
+<dd>
+<div class="block">Creates an instance of a <code>Parsed</code> record class.</div>
+</dd>
 <dt><a href="net/mcreator/ui/minecraft/states/PropertyData.IntegerType.html#parseObj(com.google.gson.JsonElement)" class="member-name-link">parseObj(JsonElement)</a> - Method in class net.mcreator.ui.minecraft.states.<a href="net/mcreator/ui/minecraft/states/PropertyData.IntegerType.html" title="class in net.mcreator.ui.minecraft.states">PropertyData.IntegerType</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/ui/minecraft/states/PropertyData.LogicType.html#parseObj(com.google.gson.JsonElement)" class="member-name-link">parseObj(JsonElement)</a> - Method in class net.mcreator.ui.minecraft.states.<a href="net/mcreator/ui/minecraft/states/PropertyData.LogicType.html" title="class in net.mcreator.ui.minecraft.states">PropertyData.LogicType</a></dt>
@@ -20946,6 +20978,10 @@ program assigned to that file type.</div>
 <dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/tracks/VersionTrackCatalog.TrackId.html#PREVIOUS_STABLE" class="member-name-link">PREVIOUS_STABLE</a> - Enum constant in enum class dev.copperbench.tracks.<a href="dev/copperbench/tracks/VersionTrackCatalog.TrackId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.TrackId</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/generator/ResourceDependencyCapture.Capture.html#previousHashes()" class="member-name-link">previousHashes()</a> - Method in record class dev.copperbench.generator.<a href="dev/copperbench/generator/ResourceDependencyCapture.Capture.html" title="class in dev.copperbench.generator">ResourceDependencyCapture.Capture</a></dt>
+<dd>
+<div class="block">Returns the value of the <code>previousHashes</code> record component.</div>
+</dd>
 <dt><a href="net/mcreator/ui/views/editor/image/tool/tools/AbstractDrawingTool.html#prevPoint" class="member-name-link">prevPoint</a> - Variable in class net.mcreator.ui.views.editor.image.tool.tools.<a href="net/mcreator/ui/views/editor/image/tool/tools/AbstractDrawingTool.html" title="class in net.mcreator.ui.views.editor.image.tool.tools">AbstractDrawingTool</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/element/types/VillagerTrade.TradeEntry.html#price1" class="member-name-link">price1</a> - Variable in class net.mcreator.element.types.<a href="net/mcreator/element/types/VillagerTrade.TradeEntry.html" title="class in net.mcreator.element.types">VillagerTrade.TradeEntry</a></dt>
@@ -23114,6 +23150,10 @@ a deterministic ZIP into <code>run/resourcepacks</code> and writing <code>option
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/ui/procedure/RetvalProcedureSelector.html#%3Cinit%3E(net.mcreator.workspace.elements.VariableType,net.mcreator.ui.help.IHelpContext,net.mcreator.ui.MCreator,java.lang.String,net.mcreator.ui.procedure.AbstractProcedureSelector.Side,boolean,javax.swing.JComponent,int,net.mcreator.blockly.data.Dependency...)" class="member-name-link">RetvalProcedureSelector(VariableType, IHelpContext, MCreator, String, AbstractProcedureSelector.Side, boolean, JComponent, int, Dependency...)</a> - Constructor for class net.mcreator.ui.procedure.<a href="net/mcreator/ui/procedure/RetvalProcedureSelector.html" title="class in net.mcreator.ui.procedure">RetvalProcedureSelector</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/gradle/GradleCachePolicy.html#reuseDaemon(java.util.Map)" class="member-name-link">reuseDaemon(Map)</a> - Static method in class dev.copperbench.gradle.<a href="dev/copperbench/gradle/GradleCachePolicy.html" title="class in dev.copperbench.gradle">GradleCachePolicy</a></dt>
+<dd>
+<div class="block">Controls whether non-interactive workspace tasks keep a warm Gradle daemon between tasks.</div>
+</dd>
 <dt><a href="dev/copperbench/gradle/GradleCachePolicy.html#reuseExternalDistributions(java.util.Map)" class="member-name-link">reuseExternalDistributions(Map)</a> - Static method in class dev.copperbench.gradle.<a href="dev/copperbench/gradle/GradleCachePolicy.html" title="class in dev.copperbench.gradle">GradleCachePolicy</a></dt>
 <dd>
 <div class="block">Controls reuse from the user's other caches and bundled distributions; the chosen cache remains usable.</div>
@@ -24940,6 +24980,10 @@ a deterministic ZIP into <code>run/resourcepacks</code> and writing <code>option
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/ui/views/editor/image/versioning/change/Modification.html#sizeOf()" class="member-name-link">sizeOf()</a> - Method in class net.mcreator.ui.views.editor.image.versioning.change.<a href="net/mcreator/ui/views/editor/image/versioning/change/Modification.html" title="class in net.mcreator.ui.views.editor.image.versioning.change">Modification</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#skeleton()" class="member-name-link">skeleton()</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#param-skeleton"><code>skeleton</code></a> record component.</div>
+</dd>
 <dt><a href="net/mcreator/java/ImportTreeBuilder.html#skipConstantPool(java.io.DataInputStream)" class="member-name-link">skipConstantPool(DataInputStream)</a> - Static method in class net.mcreator.java.<a href="net/mcreator/java/ImportTreeBuilder.html" title="class in net.mcreator.java">ImportTreeBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/element/types/Procedure.html#skipDependencyNullCheck" class="member-name-link">skipDependencyNullCheck</a> - Variable in class net.mcreator.element.types.<a href="net/mcreator/element/types/Procedure.html" title="class in net.mcreator.element.types">Procedure</a></dt>
@@ -25487,6 +25531,8 @@ a deterministic ZIP into <code>run/resourcepacks</code> and writing <code>option
 <dt><a href="dev/copperbench/generator/neoforge/NeoForge1211WorkspaceTaskGateway.html#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start(UUID, UiCore.Operation, JsonObject)</a> - Method in class dev.copperbench.generator.neoforge.<a href="dev/copperbench/generator/neoforge/NeoForge1211WorkspaceTaskGateway.html" title="class in dev.copperbench.generator.neoforge">NeoForge1211WorkspaceTaskGateway</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/generator/resourcepack/ResourcePackWorkspaceTaskGateway.html#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start(UUID, UiCore.Operation, JsonObject)</a> - Method in class dev.copperbench.generator.resourcepack.<a href="dev/copperbench/generator/resourcepack/ResourcePackWorkspaceTaskGateway.html" title="class in dev.copperbench.generator.resourcepack">ResourcePackWorkspaceTaskGateway</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.html#START" class="member-name-link">START</a> - Static variable in class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.html" title="class in dev.copperbench.core.workspace">UserCodeRegions</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/ui/blockly/BlocklyJavascriptBridge.html#startBlockForEditor(java.lang.String)" class="member-name-link">startBlockForEditor(String)</a> - Method in class net.mcreator.ui.blockly.<a href="net/mcreator/ui/blockly/BlocklyJavascriptBridge.html" title="class in net.mcreator.ui.blockly">BlocklyJavascriptBridge</a></dt>
 <dd>&nbsp;</dd>
@@ -27182,6 +27228,10 @@ of <a href="net/mcreator/ui/blockly/BlocklyPanel.html" title="class in net.mcrea
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
 </dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html#toString()" class="member-name-link">toString()</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a></dt>
+<dd>
+<div class="block">Returns a string representation of this record class.</div>
+</dd>
 <dt><a href="dev/copperbench/core/workspace/WorkspaceCreationService.CreationResult.html#toString()" class="member-name-link">toString()</a> - Method in record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/WorkspaceCreationService.CreationResult.html" title="class in dev.copperbench.core.workspace">WorkspaceCreationService.CreationResult</a></dt>
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
@@ -28266,6 +28316,14 @@ if that component provides a non-empty identifier that has no duplicates in the 
 <dt><a href="net/mcreator/generator/usercode/UserCodeProcessor.html" class="type-name-link" title="class in net.mcreator.generator.usercode">UserCodeProcessor</a> - Class in <a href="net/mcreator/generator/usercode/package-summary.html">net.mcreator.generator.usercode</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/generator/usercode/UserCodeProcessor.html#%3Cinit%3E()" class="member-name-link">UserCodeProcessor()</a> - Constructor for class net.mcreator.generator.usercode.<a href="net/mcreator/generator/usercode/UserCodeProcessor.html" title="class in net.mcreator.generator.usercode">UserCodeProcessor</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.html" class="type-name-link" title="class in dev.copperbench.core.workspace">UserCodeRegions</a> - Class in <a href="dev/copperbench/core/workspace/package-summary.html">dev.copperbench.core.workspace</a></dt>
+<dd>
+<div class="block">MCreator user code blocks: the named regions of a generated Java file that regeneration preserves.</div>
+</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.InvalidRegions.html" class="type-name-link" title="class in dev.copperbench.core.workspace">UserCodeRegions.InvalidRegions</a> - Exception Class in <a href="dev/copperbench/core/workspace/package-summary.html">dev.copperbench.core.workspace</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/UserCodeRegions.Parsed.html" class="type-name-link" title="class in dev.copperbench.core.workspace">UserCodeRegions.Parsed</a> - Record Class in <a href="dev/copperbench/core/workspace/package-summary.html">dev.copperbench.core.workspace</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/platform/UserDataPaths.html" class="type-name-link" title="class in dev.copperbench.platform">UserDataPaths</a> - Record Class in <a href="dev/copperbench/platform/package-summary.html">dev.copperbench.platform</a></dt>
 <dd>
@@ -30057,6 +30115,10 @@ as a local-history restore.</div>
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/element/types/Dimension.html#worldGenType" class="member-name-link">worldGenType</a> - Variable in class net.mcreator.element.types.<a href="net/mcreator/element/types/Dimension.html" title="class in net.mcreator.element.types">Dimension</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/generator/fabric/Fabric1211ProcessRunner.html#wrapperCommand(boolean,java.lang.String)" class="member-name-link">wrapperCommand(boolean, String)</a> - Static method in interface dev.copperbench.generator.fabric.<a href="dev/copperbench/generator/fabric/Fabric1211ProcessRunner.html" title="interface in dev.copperbench.generator.fabric">Fabric1211ProcessRunner</a></dt>
+<dd>
+<div class="block">The workspace wrapper is addressed relative to the process directory.</div>
+</dd>
 <dt><a href="net/mcreator/ui/validation/validators/UniqueNameValidator.html#wrapValidator(net.mcreator.ui.validation.Validator)" class="member-name-link">wrapValidator(Validator)</a> - Method in class net.mcreator.ui.validation.validators.<a href="net/mcreator/ui/validation/validators/UniqueNameValidator.html" title="class in net.mcreator.ui.validation.validators">UniqueNameValidator</a></dt>
 <dd>
 <div class="block">Returns a copy of this UniqueNameValidator with main validator changed to the passed one.</div>

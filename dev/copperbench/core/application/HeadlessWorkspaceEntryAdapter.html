@@ -62,6 +62,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#grantAssetImportSource(java.nio.file.Path)" tabindex="0">grantAssetImportSource(Path)</a></li>
 <li><a href="#execute(dev.copperbench.core.contract.UiCore.Command)" tabindex="0">execute(UiCore.Command)</a></li>
 <li><a href="#query(dev.copperbench.core.contract.UiCore.Query)" tabindex="0">query(UiCore.Query)</a></li>
 <li><a href="#acceptance(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" tabindex="0">acceptance(UUID, UUID, JsonObject)</a></li>
@@ -122,21 +123,26 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">preview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSource(java.nio.file.Path)" class="member-name-link">grantAssetImportSource</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;source)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Grants a local file for a later <code>preview_asset_import</code>.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#preview(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">preview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  com.google.gson.JsonObject&nbsp;request)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Versioned preview extension, using the same immutable caller permissions.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query(dev.copperbench.core.contract.UiCore.Query)" class="member-name-link">query</a><wbr>(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">versionCopyUpgrade</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query(dev.copperbench.core.contract.UiCore.Query)" class="member-name-link">query</a><wbr>(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#versionCopyUpgrade(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" class="member-name-link">versionCopyUpgrade</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;requestId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  com.google.gson.JsonObject&nbsp;request)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Read-only version-copy upgrade planning with per-request negotiation.</div>
 </div>
 </div>
@@ -173,6 +179,18 @@ loadScripts(document, 'script');</script>
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="grantAssetImportSource(java.nio.file.Path)">
+<h3>grantAssetImportSource</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></span>&nbsp;<span class="element-name">grantAssetImportSource</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;source)</span></div>
+<div class="block">Grants a local file for a later <code>preview_asset_import</code>. Native hosts are owner-only local processes of the
+same OS user, so the path they name is that caller's own selection, like the desktop file picker. The grant only
+lets the preview read that file; the import still needs the preview's plan token, a recovery point and the
+session's command permission or task authorization.</div>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="execute(dev.copperbench.core.contract.UiCore.Command)">
 <h3>execute</h3>
