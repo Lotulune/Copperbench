@@ -121,6 +121,8 @@ class GameTestWorkflowTest {
             assertEquals("packaged_jar", GameTestSupport.configuration(root).mode());
             Path test = root.resolve("src/gametest/java/copperbench/acceptance/AcceptanceTests.java");
             assertTrue(Files.readString(test).contains("native_mod"));
+            assertEquals("fabric-1.21.1".equals(environment.get("generatorId").getAsString()),
+                    Files.readString(test).contains("FakePlayer.get(helper.getLevel(), profile)"));
             Files.writeString(test, "authored tests");
             GameTestSupport.prepare(root, environment, "native_mod");
             assertEquals("authored tests", Files.readString(test));

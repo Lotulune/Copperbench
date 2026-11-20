@@ -53,6 +53,15 @@ class UserCodeBlockTest(unittest.TestCase):
         self.assertEqual('unchanged', result['status'])
         write.assert_not_called()
 
+        stmt = 'Registry.init();'
+        for wrapper in ('/*\n' + stmt + '\n*/', 'String sample = """\n' + stmt + '\n""";'):
+            text = generated('\n').replace('System.out.println("existing");', wrapper)
+            _, write = self.run_insert(text, stmt)
+            self.assertEqual(2, write.call_args.args[1].count(stmt))
+            result, write = self.run_insert(write.call_args.args[1], stmt)
+            self.assertEqual('unchanged', result['status'])
+            write.assert_not_called()
+
     def test_missing_or_ambiguous_blocks_are_rejected_without_writing(self):
         for content, block in ((generated('\n'), 'client init'),
                                (generated('\n') + generated('\n'), 'mod init')):

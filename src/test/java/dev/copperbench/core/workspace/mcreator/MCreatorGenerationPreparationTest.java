@@ -225,6 +225,50 @@ class MCreatorGenerationPreparationTest {
         }
     }
 
+    @Test void tagRenameAndDeleteRetireOnlyTheirGeneratedFilesAndSurviveReopen() throws Exception {
+        UUID id = UUID.randomUUID();
+        Path folder = root.resolve("src/main/resources/data/cold_fields/tags/item");
+        Path old = folder.resolve("old_tag.json"), renamed = folder.resolve("new_tag.json"), manual = folder.resolve("manual.json");
+        var mapper = new MCreatorWorkspaceStateMapper();
+        try (Workspace workspace = cold()) {
+            Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+            var gateway = new MCreatorWorkspaceMutationGateway(workspace, id);
+            var before = mapper.map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(id));
+            JsonObject registries = before.registries();
+            var tag = com.google.gson.JsonParser.parseString("""
+                    {"name":"old_tag","namespace":"mod","category":"items","members":["Items.STICK"]}
+                    """).getAsJsonObject();
+            registries.getAsJsonArray("tags").add(tag);
+            var after = before.copy(); after.replaceRegistries(registries);
+            gateway.persistWorkspaceData(before, after, Operation.CREATE_REGISTRY_ENTRY);
+            assertTrue(Files.readString(old).contains("minecraft:stick"));
+            Files.writeString(manual, "{}");
+
+            before = mapper.map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(id));
+            registries = before.registries();
+            for (var row : registries.getAsJsonArray("tags"))
+                if (row.getAsJsonObject().get("name").getAsString().equals("old_tag")) row.getAsJsonObject().addProperty("name", "new_tag");
+            after = before.copy(); after.replaceRegistries(registries);
+            gateway.persistWorkspacePlan(before, after, List.of(Operation.RENAME_REGISTRY_ENTRY));
+            assertFalse(Files.exists(old));
+            assertTrue(Files.readString(renamed).contains("minecraft:stick"));
+        }
+        Path file = root.resolve("cold_fields.mcreator");
+        try (Workspace reopened = Workspace.readFromFS(file.toFile(), null)) {
+            var before = mapper.map(reopened, reopened.getFileManager().loadOrCreateProductMetadata(id));
+            JsonObject registries = before.registries();
+            var tags = registries.getAsJsonArray("tags").asList();
+            assertFalse(tags.stream().anyMatch(row -> row.getAsJsonObject().get("name").getAsString().equals("old_tag")));
+            assertTrue(tags.removeIf(row -> row.getAsJsonObject().get("name").getAsString().equals("new_tag")));
+            var after = before.copy(); after.replaceRegistries(registries);
+            new MCreatorWorkspaceMutationGateway(reopened, id).persistWorkspaceData(before, after, Operation.DELETE_REGISTRY_ENTRY);
+        }
+        var saved = com.google.gson.JsonParser.parseString(Files.readString(file)).getAsJsonObject().getAsJsonObject("tag_elements");
+        assertFalse(saved.has("ITEMS:mod:new_tag"));
+        assertFalse(Files.exists(renamed));
+        assertEquals("{}", Files.readString(manual));
+    }
+
     @Test void rejectedRegistryEditRestoresTheRegeneratedLanguageFiles() throws Exception {
         try (Workspace workspace = cold()) {
             Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));

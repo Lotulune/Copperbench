@@ -45,9 +45,21 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, Fabric1211Generator.Profile profile) {
-		this(store, workspaceRoots, distributionRoot, clock, ids, profile,
-				Fabric1211ProcessRunner.system(profile.readyMarker(),
-						() -> BundledJdkLocator.locate(distributionRoot, profile.javaRelease())));
+		this(store, workspaceRoots, distributionRoot, clock, ids, profile, productProcesses(distributionRoot, profile));
+	}
+
+	private static Fabric1211ProcessRunner productProcesses(Path root, Fabric1211Generator.Profile profile) {
+		var runner = Fabric1211ProcessRunner.system(profile.readyMarker(), () -> BundledJdkLocator.locate(root, profile.javaRelease()));
+		if (!profile.equals(Fabric1211Generator.Profile.FABRIC_1211)) return runner;
+		return (workspace, args, timeout, output) -> runner.run(workspace, headlessBuildArgs(args), timeout, output);
+	}
+
+	static List<String> headlessBuildArgs(List<String> args) {
+		// Loom 1.17.19 skips dependency *sources* download/remapping in CI mode. The binary remap,
+		// project sources JAR and tests still run. Do not set CI globally or change the IDE project.
+		if (args.size() == 1 && (args.getFirst().equals("build") || args.getFirst().equals("runGameTest")))
+			return List.of("-Dfabric.loom.ci=true", args.getFirst());
+		return args;
 	}
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,

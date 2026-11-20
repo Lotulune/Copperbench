@@ -150,6 +150,13 @@ class Fabric1211ProcessRunnerTest {
 		assertTrue(Fabric1211ProcessRunner.DAEMON_IDLE_TIMEOUT.toMinutes() <= 30, "an idle daemon must not hold memory for hours");
 	}
 
+	@Test void automatedFabricBuildAndGameTestDoNotRemapIdeDependencySources() {
+		for (String task : List.of("build", "runGameTest"))
+			assertEquals(List.of("-Dfabric.loom.ci=true", task), Fabric1211WorkspaceTaskGateway.headlessBuildArgs(List.of(task)));
+		for (var args : List.of(List.of("runClient"), List.of("genSources"), List.of("-Dfabric.loom.ci=false", "build")))
+			assertEquals(args, Fabric1211WorkspaceTaskGateway.headlessBuildArgs(args));
+	}
+
 	@Test void daemonReuseIsOnByDefaultAndAcceptsOnlyExplicitBooleans() {
 		assertTrue(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of()));
 		assertTrue(dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(java.util.Map.of("COPPERBENCH_GRADLE_DAEMON", "true")));

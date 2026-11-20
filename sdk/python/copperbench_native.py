@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+import errno
 import json
 import hashlib
 import math
@@ -28,6 +30,34 @@ class NativeApiError(RuntimeError):
         super().__init__(message)
         self.code = code
         self.details = details
+
+
+@contextmanager
+def _host_start_lock(workspace: Path, deadline: float):
+    """Only cold starters coordinate; closing the handle also releases it after a crash."""
+    directory = workspace.parent / '.copperbench'
+    directory.mkdir(exist_ok=True)
+    with (directory / 'python-host-start.lock').open('a+b') as lock:
+        if os.name == 'nt':
+            import msvcrt
+            def acquire():
+                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            def acquire():
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        while True:
+            try:
+                acquire()
+                break
+            except OSError as error:
+                if error.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+                    raise
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    raise NativeApiError('Timed out waiting for the other host to start', 'NATIVE_START_TIMEOUT') from error
+                time.sleep(min(0.05, left))
+        yield
 
 
 def _render_message(message: Any, default: str) -> str:
@@ -62,6 +92,28 @@ def _render_message(message: Any, default: str) -> str:
         return match.group(0)
 
     return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", substitute, fallback)
+
+
+# Skip comments and Java literals when an otherwise exact duplicate could be inside one.
+_JAVA_NON_CODE = re.compile(
+    r'//[^\n]*|/\*.*?(?:\*/|\Z)|"""(?:\\.|(?!""")[^\\])*?(?:"""|\Z)'
+    r'|"(?:\\.|[^"\\\n])*"' r"|'(?:\\.|[^'\\\n])*'", re.DOTALL)
+
+
+def _block_contains(lines: list[str], code: str) -> bool:
+    body = '\n' + '\n'.join(line.strip() for line in lines) + '\n'
+    needle = '\n' + '\n'.join(line.strip() for line in code.splitlines()) + '\n'
+    hit = body.find(needle)
+    if hit < 0 or ('/*' not in body and '"""' not in body):
+        return hit >= 0
+    for token in _JAVA_NON_CODE.finditer(body):
+        if hit + 1 <= token.start():
+            break
+        while hit + 1 < token.end():
+            hit = body.find(needle, hit + 1)
+            if hit < 0:
+                return False
+    return True
 
 
 class Workspace:
@@ -172,14 +224,25 @@ class Workspace:
         except NativeApiError as error:
             if error.code != "NATIVE_CONNECTION_UNAVAILABLE":
                 raise
-        argv = cls._launcher_argv(launcher)
-        command = [*argv, "headless", "--workspace", str(path), "serve", "--idle-timeout", str(math.ceil(idle_timeout))]
-        ready = cls._start_background_host(command, cwd, startup_timeout)
+        deadline = time.monotonic() + startup_timeout
+        with _host_start_lock(path, deadline):
+            # A concurrent SDK caller may have published a host since our first lookup.
+            try:
+                return cls.connect(path, **options)
+            except NativeApiError as error:
+                if error.code != "NATIVE_CONNECTION_UNAVAILABLE":
+                    raise
+            argv = cls._launcher_argv(launcher)
+            command = [*argv, "headless", "--workspace", str(path), "serve", "--idle-timeout", str(math.ceil(idle_timeout))]
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise NativeApiError('Timed out starting the background host', 'NATIVE_START_TIMEOUT')
+            ready = cls._start_background_host(command, cwd, remaining)
         if ready.get("status") != "serving":
             code = ready.get("code") or "NATIVE_START_FAILED"
             if code != "WORKSPACE_WRITE_LOCKED":
                 raise NativeApiError("Core could not start a background host for the workspace", code, ready)
-            # Another script may have started the host first; its connection record is then current.
+            # A desktop started outside the SDK lock may now offer a connection.
         try:
             return cls.connect(path, **options)
         except NativeApiError as error:
@@ -555,6 +618,10 @@ class Workspace:
                     "inspection": {"operation": "get_mod_element_editor",
                                    "requires": ["elementId"], "scope": "existing_element"},
                 })
+        if data.get('fieldContractDetail') == 'summary':
+            raise NativeApiError('This environment contains summaries, not full field contracts. '
+                                 'Use discover_field_contract() for creation fields or supply a full environment.',
+                                 'NATIVE_FIELD_CONTRACT_SUMMARY')
         return contracts[element_type]
 
     def discover_field_contract(self, element_type: str) -> dict[str, Any]:
@@ -657,12 +724,11 @@ class Workspace:
         start, end = starts[0], ends[0]
         newline = "\r\n" if lines[start].endswith("\r\n") else "\n"
         indent = re.match(r"[ \t]*", lines[start]).group(0)
-        wanted = [line.strip() for line in code.strip("\r\n").splitlines()]
-        existing = [line.strip() for line in lines[start + 1:end]]
-        if any(existing[index:index + len(wanted)] == wanted for index in range(len(existing) - len(wanted) + 1)):
+        code = code.strip("\r\n")
+        if _block_contains(lines[start + 1:end], code):
             return {"status": "unchanged", "relativePath": relative_path, "sha256": current["sha256"]}
         inserted = "".join((indent + line if line.strip() else "") + newline
-                           for line in code.strip("\r\n").splitlines())
+                           for line in code.splitlines())
         text = "".join(lines[:end]) + inserted + "".join(lines[end:])
         return self.write_file(relative_path, text, expected_sha256=current["sha256"])
 
