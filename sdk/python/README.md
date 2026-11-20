@@ -111,6 +111,8 @@ with Workspace.attach(r"D:\ModProjects\bell\bell.mcreator",
 
 ## 修改与任务
 
+先调用 `workspace.native_edit_brief()` 获取开工摘要。标准 Java Fabric 工程（单个类入口、常规目录、显式 Mojang 映射）返回 `ready`，列出入口路径、Core 报告的归属、用户代码块和映射声明。摘要只读，不创建恢复点、不扫描源码树。遇到 `needs_discovery` 时按 `reason` 和 `path` 检查自定义布局，必要时再用 `list_workspace_files`。`ready` 不是写入许可；其他文件的归属仍需分别确认。
+
 默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。经 Core 写入时，每次写入前都会建立恢复点；生成器拥有的文件（`list_workspace_files` 或 `read_file` 结果中 `ownership` 为 `generated`）保持只读，只有 `read_file` 结果 `userCodeBlocks` 列出的用户代码块内容可以修改，块外字节必须保持不变。
 
 ```python

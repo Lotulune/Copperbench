@@ -694,6 +694,65 @@ class Workspace:
             return self.query("get_workspace_environment")
         return self.query("get_workspace_environment", fieldContracts="summary")
 
+    def native_edit_brief(self) -> dict[str, Any]:
+        """Locate the conventional Fabric Java main without listing the workspace or changing it.
+
+        ``ready`` describes the files read, not permission to edit them. ``needs_discovery``
+        gives the reason to inspect a custom layout. No inventory scan or retry is implicit.
+        """
+        env = self.get_workspace_environment(field_contracts="summary")["data"]
+        execution = env.get("execution", {})
+        generator = env.get("generator", {})
+        brief = {"status": "needs_discovery", "generator": generator.get("id"),
+                 "minecraftVersion": generator.get("minecraftVersion"),
+                 "sourceRoot": execution.get("sourceRoot"), "resourceRoot": execution.get("resourceRoot"),
+                 "gameTests": execution.get("testing", {}).get("state")}
+        if execution.get("loader") != "fabric":
+            return {**brief, "reason": "not_standard_fabric"}
+
+        def read(path: str) -> dict[str, Any] | None:
+            try:
+                return self.read_file(path)["data"]
+            except NativeApiError as error:
+                # A missing conventional file is reported as Core I/O. Keep its actual diagnostic;
+                # do not guess another path or swallow a denial, revision conflict or protocol error.
+                if error.code != "WORKSPACE_SOURCE_IO":
+                    raise
+                brief.update(reason=error.code, path=path, detail=str(error))
+                return None
+
+        manifest_path = "src/main/resources/fabric.mod.json"
+        manifest_file = read(manifest_path)
+        if manifest_file is None:
+            return brief
+        try:
+            manifest = json.loads(manifest_file["content"])
+        except json.JSONDecodeError as error:
+            return {**brief, "reason": "invalid_fabric_manifest", "path": manifest_path, "detail": str(error)}
+        entrypoints = manifest.get("entrypoints") if isinstance(manifest, dict) else None
+        mains = entrypoints.get("main") if isinstance(entrypoints, dict) else None
+        if (not isinstance(mains, list) or len(mains) != 1 or not isinstance(mains[0], str)
+                or not re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", mains[0], re.ASCII)):
+            return {**brief, "reason": "custom_entrypoints", "path": manifest_path}
+        if not isinstance(manifest.get("id"), str) or not manifest["id"]:
+            return {**brief, "reason": "missing_mod_id", "path": manifest_path}
+        brief["modId"] = manifest["id"]
+        build = read("build.gradle")
+        if build is None:
+            return brief
+        # Quote simple declarations as evidence; never infer mappings from the loader version.
+        lines = [line.strip() for line in build["content"].splitlines()]
+        mappings = [line for line in lines if re.match(r"^mappings(?:\s|\()", line)]
+        if mappings != ["mappings loom.officialMojangMappings()"]:
+            return {**brief, "reason": "inspect_build_mappings", "path": "build.gradle"}
+        source = read("src/main/java/" + mains[0].replace(".", "/") + ".java")
+        if source is None:
+            return brief
+        return {**brief, "status": "ready", "mappings": mappings[0],
+                "loaderVersion": execution.get("loaderVersion"), "fabricApiVersion": execution.get("fabricApiVersion"),
+                "main": source["relativePath"], "ownership": source["ownership"], "editable": source["editable"],
+                "userCodeBlocks": source.get("userCodeBlocks", [])}
+
     def read_file(self, relative_path: str) -> dict[str, Any]:
         """Read a workspace source file; ``data.sha256`` guards a later replacement."""
         return self.query("read_workspace_file", relativePath=relative_path)
