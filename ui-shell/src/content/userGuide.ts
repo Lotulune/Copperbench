@@ -248,7 +248,7 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     content: [
       '首次启动会询问你是否在中国大陆，选择后会自动配置国内镜像源。',
       'Gradle 发行版改走华为云镜像，Maven 仓库改走阿里云镜像，Minecraft 库改走 BMCLAPI。',
-      '之后可在「偏好设置 → Gradle」中随时开关「使用中国大陆软件源」。',
+      '之后可在「设置 → 构建与运行」中随时开关「中国大陆镜像」；关闭后恢复官方源。',
       '创建工作区时若下载失败，可在失败对话框中直接配置国内源并重试。'
     ]
   },

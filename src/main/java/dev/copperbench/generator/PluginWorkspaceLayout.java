@@ -61,7 +61,8 @@ public final class PluginWorkspaceLayout {
 
 	/**
 	 * Restores only the workspace-local Gradle runtime files required by Copperbench task runners. Existing plugin
-	 * build configuration is never overwritten.
+	 * build configuration is never overwritten; an existing wrapper only has its distribution host matched to the
+	 * mainland China mirror setting.
 	 */
 	public static void ensureGradleRuntime(Path root, Path distributionRoot, String gradleWrapperZip)
 			throws IOException {
@@ -81,7 +82,7 @@ public final class PluginWorkspaceLayout {
 			Files.writeString(wrapperProperties, """
 					distributionBase=GRADLE_USER_HOME
 					distributionPath=wrapper/dists
-					distributionUrl=https\\://mirrors.huaweicloud.com/gradle/%s
+					distributionUrl=%s%s
 					distributionSha256Sum=%s
 					networkTimeout=60000
 					retries=3
@@ -89,7 +90,12 @@ public final class PluginWorkspaceLayout {
 					validateDistributionUrl=true
 					zipStoreBase=GRADLE_USER_HOME
 					zipStorePath=wrapper/dists
-					""".formatted(gradleWrapperZip, checksum).replace("\r\n", "\n"), StandardCharsets.UTF_8);
+					""".formatted(dev.copperbench.network.ChinaMirrorService.wrapperDistributionBase(), gradleWrapperZip, checksum)
+					.replace("\r\n", "\n"), StandardCharsets.UTF_8);
+		} else {
+			// Only the distribution host follows the mirror setting, so turning mirrors off restores services.gradle.org.
+			dev.copperbench.network.ChinaMirrorService.applyToWorkspace(normalizedRoot,
+					dev.copperbench.network.ChinaMirrorService.isEnabled());
 		}
 	}
 

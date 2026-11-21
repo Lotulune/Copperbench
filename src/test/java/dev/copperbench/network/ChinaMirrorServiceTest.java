@@ -80,7 +80,20 @@ class ChinaMirrorServiceTest {
 		assertFalse(Files.exists(initScript));
 	}
 
-	@Test void rewritesWorkspaceWrapperOnlyWhenEnabled() throws Exception {
+	@Test void restoresOfficialDistributionUrlsWhenMirrorsAreDisabled() {
+		String mirrored = """
+				distributionUrl=https\\://mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip
+				networkTimeout=60000
+				""";
+		assertEquals("""
+				distributionUrl=https\\://services.gradle.org/distributions/gradle-9.7.0-bin.zip
+				networkTimeout=60000
+				""", ChinaMirrorService.rewriteWrapperProperties(mirrored, false));
+		assertEquals("distributionUrl=https://services.gradle.org/distributions/gradle-9.6.1-bin.zip\n",
+				ChinaMirrorService.rewriteWrapperProperties("distributionUrl=https://mirrors.huaweicloud.com/gradle/gradle-9.6.1-bin.zip\n", false));
+	}
+
+	@Test void workspaceWrapperFollowsTheSettingInBothDirections() throws Exception {
 		Path workspace = temp.resolve("workspace");
 		Path wrapper = workspace.resolve("gradle/wrapper/gradle-wrapper.properties");
 		Files.createDirectories(wrapper.getParent());
@@ -96,6 +109,13 @@ class ChinaMirrorServiceTest {
 		String rewritten = Files.readString(wrapper, StandardCharsets.UTF_8);
 		assertTrue(rewritten.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
 		assertFalse(ChinaMirrorService.applyToWorkspace(workspace, true));
+
+		// Turning mirrors off restores the official source instead of leaving the mirror behind.
+		assertTrue(ChinaMirrorService.applyToWorkspace(workspace, false));
+		String restored = Files.readString(wrapper, StandardCharsets.UTF_8);
+		assertTrue(restored.contains("https\\://services.gradle.org/distributions/gradle-9.7.0-bin.zip"), restored);
+		assertFalse(restored.contains("huaweicloud"));
+		assertFalse(ChinaMirrorService.applyToWorkspace(workspace, false));
 	}
 
 }

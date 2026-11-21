@@ -98,7 +98,7 @@ Java 插件默认关闭，启用即完全本机信任。兼容中心列出已安
 
 首次启动会询问你是否在中国大陆。选“是”后，Copperbench 会把 Gradle 发行版改到华为云镜像，把 Maven Central / Plugin Portal 改到阿里云镜像，并把 Minecraft 库（`libraries.minecraft.net`）改到 BMCLAPI。这些文件写在 `%USERPROFILE%\.copperbench\gradle`，不是系统全局 `\.gradle`。该目录是所有工作区共用的 Gradle 用户主目录：发行包和 Maven 缓存只下一次。若官方源和国内镜像 URL 不同，产品会把已解压的同一份 Gradle 复制到对应哈希目录，避免重下。安装包若带了 `gradle-dists`，启动时会预填到这个目录。
 
-Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设置的 Gradle 页开关「使用中国大陆软件源」。若创建工作区时卡在 `services.gradle.org`，失败对话框也可以直接配置国内源并重试。
+Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在「设置 → 构建与运行」中开关「中国大陆镜像」。关闭后，镜像脚本会立即从上述目录删除，Maven 仓库与 Minecraft 库恢复官方源；新生成的工作区使用 `services.gradle.org`，已有工作区的 Gradle 发行版地址在下次生成时改回官方地址。若创建工作区时卡在 `services.gradle.org`，失败对话框也可以直接配置国内源并重试。
 
 ## 检查更新
 

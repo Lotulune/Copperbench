@@ -23,10 +23,13 @@ public final class AppPreferencesService {
             "ui.nativeFileChooser", "ui.remindOfUnsavedChanges", "ui.autoReloadTabs", "ui.expandSectionsByDefault",
             "ide.editorTheme", "ide.fontSize", "ide.useLigatures", "ide.autocomplete", "ide.autocompleteMode",
             "ide.autocompleteDocWindow", "ide.lineNumbers", "ide.errorInfoEnable",
-            "gradle.Xmx", "gradle.offline", "gradle.buildOnSave", "gradle.passLangToMinecraft", "gradle.enablePerformanceMonitor");
+            "gradle.Xmx", "gradle.offline", "gradle.useChinaMirrors", "gradle.buildOnSave", "gradle.passLangToMinecraft",
+            "gradle.enablePerformanceMonitor");
+    static final String CHINA_MIRRORS = "gradle.useChinaMirrors";
     private final Path file;
     private final Map<String, PreferencesEntry<?>> entries;
     private final Writer writer;
+    private final Runnable mirrorsChanged;
 
     @FunctionalInterface interface Writer { void write(Path file, JsonObject document) throws IOException; }
 
@@ -35,10 +38,16 @@ public final class AppPreferencesService {
     }
 
     AppPreferencesService(Path file, Map<String, PreferencesEntry<?>> entries, Writer writer) {
+        // The mirror choice lives in the Gradle user home too: adding the init script, or removing it to restore the original sources.
+        this(file, entries, writer, dev.copperbench.network.ChinaMirrorService::syncUserHome);
+    }
+
+    AppPreferencesService(Path file, Map<String, PreferencesEntry<?>> entries, Writer writer, Runnable mirrorsChanged) {
         this.file = file.toAbsolutePath().normalize();
         this.entries = new LinkedHashMap<>();
         for (String key : EXPOSED) if (entries.containsKey(key)) this.entries.put(key, entries.get(key));
         this.writer = writer;
+        this.mirrorsChanged = mirrorsChanged;
     }
 
     public static AppPreferencesService current() {
@@ -79,6 +88,7 @@ public final class AppPreferencesService {
                 previous.forEach((key, value) -> entries.get(key).setValueFromJsonElement(value));
                 throw failure;
             }
+            if (changes.has(CHINA_MIRRORS) && !previous.get(CHINA_MIRRORS).equals(changes.get(CHINA_MIRRORS))) mirrorsChanged.run();
             return snapshot(next);
         }
     }

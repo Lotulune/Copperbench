@@ -360,7 +360,7 @@ public final class Fabric1211Generator {
 		write(root, "gradle/wrapper/gradle-wrapper.properties", """
 				distributionBase=GRADLE_USER_HOME
 				distributionPath=wrapper/dists
-				distributionUrl=https\\://mirrors.huaweicloud.com/gradle/%s
+				distributionUrl=%s%s
 				distributionSha256Sum=%s
 				networkTimeout=60000
 				retries=3
@@ -368,7 +368,7 @@ public final class Fabric1211Generator {
 				validateDistributionUrl=true
 				zipStoreBase=GRADLE_USER_HOME
 				zipStorePath=wrapper/dists
-				""".formatted(profile.gradleWrapperZip(),
+				""".formatted(dev.copperbench.network.ChinaMirrorService.wrapperDistributionBase(), profile.gradleWrapperZip(),
 						dev.copperbench.generator.GradleDistributionIntegrity.require(profile.gradleWrapperZip())), generated);
 		copy(root, "gradlew", distributionRoot.resolve("gradlew"), generated);
 		ExecutableFilePermissions.ensureOwnerExecutable(root.resolve("gradlew"));

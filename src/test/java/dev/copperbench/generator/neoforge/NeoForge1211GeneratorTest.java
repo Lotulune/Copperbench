@@ -52,7 +52,7 @@ class NeoForge1211GeneratorTest {
 		assertTrue(Files.readString(output.resolve("settings.gradle"))
 				.contains("org.gradle.toolchains.foojay-resolver-convention"));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
+				.contains(wrapperBase() + "gradle-9.7.0-bin.zip"));
 		assertTrue(Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"))
 				.contains("COPPERBENCH_STAGE5_NEOFORGE_READY"));
 		assertTrue(Files.size(output.resolve(
@@ -80,7 +80,7 @@ class NeoForge1211GeneratorTest {
 		assertEquals("windows-wrapper", Files.readString(workspace.resolve("gradlew.bat")));
 		assertTrue(Files.isRegularFile(workspace.resolve("gradle/wrapper/gradle-wrapper.jar")));
 		assertTrue(Files.readString(workspace.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
+				.contains(wrapperBase() + "gradle-9.7.0-bin.zip"));
 		assertEquals("final class UserCode {}\n",
 				Files.readString(workspace.resolve("src/main/java/example/UserCode.java")));
 	}
@@ -177,5 +177,10 @@ class NeoForge1211GeneratorTest {
 		assertEquals(procedure.id(), issue.elementId());
 		assertEquals("/elements/" + procedure.id() + "/procedureIr/nodes/" + callId + "/ports/procedureId",
 				issue.path());
+	}
+
+	/** Generated wrappers follow the mainland China mirror setting of the test runtime. */
+	private static String wrapperBase() {
+		return dev.copperbench.network.ChinaMirrorService.isEnabled() ? "mirrors.huaweicloud.com/gradle/" : "services.gradle.org/distributions/";
 	}
 }

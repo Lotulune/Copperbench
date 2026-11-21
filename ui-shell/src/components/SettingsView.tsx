@@ -12,6 +12,8 @@ type Draft = Record<string, AppPreferenceValue>;
 const nativeEditorKeys = new Set(['ide.editorTheme', 'ide.autocomplete', 'ide.autocompleteMode', 'ide.autocompleteDocWindow', 'ide.errorInfoEnable']);
 // Workspace preferences that only affect native editors share one group label instead of a tag on every row.
 const nativeWorkspaceKeys = new Set(['ui.remindOfUnsavedChanges', 'ui.autoReloadTabs', 'ui.expandSectionsByDefault']);
+// These hints say what changes on the network, so they stay visible instead of screen-reader only.
+const visibleHintKeys = new Set(['gradle.offline', 'gradle.useChinaMirrors']);
 
 function labels(): Record<string, [string, string]> {
   return {
@@ -29,6 +31,7 @@ function labels(): Record<string, [string, string]> {
     'ide.errorInfoEnable': [uiText('代码错误提示', 'Code error hints'), uiText('在原生代码编辑器中显示诊断信息。', 'Display diagnostics in the native code editor.')],
     'gradle.Xmx': [uiText('构建最大内存（MB）', 'Maximum build memory (MB)'), uiText('下一次 Gradle 构建使用的最大堆内存。', 'Maximum heap size for the next Gradle build.')],
     'gradle.offline': [uiText('离线构建', 'Offline builds'), uiText('仅使用已缓存的依赖；缺少依赖时构建会失败。', 'Use cached dependencies only. Builds fail if a dependency is missing.')],
+    'gradle.useChinaMirrors': [uiText('中国大陆镜像', 'Mainland China mirrors'), uiText('开启后 Gradle、Maven 仓库和 Minecraft 库改走国内镜像；关闭后恢复官方源。', 'Download Gradle, Maven repositories and Minecraft libraries from mainland China mirrors. Turn off to use the official sources again.')],
     'gradle.buildOnSave': [uiText('保存后构建', 'Build on save'), uiText('保存模组元素后触发 Gradle 构建。', 'Start a Gradle build after saving a mod element.')],
     'gradle.passLangToMinecraft': [uiText('同步 Minecraft 语言', 'Match Minecraft language'), uiText('启动测试客户端时使用应用语言。', 'Use the application language when launching a test client.')],
     'gradle.enablePerformanceMonitor': [uiText('测试客户端性能监测', 'Test client performance monitor'), uiText('运行测试客户端时启用性能监测。', 'Enable performance monitoring while running a test client.')]
@@ -142,7 +145,7 @@ export function SettingsView() {
     return <div className="settings-row" key={entry.key}>
       <div className="settings-label"><label htmlFor={id} title={hint}>{name}</label>
         {tagged && nativeWorkspaceKeys.has(entry.key) && <small>{uiText('原生编辑器', 'Native editors')}</small>}
-        <p id={`${id}-hint`} className={entry.key === 'gradle.offline' ? undefined : 'settings-sr-only'}>{hint}</p>
+        <p id={`${id}-hint`} className={visibleHintKeys.has(entry.key) ? undefined : 'settings-sr-only'}>{hint}</p>
         {!fieldValid && <p className="settings-field-error" id={`${id}-error`}>{uiText('请输入范围内的整数', 'Enter a whole number in range')}: {entry.min}–{entry.max}</p>}</div>
       {entry.type === 'boolean' ? <input id={id} type="checkbox" checked={draft[entry.key] === true}
         aria-describedby={`${id}-hint`} onChange={event => edit(entry.key, event.target.checked)} />

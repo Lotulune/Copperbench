@@ -77,15 +77,21 @@ public final class ChinaMirrorService {
 		applyToWorkspace(workspace.getWorkspaceFolder().toPath(), isEnabled());
 	}
 
+	/** The wrapper's distribution base for the current setting, escaped for a properties file. */
+	public static String wrapperDistributionBase() {
+		return escaped(isEnabled() ? CHINA_GRADLE_DISTRIBUTION : OFFICIAL_GRADLE_DISTRIBUTION);
+	}
+
+	/** Points the workspace wrapper at the mirror when enabled and back at services.gradle.org when disabled. */
 	public static boolean applyToWorkspace(Path workspaceFolder, boolean enabled) {
-		if (!enabled || workspaceFolder == null)
+		if (workspaceFolder == null)
 			return false;
 		Path wrapper = workspaceFolder.resolve("gradle").resolve("wrapper").resolve("gradle-wrapper.properties");
 		if (!Files.isRegularFile(wrapper))
 			return false;
 		try {
 			String original = Files.readString(wrapper, StandardCharsets.UTF_8);
-			String rewritten = rewriteWrapperProperties(original, true);
+			String rewritten = rewriteWrapperProperties(original, enabled);
 			if (Objects.equals(original, rewritten))
 				return false;
 			Files.writeString(wrapper, rewritten, StandardCharsets.UTF_8);
@@ -117,13 +123,21 @@ public final class ChinaMirrorService {
 		}
 	}
 
+	/**
+	 * Enabled: official Gradle distributions move to the mirror and the network timeout is raised. Disabled: mirror
+	 * distributions move back to services.gradle.org; the raised timeout stays, since the original value is unknown.
+	 */
 	public static String rewriteWrapperProperties(String content, boolean enabled) {
-		if (!enabled || content == null)
-			return content;
-		String rewritten = content.replace("https\\://services.gradle.org/distributions/",
-						"https\\://mirrors.huaweicloud.com/gradle/")
-				.replace("https://services.gradle.org/distributions/", CHINA_GRADLE_DISTRIBUTION);
-		return bumpNetworkTimeout(rewritten);
+		if (content == null)
+			return null;
+		String from = enabled ? OFFICIAL_GRADLE_DISTRIBUTION : CHINA_GRADLE_DISTRIBUTION;
+		String to = enabled ? CHINA_GRADLE_DISTRIBUTION : OFFICIAL_GRADLE_DISTRIBUTION;
+		String rewritten = content.replace(escaped(from), escaped(to)).replace(from, to);
+		return enabled ? bumpNetworkTimeout(rewritten) : rewritten;
+	}
+
+	private static String escaped(String url) {
+		return url.replace(":", "\\:");
 	}
 
 	private static String bumpNetworkTimeout(String content) {
