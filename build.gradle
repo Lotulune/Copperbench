@@ -482,6 +482,16 @@ tasks.register('runDataPackLoadDelivery', JavaExec.class) {
     args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
 }
 
+tasks.register('runAgentEvaluation', JavaExec.class) {
+    group = 'verification'
+    description = 'Scores finished Emberkit mod JARs with per-assertion results from the product GameTest host and the JAR resources.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.evaluation.AgentEvaluationMain')
+    args providers.gradleProperty('agentEvalManifest').getOrElse('')
+}
+
 tasks.register('runPreviewNegotiationDelivery', JavaExec.class) {
     group = 'verification'
     description = 'Checks preview discovery, scoped choice and fail-closed creation through real Native SDK processes.'
