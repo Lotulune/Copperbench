@@ -32,6 +32,7 @@ The source-only [contributor verification entry](scripts/performance/README.md#c
 | UI implementation | `npm test --prefix ui-shell` and `npm run build --prefix ui-shell`, then the affected Playwright spec. The existing startup smoke checks are `npm run test:e2e --prefix ui-shell -- e2e/scenarios.spec.ts e2e/new-workspace.spec.ts --project=chromium`. |
 | Python SDK | `python -m unittest discover -s sdk/python -p 'test_*.py'`; native process and desktop integration checks are documented in [sdk/python/README.md](sdk/python/README.md). |
 | TypeScript SDK | After `npm ci --prefix ui-shell`, run `npm run test:sdk --prefix ui-shell`; it uses the UI shell's TypeScript development dependency. |
+| Agent comparison runs | Score the finished Emberkit mod JARs with `./gradlew --no-daemon runAgentEvaluation -PagentEvalManifest=<manifest.json>`; the [evaluation kit](examples/agent-eval/emberkit/README.md) has the tasks, assertions and manifest format. |
 | MCP transport or tool contracts | `pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results`; consult [MCP setup](docs/ai/getting-started.md) and the affected Java tests. |
 | Product status or release declarations | `node scripts/verify-product-status.mjs`; verify publication and package-specific acceptance separately. |
 
