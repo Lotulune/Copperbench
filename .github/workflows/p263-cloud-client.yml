@@ -21,9 +21,6 @@ on:
         required: false
         default: ''
         type: string
-  push:
-    branches: [codex/p263-unique-cases]
-    paths: [.github/workflows/p263-cloud-client.yml]
 permissions:
   contents: read
   actions: read

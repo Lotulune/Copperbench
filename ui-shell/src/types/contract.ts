@@ -1112,12 +1112,12 @@ export interface WorkspaceSourceIndex {
   truncated: boolean;
 }
 
-export interface UpdateWorkspaceFilePayload {
+/** Replace an existing file with the hash from a current read, or add a hand-written file with createNew. */
+export type UpdateWorkspaceFilePayload = {
   clientMutationId: UUID;
   relativePath: string;
   content: string;
-  expectedSha256: string;
-}
+} & ({ expectedSha256: string; createNew?: false } | { createNew: true });
 
 export interface ElementCoverage {
   schemaVersion: '1.0';

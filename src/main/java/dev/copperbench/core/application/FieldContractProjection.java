@@ -40,6 +40,24 @@ final class FieldContractProjection {
         return contracts;
     }
 
+    /**
+     * Keeps each contract's name, version and availability with its field count. The full contract stays one
+     * {@code get_workspace_environment} (default detail) or {@code get_mod_element_field_contract} query away.
+     */
+    static JsonObject summary(JsonObject contracts) {
+        JsonObject result = new JsonObject();
+        for (var entry : contracts.entrySet()) {
+            if (!entry.getValue().isJsonObject()) continue;
+            JsonObject contract = entry.getValue().getAsJsonObject(), item = new JsonObject();
+            for (String key : List.of("contractVersion", "availability", "complete", "supported", "scope"))
+                if (contract.has(key) && contract.get(key).isJsonPrimitive()) item.add(key, contract.get(key).deepCopy());
+            if (contract.has("fields") && contract.get("fields").isJsonArray())
+                item.addProperty("fieldCount", contract.getAsJsonArray("fields").size());
+            result.add(entry.getKey(), item);
+        }
+        return result;
+    }
+
     /** Returns a fresh contract, or null when this editor does not expose one. */
     static JsonObject editor(String type, String generatorId) {
         // Existing item/recipe editors retain the reason when discovery is incomplete.

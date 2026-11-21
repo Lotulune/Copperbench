@@ -41,7 +41,8 @@ public final class WorkspaceTaskInputIdentity {
                 Files.walkFileTree(root, new SimpleFileVisitor<>() {
                     @Override public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) throws IOException {
                         if (!directory.equals(root) && WorkspaceExecutionSnapshot.excluded(root.relativize(directory))) return FileVisitResult.SKIP_SUBTREE;
-                        WorkspaceExecutionSnapshot.rejectLinks(directory);
+                        if (directory.equals(root)) WorkspaceExecutionSnapshot.rejectLinks(directory);
+                        else WorkspaceExecutionSnapshot.rejectLinkedEntry(directory, attributes);
                         if (++directories[0] > 100_000) throw new IOException("Input event observation exceeds 100,000 directories");
                         directory.register(watch, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_DELETE);
                         return FileVisitResult.CONTINUE;

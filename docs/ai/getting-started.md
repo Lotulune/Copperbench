@@ -2,7 +2,7 @@
 
 [English](getting-started.en.md) · [同一个步道方块](trail-block.md) · [SDK 兼容边界](../../sdk/compatibility.md)
 
-先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束；通用 MCP 客户端打开工作区后，使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。该路径不依赖旧版本启动窗口中的「连接外部 Agent」帮助入口；帮助文本不会签发 token。
+先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束，多个短脚本处理同一工作区时改用 `Workspace.attach(...)`，共用一个空闲后自动退出的后台宿主（见 [SDK 说明](../../sdk/python/README.md#多个脚本共用一个-core)）；通用 MCP 客户端打开工作区后，使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。该路径不依赖旧版本启动窗口中的「连接外部 Agent」帮助入口；帮助文本不会签发 token。
 
 三个[最小可执行示例](../../sdk/agent-workflows.md)说明当前客户端的入口、前提和退出方式。各平台发布版本与包级验证见[当前下载](../releases/current.md)，实际接口以所连宿主的能力发现为准。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0`；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。原有权限和计划边界继续适用。
 
@@ -13,6 +13,14 @@
 本文面向本机 AI 客户端和自动化集成开发者。Copperbench MCP 当前为开发预览协议，版本、Schema 和工具字段仍可能在预览版间变化。
 
 对实际暴露[任务授权与自动验收](./task-authorization-and-acceptance.md)合同的宿主，本机用户可批准目录、操作和期限，Agent 携带该授权使用文件快照、GameTest 宿主和报告。先核对实际工具／环境能力，不将“源码可用”或当前下载版本号当作全部接口已暴露的证明。
+
+## 默认路线：直接写代码，用 Copperbench 验证
+
+默认直接编写工作区内的 Java、JSON 与资源，再用产品构建和验证。结构化元素、Procedure 和模板是可选捷径，适合时再用；写代码之前不需要先读字段契约。
+
+- `list_workspace_files` 或 `read_workspace_file` 结果中 `ownership` 为 `generated` 的文件归生成器所有，不要修改；唯一例外是生成的 Java 文件里的用户代码块。`read_workspace_file` 用 `userCodeBlocks` 列出这些块（例如主类的 `mod init`），重新生成时会保留块内内容。经 Core 替换时，块外每个字节都必须保持不变，否则会被拒绝。在主类的 `mod init` 块里加一行调用，就能在启动时运行自己的类。手写文件可以用自己的工具编辑，也可以经 Core 用 Native `write_file(path, text, expected_sha256=...)` 替换；不传哈希的 `write_file(path, text)` 新建文件，文件已存在时拒绝。经 Core 的写入会先建立恢复点。
+- 纹理、声音和模型用 Native `import_asset(本机文件, 目标相对路径)` 导入：同一用户的宿主为该文件签发导入授权，再走原有的预览、恢复点和引用检查。不支持该授权的旧宿主返回 `NATIVE_OPERATION_UNAVAILABLE`。
+- 先构建，再用 GameTest 证明行为：`prepare_game_tests()` 一次，在 `src/gametest/java` 下编写测试方法，然后 `run_game_tests()` 并等待原任务。构建出的 JAR 不等于玩法验收。
 
 ## 配对与丢失令牌后的恢复
 

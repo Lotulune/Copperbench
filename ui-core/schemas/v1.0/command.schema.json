@@ -504,14 +504,20 @@
   "$defs": {
     "workspaceFileUpdatePayload": {
       "type": "object",
-      "required": ["clientMutationId", "relativePath", "content", "expectedSha256"],
+      "required": ["clientMutationId", "relativePath", "content"],
       "properties": {
         "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
         "relativePath": {"type": "string", "minLength": 1, "maxLength": 1024},
         "content": {"type": "string", "maxLength": 1048576},
         "expectedSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "createNew": {"type": "boolean", "description": "true adds a hand-written file that must not exist yet; omit it and pass expectedSha256 to replace an existing file."},
         "taskAuthorizationId": {"type": "string", "minLength": 1}
       },
+      "oneOf": [
+        {"required": ["expectedSha256"], "properties": {"expectedSha256": {"type": "string"}, "createNew": {"const": false}}},
+        {"required": ["createNew"], "properties": {"createNew": {"const": true}},
+          "not": {"required": ["expectedSha256"], "properties": {"expectedSha256": {"type": "string"}}}}
+      ],
       "additionalProperties": false
     },
     "assetImportPayload": {
@@ -848,9 +854,18 @@
               ]
             },
             "entry": {
-              "type": "object"
+              "type": "object",
+              "description": "variables: {name, dataType, scope, value?}; tags: {name, ...}; languageKeys: {key, translations: {<locale>: <text>}}, for example {\"key\": \"item.examplemod.ember_dust\", \"translations\": {\"en_us\": \"Ember Dust\", \"zh_cn\": \"余烬粉\"}}."
             }
           },
+          "allOf": [
+            {
+              "if": {"properties": {"registry": {"const": "languageKeys"}}, "required": ["registry"]},
+              "then": {"properties": {"entry": {"type": "object", "required": ["key"], "properties": {
+                "key": {"type": "string", "pattern": "^[a-z0-9_.-]+$"},
+                "translations": {"type": "object", "additionalProperties": {"type": "string"}}}}}}
+            }
+          ],
           "additionalProperties": false
         },
         {

@@ -27,6 +27,8 @@ public final class DesktopPythonRuntime implements AutoCloseable {
     private final Semaphore slots = new Semaphore(8);
     private final ExecutorService workers = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory());
     private final AtomicBoolean closed = new AtomicBoolean();
+    /** System.nanoTime() of the latest client connect or disconnect; a background host's idle clock. */
+    private final java.util.concurrent.atomic.AtomicLong lastClientChange = new java.util.concurrent.atomic.AtomicLong(System.nanoTime());
 
     private DesktopPythonRuntime(Path workspaceFile, UUID workspaceId, HeadlessWorkspaceEntryAdapter adapter)
             throws IOException {
@@ -54,6 +56,12 @@ public final class DesktopPythonRuntime implements AutoCloseable {
     }
 
     public PythonContext context() { return context; }
+
+    /** Connected clients, including ones that have not authenticated yet. */
+    int activeClients() { return clients.size(); }
+
+    /** Nanoseconds since the latest client connected or disconnected. */
+    long nanosSinceClientChange() { return System.nanoTime() - lastClientChange.get(); }
 
     /** Credentials live in the OS user's home, never in a shareable workspace. */
     public static Path connectionFile(Path workspaceFile) throws IOException {
@@ -107,6 +115,7 @@ public final class DesktopPythonRuntime implements AutoCloseable {
                 Socket client = server.accept();
                 if (!slots.tryAcquire()) { client.close(); continue; }
                 clients.add(client);
+                lastClientChange.set(System.nanoTime());
                 if (closed.get()) {
                     clients.remove(client);
                     slots.release();
@@ -147,6 +156,7 @@ public final class DesktopPythonRuntime implements AutoCloseable {
             // A client disconnect or authentication timeout never closes the workspace.
         } finally {
             clients.remove(client);
+            lastClientChange.set(System.nanoTime());
             slots.release();
         }
     }

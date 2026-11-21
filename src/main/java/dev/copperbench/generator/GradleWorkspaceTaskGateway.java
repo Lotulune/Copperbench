@@ -152,6 +152,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					GameTestRunDirectory.record(root, job.id(), taskKind(operation), snapshot);
 				job.log("info", "Using isolated task directory "
 						+ executionRoot.toString().replace('\\', '/'));
+				// The frozen inputs exclude .gradle; reuse the workspace's derived Loom dependencies instead.
+				GradleProjectCacheSeed.seedAndLog(root, executionRoot, "workspace", job::cancellationRequested,
+						line -> job.log("info", line));
 				if (!executionRoot.startsWith(root))
 					job.log("info", (operation == Operation.RUN_GAMETEST ? "GAMETEST_SHORT_PATH" : "SERVER_SHORT_PATH")
 							+ ": using the Copperbench task cache to avoid the Windows wrapper path limit; execution-location.json remains in the workspace task directory.");
@@ -419,6 +422,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			});
 			if (build.exitCode() != 0) throw new GameTestSupport.TestSetupException("GAMETEST_BUILD_FAILED", "Tested mod build exited " + build.exitCode());
 			var host = GameTestSupport.host(snapshot, snapshot.resolveSibling("host"), configuration, backend.gameTestEnvironment());
+			// The new host declares the same Minecraft, mappings and loader dependencies as the frozen build.
+			GradleProjectCacheSeed.seedAndLog(snapshot, host.root(), "frozen workspace build", job::cancellationRequested,
+					line -> job.log("info", line));
 			if (GameTestSupport.requiresServerEula(backend.gameTestEnvironment()))
 				Files.writeString(host.root().resolve("run/eula.txt"), "eula=true\n", StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE_NEW);
 			runRoot = host.root(); report = host.report(); arguments = List.of("runGameTest");

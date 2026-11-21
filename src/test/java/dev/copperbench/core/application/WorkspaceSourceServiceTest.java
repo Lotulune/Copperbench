@@ -103,6 +103,118 @@ class WorkspaceSourceServiceTest {
 				() -> service.apply(edit, () -> fail("stale edit committed"))).code);
 	}
 
+	@Test void createsHandWrittenFilesWithMissingParentsButNeverReplacesOrClaimsGeneratedPaths() throws Exception {
+		write("src/main/java/example/Existing.java", "class Existing {}");
+		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of(
+				"src/main/java/example/Generated.java", "generated", "src/main/resources/assets/example/lang/", "generated"), true);
+		String path = "src/main/java/example/behavior/EmberWand.java";
+		WorkspaceSourceService.Edit edit = service.prepareCreate(path, "class EmberWand {}\n");
+		assertTrue(edit.creates());
+		assertTrue(edit.changed());
+		boolean[] committed = { false };
+		service.apply(edit, () -> committed[0] = true);
+		assertTrue(committed[0]);
+		assertEquals("class EmberWand {}\n", Files.readString(root.resolve(path)));
+		JsonObject read = service.read(path);
+		assertEquals("manual", read.get("ownership").getAsString());
+		assertEquals(edit.result().get("sha256").getAsString(), read.get("sha256").getAsString());
+		WorkspaceSourceService.Edit empty = service.prepareCreate("src/main/resources/data/example/tags/item/empty.json", "");
+		service.apply(empty, () -> { });
+		assertEquals(0, Files.size(root.resolve("src/main/resources/data/example/tags/item/empty.json")));
+		service.apply(service.prepareCreate("copperbench-tests.json", "{\"schemaVersion\":\"1.0\"}"), () -> { });
+		assertEquals("manual", service.read("copperbench-tests.json").get("ownership").getAsString(),
+				"the GameTest configuration is hand-maintained alongside src/gametest");
+
+		for (String existing : new String[]{"src/main/java/example/Existing.java", path})
+			assertEquals("WORKSPACE_SOURCE_CONFLICT", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> service.prepareCreate(existing, "replaced")).code, existing);
+		assertEquals("class Existing {}", Files.readString(root.resolve("src/main/java/example/Existing.java")));
+		for (String owned : new String[]{"src/main/java/example/Generated.java", "src/main/resources/assets/example/lang/en_us.json"})
+			assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> service.prepareCreate(owned, "{}")).code, owned);
+		for (String invalid : new String[]{"../outside.java", "build/Out.java", "src/main/resources/assets/example/textures/item/a.png",
+				"src/main/java/example/Existing.java/Nested.java", "src/.hidden/Entry.java"})
+			assertEquals("WORKSPACE_SOURCE_PATH_INVALID", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> service.prepareCreate(invalid, "x")).code, invalid);
+		assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+				() -> new WorkspaceSourceService(root, Map.of(), false).prepareCreate("src/main/java/ReadOnly.java", "x")).code);
+		assertFalse(Files.exists(root.resolve("src/main/java/ReadOnly.java")));
+	}
+
+	@Test void generatedJavaAcceptsChangesOnlyInsideUserCodeBlocks() throws Exception {
+		String path = "src/main/java/example/ExampleMod.java";
+		String generated = """
+				public class ExampleMod {
+					public void onInitialize() {
+						// Start of user code block mod init
+						// End of user code block mod init
+					}
+				}
+				""".replace("\n", "\r\n");
+		write(path, generated);
+		write("src/main/java/example/NoBlocks.java", "class NoBlocks {}");
+		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of(path, "generated",
+				"src/main/java/example/NoBlocks.java", "generated"), true);
+		JsonObject read = service.read(path);
+		assertFalse(read.get("editable").getAsBoolean(), "the file as a whole stays generator-owned");
+		assertEquals("[\"mod init\"]", read.getAsJsonArray("userCodeBlocks").toString());
+
+		String hooked = generated.replace("// Start of user code block mod init\r\n",
+				"// Start of user code block mod init\r\n\t\tmy.content.Content.register();\r\n");
+		WorkspaceSourceService.Edit edit = service.prepare(path, hooked, read.get("sha256").getAsString());
+		service.apply(edit, () -> { });
+		assertEquals(hooked, Files.readString(root.resolve(path)));
+
+		String sha = service.read(path).get("sha256").getAsString();
+		for (String outside : new String[]{hooked.replace("onInitialize", "onInit"), hooked.replace("\r\n", "\n"),
+				hooked.replace("// End of user code block mod init", "// End of user code block other"),
+				hooked + "// Start of user code block extra\r\n// End of user code block extra\r\n"})
+			assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> service.prepare(path, outside, sha)).code);
+		String noBlocksSha = service.read("src/main/java/example/NoBlocks.java").get("sha256").getAsString();
+		assertFalse(service.read("src/main/java/example/NoBlocks.java").has("userCodeBlocks"));
+		assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+				() -> service.prepare("src/main/java/example/NoBlocks.java", "class NoBlocks {}", noBlocksSha)).code);
+		WorkspaceSourceService readOnly = new WorkspaceSourceService(root, Map.of(path, "generated"), false);
+		assertEquals("WORKSPACE_SOURCE_READ_ONLY", assertThrows(WorkspaceSourceService.SourceFailure.class,
+				() -> readOnly.prepare(path, hooked.replace("register()", "register(); "), sha)).code);
+		assertEquals(hooked, Files.readString(root.resolve(path)));
+	}
+
+	@Test void failedCreationRemovesOnlyItsOwnFileAndDirectoriesAndRacesBecomeConflicts() throws Exception {
+		write("src/main/java/Keep.java", "keep");
+		WorkspaceSourceService service = new WorkspaceSourceService(root, Map.of(), true);
+		String path = "src/main/java/example/deep/Created.java";
+		WorkspaceSourceService.Edit edit = service.prepareCreate(path, "created");
+		assertThrows(IOException.class, () -> service.apply(edit, () -> { throw new IOException("disk metadata failed"); }));
+		assertFalse(Files.exists(root.resolve("src/main/java/example")), "directories created for the failed file are removed");
+		assertTrue(Files.exists(root.resolve("src/main/java/Keep.java")));
+
+		assertThrows(IOException.class, () -> service.apply(edit, () -> {
+			Files.writeString(root.resolve(path), "external"); throw new IOException("disk metadata failed");
+		}));
+		assertEquals("external", Files.readString(root.resolve(path)), "rollback must not delete concurrent content");
+
+		String raced = "src/main/java/Raced.java";
+		WorkspaceSourceService.Edit stale = service.prepareCreate(raced, "mine");
+		write(raced, "theirs");
+		assertEquals("WORKSPACE_SOURCE_CONFLICT", assertThrows(WorkspaceSourceService.SourceFailure.class,
+				() -> service.apply(stale, () -> fail("stale creation committed"))).code);
+		assertEquals("theirs", Files.readString(root.resolve(raced)));
+	}
+
+	@Test void creationCannotFollowALinkedParentDirectory() throws Exception {
+		Path outside = Files.createTempDirectory(root.getParent(), "source-outside-dir-");
+		try {
+			Files.createDirectories(root.resolve("src/main/java"));
+			try { Files.createSymbolicLink(root.resolve("src/main/java/linked"), outside); }
+			catch (IOException | UnsupportedOperationException exception) { assumeTrue(false, "Host cannot create symlinks: " + exception.getMessage()); }
+			assertEquals("WORKSPACE_SOURCE_PATH_INVALID", assertThrows(WorkspaceSourceService.SourceFailure.class,
+					() -> new WorkspaceSourceService(root, Map.of(), true).prepareCreate("src/main/java/linked/Escape.java", "x")).code);
+			assertFalse(Files.exists(outside.resolve("Escape.java")));
+		} finally { Files.deleteIfExists(outside); }
+	}
+
 	@Test void discoveryUsesJavaSyntaxAndManifestEvidenceWithStableIds() throws Exception {
 		write("src/main/java/example/Entry.java", """
 				package example;

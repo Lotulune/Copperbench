@@ -50,6 +50,38 @@ class WorkspaceSourceApplicationTest {
 		}
 	}
 
+	@Test void createNewAddsAHandWrittenFileUnderHistoryAndRestoreRemovesIt() throws Exception {
+		try (Fixture fixture = fixture(false)) {
+			String created = "src/main/java/example/item/EmberWandItem.java";
+			CommandOutcome outcome = create(fixture.service, created, "class EmberWandItem {}", 0);
+			assertEquals("committed", outcome.result().status(), outcome.result().diagnostics().toString());
+			assertEquals(1, outcome.result().newRevision());
+			assertTrue(outcome.result().data().getAsJsonObject().get("changed").getAsBoolean());
+			assertEquals("/" + created, outcome.events().getFirst().payload().getAsJsonArray("changedPaths").get(0).getAsString());
+			assertEquals("class EmberWandItem {}", Files.readString(root.resolve(created)));
+			assertEquals(1, fixture.history.listRecoveryPoints().size());
+			assertTrue(fixture.history.listRecoveryPoints().getFirst().label().startsWith("Before source creation: "));
+
+			CommandOutcome again = create(fixture.service, created, "class Other {}", 1);
+			assertEquals("WORKSPACE_SOURCE_CONFLICT", again.result().diagnostics().getFirst().code());
+			assertEquals("class EmberWandItem {}", Files.readString(root.resolve(created)));
+
+			JsonObject both = createPayload(created, "x"); both.addProperty("expectedSha256", "a".repeat(64));
+			assertEquals("WORKSPACE_SOURCE_REQUEST_INVALID", fixture.service.execute(Command.of(UUID.randomUUID(), ID, 1,
+					Operation.UPDATE_WORKSPACE_FILE, both), CONTEXT).result().diagnostics().getFirst().code());
+			JsonObject neither = createPayload("src/main/java/example/Neither.java", "x"); neither.remove("createNew");
+			assertEquals("WORKSPACE_SOURCE_REQUEST_INVALID", fixture.service.execute(Command.of(UUID.randomUUID(), ID, 1,
+					Operation.UPDATE_WORKSPACE_FILE, neither), CONTEXT).result().diagnostics().getFirst().code());
+			CommandOutcome readOnly = fixture.service.execute(Command.of(UUID.randomUUID(), ID, 1, Operation.UPDATE_WORKSPACE_FILE,
+					createPayload("src/main/java/example/ReadOnly.java", "x")), new RequestContext(Actor.UI, PermissionProfile.READ_ONLY));
+			assertEquals("rejected", readOnly.result().status());
+			assertFalse(Files.exists(root.resolve("src/main/java/example/ReadOnly.java")));
+
+			fixture.history.restore(outcome.result().recoveryPointId());
+			assertFalse(Files.exists(root.resolve(created)), "the recovery point taken before creation does not contain the file");
+		}
+	}
+
 	@Test void externalHashAndRevisionConflictsPreserveDiskAndDoNotCreateHistory() throws Exception {
 		try (Fixture fixture = fixture(false)) {
 			JsonObject original = read(fixture.service);
@@ -145,6 +177,14 @@ class WorkspaceSourceApplicationTest {
 		JsonObject payload = new JsonObject(); payload.addProperty("relativePath", FILE); payload.addProperty("content", text);
 		payload.addProperty("expectedSha256", sha); payload.addProperty("clientMutationId", UUID.randomUUID().toString());
 		return service.execute(Command.of(UUID.randomUUID(), ID, revision, Operation.UPDATE_WORKSPACE_FILE, payload), CONTEXT);
+	}
+	private static JsonObject createPayload(String path, String text) {
+		JsonObject payload = new JsonObject(); payload.addProperty("relativePath", path); payload.addProperty("content", text);
+		payload.addProperty("createNew", true); payload.addProperty("clientMutationId", UUID.randomUUID().toString());
+		return payload;
+	}
+	private CommandOutcome create(WorkspaceApplicationService service, String path, String text, long revision) {
+		return service.execute(Command.of(UUID.randomUUID(), ID, revision, Operation.UPDATE_WORKSPACE_FILE, createPayload(path, text)), CONTEXT);
 	}
 	private record Fixture(WorkspaceApplicationService service, RevisionedWorkspaceStore store, JGitLocalHistoryService history,
 			AtomicLong durableRevision) implements AutoCloseable {

@@ -117,6 +117,11 @@ public final class ElementFieldContract {
                 if (name.equals("maxStackSize")) { descriptor.addProperty("aliasOf", "/stackSize"); descriptor.addProperty("default", 64); }
                 else if (name.equals("displayName")) descriptor.addProperty("defaultFrom", "readable_payload_name");
                 else descriptor.addProperty("default", "");
+                // Observed 2026-11-16: the MCreator definition has no such field, so the value was stored but never generated.
+                if (name.equals("textureBase64")) descriptor.addProperty("guidance",
+                        "Stored as product metadata only; a workspace opened from a .mcreator file does not generate it. "
+                                + "Import the PNG with import_asset to src/main/resources/assets/<modid>/textures/item/<name>.png "
+                                + "and set texture to <name>.");
                 fields.add(descriptor);
             }
             result.add("fields", fields);

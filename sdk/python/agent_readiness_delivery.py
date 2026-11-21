@@ -1,8 +1,10 @@
 """M1 product delivery gate; execute only via runAgentReadinessDelivery.
 
-The fixed fixture uses production Native/Core, real Gradle and an independent
-packaged-JAR host. Negative recovered-record injections are explicitly labelled.
-No authority is issued and no Minecraft EULA is accepted.
+The Agent's default route: hand-written Java, JSON and assets saved through
+Core, a hook in the generated main class's user code block, real Gradle, and an
+independent packaged-JAR GameTest host. Structured elements are not used.
+Negative recovered-record injections are explicitly labelled. No authority is
+issued and no Minecraft EULA is accepted.
 """
 from __future__ import annotations
 
@@ -18,17 +20,29 @@ import time
 import traceback
 import uuid
 import xml.etree.ElementTree as ET
-from copperbench_native import Workspace
+import zipfile
+from copperbench_native import NativeApiError, Workspace
 
 config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 root = Path(config["workspace"]).parent
 evidence = Path(config["evidence"])
 fixture = Path(config["fixture"])
-record = {"schemaVersion": "1.0", "status": "running", "layers": ["real_headless", "packaged_server"],
+record = {"schemaVersion": "1.0", "status": "running", "route": "native_code",
+          "layers": ["real_headless", "packaged_server"],
           "fixtureHashes": config["fixtureHashes"], "generatorVersion": config["generatorVersion"],
           "os": config["os"], "javaVersion": config["javaVersion"], "pythonVersion": platform.python_version(),
-          "cachePolicy": config["cachePolicy"], "tasks": [], "negativeGates": [], "sessions": []}
+          "cachePolicy": config["cachePolicy"], "tasks": [], "negativeGates": [], "sessions": [], "writes": []}
 started = time.monotonic()
+
+CONTENT = "src/main/java/m1delivery/content/DeliveryContent.java"
+RECIPE = "src/main/resources/data/m1_delivery/recipe/discovery_recipe.json"
+MODEL = "src/main/resources/assets/m1_delivery/models/item/discovery_item.json"
+TEXTURE = "src/main/resources/assets/m1_delivery/textures/item/discovery_item.png"
+TESTS = "src/gametest/java/copperbench/acceptance/ContractGameTests.java"
+TEST_CONFIG = "copperbench-tests.json"
+HOOK = "m1delivery.content.DeliveryContent.register();"
+HOOK_BLOCK = "mod init"
+CORRECT_BODY = "return (count + 15) / 16;"
 
 
 def save(name, value):
@@ -102,14 +116,54 @@ def terminal(workspace, label, accepted, expected="succeeded", code=None):
     return result
 
 
-def update_code(workspace, element_id, code):
-    editor = workspace.query("get_mod_element_editor", elementId=element_id)["data"]
-    fields = {f["path"]: f.get("value") for s in editor["sections"] for f in s.get("fields", [])}
-    fingerprints = [{"path": path, "value": value} for path, value in fields.items()
-                    if path.startswith("/sourceFingerprints/")]
-    assert any(change["path"] == "/sourceFingerprints/$primary" for change in fingerprints), fields.keys()
-    return workspace.update_mod_element(elementId=element_id, changes=[
-        *fingerprints, {"path": "/code", "value": code}])
+def create_file(workspace, relative, content):
+    result = workspace.write_file(relative, content)
+    assert result["status"] == "committed" and result["data"]["changed"], result
+    record["writes"].append({"path": relative, "mode": "create", "sha256": result["data"]["sha256"],
+                             "recoveryPointId": result.get("recoveryPointId")})
+    return result
+
+
+def edit_file(workspace, relative, change):
+    """Read, transform and save through Core with the read's hash; never writes behind Core."""
+    current = workspace.read_file(relative)["data"]
+    updated = change(current["content"])
+    assert updated != current["content"], f"{relative}: edit made no change"
+    result = workspace.write_file(relative, updated, expected_sha256=current["sha256"])
+    assert result["status"] == "committed", result
+    record["writes"].append({"path": relative, "mode": "replace", "sha256": result["data"]["sha256"],
+                             "recoveryPointId": result.get("recoveryPointId")})
+    return result
+
+
+def expect_rejected(label, code, action):
+    try:
+        action()
+    except NativeApiError as error:
+        assert error.code == code, f"{label}: {error.code} {error}"
+        record["negativeGates"].append({"label": label, "code": code, "passed": True})
+        save(label + ".json", {"code": error.code, "message": str(error), "details": error.details})
+        return
+    raise AssertionError(f"{label}: Core accepted a write it must reject")
+
+
+def add_hook(text):
+    newline = "\r\n" if "\r\n" in text else "\n"
+    marker = text.index("// Start of user code block " + HOOK_BLOCK)
+    indent = text[text.rfind("\n", 0, marker) + 1:marker]
+    insert_at = text.index("\n", marker) + 1
+    return text[:insert_at] + indent + HOOK + newline + text[insert_at:]
+
+
+def find_main_class(workspace):
+    listed = workspace.query("list_workspace_files", search="Mod.java", limit=200)["data"]["files"]
+    for entry in listed:
+        if entry["ownership"] != "generated" or not entry["relativePath"].startswith("src/main/java/"):
+            continue
+        read = workspace.read_file(entry["relativePath"])["data"]
+        if HOOK_BLOCK in read.get("userCodeBlocks", []):
+            return read
+    raise AssertionError(f"No generated main class with a '{HOOK_BLOCK}' user code block: {listed}")
 
 
 def reject_export(workspace, label, task_id, code, historical=False):
@@ -154,21 +208,40 @@ def export_current(workspace, label, acceptance):
     return receipt
 
 
+def check_packaged_content(jar):
+    """The hand-written files and the imported texture are the bytes that ship in the accepted JAR."""
+    with zipfile.ZipFile(jar) as archive:
+        names = set(archive.namelist())
+        expected = {
+            "m1delivery/content/DeliveryContent.class": None,
+            "assets/m1_delivery/textures/item/discovery_item.png": (fixture / "discovery_item.png").read_bytes(),
+            "assets/m1_delivery/models/item/discovery_item.json": None,
+            "data/m1_delivery/recipe/discovery_recipe.json": None,
+        }
+        for name, content in expected.items():
+            assert name in names, f"{name} is missing from the accepted JAR"
+            if content is not None:
+                assert archive.read(name) == content, f"{name} differs from the imported source"
+        recipe = json.loads(archive.read("data/m1_delivery/recipe/discovery_recipe.json"))
+        assert recipe["result"]["id"] == "m1_delivery:discovery_item", recipe
+    return sorted(expected)
+
+
 try:
     record["productSource"] = source_identity()
-    correct_code = (fixture / "recovery_probe.java").read_text(encoding="utf-8")
-    assert correct_code.count("return (count + 15) / 16;") == 1
-    broken_code = correct_code.replace("return (count + 15) / 16;", "return missing_m1_symbol;")
+    content_source = (fixture / "DeliveryContent.java").read_text(encoding="utf-8")
+    assert content_source.count(CORRECT_BODY) == 1
     with open_workspace() as workspace:
+        # Discovery: environment, file ownership and the main class's hook, with no writes.
         before = discovery_baseline()
         save("discovery-files-before.json", before)
-        item = workspace.discover_field_contract("item")
-        recipe = workspace.discover_field_contract("recipe")
-        assert item["complete"] and recipe["complete"]
-        assert item == workspace.field_contract("item")
-        options = workspace.field_reference_options("recipe", "blocksitems", search="Items.STICK", limit=1)
-        assert options["data"]["options"][0]["value"] == "Items.STICK"
-        save("discovery.json", {"item": item, "recipe": recipe, "references": options})
+        environment = workspace.get_workspace_environment()["data"]
+        main_class = find_main_class(workspace)
+        build_script = workspace.read_file("build.gradle")["data"]["content"]
+        mappings = "official_mojang" if "officialMojangMappings" in build_script else "declared_in_build_gradle"
+        save("discovery.json", {"mainClass": {key: main_class[key] for key in
+                                              ("relativePath", "ownership", "editable", "userCodeBlocks")},
+                                "mappings": mappings, "generator": environment.get("generator")})
         after = inventory()
         save("discovery-files-after.json", after)
         changed_paths = sorted(path for path in before.keys() | after.keys()
@@ -176,24 +249,49 @@ try:
         save("discovery-file-changes.json", changed_paths)
         assert before == after, f"Discovery modified workspace paths: {changed_paths}"
         assert workspace.revision == 0
-        workspace.create_mod_element(**item["minimalExample"])
-        recipe_payload = copy.deepcopy(recipe["minimalExample"])
-        recipe_payload["initialValues"]["recipeReturnStack"] = "CUSTOM:discovery_item"
-        workspace.create_mod_element(**recipe_payload)
-        code = workspace.create_mod_element(elementType="code", name="recovery_probe", initialValues={"code": correct_code})
-        code_id = code["data"]["element"]["id"]
+        assert main_class["ownership"] == "generated" and not main_class["editable"], main_class
+
+        # Authoring: one recovery point, hand-written files, an imported texture and the main-class hook.
+        point = workspace.command("create_recovery_point", label="Before agent: M1 native delivery")
+        record["agentRecoveryPoint"] = point.get("recoveryPointId")
+        create_file(workspace, CONTENT, content_source)
+        create_file(workspace, RECIPE, (fixture / "discovery_recipe.json").read_text(encoding="utf-8"))
+        create_file(workspace, MODEL, (fixture / "discovery_item_model.json").read_text(encoding="utf-8"))
+        imported = workspace.import_asset(fixture / "discovery_item.png", TEXTURE)
+        assert imported["status"] == "committed", imported
+        save("asset-import.json", imported)
+        assert sha(root / TEXTURE) == sha(fixture / "discovery_item.png")
+        edit_file(workspace, main_class["relativePath"], add_hook)
+        expect_rejected("generated-outside-user-code", "WORKSPACE_SOURCE_READ_ONLY",
+                        lambda: edit_file(workspace, main_class["relativePath"],
+                                          lambda text: text.replace("LOGGER.info(", "LOGGER.debug(", 1)))
+        expect_rejected("create-over-existing-file", "WORKSPACE_SOURCE_CONFLICT",
+                        lambda: workspace.write_file(CONTENT, "class Replaced {}"))
+
+        # Tests: Core prepares the host configuration; the Agent adds its cases through Core.
+        terminal(workspace, "prepare-game-tests", workspace.prepare_game_tests())
+        create_file(workspace, TESTS, (fixture / "ContractGameTests.java").read_text(encoding="utf-8"))
+
+        def configure_tests(text):
+            configured = json.loads(text)
+            configured["entrypoints"] = ["copperbench.acceptance.ContractGameTests"]
+            configured["minimumTests"] = 5
+            return json.dumps(configured, indent=2) + "\n"
+        edit_file(workspace, TEST_CONFIG, configure_tests)
+
         preflight = workspace.preview_generation()
         save("preflight.json", preflight)
-        assert preflight["data"]["status"] == "ready", preflight
+        assert preflight["data"]["status"] == "ready", "A user-code edit must not conflict with generation: " + str(preflight)
         record["environment"] = workspace.query("get_workspace_environment")["data"]
+
         terminal(workspace, "initial-build", workspace.build())
-        update_code(workspace, code_id, broken_code)
+        edit_file(workspace, CONTENT, lambda text: text.replace(CORRECT_BODY, "return missing_m1_symbol;"))
         failed = terminal(workspace, "controlled-compile-failure", workspace.build(), "failed")
         diagnostics = failed["data"]["diagnostics"]
-        assert any(d["code"] == "JAVA_COMPILE_ERROR" and "recovery_probe.java" in str(d) and "Line " in str(d)
+        assert any(d["code"] == "JAVA_COMPILE_ERROR" and "DeliveryContent.java" in str(d) and "Line " in str(d)
                    for d in diagnostics), diagnostics
         assert "missing_m1_symbol" in json.dumps(failed, ensure_ascii=False)
-        update_code(workspace, code_id, correct_code)
+        edit_file(workspace, CONTENT, lambda text: text.replace("return missing_m1_symbol;", CORRECT_BODY))
         terminal(workspace, "repaired-build", workspace.build())
         accepted = terminal(workspace, "packaged-acceptance", workspace.run_game_tests())["data"]["task"]
         verify = accepted["verification"]
@@ -201,6 +299,7 @@ try:
         assert verify["acceptanceExecuted"] == 5 and verify["failed"] == 0 and verify["skipped"] == 0, verify
         assert verify["sourceCurrentAtCompletion"] is True
         assert len(verify["cases"]) == 5
+        record["packagedContent"] = check_packaged_content(verify["artifactPath"])
         first_export = export_current(workspace, "verified-export", accepted)
         for name, path in [("accepted-mod.jar", verify["artifactPath"]), ("accepted-report.xml", verify["reportPath"])]:
             shutil.copy2(path, evidence / name)
@@ -214,24 +313,28 @@ try:
         recovered = workspace.get_task(accepted["id"])["data"]["task"]
         assert recovered["restoredFromHistory"] is True
         assert recovered["verification"] == accepted["verification"]
-        assert {"discovery_item", "discovery_recipe", "recovery_probe"} <= {e["name"] for e in workspace.list_mod_elements()}
+        assert workspace.read_file(CONTENT)["data"]["ownership"] == "manual"
+        assert HOOK in workspace.read_file(main_class["relativePath"])["data"]["content"]
+        assert not list(workspace.list_mod_elements()), "The native route creates no structured elements"
         export_current(workspace, "reopened-verified-export", recovered)
         save("reconnect.json", {"oldPid": old_process.pid, "oldExitCode": old_process.returncode,
                                 "newPid": workspace._process.pid, "revision": workspace.revision,
                                 "restoredTaskId": recovered["id"], "sourceSha256": verify["sourceSnapshot"]["sha256"]})
 
         # Real packaged-server insufficient-count failure: five business cases with a six-case minimum.
-        tests_file = root / "copperbench-tests.json"
-        original_config = tests_file.read_bytes()
-        configured = json.loads(original_config)
-        configured["minimumTests"] = 6
-        tests_file.write_text(json.dumps(configured), encoding="utf-8")
+        def minimum(count):
+            def change(text):
+                configured = json.loads(text)
+                configured["minimumTests"] = count
+                return json.dumps(configured, indent=2) + "\n"
+            return change
+        edit_file(workspace, TEST_CONFIG, minimum(6))
         try:
             insufficient = terminal(workspace, "insufficient-tests", workspace.run_game_tests(), "failed", "GAMETEST_NO_TESTS")
             assert insufficient["data"]["task"]["verification"]["acceptanceExecuted"] == 5
             reject_export(workspace, "insufficient-export", insufficient["data"]["task"]["id"], "VERIFIED_ARTIFACT_UNAVAILABLE")
         finally:
-            tests_file.write_bytes(original_config)
+            edit_file(workspace, TEST_CONFIG, minimum(5))
 
         # Tamper only the isolated evidence files, restore exact bytes and retain copies for inspection.
         for key, label in [("artifactPath", "jar-tamper"), ("reportPath", "report-tamper")]:
@@ -266,14 +369,15 @@ try:
                      "cases": [copy.deepcopy(duplicate_case) for _ in range(6)]})
         reject_export(workspace, "duplicate-current-export", duplicate_id, "VERIFIED_ACCEPTANCE_INVALID")
 
-        update_code(workspace, code_id, correct_code + "\n// Changed input after acceptance.\n")
+        changed_marker = "\n// Changed input after acceptance.\n"
+        edit_file(workspace, CONTENT, lambda text: text + changed_marker)
         reject_export(workspace, "duplicate-historical-export", duplicate_id, "VERIFIED_ACCEPTANCE_INVALID", historical=True)
         reject_export(workspace, "source-changed", accepted["id"], "VERIFICATION_INPUT_CHANGED")
         historical = terminal(workspace, "explicit-historical-export",
                               workspace.export_verified_artifact(accepted["id"], allow_historical=True))
         assert historical["data"]["task"]["verifiedExport"]["status"] == "passed_historical_input"
         reject_export(workspace, "historical-is-not-current", accepted["id"], "VERIFICATION_INPUT_CHANGED")
-        update_code(workspace, code_id, correct_code)
+        edit_file(workspace, CONTENT, lambda text: text.replace(changed_marker, "", 1))
         # A new acceptance binds the final current revision after all controlled source mutations.
         final_task = terminal(workspace, "final-current-acceptance", workspace.run_game_tests())["data"]["task"]
         final_export = export_current(workspace, "final-current-export", final_task)

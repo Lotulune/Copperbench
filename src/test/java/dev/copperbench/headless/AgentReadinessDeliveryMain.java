@@ -16,7 +16,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-/** Opt-in real product delivery gate. No simulated task gateway, authority issuance or EULA acceptance. */
+/**
+ * Opt-in real product delivery gate for the Agent's default native-code route. No simulated task gateway,
+ * authority issuance or EULA acceptance.
+ */
 public final class AgentReadinessDeliveryMain {
     public static void main(String[] args) throws Exception {
         McreatorTestRuntime.ensureInitialized();
@@ -49,12 +52,11 @@ public final class AgentReadinessDeliveryMain {
         } finally {
             PreferencesManager.PREFERENCES.backups.enableLocalHistory.set(localHistoryEnabled);
         }
-        Path fixture = repository.resolve("examples/agent-readiness/m1-delivery");
-        Files.copy(fixture.resolve("copperbench-tests.json"), root.resolve("copperbench-tests.json"));
-        Path tests = root.resolve("src/gametest/java/copperbench/acceptance/ContractGameTests.java");
-        Files.createDirectories(tests.getParent()); Files.copy(fixture.resolve("ContractGameTests.java"), tests);
+        // Native route: the delivery script writes every source, test and asset through Core; nothing is pre-copied.
+        Path fixture = repository.resolve("examples/agent-readiness/m1-native");
         JsonObject identity = new JsonObject();
-        for (String name : java.util.List.of("recovery_probe.java", "ContractGameTests.java", "copperbench-tests.json"))
+        for (String name : java.util.List.of("DeliveryContent.java", "discovery_recipe.json", "discovery_item_model.json",
+                "discovery_item.png", "ContractGameTests.java"))
             identity.addProperty(name, WorkspaceExecutionSnapshot.sha256(fixture.resolve(name)));
         config.add("fixtureHashes", identity);
         config.addProperty("fixture", fixture.toString()); config.addProperty("workspace", file.toString());

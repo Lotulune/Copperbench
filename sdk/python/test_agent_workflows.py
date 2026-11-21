@@ -119,6 +119,11 @@ class AgentWorkflowSdkTest(unittest.TestCase):
         second = {'data': {'fieldContracts': {'block': {'contractVersion': 2}}}}
         self.assertEqual(1, client.field_contract(environment=first)['contractVersion'])
         self.assertEqual(2, client.field_contract(environment=second)['contractVersion'])
+        summary = {'data': {'fieldContractDetail': 'summary', 'fieldContracts': {'item': {'fieldCount': 69}}}}
+        with self.assertRaises(NativeApiError) as summary_error:
+            client.field_contract('item', environment=summary)
+        self.assertEqual('NATIVE_FIELD_CONTRACT_SUMMARY', summary_error.exception.code)
+        client.get_workspace_environment.assert_not_called()
         with self.assertRaises(NativeApiError) as missing:
             client.field_contract('item', environment=first)
         self.assertEqual('NATIVE_FIELD_CONTRACT_UNAVAILABLE', missing.exception.code)

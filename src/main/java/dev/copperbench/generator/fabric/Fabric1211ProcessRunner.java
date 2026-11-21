@@ -71,16 +71,8 @@ import java.util.function.Supplier;
 			boolean windows = platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
 			boolean clientRun = isClientRun(arguments);
 
-			String configuredGradle = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
-			List<String> command = new ArrayList<>();
-			if (windows) {
-				command.add("cmd.exe");
-				command.add("/c");
-				command.add(configuredGradle == null || configuredGradle.isBlank() ? "gradlew.bat" : configuredGradle);
-			} else {
-				command.add(configuredGradle == null || configuredGradle.isBlank() ? "./gradlew" : configuredGradle);
-			}
-			command.add("--no-daemon");
+			List<String> command = wrapperCommand(windows, System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE"));
+			command.addAll(daemonArguments(arguments, dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(System.getenv())));
 			var preferences = net.mcreator.preferences.PreferencesManager.PREFERENCES;
 			if (preferences != null && preferences.gradle.offline.get()
 					&& !arguments.contains("--offline") && !arguments.contains("-o"))
@@ -235,6 +227,38 @@ import java.util.function.Supplier;
 			return serverReadyAt != null
 					&& Duration.between(serverReadyAt, now).compareTo(SERVER_STABILITY_WINDOW) >= 0;
 		}
+	}
+
+	/**
+	 * The workspace wrapper is addressed relative to the process directory. A bare {@code gradlew.bat} relies on
+	 * cmd's current-directory search, which {@code NoDefaultCurrentDirectoryInExePath} disables.
+	 */
+	static List<String> wrapperCommand(boolean windows, String configuredGradle) {
+		boolean configured = configuredGradle != null && !configuredGradle.isBlank();
+		List<String> command = new ArrayList<>();
+		if (windows) {
+			command.add("cmd.exe");
+			command.add("/c");
+			command.add(configured ? configuredGradle : ".\\gradlew.bat");
+		} else {
+			command.add(configured ? configuredGradle : "./gradlew");
+		}
+		return command;
+	}
+
+	/** A reused daemon exits after this much idle time; Gradle's own default keeps it for three hours. */
+	Duration DAEMON_IDLE_TIMEOUT = Duration.ofMinutes(10);
+
+	/**
+	 * Builds, GameTests, datagen and exports reuse a warm daemon. A single-use daemon repeats JVM start,
+	 * plugin loading and Loom configuration for every task: a one-line Fabric 1.21.1 edit built in about
+	 * 27 seconds that way and in about 8 seconds on a warm daemon. Client and server runs stay single-use so
+	 * the game remains a descendant of the wrapper process that a stop request terminates. A workspace's own
+	 * {@code org.gradle.daemon=false} still applies, because no {@code --daemon} flag is passed.
+	 */
+	static List<String> daemonArguments(List<String> arguments, boolean reuseDaemon) {
+		if (!reuseDaemon || isClientRun(arguments) || isServerRun(arguments)) return List.of("--no-daemon");
+		return List.of("-Dorg.gradle.daemon.idletimeout=" + DAEMON_IDLE_TIMEOUT.toMillis());
 	}
 
 	static boolean isClientRun(List<String> arguments) {

@@ -554,10 +554,17 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			plannedPaths.add(artifact.resolve(workspace.getWorkspaceFolder().toPath()));
 		FileSnapshot snapshot = FileSnapshot.capturePlan(workspace, before, after, workspaceId,
 				plannedPaths);
+		JsonObject priorRegistries = before.registries(), registries = after.registries();
 		try {
 			MCreatorGenerationPreparation.verifyPending(workspace);
-			if (!before.registries().equals(after.registries()))
-				MCreatorWorkspaceRegistryMapper.synchronize(workspace, after.registries());
+			if (!priorRegistries.equals(registries)) {
+				boolean retireTags = (operations.contains(Operation.RENAME_REGISTRY_ENTRY)
+						|| operations.contains(Operation.DELETE_REGISTRY_ENTRY) || operations.contains(Operation.UPDATE_REGISTRY_ENTRY))
+						&& !priorRegistries.get("tags").equals(registries.get("tags"));
+				Set<Path> oldTags = retireTags ? registryGeneratedFiles(false) : Set.of();
+				MCreatorWorkspaceRegistryMapper.synchronize(workspace, registries);
+				if (!oldTags.isEmpty()) reconcileRegistryFiles(snapshot, oldTags, registryGeneratedFiles(false));
+			}
 
 			Map<UUID, Element> beforeElements = new LinkedHashMap<>();
 			for (Element element : before.elements()) beforeElements.put(element.id(), element);
@@ -584,7 +591,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 					.map(Element::name).toList());
 
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
-			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), after.registries());
+			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), registries);
 		} catch (Exception exception) {
 			try {
 				snapshot.restore();
@@ -683,15 +690,30 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			throws Exception {
 		FileSnapshot snapshot = FileSnapshot.capturePlan(workspace, before, after, workspaceId,
 				plannedRollbackPaths(before, after));
+		JsonObject registries = after.registries();
+		boolean registriesChanged = !before.registries().equals(registries);
+		Set<Path> registryFiles = registriesChanged ? registryGeneratedFiles(true) : Set.of();
+		snapshot.include(workspace, registryFiles);
 		try {
-			MCreatorWorkspaceRegistryMapper.synchronize(workspace, after.registries());
+			if (registriesChanged) MCreatorWorkspaceRegistryMapper.synchronize(workspace, registries);
 			for (Element element : after.elements()) {
 				Element previous = before.element(element.id());
 				if (previous != null && !previous.values().equals(element.values()))
 					update(find(element.id()), previous, element);
 			}
+			if (registriesChanged) {
+				// Language, tag and variable files are generated from these registries, and a build of a prepared
+				// workspace does not regenerate them. Refresh them now, as an element plan does.
+				reconcileRegistryFiles(snapshot, registryFiles, registryGeneratedFiles(true));
+				try {
+					generateWorkspaceBaseIfReady();
+				} finally {
+					for (Path created : registryGeneratedFiles(true))
+						if (!registryFiles.contains(created)) snapshot.includeCreated(created);
+				}
+			}
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
-			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), after.registries());
+			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), registries);
 		} catch (Exception exception) {
 			try {
 				snapshot.restore();
@@ -828,6 +850,37 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				exception.addSuppressed(cleanup);
 			}
 			throw exception;
+		}
+	}
+
+	/** Generator-owned files rendered from workspace registries: existing language files and current tag files. */
+	private Set<Path> registryGeneratedFiles(boolean includeLanguage) throws IOException {
+		Set<Path> files = new LinkedHashSet<>();
+		if (workspace.getGenerator() == null || workspace.getGeneratorConfiguration() == null) return files;
+		Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		File languageRoot = includeLanguage ? workspace.getGenerator().getLangFilesRoot() : null;
+		if (languageRoot != null && languageRoot.isDirectory()) {
+			Path language = languageRoot.toPath().toAbsolutePath().normalize();
+			if (language.startsWith(root)) try (var listed = Files.list(language)) {
+				listed.filter(Files::isRegularFile).map(path -> path.toAbsolutePath().normalize()).forEach(files::add);
+			}
+		}
+		if (!workspace.getGeneratorConfiguration().getTagsSpecification().isEmpty())
+			for (var tag : workspace.getTagElements().keySet()) {
+				File file = net.mcreator.generator.TagsUtils.getTagFileFor(workspace, tag);
+				if (file != null && file.toPath().toAbsolutePath().normalize().startsWith(root))
+					files.add(file.toPath().toAbsolutePath().normalize());
+			}
+		return files;
+	}
+
+	/** Only paths formerly owned by the registry can disappear; hand-written neighbours are untouched. */
+	private void reconcileRegistryFiles(FileSnapshot snapshot, Set<Path> before, Set<Path> after) throws IOException {
+		Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		for (Path added : after) if (!before.contains(added)) FileSnapshot.capture(snapshot.files(), root, added);
+		for (Path retired : before) if (!after.contains(retired)) {
+			FileSnapshot.capture(snapshot.files(), root, retired);
+			Files.deleteIfExists(retired);
 		}
 	}
 
@@ -1666,7 +1719,19 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			Path normalized = candidate.toAbsolutePath().normalize();
 			if (!normalized.startsWith(root))
 				throw new IOException("Workspace mutation referenced a file outside the workspace: " + normalized);
-			files.putIfAbsent(normalized, Files.isRegularFile(normalized) ? Files.readAllBytes(normalized) : null);
+			if (!files.containsKey(normalized))
+				files.put(normalized, Files.isRegularFile(normalized) ? Files.readAllBytes(normalized) : null);
+		}
+
+		/** Adds files whose current bytes must come back on restore; files captured earlier keep their first state. */
+		private void include(Workspace workspace, Iterable<Path> paths) throws IOException {
+			Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+			for (Path path : paths) capture(files, root, path);
+		}
+
+		/** Records a file this transaction created, so restoring removes it. */
+		private void includeCreated(Path path) {
+			files.putIfAbsent(path.toAbsolutePath().normalize(), null);
 		}
 
 		private void restore() throws IOException {
