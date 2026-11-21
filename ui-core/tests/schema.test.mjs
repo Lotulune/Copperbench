@@ -960,3 +960,24 @@ test('environment summary is opt-in and language entries carry a key with per-lo
   assert.equal(command(entry('variables', { name: 'score', dataType: 'number', scope: 'global' })), true,
     'other registries keep their own entry shape');
 });
+
+test('data packs are a workspace kind and loader of their own, not an id-derived value', async () => {
+  const { ajv } = await createValidator();
+  const generator = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/newWorkspaceGenerator' });
+  const entry = { generatorId: 'datapack-1.21.1', loader: 'data_pack', minecraftVersion: '1.21.1', trackId: 'data_pack',
+    displayName: 'Data Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'datapack-1.21.1' };
+  assert.equal(generator(entry), true, JSON.stringify(generator.errors));
+  // The generator id prefix was once projected as the loader; the contract never allowed it.
+  assert.equal(generator({ ...entry, loader: 'datapack' }), false);
+  assert.equal(generator({ ...entry, trackId: 'datapack' }), false);
+
+  const summary = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/workspaceSummary' });
+  const scenario = JSON.parse(await readFile(new URL('../fixtures/v1.0/scenarios/ready.json', import.meta.url), 'utf8'));
+  const workspace = scenario.initialMessages.map(message => message.data?.workspace).find(Boolean);
+  assert.ok(workspace, 'ready scenario must carry a workspace summary');
+  assert.equal(summary(workspace), true, JSON.stringify(summary.errors));
+  const dataPack = { ...workspace, kind: 'data_pack',
+    generator: { ...workspace.generator, id: 'datapack-1.21.1', loader: 'data_pack', displayName: 'Data Pack 1.21.1' } };
+  assert.equal(summary(dataPack), true, JSON.stringify(summary.errors));
+  assert.equal(summary({ ...dataPack, kind: 'datapack' }), false);
+});

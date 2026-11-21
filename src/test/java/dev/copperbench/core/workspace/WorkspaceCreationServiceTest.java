@@ -81,7 +81,7 @@ class WorkspaceCreationServiceTest {
 
 	@Test void legacyCreationCatalogListsExecutableDisplayTargetsOnly() {
 		List<JsonObject> generators = service.listGenerators();
-		assertEquals(7, generators.size());
+		assertEquals(10, generators.size());
 		for (JsonObject generator : generators) {
 			assertNotNull(generator.get("generatorId").getAsString());
 			assertNotNull(generator.get("loader").getAsString());
@@ -100,10 +100,55 @@ class WorkspaceCreationServiceTest {
 		assertEquals("resource_pack", resourcePack.get("trackId").getAsString());
 	}
 
+	@Test void creationCatalogOffersEveryDataPackGeneratorTheTaskGatewayCanBuild() {
+		List<JsonObject> dataPacks = service.listGenerators().stream()
+				.filter(g -> "data_pack".equals(g.get("loader").getAsString())).toList();
+		assertEquals(WorkspaceCreationService.DATA_PACK_GENERATOR_IDS,
+				dataPacks.stream().map(g -> g.get("generatorId").getAsString()).toList());
+		// A data pack offered for creation must stay buildable: both lists name the same generators.
+		assertEquals(dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS,
+				java.util.Set.copyOf(WorkspaceCreationService.DATA_PACK_GENERATOR_IDS));
+		for (JsonObject dataPack : dataPacks) {
+			assertEquals("data_pack", dataPack.get("trackId").getAsString());
+			assertEquals(dataPack.get("generatorId").getAsString().substring("datapack-".length()),
+					dataPack.get("minecraftVersion").getAsString());
+			assertTrue(dataPack.get("available").getAsBoolean(), () -> "Not installed: " + dataPack);
+		}
+	}
+
+	@org.junit.jupiter.params.ParameterizedTest
+	@org.junit.jupiter.params.provider.ValueSource(strings = { "datapack-26.1.x", "datapack-1.21.1", "datapack-1.20.1" })
+	void createDataPackNeedsNoJavaPackageAndPersistsABuildableSkeleton(String generatorId) throws Exception {
+		Path suggestedRoot = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath()
+				.normalize();
+		Path workspaceFolder = suggestedRoot.resolve("copperbench-data-pack-" + UUID.randomUUID()).normalize();
+		try {
+			assertEquals(List.of(), service.validateCreation(generatorId, "Copper Data", "copper_data", null,
+					workspaceFolder.toString()));
+			WorkspaceCreationService.CreationResult result = service.create(generatorId, "Copper Data",
+					"copper_data", null, workspaceFolder.toString(), "1.0.0");
+
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
+			assertEquals(generatorId, result.generatorId());
+			Path workspaceFile = workspaceFolder.resolve("copper_data.mcreator");
+			assertTrue(Files.isRegularFile(workspaceFile));
+			assertTrue(Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta")));
+			assertTrue(Files.isRegularFile(workspaceFolder.resolve("build.gradle")));
+			JsonObject settings = JsonParser.parseString(Files.readString(workspaceFile)).getAsJsonObject()
+					.getAsJsonObject("workspaceSettings");
+			assertEquals(generatorId, settings.get("currentGenerator").getAsString());
+			assertEquals("copper_data", settings.get("modid").getAsString());
+			assertNotNull(JsonParser.parseString(Files.readString(workspaceFolder.resolve("src/main/pack.mcmeta")))
+					.getAsJsonObject().getAsJsonObject("pack"));
+		} finally {
+			deleteRecursively(workspaceFolder);
+		}
+	}
+
 	@Test void projectionExposesSuggestedWorkspaceFoldersRoot() {
 		JsonObject projection = service.toProjection();
 		assertEquals("1.0", projection.get("schemaVersion").getAsString());
-		assertEquals(7, projection.getAsJsonArray("generators").size());
+		assertEquals(10, projection.getAsJsonArray("generators").size());
 		assertTrue(projection.get("suggestedWorkspaceFoldersRoot").getAsString().contains("MCreatorWorkspaces"));
 	}
 

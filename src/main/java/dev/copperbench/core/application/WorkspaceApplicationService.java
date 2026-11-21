@@ -4889,7 +4889,7 @@ public final class WorkspaceApplicationService {
 		procedureNode(catalog, "mcitem_all", "context", "物品引用", "itemstack", true, null);
 		procedureNode(catalog, "call_procedure", "procedure", "调用 Procedure", "statement", true, null);
 		boolean javaGenerator = !state.generator().has("loader")
-				|| !state.generator().get("loader").getAsString().equals("resource_pack");
+				|| !List.of("resource_pack", "data_pack").contains(state.generator().get("loader").getAsString());
 		procedureNode(catalog, "return_number", "procedure", "返回数值", "statement", javaGenerator,
 				javaGenerator ? null : "PROCEDURE_RETURN_UNSUPPORTED");
 		return catalog;

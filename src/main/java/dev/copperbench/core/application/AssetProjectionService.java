@@ -81,7 +81,8 @@ final class AssetProjectionService {
 		collectWorkspaceTextSignals(state.generator(), textSignals);
 		collectWorkspaceTextSignals(state.upstreamDocument(), textSignals);
 		collectWorkspaceTextSignals(state.registries(), textSignals);
-		boolean workspaceUsageComplete = "mod".equals(state.kind()) && state.elements().stream()
+		// Data packs carry elements like mods do; only resource packs have no element-side usage to assess.
+		boolean workspaceUsageComplete = !"resource_pack".equals(state.kind()) && state.elements().stream()
 				.allMatch(element -> ElementCoverageCatalog.isFirstParty(element.type()) && !element.type().equals("code")
 						&& workspaceTextSignalsComplete(element.values()))
 				&& workspaceTextSignalsComplete(state.generator())

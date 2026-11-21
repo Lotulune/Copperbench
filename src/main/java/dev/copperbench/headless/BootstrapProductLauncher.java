@@ -122,7 +122,8 @@ public final class BootstrapProductLauncher {
 		String workspaceFolder = required(options, "--workspace-folder");
 		String packageName = options.get("--package-name");
 		if (packageName == null || packageName.isBlank())
-			packageName = "resourcepack-1.21.1".equals(generatorId) ? null
+			packageName = "resourcepack-1.21.1".equals(generatorId)
+					|| WorkspaceCreationService.isDataPackGenerator(generatorId) ? null
 					: "net.mcreator." + modId.replaceAll("[^a-z0-9_]", "");
 		String version = options.getOrDefault("--version", "1.0.0");
 		CreateRequest request = new CreateRequest(generatorId, modName, modId, packageName, workspaceFolder, version);

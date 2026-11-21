@@ -98,6 +98,23 @@ test.describe('New Workspace (product shell native flow)', () => {
     await expect(page.locator('[data-testid="new-workspace-package-input"]')).toHaveCount(0);
   });
 
+  test('data-pack options show their Minecraft version and need no Java package', async ({ page }) => {
+    await page.click('[data-testid="nav-new-workspace"]');
+    const track = page.getByTestId('generator-track-data_pack');
+    await expect(track.locator(':scope > div').first()).toHaveText('独立数据包');
+    // One row holds several versions, so each option must show its own.
+    for (const version of ['26.1.x', '1.21.1', '1.20.1']) {
+      const option = page.getByTestId(`generator-option-datapack-${version}`);
+      await expect(option).toContainText('数据包');
+      await expect(option.getByText(version)).toBeVisible();
+    }
+    await page.getByTestId('generator-option-datapack-1.21.1').click();
+    await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('datapack-1.21.1');
+    await expect(page.getByText('数据包名称')).toBeVisible();
+    await expect(page.getByText('数据包 ID（命名空间）')).toBeVisible();
+    await expect(page.getByTestId('new-workspace-package-input')).toHaveCount(0);
+  });
+
   test('mod id drives package autofill and the suggested folder path', async ({ page }) => {
     await page.click('[data-testid="nav-new-workspace"]');
     await page.fill('[data-testid="new-workspace-mod-id-input"]', 'copper_trails');

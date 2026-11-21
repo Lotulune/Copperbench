@@ -203,14 +203,18 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
     [generators, generatorId]
   );
   const isResourcePack = selectedGenerator?.loader === 'resource_pack';
+  const isDataPack = selectedGenerator?.loader === 'data_pack';
+  const isPack = isResourcePack || isDataPack;
 
   // 按 track 分组渲染（目录按 track 顺序返回）
   const groupedByTrack = useMemo(() => {
     return [...new Set(generators.map((generator) => generator.trackId))].filter(id => id !== 'advanced' || showAdvanced).map((id) => {
       const group = generators.filter((generator) => generator.trackId === id);
       const minecraftVersion = group[0]?.minecraftVersion;
+      // Data packs span several Minecraft versions in one row, so the version sits on each option instead.
       const label = id === 'resource_pack'
         ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
+        : id === 'data_pack' ? tr("独立数据包")
         : `Minecraft ${minecraftVersion}`;
       return { id, label: id === 'advanced' ? tr("历史精确版本") : label, generators: group };
     });
@@ -266,7 +270,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
         generatorId,
         modName: modName.trim(),
         modId: modId.trim(),
-        packageName: packageName.trim() || undefined,
+        packageName: isDataPack ? undefined : packageName.trim() || undefined,
         workspaceFolderPath: effectiveFolder,
         version: version.trim() || undefined,
         userApproved
@@ -347,7 +351,8 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
               : isPreview && !chosen ? uiText('先选择预览', 'Opt in to the preview')
                 : !previewCanCreate ? uiText('此预览目标暂不可创建', 'This preview target cannot be created yet')
                   : !userApproved ? uiText('勾选确认后创建', 'Tick the confirmation to create') : null;
-  const loaderName = (loader: string) => loader === 'resource_pack' ? tr("资源包") : loader === 'neoforge' ? 'NeoForge' : 'Fabric';
+  const loaderName = (loader: string) => loader === 'resource_pack' ? tr("资源包") : loader === 'data_pack' ? tr("数据包")
+    : loader === 'neoforge' ? 'NeoForge' : 'Fabric';
   const invalidClass = (field: WorkspaceFormField) => fieldError(field) ? 'is-invalid' : undefined;
 
   return (
@@ -511,7 +516,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
                       title={g.available ? g.workspaceGeneratorName : tr("生成器插件未安装或未加载")}
                     >
                       {/* The row already shows the version; exact historical targets differ within one row. */}
-                      <span>{loaderName(g.loader)}<span className={track.id === 'advanced' ? undefined : 'sr-only'}> {g.minecraftVersion}</span></span>
+                      <span>{loaderName(g.loader)}<span className={track.id === 'advanced' || track.id === 'data_pack' ? undefined : 'sr-only'}> {g.minecraftVersion}</span></span>
                       {!g.available ? <small>{uiText('未安装', 'Not installed')}</small>
                         : simpleMode && g.generatorId === FIRST_CREATION_GENERATOR && <small className="is-recommended">{uiText('推荐', 'Recommended')}</small>}
                     </button>
@@ -567,7 +572,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
           <h3>{simpleMode ? uiText('作品信息', 'Work details') : tr("工作区信息")}</h3>
 
           <label className="new-workspace-field">
-            {isResourcePack ? tr("资源包名称") : simpleMode ? uiText('名称', 'Name') : tr("模组名称")}
+            {isResourcePack ? tr("资源包名称") : isDataPack ? tr("数据包名称") : simpleMode ? uiText('名称', 'Name') : tr("模组名称")}
             <input
               id={FIELD_ELEMENT_ID.modName}
               type="text"
@@ -591,7 +596,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
           {simpleMode && <button type="button" className="new-workspace-advanced-toggle" aria-expanded={advancedOpen} aria-controls="new-workspace-advanced" onClick={() => setAdvancedOpen(value => !value)}>{uiText('更多设置', 'More settings')}<ChevronDown size={14} aria-hidden="true" /></button>}
           <div id="new-workspace-advanced" className="new-workspace-advanced" hidden={simpleMode && !advancedOpen}>
           <label className="new-workspace-field">
-            {isResourcePack ? tr("资源包 ID（命名空间）") : tr("模组 ID（modid）")}
+            {isResourcePack ? tr("资源包 ID（命名空间）") : isDataPack ? tr("数据包 ID（命名空间）") : tr("模组 ID（modid）")}
             <input
               id={FIELD_ELEMENT_ID.modId}
               type="text"
@@ -615,7 +620,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
             )}
           </label>
 
-          {!isResourcePack && (
+          {!isPack && (
             <label className="new-workspace-field">
               {tr("Java 包名")}<input
                 id={FIELD_ELEMENT_ID.packageName}

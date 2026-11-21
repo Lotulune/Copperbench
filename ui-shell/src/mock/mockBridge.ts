@@ -3066,7 +3066,10 @@ export class MockCoreBridge implements CoreBridge {
             { generatorId: 'neoforge-1.21.1', loader: 'neoforge', minecraftVersion: '1.21.1', trackId: 'minecraft_1_21_1', displayName: 'NeoForge 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.21.1' },
             { generatorId: 'fabric-1.20.1', loader: 'fabric', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'Fabric 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'fabric-1.20.1' },
             { generatorId: 'neoforge-1.20.1', loader: 'neoforge', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'NeoForge 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.20.1' },
-            { generatorId: 'resourcepack-1.21.1', loader: 'resource_pack', minecraftVersion: '1.21.1', trackId: 'resource_pack', displayName: 'Resource Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'resourcepack-1.21.1' }
+            { generatorId: 'resourcepack-1.21.1', loader: 'resource_pack', minecraftVersion: '1.21.1', trackId: 'resource_pack', displayName: 'Resource Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'resourcepack-1.21.1' },
+            { generatorId: 'datapack-26.1.x', loader: 'data_pack', minecraftVersion: '26.1.x', trackId: 'data_pack', displayName: 'Data Pack 26.1.x', dynamic: false, available: true, workspaceGeneratorName: 'datapack-26.1.x' },
+            { generatorId: 'datapack-1.21.1', loader: 'data_pack', minecraftVersion: '1.21.1', trackId: 'data_pack', displayName: 'Data Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'datapack-1.21.1' },
+            { generatorId: 'datapack-1.20.1', loader: 'data_pack', minecraftVersion: '1.20.1', trackId: 'data_pack', displayName: 'Data Pack 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'datapack-1.20.1' }
           ],
           suggestedWorkspaceFoldersRoot: 'C:\\Users\\example\\MCreatorWorkspaces'
         } satisfies NewWorkspaceGeneratorCatalog;

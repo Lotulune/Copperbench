@@ -50,4 +50,27 @@ class MCreatorWorkspaceStateMapperTest {
 			assertTrue(mapped.elements().isEmpty());
 		}
 	}
+
+	@org.junit.jupiter.params.ParameterizedTest
+	@org.junit.jupiter.params.provider.CsvSource({ "datapack-26.1.x,26.1.x", "datapack-1.21.1,1.21.1", "datapack-1.20.1,1.20.1" })
+	void mapsDataPackWorkspacesToTheirOwnKindInsteadOfAnIdDerivedLoader(String generatorId, String minecraftVersion)
+			throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("copper_data");
+		settings.setModName("Copper Data");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator(generatorId);
+		Path workspaceFile = root.resolve(generatorId).resolve("copper_data.mcreator");
+		java.nio.file.Files.createDirectories(workspaceFile.getParent());
+
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			WorkspaceState mapped = new MCreatorWorkspaceStateMapper().map(workspace,
+					new ProductMetadataManager.Metadata(1, UUID.fromString("66666666-6666-4666-8666-666666666666"), 0));
+			assertEquals("data_pack", mapped.kind());
+			assertEquals(generatorId, mapped.generator().get("id").getAsString());
+			// "datapack" (the id prefix) is not a member of the contract's loader enum.
+			assertEquals("data_pack", mapped.generator().get("loader").getAsString());
+			assertEquals(minecraftVersion, mapped.generator().get("minecraftVersion").getAsString());
+			assertEquals("Data Pack " + minecraftVersion, mapped.generator().get("displayName").getAsString());
+		}
+	}
 }

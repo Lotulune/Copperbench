@@ -522,7 +522,7 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			JsonObject generators = toolResult(generatorsResult);
 			assertEquals("succeeded", generators.get("status").getAsString());
-			assertEquals(7, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
+			assertEquals(10, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
 			assertTrue(generators.getAsJsonObject("data").getAsJsonArray("generators").toString()
 					.contains("resourcepack-1.21.1"));
 

@@ -111,7 +111,7 @@ export interface DiagnosticCounts {
 
 export interface GeneratorTarget {
   id: string;
-  loader: 'fabric' | 'neoforge' | 'resource_pack';
+  loader: 'fabric' | 'neoforge' | 'resource_pack' | 'data_pack';
   minecraftVersion: string;
   displayName: string;
   state: 'ready' | 'partial' | 'missing' | 'outdated' | 'incompatible';
@@ -125,7 +125,7 @@ export interface WorkspaceLock {
 export interface WorkspaceSummary {
   id: UUID;
   name: string;
-  kind: 'mod' | 'resource_pack';
+  kind: 'mod' | 'resource_pack' | 'data_pack';
   revision: Revision;
   dirty: boolean;
   generator: GeneratorTarget;
@@ -1179,8 +1179,9 @@ export type TrackId =
   | 'previous_stable'
   | 'minecraft_1_21_1'
   | 'minecraft_1_20_1'
-  | 'resource_pack';
-export type LoaderType = 'fabric' | 'neoforge' | 'resource_pack';
+  | 'resource_pack'
+  | 'data_pack';
+export type LoaderType = 'fabric' | 'neoforge' | 'resource_pack' | 'data_pack';
 
 export interface TrackLoader {
   loader: LoaderType;

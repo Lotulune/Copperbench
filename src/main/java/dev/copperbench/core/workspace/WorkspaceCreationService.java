@@ -49,6 +49,9 @@ import java.util.regex.Pattern;
 public final class WorkspaceCreationService {
 
 	public static final String RESOURCE_PACK_GENERATOR_ID = "resourcepack-1.21.1";
+	/** Standalone data-pack generators offered for creation, newest Minecraft version first. */
+	public static final List<String> DATA_PACK_GENERATOR_IDS = List.of("datapack-26.1.x", "datapack-1.21.1",
+			"datapack-1.20.1");
 	private static final Object GRADLE_SETUP_LOCK = new Object();
 
 	/** Result of a creation attempt; diagnostics are stable codes, never Java exception text. */
@@ -171,6 +174,7 @@ public final class WorkspaceCreationService {
 			}
 		}
 		addResourcePackGenerator(byId);
+		addDataPackGenerators(byId);
 		return List.copyOf(byId.values());
 	}
 
@@ -212,6 +216,8 @@ public final class WorkspaceCreationService {
 				GradleUtils.updateMCreatorBuildFile(workspace);
 				if (isResourcePackGenerator(generatorId))
 					setupResourcePackWorkspace(workspace, workspaceFolder);
+				else if (isDataPackGenerator(generatorId))
+					setupDataPackWorkspace(workspace, workspaceFolder);
 				else
 					setupJavaWorkspace(workspace, generatorId);
 			} catch (RuntimeException exception) {
@@ -259,7 +265,7 @@ public final class WorkspaceCreationService {
 			diagnostics.add("WORKSPACE_FOLDER_NOT_EMPTY");
 
 		VersionTrackCatalog.CapabilityDecision decision = catalog.decision(generatorId);
-		if (!isResourcePackGenerator(generatorId) && !decision.generatable()
+		if (!isPackGenerator(generatorId) && !decision.generatable()
 				&& !(selectedPreview && catalog.requiresPreview(generatorId) && catalog.findRegistration(generatorId)
 				.map(entry -> !(entry.profile() instanceof VersionTrackCatalog.PendingProfile)).orElse(false)))
 			diagnostics.add("UNSUPPORTED_GENERATOR");
@@ -346,6 +352,45 @@ public final class WorkspaceCreationService {
 		return RESOURCE_PACK_GENERATOR_ID.equals(generatorId);
 	}
 
+	/** Data packs are listed beside the version tracks: they have no loader, Java package or track status. */
+	private void addDataPackGenerators(Map<String, JsonObject> byId) {
+		for (String generatorId : DATA_PACK_GENERATOR_IDS) {
+			GeneratorConfiguration configuration = generatorConfiguration(generatorId);
+			String minecraftVersion = generatorId.substring(generatorId.indexOf('-') + 1);
+			JsonObject item = new JsonObject();
+			item.addProperty("generatorId", generatorId);
+			item.addProperty("loader", "data_pack");
+			item.addProperty("minecraftVersion", minecraftVersion);
+			item.addProperty("trackId", "data_pack");
+			item.addProperty("displayName", "Data Pack " + minecraftVersion);
+			item.addProperty("dynamic", false);
+			item.addProperty("available", configuration != null);
+			item.addProperty("workspaceGeneratorName",
+					configuration == null ? generatorId : configuration.getGeneratorName());
+			byId.put(generatorId, item);
+		}
+	}
+
+	/** @return whether the generator creates a standalone data pack instead of a Java mod */
+	public static boolean isDataPackGenerator(String generatorId) {
+		return DATA_PACK_GENERATOR_IDS.contains(generatorId);
+	}
+
+	/** Resource and data packs share the form rules that differ from Java mods: no package, no track decision. */
+	private static boolean isPackGenerator(String generatorId) {
+		return isResourcePackGenerator(generatorId) || isDataPackGenerator(generatorId);
+	}
+
+	private static void setupDataPackWorkspace(Workspace workspace, Path workspaceFolder) {
+		if (!workspace.getGenerator().generateBase())
+			throw new WorkspaceSkeletonSetupException();
+		WorkspaceGeneratorSetup.completeSetup(workspace.getGenerator());
+		workspace.getFileManager().saveWorkspaceDirectlyAndWait();
+		// The data-pack task gateway refuses to build without this file, so creation must not report success without it.
+		if (!Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta")))
+			throw new WorkspaceSkeletonSetupException();
+	}
+
 	private static void setupResourcePackWorkspace(Workspace workspace, Path workspaceFolder) {
 		if (!workspace.getGenerator().generateBase())
 			throw new WorkspaceSkeletonSetupException();
@@ -370,13 +415,13 @@ public final class WorkspaceCreationService {
 	private List<String> validate(String generatorId, String modName, String modId, String packageName,
 			String workspaceFolderPath) {
 		List<String> diagnostics = new ArrayList<>();
-		if (!isResourcePackGenerator(generatorId) && !catalog.firstPartyGenerator(generatorId))
+		if (!isPackGenerator(generatorId) && !catalog.firstPartyGenerator(generatorId))
 			diagnostics.add("UNSUPPORTED_GENERATOR");
 		if (!MOD_NAME.matcher(modName).matches())
 			diagnostics.add("MOD_NAME_INVALID");
 		if (!MOD_ID.matcher(modId).matches())
 			diagnostics.add("MOD_ID_INVALID");
-		if (!isResourcePackGenerator(generatorId) && (packageName == null || !PACKAGE_NAME.matcher(packageName).matches()))
+		if (!isPackGenerator(generatorId) && (packageName == null || !PACKAGE_NAME.matcher(packageName).matches()))
 			diagnostics.add("PACKAGE_NAME_INVALID");
 		if (workspaceFolderPath == null || workspaceFolderPath.isBlank())
 			diagnostics.add("WORKSPACE_FOLDER_REQUIRED");

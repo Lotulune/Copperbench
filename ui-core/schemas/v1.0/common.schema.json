@@ -272,7 +272,8 @@
           "enum": [
             "fabric",
             "neoforge",
-            "resource_pack"
+            "resource_pack",
+            "data_pack"
           ]
         },
         "minecraftVersion": {
@@ -317,7 +318,8 @@
           "enum": [
             "fabric",
             "neoforge",
-            "resource_pack"
+            "resource_pack",
+            "data_pack"
           ]
         },
         "minecraftVersion": {
@@ -331,7 +333,8 @@
             "previous_stable",
             "minecraft_1_21_1",
             "minecraft_1_20_1",
-            "resource_pack"
+            "resource_pack",
+            "data_pack"
           ]
         },
         "displayName": {
@@ -424,7 +427,8 @@
           "type": "string",
           "enum": [
             "mod",
-            "resource_pack"
+            "resource_pack",
+            "data_pack"
           ]
         },
         "revision": {
