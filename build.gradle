@@ -472,6 +472,16 @@ tasks.register('runAgentReadinessDelivery', JavaExec.class) {
     args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
 }
 
+tasks.register('runDataPackLoadDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Creates and builds a datapack-1.21.1 workspace through Core, then loads the ZIP in the Fabric 1.21.1 GameTest host.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.DataPackLoadDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
+}
+
 tasks.register('runPreviewNegotiationDelivery', JavaExec.class) {
     group = 'verification'
     description = 'Checks preview discovery, scoped choice and fail-closed creation through real Native SDK processes.'
