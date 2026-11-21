@@ -121,6 +121,11 @@ class WorkspaceSourceServiceTest {
 		WorkspaceSourceService.Edit empty = service.prepareCreate("src/main/resources/data/example/tags/item/empty.json", "");
 		service.apply(empty, () -> { });
 		assertEquals(0, Files.size(root.resolve("src/main/resources/data/example/tags/item/empty.json")));
+		// Functions are text in both layouts: mod resources and a standalone data pack's src/main/data.
+		for (String function : new String[]{"src/main/resources/data/example/function/mark.mcfunction", "src/main/data/example/function/mark.mcfunction"}) {
+			service.apply(service.prepareCreate(function, "setblock ~ ~ ~ minecraft:gold_block\n"), () -> { });
+			assertEquals("manual", service.read(function).get("ownership").getAsString(), function);
+		}
 		service.apply(service.prepareCreate("copperbench-tests.json", "{\"schemaVersion\":\"1.0\"}"), () -> { });
 		assertEquals("manual", service.read("copperbench-tests.json").get("ownership").getAsString(),
 				"the GameTest configuration is hand-maintained alongside src/gametest");
