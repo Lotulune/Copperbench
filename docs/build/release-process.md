@@ -1,6 +1,28 @@
-# Windows 发布流程
+# 发布流程
 
 Copperbench 发布未签名的 Windows 11 x64 安装包。稳定版使用 `vX.Y.Z`，预发布使用 `-preview.N` 或 `-beta.N`；Linux 由独立的 exact-binary 工作流发布。macOS、商店发布和 Authenticode 不在当前范围。
+
+## 哪些改动走发布流程
+
+依据 [ADR-0019](../adr/0019-agent-harness-and-asset-workbench.md) 决定 6，按改动是否改变已发布产物分级。合入 `main` 本身不改变任何已发布产物；只有发布某个 Tag 才会产生新的安装包与公开说明。
+
+| 改动 | 流程 | 不需要 |
+| --- | --- | --- |
+| 源码、测试、文档、CI 与工具改动 | 普通 PR：`main` 的必需检查通过，并按[贡献指南](../../CONTRIBUTING.md)的验证表补充对应层的检查 | 发布授权（签名 Tag、`production` 审批、`release-control/` 授权）、版本号变更、`product-status.json` 的发布与门禁字段、新增 `evidence/` 文件 |
+| 发布准备：版本号、发布说明、`product-status.json` 的发布与门禁字段 | 发布准备 PR；门禁提升仍须绑定到提交的证据 | — |
+| 发布：签名 Tag、Windows 工作流、Linux 授权与提升 | 本文其余各节，要求不变 | — |
+| 发布后同步：下载页、README、指南 | 文档 PR | 发布授权 |
+
+## 发布节奏
+
+按需发布：有值得交付的用户可见变化、修复或安全更新时准备发布，不按固定周期。发布前提、签名、`production` 审批和验收要求不因发布频率而放宽。
+
+## 入库证据
+
+- `evidence/` 只收发布绑定需要的文件，即 `product-status.json` 门禁、`release-control/` 授权、发布说明和验收报告按路径或哈希引用的结果。
+- 其他验证记录，例如截图、日志、调试运行、对照实验和 Agent 交接稿，留在 Git 忽略的 `output/`。PR 说明写清验证了什么、结果、限制和本地记录的位置；游戏内验收的本地记录格式见 [AGENTS.md](../../AGENTS.md#minecraft-runtime-validation)。
+- 测试代码、夹具和可重跑的验证脚本照常入库：它们是源码，不是证据。
+- 已入库的证据保持原路径与字节，不因本规则移动或删除。
 
 ## 发布前提
 

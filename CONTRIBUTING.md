@@ -83,7 +83,7 @@ For ordinary UI code changes covered by smoke-only routing, run the affected Pla
 
 Update the existing user, development or API guide for the affected topic, including its paired translation where present. Use the [documentation index](docs/README.md) for navigation and keep published versions in [current downloads](docs/releases/current.md).
 
-Keep one-off plans, agent handoffs and debugging logs in ignored `output/`. Commit durable guidance and required release evidence; summarize implementation work in the pull request. Historical plans and reports remain accessible through the [fixed Git snapshot](docs/maintenance/repository-maintenance.md#history). Preserve paths and bytes for hash-bound release evidence.
+Keep one-off plans, agent handoffs, debugging logs and ordinary validation records in ignored `output/`. Commit durable guidance, and add to `evidence/` only what a release binding needs ([release process](docs/build/release-process.md#入库证据)); summarize implementation work and verification in the pull request. Changes that do not alter a published artifact need no release authorization. Historical plans and reports remain accessible through the [fixed Git snapshot](docs/maintenance/repository-maintenance.md#history). Preserve paths and bytes for hash-bound release evidence.
 
 ## Upstream and release records
 
