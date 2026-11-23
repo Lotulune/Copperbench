@@ -29,6 +29,15 @@ public interface GradleWorkspaceBackend {
 
 	List<ValidationIssue> validate(WorkspaceState workspace);
 
+	/**
+	 * Checks the content on disk: after generation for builds and exports, as it stands for validation tasks. Issues
+	 * fail the task like {@link #validate}. Backends without content rules accept everything.
+	 */
+	default List<ValidationIssue> validateContent(Path targetRoot, WorkspaceState workspace,
+			java.util.function.Consumer<String> log) throws java.io.IOException {
+		return List.of();
+	}
+
 	GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws Exception;
 
 	/** Pinned loader coordinates used to create an independent acceptance-test host. */

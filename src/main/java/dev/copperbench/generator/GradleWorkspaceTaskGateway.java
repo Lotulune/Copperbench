@@ -166,6 +166,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				return;
 			}
 			if (operation == Operation.VALIDATE_WORKSPACE) {
+				var content = backend.validateContent(executionRoot, state, line -> job.log("info", line));
+				if (!content.isEmpty()) {
+					job.failValidation(content);
+					return;
+				}
 				job.log("info", backend.displayName() + " validation completed without errors");
 				job.succeed("task.validate.completed", backend.displayName() + " validation completed");
 				return;
@@ -191,6 +196,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			});
 			ambiguousSources.forEach(sourceOwners::remove);
 			job.sourceElementOwners = Map.copyOf(sourceOwners);
+			if (operation != Operation.GENERATE_WORKSPACE) {
+				// Generated and hand-written files are both in place now; reject content the game would not load.
+				var content = backend.validateContent(executionRoot, state, line -> job.log("info", line));
+				if (!content.isEmpty()) {
+					job.failValidation(content);
+					return;
+				}
+			}
 			WorkspaceDeliveryOutputs.Prepared delivery = null;
 			GradleArchiveOutput.Request archiveOutput = null;
 			if (operation == Operation.EXPORT_WORKSPACE) {
