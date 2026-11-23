@@ -75,7 +75,7 @@ class CopperbenchError(RuntimeError):
 TASK_AUTHORIZED_TOOLS = {
     "create_workspace", "create_mod_element", "update_mod_element", "delete_mod_element", "update_procedure", "update_workspace_file",
     "set_mod_element_source_management", "create_registry_entry", "update_registry_entry", "delete_registry_entry",
-    "rename_registry_entry", "apply_workspace_plan", "import_asset", "import_asset_batch", "move_asset",
+    "rename_registry_entry", "apply_workspace_plan", "import_asset", "import_asset_batch", "move_asset", "delete_asset",
     "create_recovery_point", "restore_recovery_point", "publish_datagen_output", "prepare_game_tests",
     "build_workspace", "generate_workspace", "validate_workspace", "run_gametest", "run_datagen", "run_client", "run_server",
 }
@@ -371,6 +371,12 @@ class CopperbenchClient:
 
     def move_asset(self, **arguments: Any) -> dict[str, Any]:
         return self.call_tool("move_asset", arguments)
+
+    def preview_asset_delete(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("preview_asset_delete", arguments)
+
+    def delete_asset(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("delete_asset", arguments)
 
     def build_workspace(self, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("build_workspace", {"expectedRevision": expected_revision})

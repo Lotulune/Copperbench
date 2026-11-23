@@ -69,6 +69,7 @@
         "import_asset",
         "import_asset_batch",
         "move_asset",
+        "delete_asset",
         "create_local_template",
         "prepare_game_tests",
         "create_task_authorization",
@@ -91,6 +92,10 @@
     {
       "if": {"properties": {"operation": {"const": "move_asset"}}, "required": ["operation"]},
       "then": {"properties": {"payload": {"$ref": "#/$defs/assetMovePayload"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "delete_asset"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/assetDeletePayload"}}}
     },
     {
       "if": {"properties": {"operation": {"const": "set_mod_element_source_management"}}, "required": ["operation"]},
@@ -538,6 +543,17 @@
         "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
         "taskAuthorizationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
         "planToken": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "assetDeletePayload": {
+      "type": "object",
+      "required": ["clientMutationId", "planToken"],
+      "properties": {
+        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "taskAuthorizationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "planToken": {"type": "string", "minLength": 1},
+        "confirmAffectedReferences": {"type": "boolean"}
       },
       "additionalProperties": false
     },

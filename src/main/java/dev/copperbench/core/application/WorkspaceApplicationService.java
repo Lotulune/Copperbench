@@ -152,6 +152,7 @@ public final class WorkspaceApplicationService {
 	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportBatchPlanGrant> assetImportBatchPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetMovePlanGrant> assetMovePlanGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetDeletePlanGrant> assetDeletePlanGrants = new ConcurrentHashMap<>();
 	private static final Duration ASSET_IMPORT_GRANT_TTL = Duration.ofMinutes(10);
 	private static final Duration ASSET_MOVE_PLAN_TTL = Duration.ofMinutes(10);
 
@@ -751,6 +752,143 @@ public final class WorkspaceApplicationService {
 				refreshedHealth.findById(mutation.applied().asset().id()).orElseThrow()));
 		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
 		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_moved", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private record AssetDeletePlanGrant(String id, UUID workspaceId, List<String> assetIds,
+			dev.copperbench.assets.AssetDeletePlan plan, Instant expiresAt) {
+	}
+
+	private record AssetDeleteMutation(dev.copperbench.assets.AssetDeleteService.ApplyResult applied, long sequence,
+			Diagnostic diagnostic) {
+	}
+
+	/** Generator outputs are recreated on the next generation, so deleting them does not remove anything. */
+	private java.util.function.Predicate<String> generatorOwnedAsset() {
+		Map<String, String> ownership = mutations.workspaceSourceOwnership();
+		return relative -> ownership.entrySet().stream().anyMatch(entry -> entry.getValue().equals("generated")
+				&& (entry.getKey().endsWith("/") ? relative.startsWith(entry.getKey()) : relative.equals(entry.getKey())));
+	}
+
+	private AssetDeletePlanGrant assetDeletePlanGrant(String id, UUID workspaceId) {
+		Instant now = clock.instant();
+		assetDeletePlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+		AssetDeletePlanGrant grant = assetDeletePlanGrants.get(id);
+		if (grant == null || !grant.workspaceId().equals(workspaceId))
+			throw new dev.copperbench.assets.AssetDeleteService.AssetDeleteException("ASSET_DELETE_PLAN_INVALID",
+					"The asset delete preview is missing or expired. Preview the deletion again.");
+		return grant;
+	}
+
+	private static List<String> deleteAssetIds(JsonObject payload) {
+		JsonElement raw = payload.get("assetIds");
+		if (raw == null || !raw.isJsonArray()) throw new IllegalArgumentException("assetIds must be an array of asset IDs");
+		List<String> assetIds = new ArrayList<>();
+		for (JsonElement id : raw.getAsJsonArray()) {
+			if (!id.isJsonPrimitive() || !id.getAsJsonPrimitive().isString())
+				throw new IllegalArgumentException("assetIds must contain asset ID strings");
+			assetIds.add(id.getAsString());
+		}
+		return assetIds;
+	}
+
+	private QueryResult previewAssetDelete(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_DELETE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_delete_recovery_unavailable",
+					"Asset deletion requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset deletion.", null, null));
+		try {
+			List<String> assetIds = deleteAssetIds(query.payload());
+			AssetReferenceGraph graph = assetProjections.scan(root);
+			dev.copperbench.assets.AssetDeletePlan plan = new dev.copperbench.assets.AssetDeleteService(
+					new AssetWorkspaceService(root), history, generatorOwnedAsset())
+					.preview(assetIds, graph, assetProjections.health(graph, state));
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_MOVE_PLAN_TTL);
+			assetDeletePlanGrants.put(planToken, new AssetDeletePlanGrant(planToken, query.workspaceId(), assetIds, plan, expiresAt));
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			return querySuccess(query, state.revision(), data);
+		} catch (dev.copperbench.assets.AssetDeleteService.AssetDeleteException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_delete_preview_failed", exception.getMessage(), "/assetIds", null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private CommandOutcome deleteAsset(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_DELETE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_delete_recovery_unavailable",
+					"Asset deletion requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset deletion.", null, null));
+		AssetDeletePlanGrant approved;
+		boolean confirmed;
+		try {
+			approved = assetDeletePlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+			JsonElement confirmation = command.payload().get("confirmAffectedReferences");
+			if (confirmation != null && (!confirmation.isJsonPrimitive() || !confirmation.getAsJsonPrimitive().isBoolean()))
+				throw new IllegalArgumentException("confirmAffectedReferences must be a boolean");
+			confirmed = confirmation != null && confirmation.getAsBoolean();
+		} catch (dev.copperbench.assets.AssetDeleteService.AssetDeleteException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_delete_failed", exception.getMessage(), "/planToken", null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		var deleter = new dev.copperbench.assets.AssetDeleteService(new AssetWorkspaceService(root), history, generatorOwnedAsset());
+		String taskId = command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+				: command.requestId().toString();
+		TransactionResult<AssetDeleteMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				// Re-read usage inside the transaction so the deletion matches the workspace it changes.
+				AssetReferenceGraph graph = assetProjections.scan(root);
+				var current = deleter.preview(approved.assetIds(), graph, assetProjections.health(graph, state));
+				var applied = deleter.apply(approved.plan(), current, confirmed, context.actor(), taskId);
+				Diagnostic revisionFailure = persistAssetRevision(state, command, applied.recoveryPoint());
+				if (revisionFailure != null) return Decision.abort(new AssetDeleteMutation(null, 0, revisionFailure));
+				return Decision.commit(new AssetDeleteMutation(applied, state.nextEventSequence(), null),
+						applied.deletedPaths().stream().map(path -> "/" + path).toList());
+			} catch (dev.copperbench.assets.AssetDeleteService.AssetDeleteException exception) {
+				return Decision.abort(new AssetDeleteMutation(null, 0, diagnostic(exception.code(),
+						"diagnostic.asset_delete_failed", exception.getMessage(),
+						exception.code().equals("ASSET_DELETE_CONFIRMATION_REQUIRED") ? "/confirmAffectedReferences" : null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(new AssetDeleteMutation(null, 0, failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetDeleteMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetDeletePlanGrants.remove(approved.id());
+		AssetReferenceGraph refreshed = assetProjections.scan(root);
+		AssetHealthReport refreshedHealth = assetProjections.health(refreshed, store.read(command.workspaceId()).orElseThrow());
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.add("deletedPaths", GSON.toJsonTree(mutation.applied().deletedPaths()));
+		data.add("deletedAssetIds", GSON.toJsonTree(approved.plan().entries().stream()
+				.map(dev.copperbench.assets.AssetDeletePlan.Entry::assetId).toList()));
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_deleted", data.deepCopy());
 		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
 				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
@@ -1504,6 +1642,7 @@ public final class WorkspaceApplicationService {
 			case BIND_BLOCKBENCH_MODEL -> bindModelingResult(command, context);
 			case IMPORT_ASSET_BATCH -> importAssetBatch(command, context);
 			case MOVE_ASSET -> moveAsset(command, context);
+			case DELETE_ASSET -> deleteAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
 					"The requested operation is not supported.", null, null));
@@ -1560,6 +1699,7 @@ public final class WorkspaceApplicationService {
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
 				case PREVIEW_ASSET_IMPORT_BATCH -> previewAssetImportBatch(query, state);
 				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
+				case PREVIEW_ASSET_DELETE -> previewAssetDelete(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case GET_ELEMENT_VISUAL_PREVIEW -> elementVisualPreview(query, state);

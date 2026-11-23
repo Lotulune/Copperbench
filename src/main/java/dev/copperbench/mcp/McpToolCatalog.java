@@ -566,6 +566,20 @@ final class McpToolCatalog {
 				requiredSchema(Map.of("planToken", Map.of("type", "string", "minLength", 1),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(queryTool("preview_asset_delete",
+				"Preview deleting assets: the files, the asset references that would stop resolving and the workspace usage found."
+						+ " Only cleanup candidates delete without confirming that usage",
+				Operation.PREVIEW_ASSET_DELETE,
+				requiredSchema(Map.of("assetIds", Map.of("type", "array", "minItems", 1, "maxItems", 200, "uniqueItems", true,
+						"items", Map.of("type", "string", "minLength", 1))), List.of("assetIds")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("delete_asset",
+				"Delete reviewed assets as one revision after a recovery point; set confirmAffectedReferences when the preview requires it",
+				Operation.DELETE_ASSET,
+				requiredSchema(Map.of("planToken", Map.of("type", "string", "minLength", 1),
+						"confirmAffectedReferences", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
 		if (assets != null) {
 			tools.add(assetListTool());
 			tools.add(assetReferencesTool());
