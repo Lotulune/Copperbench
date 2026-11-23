@@ -126,6 +126,9 @@ final class AssetProjectionService {
 		value.addProperty("id", descriptor.id());
 		value.addProperty("relativePath", descriptor.relativePath());
 		value.addProperty("category", descriptor.category().name());
+		String usage = descriptor.category() == dev.copperbench.assets.AssetCategory.TEXTURE
+				? dev.copperbench.assets.AssetCategory.textureUsage(descriptor.relativePath()) : null;
+		if (usage != null) value.addProperty("usage", usage);
 		value.addProperty("size", descriptor.size());
 		value.addProperty("sha256", descriptor.sha256());
 		value.addProperty("mediaType", descriptor.mediaType());

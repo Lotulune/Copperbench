@@ -16,6 +16,7 @@ function reasonText(reason?: string, isModel = false): string {
     case 'image_dimensions_exceeded': return uiText('图像尺寸超过 2048 × 2048。', 'Image dimensions exceed 2048 × 2048.');
     case 'document_too_large': return uiText('模型文件超过内嵌预览的容量，请在 Blockbench 中打开。', 'This model exceeds the inline preview limit. Open it in Blockbench.');
     case 'invalid_image': return uiText('无法解码此图像。', 'This image could not be decoded.');
+    case 'audio_too_large': return uiText('声音文件超过 4 MiB，无法在此试听。', 'This sound exceeds the 4 MiB preview limit.');
     default: return isModel
       ? uiText('此模型暂无内嵌预览，可在 Blockbench 中打开。', 'This model has no inline preview. Open it in Blockbench.')
       : uiText('此格式暂无内嵌预览。', 'This format has no inline preview.');
@@ -151,6 +152,10 @@ export function AssetPreview({ workspaceId, asset }: { workspaceId?: string; ass
         : !preview ? <p className="asset-preview-note" role="status">{uiText('正在读取资产…', 'Loading asset…')}</p>
           : preview.kind === 'image' && preview.image ? <ImagePreview key={preview.sha256} image={preview.image} />
             : preview.kind === 'model_json' || preview.kind === 'model' ? <ModelPreview key={preview.sha256} preview={preview} />
+              : preview.kind === 'audio' && preview.audio?.base64 && /^audio\/(ogg|wav)$/.test(preview.audio.mediaType)
+                ? <div className="asset-audio-preview"><audio controls preload="metadata" data-testid="asset-audio-preview"
+                  aria-label={uiText(`试听 ${preview.relativePath.split('/').pop()}`, `Play ${preview.relativePath.split('/').pop()}`)}
+                  src={`data:${preview.audio.mediaType};base64,${preview.audio.base64}`} /></div>
               : <p className="asset-preview-note">{reasonText(preview.reason, asset.category === 'model')}</p>}
   </section>;
 }

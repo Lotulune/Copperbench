@@ -100,3 +100,6 @@
 .asset-delete-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-sub); }
 .asset-delete-confirm { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--text-main); }
 .asset-cleanup-button { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
+.asset-library-usages { margin-top: -4px; }
+.asset-audio-preview { padding: 12px 0; }
+.asset-audio-preview audio { width: 100%; }

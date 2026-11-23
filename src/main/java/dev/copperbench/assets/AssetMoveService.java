@@ -336,7 +336,8 @@ public final class AssetMoveService {
 		return relative.startsWith("assets/") || relative.startsWith("models/") || relative.startsWith("resourcepacks/")
 				|| relative.startsWith("src/main/resources/assets/") || relative.startsWith("src/main/assets/")
 				|| relative.equals("pack.mcmeta") || relative.equals("pack.png")
-				|| relative.equals("src/main/pack.mcmeta") || relative.equals("src/main/pack.png");
+				|| relative.equals("src/main/pack.mcmeta") || relative.equals("src/main/pack.png")
+				|| AssetWorkspaceService.isDataAsset(relative);
 	}
 
 	private static boolean sameSnapshot(AssetMovePlan expected, AssetMovePlan current) {

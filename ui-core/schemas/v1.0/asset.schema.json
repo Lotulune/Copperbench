@@ -90,7 +90,8 @@
       "properties": {
         "id": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
         "relativePath": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
-        "category": { "type": "string", "enum": ["MODEL", "TEXTURE", "ANIMATION", "LANGUAGE", "SOUND", "RESOURCE_PACK", "BLOCKSTATE", "OTHER"] },
+        "category": { "type": "string", "enum": ["MODEL", "TEXTURE", "ANIMATION", "LANGUAGE", "SOUND", "RESOURCE_PACK", "BLOCKSTATE", "STRUCTURE", "OTHER"] },
+        "usage": { "type": "string", "minLength": 1, "description": "For textures: the folder under textures/ (block, item, entity, gui, ...), or other." },
         "size": { "type": "integer", "minimum": 0 },
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "mediaType": { "type": "string", "minLength": 1 },

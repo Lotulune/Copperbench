@@ -36,7 +36,7 @@ import java.util.Set;
 public final class AssetImportService {
 
 	private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".json", ".png", ".jpg", ".jpeg", ".ogg",
-			".wav", ".bbmodel", ".mcmeta", ".zip", ".lang");
+			".wav", ".bbmodel", ".mcmeta", ".zip", ".lang", ".nbt");
 	private final AssetWorkspaceService assets;
 	private final LocalHistoryService history;
 
@@ -208,7 +208,8 @@ public final class AssetImportService {
 		return relative.startsWith("assets/") || relative.startsWith("models/") || relative.startsWith("resourcepacks/")
 				|| relative.startsWith("src/main/resources/assets/") || relative.startsWith("src/main/assets/")
 				|| relative.equals("pack.mcmeta") || relative.equals("pack.png")
-				|| relative.equals("src/main/pack.mcmeta") || relative.equals("src/main/pack.png");
+				|| relative.equals("src/main/pack.mcmeta") || relative.equals("src/main/pack.png")
+				|| AssetWorkspaceService.isDataAsset(relative);
 	}
 
 	private static boolean sameSnapshot(AssetImportPlan expected, AssetImportPlan current) {

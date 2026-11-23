@@ -1288,6 +1288,7 @@ export interface NewWorkspaceGeneratorCatalog {
 }
 
 export type AssetProjectionCategory =
+  | 'STRUCTURE'
   | 'MODEL'
   | 'TEXTURE'
   | 'ANIMATION'
@@ -1302,6 +1303,8 @@ export interface AssetProjectionAsset {
   id: string;
   relativePath: string;
   category: AssetProjectionCategory;
+  /** For textures: the folder under textures/ (block, item, entity, gui, ...), or other. */
+  usage?: string;
   size: number;
   sha256: string;
   mediaType: string;

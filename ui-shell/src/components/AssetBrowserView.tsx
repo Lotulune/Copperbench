@@ -27,6 +27,18 @@ import './assetBrowser.css';
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
 type HealthFilter = 'all' | 'issues' | 'errors' | 'unused' | 'safe-unused' | 'duplicates';
+
+function textureUsageLabel(usage: string): string {
+  const labels: Record<string, [string, string]> = {
+    block: ['方块', 'Blocks'], item: ['物品', 'Items'], entity: ['实体', 'Entities'], gui: ['界面', 'GUI'],
+    painting: ['画', 'Paintings'], particle: ['粒子', 'Particles'], mob_effect: ['状态效果', 'Mob effects'],
+    environment: ['环境', 'Environment'], misc: ['杂项', 'Misc'], models: ['盔甲模型', 'Armor models'],
+    trims: ['盔甲纹饰', 'Armor trims'], map: ['地图', 'Maps'], font: ['字体', 'Fonts'], colormap: ['色图', 'Color maps'],
+    effect: ['效果', 'Effects'], other: ['其他', 'Other']
+  };
+  const label = labels[usage];
+  return label ? uiText(label[0], label[1]) : usage;
+}
 type SortField = 'updated' | 'name' | 'references' | 'size';
 
 function resourceResolutionLabel(resolution: string): string {
@@ -143,6 +155,7 @@ function defaultImportTarget(fileName: string, namespace: string): string {
   if (lower.endsWith('.bbmodel')) return `assets/${namespace}/models/imported/${fileName}`;
   if (lower.endsWith('.lang')) return `assets/${namespace}/lang/${fileName}`;
   if (lower.endsWith('.zip')) return `resourcepacks/${fileName}`;
+  if (lower.endsWith('.nbt')) return `src/main/resources/data/${namespace}/structure/${fileName}`;
   return `assets/${namespace}/models/imported/${fileName}`;
 }
 
@@ -162,6 +175,7 @@ const categoryItems = (): readonly CategoryConfig[] => [
   { id: 'sound', label: uiText("声音", "Sounds"), icon: Music, description: uiText("事件音频与音效剪辑", "Event audio and sound clips") },
   { id: 'resource_pack', label: uiText("资源包", "Resource packs"), icon: PackageOpen, description: uiText("独立导出与打包", "Standalone export and packaging") },
   { id: 'blockstate', label: uiText("方块状态", "Block states"), icon: FileJson, description: uiText("方块模型状态映射", "Block model state mappings") },
+  { id: 'structure', label: uiText("结构", "Structures"), icon: Box, description: uiText("数据目录中的结构模板（.nbt）", "Structure templates (.nbt) in the data folders") },
   { id: 'other', label: uiText("其他", "Other"), icon: FileJson, description: uiText("工作区中的其他受支持文件", "Other supported workspace files") }
 ];
 
@@ -221,6 +235,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [healthFilter, setHealthFilter] = useState<HealthFilter>('all');
+  const [textureUsage, setTextureUsage] = useState('all');
   const [sort, setSort] = useState<SortField>('updated');
   const [selectedId, setSelectedId] = useState('');
   const [modeOverride, setModeOverride] = useState<BrowserMode | null>(null);
@@ -347,6 +362,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
     const normalized = deferredQuery.trim().toLocaleLowerCase();
     return assets
       .filter((asset) => category === 'all' || asset.category === category)
+      .filter((asset) => category !== 'texture' || textureUsage === 'all' || asset.usage === textureUsage)
       .filter((asset) => healthFilter === 'all'
         || (healthFilter === 'issues' && asset.validation !== 'ready')
         || (healthFilter === 'errors' && asset.validation === 'error')
@@ -364,7 +380,13 @@ const WorkspaceAssetBrowser: React.FC = () => {
         if (sort === 'size') return b.sizeBytes - a.sizeBytes;
         return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
       });
-  }, [assets, category, deferredQuery, healthFilter, sort]);
+  }, [assets, category, deferredQuery, healthFilter, sort, textureUsage]);
+
+  const textureUsages = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const asset of assets) if (asset.category === 'texture' && asset.usage) counts.set(asset.usage, (counts.get(asset.usage) ?? 0) + 1);
+    return [...counts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+  }, [assets]);
 
   const selectedAsset = useMemo(() => {
     return filteredAssets.find((asset) => asset.id === selectedId) ?? filteredAssets[0] ?? null;
@@ -737,11 +759,17 @@ const WorkspaceAssetBrowser: React.FC = () => {
         {CATEGORY_ITEMS.filter(item => item.id === 'all' || categoryCounts[item.id]).map(item => <button type="button" key={item.id}
           aria-pressed={category === item.id} data-testid={`asset-category-${item.id}`} onClick={() => {
             setCategory(item.id);
+            setTextureUsage('all');
             if (!assets.some(asset => asset.id === selectedId && (item.id === 'all' || asset.category === item.id)))
               setSelectedId(assets.find(asset => item.id === 'all' || asset.category === item.id)?.id ?? '');
           }}>{item.label}<span>{categoryCounts[item.id] ?? 0}</span></button>)}
         {healthFilter !== 'all' && <button type="button" className="asset-library-filter-clear" onClick={() => setHealthFilter('all')}><XCircle size={12} />{uiText('清除检查筛选', 'Clear health filter')}</button>}
       </nav>
+      {category === 'texture' && textureUsages.length > 1 && <nav className="asset-library-types asset-library-usages" aria-label={uiText('纹理用途', 'Texture use')} data-testid="asset-texture-usages">
+        {[['all', assets.filter(asset => asset.category === 'texture').length] as const, ...textureUsages].map(([usage, count]) =>
+          <button type="button" key={usage} aria-pressed={textureUsage === usage} data-testid={`asset-usage-${usage}`} onClick={() => setTextureUsage(usage)}>
+            {usage === 'all' ? uiText('全部用途', 'All uses') : textureUsageLabel(usage)}<span>{count}</span></button>)}
+      </nav>}
       {mode !== 'ready' ? <AssetStateView mode={mode} onRetry={() => {
         if (mode === 'empty') void beginImport();
         else { setModeOverride(null); setReloadToken(token => token + 1); }
@@ -1327,7 +1355,7 @@ const AssetDiagnosticsPanel: React.FC<{
 
 const AssetCard: React.FC<{ asset: AssetRecord; selected: boolean; onSelect: () => void }> = ({ asset, selected, onSelect }) => (
   <button type="button" className="asset-library-file" data-testid={`asset-card-${asset.id}`} data-asset-id={asset.id} aria-pressed={selected} onClick={onSelect} title={asset.path}>
-    <AssetCategoryIcon category={asset.category} size={17} /><span><strong>{asset.path.split('/').pop() ?? asset.name}</strong><small>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}</small></span>
+    <AssetCategoryIcon category={asset.category} size={17} /><span><strong>{asset.path.split('/').pop() ?? asset.name}</strong><small>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}{asset.usage ? ` · ${textureUsageLabel(asset.usage)}` : ''}</small></span>
     {asset.validation === 'error' && <AlertCircle size={12} className="asset-library-file-error" aria-label={uiText('有错误', 'Has errors')} />}
   </button>
 );
@@ -1358,7 +1386,7 @@ const AssetDetails: React.FC<{
     return target ? <button type="button" className="asset-library-reference-link" onClick={() => onSelectAsset(target.id)} title={path}><code>{path}</code></button> : <code>{path}</code>;
   };
   return <section ref={inspector} className="asset-library-inspector" aria-label={uiText('资产详情', 'Asset details')} data-testid="asset-details">
-    <header className="asset-library-file-heading"><h2>{fileName}</h2><span>{asset.categoryLabel}</span></header>
+    <header className="asset-library-file-heading"><h2>{fileName}</h2><span>{asset.categoryLabel}{asset.usage ? ` · ${textureUsageLabel(asset.usage)}` : ''}</span></header>
     <div className="asset-library-path"><code>{asset.path}</code><span>{asset.size}</span></div>
     <AssetPreview key={asset.id} workspaceId={state.workbench?.workspace.id} asset={asset} />
     <div className="asset-library-file-actions">
