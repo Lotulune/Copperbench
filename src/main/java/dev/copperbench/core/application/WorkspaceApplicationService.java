@@ -120,7 +120,12 @@ public final class WorkspaceApplicationService {
 	private static final Pattern VARIABLE_NAME = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]{0,63}$");
 	private static final Pattern RESOURCE_PATH = Pattern.compile("^[a-z0-9_./-]+$");
 	private static final Pattern LANGUAGE_KEY = Pattern.compile("^[a-z0-9_.-]+$");
-	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys");
+	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys", "sounds");
+	/** Sound events: dotted lowercase names, sound files named relative to sounds/ without .ogg, vanilla sound sources. */
+	private static final Pattern SOUND_NAME = Pattern.compile("^[a-z0-9_.-]+$");
+	private static final Pattern SOUND_FILE = Pattern.compile("^[a-z0-9_./-]+$");
+	private static final Set<String> SOUND_CATEGORIES = Set.of("master", "music", "record", "weather", "block", "hostile",
+			"neutral", "player", "ambient", "voice");
 	private static final Set<String> ELEMENT_TYPES = Set.copyOf(ElementCoverageCatalog.FIRST_PARTY_SLICE);
 	private static final int TASK_EVENT_HISTORY_LIMIT = 2048;
 	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
@@ -4423,7 +4428,7 @@ public final class WorkspaceApplicationService {
 		String search = filter != null && filter.has("search")
 				? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
 		Set<String> fields = listFields(payload, Set.of("id", "kind", "name", "key", "dataType", "scope",
-				"namespace", "category", "value", "members", "translations", "support"), "registry entry");
+				"namespace", "category", "value", "members", "translations", "files", "subtitle", "support"), "registry entry");
 		List<JsonObject> entries = new ArrayList<>();
 		registries.getAsJsonArray(selected).forEach(raw -> entries.add(raw.getAsJsonObject().deepCopy()));
 		Comparator<JsonObject> comparator = registryEntryComparator(selected, sort);
@@ -4809,6 +4814,10 @@ public final class WorkspaceApplicationService {
 			if (!entry.has("namespace")) entry.addProperty("namespace", "mod");
 			if (!entry.has("category")) entry.addProperty("category", "items");
 			if (!entry.has("members")) entry.add("members", new JsonArray());
+		} else if (registry.equals("sounds")) {
+			if (!entry.has("category")) entry.addProperty("category", "neutral");
+			Diagnostic sound = validateSoundEntry(entry);
+			if (sound != null) throw new RegistryValidationException(sound);
 		} else if (!entry.has("translations")) entry.add("translations", new JsonObject());
 		entry.add("support", registrySupport("supported", "REGISTRY_ENTRY_SUPPORTED"));
 		registries.getAsJsonArray(registry).add(entry);
@@ -4835,6 +4844,8 @@ public final class WorkspaceApplicationService {
 		String name = registryName(location.registry(), entry);
 		Diagnostic validation = validateRegistryName(location.registry(), entry, name, registries, entryId);
 		if (validation != null) throw new RegistryValidationException(validation);
+		if (location.registry().equals("sounds") && (validation = validateSoundEntry(entry)) != null)
+			throw new RegistryValidationException(validation);
 		location.entries().set(location.index(), entry);
 		JsonObject data = new JsonObject();
 		data.add("entry", entry.deepCopy());
@@ -6318,6 +6329,7 @@ public final class WorkspaceApplicationService {
 			case "tags" -> RESOURCE_PATH.matcher(name).matches()
 					&& RESOURCE_PATH.matcher(entry.has("namespace") ? entry.get("namespace").getAsString() : "mod").matches();
 			case "languageKeys" -> LANGUAGE_KEY.matcher(name).matches();
+			case "sounds" -> SOUND_NAME.matcher(name).matches();
 			default -> false;
 		};
 		if (!valid) return diagnostic("REGISTRY_ENTRY_NAME_INVALID", "diagnostic.registry_entry_name_invalid",
@@ -6336,6 +6348,25 @@ public final class WorkspaceApplicationService {
 		return null;
 	}
 
+	/** A sound event plays at least one sound file and belongs to one of the game's sound sources. */
+	private Diagnostic validateSoundEntry(JsonObject entry) {
+		JsonElement files = entry.get("files");
+		boolean filesValid = files != null && files.isJsonArray() && !files.getAsJsonArray().isEmpty();
+		if (filesValid) for (JsonElement file : files.getAsJsonArray())
+			filesValid &= file.isJsonPrimitive() && file.getAsJsonPrimitive().isString() && SOUND_FILE.matcher(file.getAsString()).matches();
+		if (!filesValid) return diagnostic("REGISTRY_SOUND_FILES_INVALID", "diagnostic.registry_sound_files_invalid",
+				"A sound event needs at least one sound file, named relative to sounds/ without .ogg (for example lamp/click).",
+				"/entry/files", null);
+		if (!(entry.get("category") instanceof com.google.gson.JsonPrimitive category) || !SOUND_CATEGORIES.contains(category.getAsString()))
+			return diagnostic("REGISTRY_SOUND_CATEGORY_INVALID", "diagnostic.registry_sound_category_invalid",
+					"Choose a sound category: " + String.join(", ", new java.util.TreeSet<>(SOUND_CATEGORIES)) + ".", "/entry/category", null);
+		if (entry.has("subtitle") && !(entry.get("subtitle").isJsonNull()
+				|| entry.get("subtitle").isJsonPrimitive() && entry.get("subtitle").getAsJsonPrimitive().isString()))
+			return diagnostic("REGISTRY_SOUND_SUBTITLE_INVALID", "diagnostic.registry_sound_subtitle_invalid",
+					"The subtitle must be text.", "/entry/subtitle", null);
+		return null;
+	}
+
 	private Diagnostic registryEntryNotFound(UUID entryId) {
 		return diagnostic("REGISTRY_ENTRY_NOT_FOUND", "diagnostic.registry_entry_not_found",
 				"The requested registry entry does not exist.", "/registries/" + entryId, null);
@@ -6350,6 +6381,7 @@ public final class WorkspaceApplicationService {
 			case "variables" -> "variable";
 			case "tags" -> "tag";
 			case "languageKeys" -> "language_key";
+			case "sounds" -> "sound";
 			default -> throw new IllegalArgumentException("Unsupported registry: " + registry);
 		};
 	}
@@ -6424,6 +6456,7 @@ public final class WorkspaceApplicationService {
 					|| normalized.equals("name") && parentPath.contains("/procedureIr/dependencies");
 			case "tags" -> normalized.contains("tag");
 			case "languageKeys" -> normalized.contains("language") || normalized.contains("translation");
+			case "sounds" -> normalized.contains("sound");
 			default -> false;
 		};
 	}

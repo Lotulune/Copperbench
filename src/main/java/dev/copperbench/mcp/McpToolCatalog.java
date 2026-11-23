@@ -286,10 +286,10 @@ final class McpToolCatalog {
 				Map.of("type", "object", "properties", Map.of("target", Map.of("type", "string")),
 						"additionalProperties", false),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
-		tools.add(queryTool("list_workspace_registries", "List variables, tags, and language keys with stable IDs",
+		tools.add(queryTool("list_workspace_registries", "List variables, tags, language keys and sound events with stable IDs",
 				Operation.LIST_WORKSPACE_REGISTRIES,
 				Map.of("type", "object", "properties", Map.of(
-						"registry", Map.of("type", "string", "enum", List.of("variables", "tags", "languageKeys")),
+						"registry", Map.of("type", "string", "enum", List.of("variables", "tags", "languageKeys", "sounds")),
 						"cursor", Map.of("type", "string"),
 						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
 						"sort", Map.of("type", "string", "enum", List.of("name", "-name", "kind", "-kind", "id", "-id")),
@@ -366,10 +366,11 @@ final class McpToolCatalog {
 						List.of("elementId", "mode", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("update_procedure", "Commit structured Procedure graph edits",
 				Operation.UPDATE_PROCEDURE, procedureSchema(true), McpToolCatalog::mutationPayload));
-		tools.add(commandTool("create_registry_entry", "Create a variable, tag, or language key",
+		tools.add(commandTool("create_registry_entry", "Create a variable, tag, language key, or sound event"
+						+ " (sounds: {name, files: [path under sounds/ without .ogg], category, subtitle?})",
 				Operation.CREATE_REGISTRY_ENTRY,
 				requiredSchema(Map.of("registry", Map.of("type", "string", "enum",
-						List.of("variables", "tags", "languageKeys")), "entry", Map.of("type", "object"),
+						List.of("variables", "tags", "languageKeys", "sounds")), "entry", Map.of("type", "object"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("registry", "entry", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("update_registry_entry", "Update registry entry fields without changing its stable ID",

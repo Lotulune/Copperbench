@@ -121,7 +121,7 @@ interface WorkbenchContextType {
   updateProcedure: (elementId: UUID, edits: ProcedureEdit[], expectedRevision?: number) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
-  createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
+  createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys' | 'sounds', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
   updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
   planProcedureRefactor: (request: ProcedureRefactorRequest) => Promise<WorkspacePlan | null>;
@@ -685,7 +685,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [state.workbench]);
 
   const createRegistryEntry = useCallback(async (
-    registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>
+    registry: 'variables' | 'tags' | 'languageKeys' | 'sounds', entry: Partial<RegistryEntry>
   ): Promise<CommandResult> => coreBridge.sendCommand({
     messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
     workspaceId: state.workbench?.workspace.id || generateUUID(),

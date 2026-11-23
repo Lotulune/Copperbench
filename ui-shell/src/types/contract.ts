@@ -476,7 +476,7 @@ export interface ProcedureRelationships {
 
 export interface RegistryEntry {
   id: UUID;
-  kind: 'variable' | 'tag' | 'language_key';
+  kind: 'variable' | 'tag' | 'language_key' | 'sound';
   name?: string;
   key?: string;
   dataType?: string;
@@ -486,6 +486,9 @@ export interface RegistryEntry {
   value?: unknown;
   members?: string[];
   translations?: Record<string, string>;
+  /** Sound events: files named relative to sounds/ without .ogg. */
+  files?: string[];
+  subtitle?: string;
   support?: { state: string; reasonCode: string };
 }
 
@@ -494,11 +497,12 @@ export interface WorkspaceRegistriesProjection {
     variables: RegistryEntry[];
     tags: RegistryEntry[];
     languageKeys: RegistryEntry[];
+    sounds?: RegistryEntry[];
   };
   variables?: RegistryEntry[];
   tags?: RegistryEntry[];
   languageKeys?: RegistryEntry[];
-  registry?: 'variables' | 'tags' | 'languageKeys';
+  registry?: 'variables' | 'tags' | 'languageKeys' | 'sounds';
   items?: Array<Partial<RegistryEntry>>;
   total?: number;
   pageSize?: number;

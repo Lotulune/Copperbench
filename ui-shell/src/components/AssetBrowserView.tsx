@@ -17,6 +17,7 @@ import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
 import { BlockbenchSetupDialog } from './BlockbenchSetupDialog';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
 import { AssetPreview } from './AssetPreview';
+import { SoundEventPanel } from './SoundEventPanel';
 import { DiagnosticDetails } from './DiagnosticDetails';
 import { OperationFailure, operationDiagnostics, operationFailureText } from '../bridge/operationFailure';
 import { coreBridge } from '../bridge';
@@ -1389,6 +1390,7 @@ const AssetDetails: React.FC<{
     <header className="asset-library-file-heading"><h2>{fileName}</h2><span>{asset.categoryLabel}{asset.usage ? ` · ${textureUsageLabel(asset.usage)}` : ''}</span></header>
     <div className="asset-library-path"><code>{asset.path}</code><span>{asset.size}</span></div>
     <AssetPreview key={asset.id} workspaceId={state.workbench?.workspace.id} asset={asset} />
+    {asset.category === 'sound' && <SoundEventPanel key={asset.id} relativePath={asset.path} />}
     <div className="asset-library-file-actions">
       {canOpenSource && <button type="button" className="asset-library-source-link" onClick={() => openSource(asset.path)}><FileText size={14} />{uiText('查看文件源码', 'View source')}</button>}
       {asset.category === 'model' && /\.(bbmodel|json)$/i.test(asset.path) && <button type="button" className="asset-library-button" data-testid="asset-open-blockbench" disabled={openingBlockbench} aria-busy={openingBlockbench}

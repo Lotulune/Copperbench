@@ -286,6 +286,15 @@ public class Workspace implements Closeable, IGeneratorProvider {
 		markDirty();
 	}
 
+	/**
+	 * Copperbench: removes a sound event registration but keeps its sound files, which remain workspace assets with
+	 * their own reviewed deletion.
+	 */
+	public void unregisterSoundElement(SoundElement element) {
+		sound_elements.remove(element);
+		markDirty();
+	}
+
 	public void putMetadata(String key, @Nullable Object data) {
 		if (metadata == null)
 			metadata = new LinkedHashMap<>();

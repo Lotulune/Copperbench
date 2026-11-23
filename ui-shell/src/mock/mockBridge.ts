@@ -163,8 +163,9 @@ function mockAssetProjection() {
   };
 }
 
-function initialMockRegistries(): NonNullable<WorkspaceRegistriesProjection['registries']> {
+function initialMockRegistries(): Required<NonNullable<WorkspaceRegistriesProjection['registries']>> {
   return {
+    sounds: [],
     variables: [
       {
         id: '7a4be662-5208-4cc7-8984-c08ae63a447a',
@@ -1524,7 +1525,7 @@ export class MockCoreBridge implements CoreBridge {
         if (command.operation === 'create_registry_entry') {
           const registry = payload.registry;
           if (!registry || !payload.entry) throw new Error('Registry and entry are required.');
-          const kind = registry === 'variables' ? 'variable' : registry === 'tags' ? 'tag' : 'language_key';
+          const kind = registry === 'variables' ? 'variable' : registry === 'tags' ? 'tag' : registry === 'sounds' ? 'sound' : 'language_key';
           const entry = {
             ...payload.entry,
             id: generateUUID(),
@@ -2778,7 +2779,8 @@ export class MockCoreBridge implements CoreBridge {
           registries: {
             variables: [...this.mockRegistries.variables],
             tags: [...this.mockRegistries.tags],
-            languageKeys: [...this.mockRegistries.languageKeys]
+            languageKeys: [...this.mockRegistries.languageKeys],
+            sounds: [...this.mockRegistries.sounds]
           },
           variables: [...this.mockRegistries.variables],
           tags: [...this.mockRegistries.tags],

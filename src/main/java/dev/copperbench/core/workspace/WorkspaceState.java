@@ -71,6 +71,7 @@ public final class WorkspaceState {
 		ensureRegistryArray(registries, "variables");
 		ensureRegistryArray(registries, "tags");
 		ensureRegistryArray(registries, "languageKeys");
+		ensureRegistryArray(registries, "sounds");
 		return registries;
 	}
 
@@ -82,6 +83,7 @@ public final class WorkspaceState {
 		ensureRegistryArray(normalized, "variables");
 		ensureRegistryArray(normalized, "tags");
 		ensureRegistryArray(normalized, "languageKeys");
+		ensureRegistryArray(normalized, "sounds");
 		product.add("registries", normalized);
 		upstreamDocument.add(PRODUCT_NAMESPACE, product);
 		dirty = true;

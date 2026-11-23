@@ -1133,7 +1133,7 @@
     "registryListPayload": {
       "type": "object",
       "properties": {
-        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]},
+        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys", "sounds"]},
         "cursor": {"type": "string", "maxLength": 512},
         "limit": {"type": "integer", "minimum": 1, "maximum": 200},
         "sort": {"type": "string", "enum": ["name", "-name", "kind", "-kind", "id", "-id"]},
