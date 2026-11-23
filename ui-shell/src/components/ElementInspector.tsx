@@ -31,6 +31,8 @@ import { collectEditorFieldChanges, hasEditorInputDraft, normalizeEditorNumericD
 import { confirmEditorRead } from '../bridge/editorRecovery';
 import { DiagnosticDetails } from './DiagnosticDetails';
 import { ElementPlate } from './ElementPlate';
+import { ResourcePicker } from './ResourcePicker';
+import { textureFieldValue, type ResourceChoice } from './resourcePickerModel';
 
 interface ElementInspectorProps {
   element: ModElementSummary;
@@ -102,11 +104,13 @@ function looksLikeWorkspaceAssetReference(value: string): boolean {
   return /[\\/]/.test(value) && /\.(png|jpg|jpeg|json|ogg|wav|ttf|otf)$/i.test(value);
 }
 
-function resourceStorageIdentifier(asset: AssetProjection['assets'][number], field: EditorField): string | null {
-  if (asset.category !== 'TEXTURE') return null;
-  const normalized = asset.relativePath.replace(/\\/g, '/');
-  if (field.resourceType && !normalized.toLowerCase().includes(`/textures/${field.resourceType.toLowerCase()}/`)) return null;
-  return normalized.split('/').filter(Boolean).pop() ?? null;
+function resourceKindLabel(path: string): string {
+  switch (resourceCategoryForField(path)) {
+    case 'TEXTURE': return uiText('纹理', 'Texture');
+    case 'SOUND': return uiText('声音', 'Sound');
+    case 'MODEL': return uiText('模型', 'Model');
+    default: return uiText('资源', 'Resource');
+  }
 }
 
 function generationDomainLabel(domain: string): string {
@@ -557,15 +561,25 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
         .filter((candidate) => acceptedTypes ? acceptedTypes.has(candidate.type as ModElementType) : candidate.type === 'biome')
         .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · ${candidate.type}`));
     } else if (field.control === 'resource_reference') {
-      const category = resourceCategoryForField(field.path);
-      assets?.assets
-        .filter((asset) => !category || asset.category === category)
-        .forEach((asset) => {
-          const identifier = resourceStorageIdentifier(asset, field);
-          if (identifier) byValue.set(identifier, `${identifier} · ${asset.relativePath}`);
-        });
+      resourceChoices(field).forEach((choice) => byValue.set(choice.value, choice.label));
     }
     return [...byValue.entries()].map(([value, label]) => ({ value, label }));
+  };
+
+  /** Field options first, then workspace textures of the field's texture type, stored as MCreator names them. */
+  const resourceChoices = (field: EditorField): ResourceChoice[] => {
+    const byValue = new Map<string, ResourceChoice>();
+    field.options.forEach((option) => byValue.set(String(option.value),
+      { value: String(option.value), label: t(option.label), relativePath: '' }));
+    const category = resourceCategoryForField(field.path);
+    assets?.assets
+      .filter((asset) => !category || asset.category === category)
+      .forEach((asset) => {
+        const value = asset.category === 'TEXTURE' ? textureFieldValue(asset.relativePath, field.resourceType) : null;
+        if (value && !byValue.has(value)) byValue.set(value, { value, label: `${value} · ${asset.relativePath}`,
+          relativePath: asset.relativePath, asset });
+      });
+    return [...byValue.values()];
   };
 
   const referenceIssue = (field: EditorField): string | null => {
@@ -686,6 +700,19 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
           />
         );
       case 'resource_reference':
+        return (
+          <ResourcePicker
+            id={controlId}
+            value={value === undefined || value === null ? '' : String(value)}
+            choices={resourceChoices(field)}
+            workspaceId={state.workbench?.workspace.id}
+            disabled={disabled}
+            disabledStyle={commonStyle}
+            kindLabel={resourceKindLabel(field.path)}
+            testId={`field-${fieldTestSuffix(field.path)}`}
+            onChange={(next) => setValues((prev) => ({ ...prev, [field.path]: next }))}
+          />
+        );
       case 'procedure_reference':
       case 'element_reference':
         {
@@ -718,11 +745,9 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 )}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                {field.control === 'resource_reference'
-                  ? uiText("资源选择器", "Resource picker")
-                  : field.control === 'element_reference'
-                    ? uiText("方块 / 元素引用选择器", "Block / element reference picker")
-                    : uiText("元素引用选择器", "Element reference picker")}
+                {field.control === 'element_reference'
+                  ? uiText("方块 / 元素引用选择器", "Block / element reference picker")
+                  : uiText("元素引用选择器", "Element reference picker")}
                 {candidates.length > 0 ? uiText(` · ${candidates.length} 个候选`, ` · Candidates: ${candidates.length}`) : uiText(" · 可输入完整引用", " · Enter a full reference")}
               </div>
             </div>
@@ -768,7 +793,14 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                 </option>)}
               </select>;
             }
-            if (['resource_reference', 'procedure_reference', 'element_reference'].includes(itemField.control)) {
+            if (itemField.control === 'resource_reference') {
+              return <ResourcePicker id={`${fieldControlId(field.path)}-${index}-${itemName}`}
+                value={itemValue === null || itemValue === undefined ? '' : String(itemValue)}
+                choices={resourceChoices(itemField)} workspaceId={state.workbench?.workspace.id} disabled={itemDisabled}
+                kindLabel={resourceKindLabel(itemField.path)} testId={itemTestId}
+                onChange={(next) => updateItem(index, itemField.path, next)} />;
+            }
+            if (['procedure_reference', 'element_reference'].includes(itemField.control)) {
               const candidates = referenceCandidates(itemField);
               const listId = `${fieldControlId(field.path)}-${index}-${itemName}-suggestions`;
               return <>

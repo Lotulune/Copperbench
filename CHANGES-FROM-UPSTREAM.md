@@ -2,6 +2,10 @@
 
 This distribution is based on MCreator `2026.2.33518` at commit `361429609b772039a3eb9ab81662c25b225f1d0d`. The built-in Fabric generator is based on `26.1.2-2026.2-2.8` at commit `abfe19329126b679a26baafe5cade5a75d455528`.
 
+## 2026-11-23 asset workbench (unreleased source)
+
+- Pick texture fields by thumbnail in the element editor, including texture fields inside structured lists: the field shows the current texture, and a searchable grid lists the workspace textures of the field's texture type. Choices store the MCreator texture name (the path under `textures/<type>/` without `.png`); the earlier suggestion list wrote file names with `.png`, which generators turned into references such as `coppertrails:block/copper_lamp.png` that do not resolve. Values typed with `.png` still match their texture. Thumbnails reuse `get_asset_preview`, cached per content hash.
+
 ## 2026-11-22 data packs as a workspace kind (unreleased source)
 
 - Offer the inherited `datapack-26.1.x`, `datapack-1.21.1` and `datapack-1.20.1` generators in the new-workspace flow, CLI and MCP catalog without a Java package, and project their workspaces as `kind` / `loader` `data_pack`. Earlier projections derived the loader from the generator id (`datapack`), a value outside the UI-Core enum that the shell displayed as Fabric. UI-Core 1.0 gains the `data_pack` value in its loader, track and workspace-kind enums, following the earlier `resource_pack` addition; strict older clients need the updated schema. No generator templates changed.
