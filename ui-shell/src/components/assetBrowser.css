@@ -90,3 +90,13 @@
 .asset-library-blockbench-notice { padding: 10px 12px; margin: 0 0 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-panel); overflow-wrap: anywhere; }
 .asset-library-blockbench-notice p { margin: 0; line-height: 1.6; }
 .asset-library-blockbench-notice button { margin-top: 8px; }
+
+/* Asset deletion review: the files, references that would break and the confirmation. */
+.asset-delete-files { display: flex; flex-direction: column; gap: 4px; max-height: 180px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.asset-delete-files li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-width: 0; font-size: 12px; }
+.asset-delete-files code { overflow-wrap: anywhere; }
+.asset-delete-files small { color: var(--text-sub); }
+.asset-delete-issue { color: var(--badge-red); }
+.asset-delete-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-sub); }
+.asset-delete-confirm { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--text-main); }
+.asset-cleanup-button { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }

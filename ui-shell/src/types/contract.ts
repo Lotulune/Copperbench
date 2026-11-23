@@ -38,6 +38,30 @@ export interface AssetMovePreview {
   expiresAt: string;
 }
 
+/** The reviewed impact of deleting assets; see preview_asset_delete. */
+export interface AssetDeletePreview {
+  entries: Array<{
+    assetId: string;
+    relativePath: string;
+    sha256: string;
+    category: AssetProjectionCategory;
+    size: number;
+    inboundReferences: number;
+    workspaceReferenceCount: number;
+    safeUnused: boolean;
+    issueCodes: string[];
+  }>;
+  affectedReferences: Array<{ sourceAssetId: string; sourcePath: string; sourcePointer: string; rawValue: string; targetPath: string }>;
+  canApply: boolean;
+  /** True unless every asset is an assessed cleanup candidate and no reference breaks. */
+  requiresReferenceConfirmation: boolean;
+  issueCodes: string[];
+  deleteCount: number;
+  totalSize: number;
+  planToken: string;
+  expiresAt: string;
+}
+
 export interface WorkspacePlanReviewObject {
   kind: string;
   elementId?: UUID;
@@ -929,7 +953,8 @@ export type CommandOperation =
   | 'import_blockbench_task'
   | 'recover_blockbench_import'
   | 'bind_blockbench_model'
-  | 'move_asset';
+  | 'move_asset'
+  | 'delete_asset';
 
 export interface Command<T = unknown> {
   messageType: 'command';
@@ -1075,6 +1100,7 @@ export type QueryOperation =
   | 'preview_asset_import'
   | 'preview_asset_import_batch'
   | 'preview_asset_move'
+  | 'preview_asset_delete'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'get_element_visual_preview'
@@ -1503,6 +1529,7 @@ export type EventType =
   | 'asset_imported'
   | 'assets_imported'
   | 'asset_moved'
+  | 'asset_deleted'
   | 'asset_external_edit_committed';
 
 export interface BaseEvent<E extends EventType, P> {
@@ -1682,6 +1709,11 @@ export type AssetMovedEvent = BaseEvent<
   CommandResultData
 >;
 
+export type AssetDeletedEvent = BaseEvent<
+  'asset_deleted',
+  CommandResultData
+>;
+
 export type AssetExternalEditCommittedEvent = BaseEvent<
   'asset_external_edit_committed',
   {
@@ -1720,6 +1752,7 @@ export type CoreEvent =
   | AssetImportedEvent
   | AssetsImportedEvent
   | AssetMovedEvent
+  | AssetDeletedEvent
   | AssetExternalEditCommittedEvent;
 
 /* =========================================================================

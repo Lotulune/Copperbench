@@ -5,11 +5,11 @@ import {
   Copy, CornerDownRight, FileJson, FileText,
   Image, Info, Link2, ListFilter,
   Music, PackageOpen, Palette, RefreshCw, Search,
-  Sparkles, Upload, XCircle
+  Sparkles, Trash2, Upload, XCircle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { assetRecordsFromProjection, AssetCategory, AssetRecord } from '../types/assets';
-import type { AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, AssetProjection, AssetProjectionHealthSummary, Diagnostic, LocalizedText } from '../types/contract';
+import type { AssetDeletePreview, AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, AssetProjection, AssetProjectionHealthSummary, Diagnostic, LocalizedText } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t, uiText, useUiLocale, UI_LOCALE } from '../i18n';
@@ -77,17 +77,27 @@ interface AssetMoveReviewState extends AssetReviewRecovery {
   readonly error: AssetMessage | null;
 }
 
+interface AssetDeleteReviewState extends AssetReviewRecovery {
+  readonly assets: AssetRecord[];
+  readonly preview: AssetDeletePreview | null;
+  /** The user acknowledged the references and usage the preview listed. */
+  readonly confirmed: boolean;
+  readonly busy: boolean;
+  readonly error: AssetMessage | null;
+}
+
 interface AssetReviewSession {
   importReview: AssetImportReviewState | null;
   batchImportReview: AssetBatchImportReviewState | null;
   moveReview: AssetMoveReviewState | null;
+  deleteReview: AssetDeleteReviewState | null;
 }
 // Review state and uncertain writes survive route changes, scoped to the actual workspace.
 const reviewSessions = new Map<string, AssetReviewSession>();
 const reviewListeners = new Set<() => void>();
 let reviewRequestSequence = 0;
 function reviewSession(workspaceId: string): AssetReviewSession {
-  if (!reviewSessions.has(workspaceId)) reviewSessions.set(workspaceId, { importReview: null, batchImportReview: null, moveReview: null });
+  if (!reviewSessions.has(workspaceId)) reviewSessions.set(workspaceId, { importReview: null, batchImportReview: null, moveReview: null, deleteReview: null });
   return reviewSessions.get(workspaceId)!;
 }
 function updateReview<K extends keyof AssetReviewSession>(workspaceId: string, kind: K, action: React.SetStateAction<AssetReviewSession[K]>) {
@@ -200,7 +210,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
   const CATEGORY_ITEMS = categoryItems();
   const {
     state, listAssets, previewAssetImport, importAsset, previewAssetImportBatch, importAssetBatch,
-    previewAssetMove, moveAsset, refreshWorkspace, assetFocusId, setAssetFocusId, runDiagnosticAction
+    previewAssetMove, moveAsset, previewAssetDelete, deleteAsset, refreshWorkspace, assetFocusId, setAssetFocusId, runDiagnosticAction
   } = useWorkbench();
   const [assetProjection, setAssetProjection] = useState<AssetProjection | null>(null);
   const assets = useMemo(() => assetProjection ? assetRecordsFromProjection(assetProjection) : [], [assetProjection, locale]);
@@ -224,10 +234,11 @@ const WorkspaceAssetBrowser: React.FC = () => {
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const workspaceId = state.workbench?.workspace.id ?? state.currentScenarioId;
   const reviews = useSyncExternalStore(listener => { reviewListeners.add(listener); return () => { reviewListeners.delete(listener); }; }, () => reviewSession(workspaceId));
-  const { importReview, batchImportReview, moveReview } = reviews;
+  const { importReview, batchImportReview, moveReview, deleteReview } = reviews;
   const setImportReview = (action: React.SetStateAction<AssetImportReviewState | null>) => updateReview(workspaceId, 'importReview', action);
   const setBatchImportReview = (action: React.SetStateAction<AssetBatchImportReviewState | null>) => updateReview(workspaceId, 'batchImportReview', action);
   const setMoveReview = (action: React.SetStateAction<AssetMoveReviewState | null>) => updateReview(workspaceId, 'moveReview', action);
+  const setDeleteReview = (action: React.SetStateAction<AssetDeleteReviewState | null>) => updateReview(workspaceId, 'deleteReview', action);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const assertWorkspace = () => {
@@ -366,6 +377,8 @@ const WorkspaceAssetBrowser: React.FC = () => {
       if (copyTimer.current) clearTimeout(copyTimer.current);
     };
   }, [selectedAsset?.id]);
+
+  const cleanupCandidates = useMemo(() => assets.filter(asset => asset.safeUnused === true), [assets]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: assets.length };
@@ -511,6 +524,71 @@ const WorkspaceAssetBrowser: React.FC = () => {
       setReloadToken((token) => token + 1);
     } catch (failure) {
       setMoveReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: true, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)], error: null });
+    }
+  };
+
+  const beginDelete = (selected: AssetRecord[]) => {
+    const pending = reviewSession(workspaceId).deleteReview;
+    if (pending?.busy || pending?.unknown) { setDeleteReview({ ...pending, hidden: false }); return; }
+    if (!selected.length) return;
+    setDeleteReview({ assets: selected, preview: null, confirmed: false, busy: false, error: null });
+    void runDeletePreview();
+  };
+
+  const runDeletePreview = async () => {
+    const current = reviewSession(workspaceId).deleteReview;
+    if (!current || current.busy) return;
+    const requestId = ++reviewRequestSequence;
+    setDeleteReview({ ...current, busy: true, error: null, preview: null, confirmed: false, requestId });
+    try {
+      let assetIds = current.assets.map(asset => asset.id);
+      if (current.unknown) {
+        // After an unknown result, preview only the files that still exist.
+        const projection = await readAssetsForConfirmation();
+        setDeleteReview(old => old?.requestId !== requestId ? old : { ...old, observedTargets: observeTargets(projection, old.submittedTargets) });
+        assetIds = assetIds.filter(id => projection.assets.some(asset => asset.id === id));
+        if (!assetIds.length) {
+          setDeleteReview(old => old?.requestId === requestId ? null : old);
+          setNotice(assetMessage('所选文件已不在工作区中，删除已完成。', 'The selected files are no longer in the workspace; the deletion completed.'));
+          setReloadToken(token => token + 1);
+          return;
+        }
+      }
+      assertWorkspace();
+      const preview = await previewAssetDelete(assetIds);
+      assertWorkspace();
+      setDeleteReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, preview, unknown: false, error: null });
+    } catch (failure) {
+      setDeleteReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, preview: null, failure,
+        diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)],
+        error: assetMessage('无法预览删除，请查看详情。', 'Could not preview the deletion. Review the details.') });
+    }
+  };
+
+  const commitDelete = async () => {
+    const current = reviewSession(workspaceId).deleteReview;
+    const preview = current?.preview;
+    if (!current || current.busy || current.unknown || !preview?.canApply
+      || (preview.requiresReferenceConfirmation && !current.confirmed)) return;
+    assertWorkspace();
+    const requestId = ++reviewRequestSequence;
+    const paths = preview.entries.map(entry => entry.relativePath);
+    setDeleteReview({ ...current, busy: true, error: null, requestId, submittedTargets: paths, observedTargets: undefined });
+    try {
+      const result = await deleteAsset(preview.planToken, current.confirmed);
+      if (result.status !== 'committed') {
+        setDeleteReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: false, diagnostics: result.diagnostics,
+          error: result.diagnostics[0]?.message ?? assetMessage('资产删除未提交。', 'The asset deletion was not committed.') });
+        return;
+      }
+      setDeleteReview(old => old?.requestId === requestId ? null : old);
+      setNotice(assetMessage(`已删除 ${paths.length} 个文件；删除前已创建恢复点，可在历史中还原。`,
+        `Deleted ${paths.length} files. A recovery point was created first; restore it from History.`));
+      setSelectedId('');
+      setReloadToken(token => token + 1);
+    } catch (failure) {
+      setDeleteReview(old => old?.requestId !== requestId ? old : { ...old, busy: false, unknown: true, failure,
         diagnostics: [...(old.diagnostics ?? []), ...operationDiagnostics(failure)], error: null });
     }
   };
@@ -683,7 +761,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
           </div>
         </aside>
         <AssetDetails asset={selectedAsset} copyStatus={copyFeedback && copyFeedback.id === selectedAsset?.id ? copyFeedback.status : undefined}
-          openingBlockbench={openingBlockbench} onCopyId={copyStableId} onImport={asset => void beginImport(asset)} onMove={beginMove} onOpenBlockbench={openInBlockbench}
+          openingBlockbench={openingBlockbench} onCopyId={copyStableId} onImport={asset => void beginImport(asset)} onMove={beginMove} onDelete={asset => beginDelete([asset])} onOpenBlockbench={openInBlockbench}
           blockbenchNotice={blockbenchNotice?.assetId === selectedAsset?.id ? blockbenchNotice : null} onSetupBlockbench={() => setBlockbenchSetupOpen(true)}
           assets={assets} onSelectAsset={id => setAssetFocusId(id)} />
       </div>}
@@ -701,6 +779,10 @@ const WorkspaceAssetBrowser: React.FC = () => {
               <span><strong>{healthSummary?.unusedAssets ?? 0}</strong> {uiText(" 未使用", " Unused")}</span>
               <span data-testid="asset-health-safe-summary"><strong>{healthSummary?.safeUnusedAssets ?? 0}</strong> {uiText(" 可清理候选", " Cleanup candidates")}</span>
             </div>
+            {cleanupCandidates.length > 0 && <button type="button" className="btn-secondary asset-cleanup-button" data-testid="asset-cleanup-candidates"
+              onClick={() => beginDelete(cleanupCandidates)}>
+              <Trash2 size={13} aria-hidden="true" />{uiText(`清理全部候选（${cleanupCandidates.length}）`,
+                `Clean up all candidates (${cleanupCandidates.length})`)}</button>}
             <div className="asset-health-filters">
               {([
                 ['all', uiText("全部", "All")],
@@ -746,13 +828,14 @@ const WorkspaceAssetBrowser: React.FC = () => {
       </div>
 
       <BlockbenchSetupDialog open={blockbenchSetupOpen} onClose={() => setBlockbenchSetupOpen(false)} />
-      {(importReview?.hidden || batchImportReview?.hidden || moveReview?.hidden) && <section className="asset-import-review-error" role="status" data-testid="asset-pending-recovery">
-        <p>{importReview?.unknown || batchImportReview?.unknown || moveReview?.unknown
+      {(importReview?.hidden || batchImportReview?.hidden || moveReview?.hidden || deleteReview?.hidden) && <section className="asset-import-review-error" role="status" data-testid="asset-pending-recovery">
+        <p>{importReview?.unknown || batchImportReview?.unknown || moveReview?.unknown || deleteReview?.unknown
           ? uiText('资产操作结果待确认。打开原计划读取最新内容，页面返回不会再次提交。', 'The asset operation result is unknown. Open its original plan to read the latest state; returning to this page does not submit it again.')
           : uiText('资产操作仍在进行。打开原计划查看状态。', 'An asset operation is still in progress. Open its original plan to review the status.')}</p>
         {importReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-import-resume" onClick={() => setImportReview(old => old && { ...old, hidden: false })}>{uiText('继续核对导入', 'Review pending import')}</button>}
         {batchImportReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-batch-resume" onClick={() => setBatchImportReview(old => old && { ...old, hidden: false })}>{uiText('继续核对批量导入', 'Review pending batch import')}</button>}
         {moveReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-move-resume" onClick={() => setMoveReview(old => old && { ...old, hidden: false })}>{uiText('继续核对移动', 'Review pending move')}</button>}
+        {deleteReview?.hidden && <button type="button" className="btn-secondary" data-testid="asset-delete-resume" onClick={() => setDeleteReview(old => old && { ...old, hidden: false })}>{uiText('继续核对删除', 'Review pending deletion')}</button>}
       </section>}
 
       {importReview && !importReview.hidden && (
@@ -804,7 +887,109 @@ const WorkspaceAssetBrowser: React.FC = () => {
         />
       )}
 
+      {deleteReview && !deleteReview.hidden && (
+        <AssetDeleteReview
+          state={deleteReview}
+          onConfirmChange={(confirmed) => setDeleteReview(old => old && { ...old, confirmed })}
+          onPreview={() => void runDeletePreview()}
+          onCommit={() => void commitDelete()}
+          onCancel={() => closeReview('deleteReview')}
+          onDiscard={() => closeReview('deleteReview', true)}
+        />
+      )}
+
     </section>
+  );
+};
+
+const AssetDeleteReview: React.FC<{
+  state: AssetDeleteReviewState;
+  onConfirmChange: (confirmed: boolean) => void;
+  onPreview: () => void;
+  onCommit: () => void;
+  onCancel: () => void;
+  onDiscard: () => void;
+}> = ({ state, onConfirmChange, onPreview, onCommit, onCancel, onDiscard }) => {
+  const preview = state.preview;
+  const dialogRef = useDialogA11y(true, onCancel);
+  const usage = preview?.entries.filter(entry => entry.workspaceReferenceCount > 0) ?? [];
+  const unassessed = preview?.entries.filter(entry => !entry.safeUnused) ?? [];
+  const blocked = preview?.entries.filter(entry => entry.issueCodes.length > 0) ?? [];
+  const files = preview
+    ? preview.entries.map(entry => ({ path: entry.relativePath, size: entry.size, issues: entry.issueCodes }))
+    : state.assets.map(asset => ({ path: asset.path, size: asset.sizeBytes, issues: [] as string[] }));
+  return (
+    <div className="asset-import-review-backdrop" role="presentation">
+      <section ref={dialogRef} className="asset-import-review" role="dialog" aria-modal="true"
+        aria-label={uiText('资产删除预览', 'Asset deletion preview')} data-testid="asset-delete-review">
+        <div className="asset-import-review-heading">
+          <div>
+            <strong>{uiText(`删除 ${state.assets.length} 个文件`, `Delete ${state.assets.length} files`)}</strong>
+            <span>{uiText('删除前会创建恢复点，可在历史中还原。', 'A recovery point is created first; restore it from History.')}</span>
+          </div>
+          <button type="button" className="asset-clear-button" onClick={onCancel} aria-label={uiText('取消删除', 'Cancel deletion')}>
+            <XCircle size={16} />
+          </button>
+        </div>
+
+        <ul className="asset-delete-files" data-testid="asset-delete-files">
+          {files.map(file => (
+            <li key={file.path}><code>{file.path}</code><small>{formatBytes(file.size)}</small>
+              {file.issues.map(code => <code key={code} className="asset-delete-issue">{code}</code>)}</li>
+          ))}
+        </ul>
+
+        {state.busy && <div className="asset-import-review-status" role="status">{uiText('正在检查引用和使用情况…', 'Checking references and usage…')}</div>}
+        <AssetReviewFeedback state={state} kind="delete" onDiscard={onDiscard} />
+
+        {preview && (
+          <div className="asset-import-preview-summary" data-testid="asset-delete-preview-summary">
+            <div><span>{uiText('文件', 'Files')}</span><strong>{preview.deleteCount}</strong></div>
+            <div><span>{uiText('大小', 'Size')}</span><strong>{formatBytes(preview.totalSize)}</strong></div>
+            <div><span>{uiText('会失效的引用', 'References that would break')}</span>
+              <strong data-testid="asset-delete-reference-count">{preview.affectedReferences.length}</strong></div>
+            {preview.affectedReferences.length > 0 && (
+              <div className="asset-move-rewrites" data-testid="asset-delete-references">
+                <span>{uiText('这些文件仍引用要删除的资产', 'These files still reference assets being deleted')}</span>
+                <ul>{preview.affectedReferences.map(reference => (
+                  <li key={`${reference.sourcePath}:${reference.sourcePointer}`}>
+                    <code>{reference.sourcePath}{reference.sourcePointer}</code><small>{reference.rawValue}</small>
+                  </li>))}</ul>
+              </div>
+            )}
+            {usage.length > 0 && <p className="asset-delete-note" data-testid="asset-delete-workspace-usage">{uiText(
+              `元素或工作区设置中可能用到其中 ${usage.length} 个文件（按名称匹配，可能多算）。`,
+              `Elements or workspace settings may use ${usage.length} of these files (matched by name, may over-count).`)}</p>}
+            {unassessed.length > 0 && <p className="asset-delete-note" data-testid="asset-delete-unassessed">{uiText(
+              `其中 ${unassessed.length} 个文件不是已核实的清理候选，无法排除仍在使用。`,
+              `${unassessed.length} of these files are not assessed cleanup candidates, so their use cannot be ruled out.`)}</p>}
+            {blocked.length > 0 && <p className="asset-delete-note" role="alert">{uiText(
+              '生成器产出的文件会在下次生成时重建，pack.mcmeta 是包的必需文件，这些文件不能删除。',
+              'Generator outputs are recreated on the next generation and pack.mcmeta is required by the pack; these files cannot be deleted.')}</p>}
+            {preview.requiresReferenceConfirmation && preview.canApply && (
+              <label className="asset-delete-confirm">
+                <input type="checkbox" checked={state.confirmed} disabled={state.busy}
+                  onChange={event => onConfirmChange(event.target.checked)} data-testid="asset-delete-confirm" />
+                <span>{uiText('我已核对上述引用和使用情况，仍要删除', 'I reviewed the references and usage above and still want to delete')}</span>
+              </label>
+            )}
+          </div>
+        )}
+
+        <div className="asset-import-review-actions">
+          <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy} data-testid="asset-delete-preview">
+            <RefreshCw size={13} aria-hidden="true" />
+            <span>{state.unknown ? uiText('读取资产并重新预览', 'Read assets and preview again') : uiText('重新预览', 'Preview again')}</span>
+          </button>
+          <button type="button" className="btn-primary" onClick={onCommit} data-testid="asset-delete-commit"
+            disabled={state.busy || state.unknown || !preview?.canApply || (preview.requiresReferenceConfirmation && !state.confirmed)}>
+            <Trash2 size={13} aria-hidden="true" />
+            <span>{uiText('创建恢复点并删除', 'Create recovery point and delete')}</span>
+          </button>
+          <button type="button" className="btn-secondary" onClick={onCancel} disabled={state.busy}>{uiText('取消', 'Cancel')}</button>
+        </div>
+      </section>
+    </div>
   );
 };
 
@@ -1157,9 +1342,10 @@ const AssetDetails: React.FC<{
   onCopyId: (id: string) => void;
   onImport: (asset: AssetRecord) => void;
   onMove: (asset: AssetRecord) => void;
+  onDelete: (asset: AssetRecord) => void;
   onOpenBlockbench: (asset: AssetRecord) => void;
   onSelectAsset: (id: string) => void;
-}> = ({ asset, assets, copyStatus, openingBlockbench, blockbenchNotice, onSetupBlockbench, onCopyId, onImport, onMove, onOpenBlockbench, onSelectAsset }) => {
+}> = ({ asset, assets, copyStatus, openingBlockbench, blockbenchNotice, onSetupBlockbench, onCopyId, onImport, onMove, onDelete, onOpenBlockbench, onSelectAsset }) => {
   const { state, openSource } = useWorkbench();
   const inspector = useRef<HTMLElement>(null);
   useEffect(() => { if (inspector.current) inspector.current.scrollTop = 0; }, [asset?.id]);
@@ -1182,6 +1368,7 @@ const AssetDetails: React.FC<{
       <details className="asset-library-more"><summary aria-label={uiText('文件操作', 'File actions')}>•••</summary><div>
         <button type="button" data-testid="asset-move-button" onClick={() => onMove(asset)}><CornerDownRight size={14} />{uiText('重命名 / 移动', 'Rename / move')}</button>
         <button type="button" onClick={() => onImport(asset)}><Upload size={14} />{uiText('替换文件', 'Replace file')}</button>
+        <button type="button" data-testid="asset-delete-button" onClick={() => onDelete(asset)}><Trash2 size={14} />{uiText('删除文件', 'Delete file')}</button>
       </div></details>
     </div>
     {blockbenchNotice && <div className="asset-library-blockbench-notice" data-testid="asset-blockbench-notice">

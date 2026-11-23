@@ -577,6 +577,7 @@ export class JcefCoreBridge implements CoreBridge {
       case 'asset_imported':
       case 'assets_imported':
       case 'asset_moved':
+      case 'asset_deleted':
       case 'asset_external_edit_committed':
         this.state.currentRecoveryPointId = null;
         break;

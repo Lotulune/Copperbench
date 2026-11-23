@@ -464,6 +464,8 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("inspect_asset_references"));
 			assertTrue(tools.body().contains("preview_asset_move"));
 			assertTrue(tools.body().contains("move_asset"));
+			assertTrue(tools.body().contains("preview_asset_delete"));
+			assertTrue(tools.body().contains("delete_asset"));
 
 			HttpResponse<String> coverageResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":35,\"method\":\"tools/call\",\"params\":{\"name\":\"get_element_coverage\",\"arguments\":{}}}",

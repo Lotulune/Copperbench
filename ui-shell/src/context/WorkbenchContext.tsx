@@ -175,6 +175,8 @@ interface WorkbenchContextType {
   importAssetBatch: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
   previewAssetMove: (sourceAssetId: string, targetRelativePath: string) => Promise<AssetMovePreview | null>;
   moveAsset: (planToken: string) => Promise<CommandResult>;
+  previewAssetDelete: (assetIds: string[]) => Promise<import('../types/contract').AssetDeletePreview>;
+  deleteAsset: (planToken: string, confirmAffectedReferences: boolean) => Promise<CommandResult>;
   workspacePreviewTarget: PreviewTarget | null;
   previewVersionCopyUpgrade: (targetGeneratorId: string) => Promise<import('../types/contract').VersionCopyUpgradeResult>;
   versionCopyUpgradeV2: (request: import('../types/contract').VersionCopyUpgradeV2Request) => Promise<import('../types/contract').VersionCopyUpgradeResult>;
@@ -517,6 +519,24 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       expectedRevision: revision,
       operation: 'move_asset',
       payload: { clientMutationId: generateUUID(), planToken }
+    });
+  }, [state.workbench]);
+
+  const previewAssetDelete = useCallback(async (assetIds: string[]) => {
+    const res = await coreBridge.sendQuery<import('../types/contract').AssetDeletePreview>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), operation: 'preview_asset_delete', payload: { assetIds }
+    });
+    if (res.status !== 'succeeded' || !res.data)
+      throw new OperationFailure(res.diagnostics, uiMessage('资产删除预览失败。', 'Could not preview this asset deletion.'));
+    return res.data;
+  }, [state.workbench]);
+
+  const deleteAsset = useCallback(async (planToken: string, confirmAffectedReferences: boolean): Promise<CommandResult> => {
+    return coreBridge.sendCommand({
+      messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'delete_asset', payload: { clientMutationId: generateUUID(), planToken, confirmAffectedReferences }
     });
   }, [state.workbench]);
 
@@ -1573,6 +1593,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       importAssetBatch,
       previewAssetMove,
       moveAsset,
+      previewAssetDelete,
+      deleteAsset,
       previewVersionCopyUpgrade,
       versionCopyUpgradeV2,
       previewTargets,
@@ -1666,6 +1688,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       importAssetBatch,
       previewAssetMove,
       moveAsset,
+      previewAssetDelete,
+      deleteAsset,
       previewVersionCopyUpgrade,
       versionCopyUpgradeV2,
       previewTargets,
