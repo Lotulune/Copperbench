@@ -186,6 +186,7 @@ interface WorkbenchContextType {
     modId: string;
     packageName?: string;
     workspaceFolderPath: string;
+    importArchivePath?: string;
     version?: string;
     userApproved: boolean;
   }) => Promise<CommandResult>;
@@ -1383,6 +1384,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       modId: string;
       packageName?: string;
       workspaceFolderPath: string;
+      importArchivePath?: string;
       version?: string;
       userApproved: boolean;
     }): Promise<CommandResult> => {

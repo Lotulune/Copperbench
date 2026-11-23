@@ -9,6 +9,7 @@
 | 安装 / Install | [Windows](user/getting-started.md) · [Ubuntu](user/linux-installation.md) | [Windows](user/getting-started.en.md) · [Ubuntu](user/linux-installation.en.md) |
 | 第一件作品 / First creation | [步道方块](user/first-creation.md) · [对话创作](user/simple-creation.md) | [Trail Block](user/first-creation.en.md) · [Conversational creation](user/simple-creation.en.md) |
 | 构建与导出 / Build and export | [修复与交付](user/build-and-export.md) | [Recovery and delivery](user/build-and-export.en.md) |
+| 数据包 / Data packs | [数据包工作区](user/data-packs.md) | [Data pack workspaces](user/data-packs.en.md) |
 | Agent 接入 / Automation | [接入指南](ai/getting-started.md) · [API 示例](ai/trail-block.md) | [Setup](ai/getting-started.en.md) · [API example](ai/trail-block.en.md) |
 | 源码贡献 / Contribute | [开发环境](build/development-setup.md) | [Development setup](build/development-setup.en.md) · [Contributing](../CONTRIBUTING.md) |
 

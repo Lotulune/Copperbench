@@ -1858,12 +1858,17 @@ public final class WorkspaceApplicationService {
 		String modId;
 		String packageName;
 		String workspaceFolderPath;
+		Path importArchive;
 		try {
 			generatorId = requiredString(command.payload(), "generatorId");
 			modName = requiredString(command.payload(), "modName");
 			modId = requiredString(command.payload(), "modId");
 			packageName = optionalString(command.payload(), "packageName");
 			workspaceFolderPath = requiredString(command.payload(), "workspaceFolderPath");
+			String archive = optionalString(command.payload(), "importArchivePath");
+			importArchive = archive == null ? null : Path.of(archive);
+			if (importArchive != null && !importArchive.isAbsolute())
+				throw new IllegalArgumentException("importArchivePath must be an absolute path to a .zip file");
 		} catch (RuntimeException exception) {
 			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
 		}
@@ -1875,7 +1880,7 @@ public final class WorkspaceApplicationService {
 		try {
 			coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
 				WorkspaceCreationService.CreationResult created = workspaceCreation.create(generatorId, modName, modId,
-						effectivePackageName, workspaceFolderPath, version, context.previewGeneratorId() != null);
+						effectivePackageName, workspaceFolderPath, version, context.previewGeneratorId() != null, importArchive);
 				return new WorkspaceCreationMutation(created, created.complete() ? state.nextEventSequence() : 0);
 			});
 		} catch (RuntimeException exception) {
@@ -1902,8 +1907,10 @@ public final class WorkspaceApplicationService {
 		payload.addProperty("generatorId", created.generatorId());
 		payload.addProperty("modId", modId);
 		Event event = event(command, coordinated.revision(), coordinated.value().sequence(), "workspace_created", payload);
+		JsonObject data = payload.deepCopy();
+		if (created.imported() != null) data.add("imported", created.imported().deepCopy());
 		return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
-				payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+				data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
 
 	private static String workspaceCreationFallback(String code) {
@@ -1917,6 +1924,11 @@ public final class WorkspaceApplicationService {
 			case "WORKSPACE_FOLDER_REQUIRED" -> "A workspace folder is required.";
 			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder must be an absolute child directory without path redirects.";
 			case "WORKSPACE_FOLDER_NOT_EMPTY" -> "The workspace folder is not empty.";
+			case "IMPORT_REQUIRES_DATA_PACK" -> "Only data pack workspaces can start from an imported ZIP.";
+			case "IMPORT_ARCHIVE_UNREADABLE" -> "The import file is not a readable .zip archive.";
+			case "IMPORT_ARCHIVE_NOT_DATA_PACK" -> "The ZIP is not a data pack: it needs pack.mcmeta at its top level and files under data/.";
+			case "IMPORT_ARCHIVE_TOO_LARGE" -> "The ZIP exceeds the import limit of 20000 entries, 64 MiB per file or 256 MiB in total.";
+			case "IMPORT_ARCHIVE_PATH_INVALID" -> "The ZIP contains an unsafe, duplicate or conflicting entry name.";
 			default -> "The new workspace form is invalid: " + code + ".";
 		};
 	}
@@ -1929,6 +1941,8 @@ public final class WorkspaceApplicationService {
 			case "PACKAGE_NAME_INVALID" -> "/packageName";
 			case "WORKSPACE_FOLDER_REQUIRED", "WORKSPACE_FOLDER_OUTSIDE_ROOT", "WORKSPACE_FOLDER_NOT_EMPTY" ->
 					"/workspaceFolderPath";
+			case "IMPORT_REQUIRES_DATA_PACK", "IMPORT_ARCHIVE_UNREADABLE", "IMPORT_ARCHIVE_NOT_DATA_PACK",
+					"IMPORT_ARCHIVE_TOO_LARGE", "IMPORT_ARCHIVE_PATH_INVALID" -> "/importArchivePath";
 			default -> null;
 		};
 	}
@@ -2933,7 +2947,13 @@ public final class WorkspaceApplicationService {
 		try {
 			Path target = command.operation() == Operation.CREATE_WORKSPACE
 					? Path.of(requiredString(command.payload(), "workspaceFolderPath")) : workspaceRoot(command.workspaceId());
-			return taskAuthorizations.authorize(requiredString(command.payload(), "taskAuthorizationId"), target, command.operation());
+			String authorization = requiredString(command.payload(), "taskAuthorizationId");
+			var decision = taskAuthorizations.authorize(authorization, target, command.operation());
+			// A task's authority covers one root, so it may import only a ZIP inside that root.
+			String archive = command.operation() == Operation.CREATE_WORKSPACE ? optionalString(command.payload(), "importArchivePath") : null;
+			if (decision.allowed() && archive != null)
+				return taskAuthorizations.authorize(authorization, Path.of(archive).toAbsolutePath().normalize().getParent(), command.operation());
+			return decision;
 		} catch (RuntimeException exception) {
 			return new TaskAuthorizationStore.Decision(false, "TASK_AUTHORIZATION_INVALID", false);
 		}

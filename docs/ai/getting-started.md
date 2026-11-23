@@ -70,7 +70,7 @@ Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口�
   --task-authorization '<user-issued authorization ID>' --no-prompt true
 ```
 
-创建成功的 JSON 会返回新的 `.mcreator` 路径。随后使用正常 headless 或 Desktop MCP 入口读取真实工程环境；headless 形式为：
+数据包工作区可以加 `--import-archive <数据包.zip>` 从已有数据包开始，见[数据包工作区](../user/data-packs.md#agent-与命令行)。创建成功的 JSON 会返回新的 `.mcreator` 路径。随后使用正常 headless 或 Desktop MCP 入口读取真实工程环境；headless 形式为：
 
 ```powershell
 .\copperbench.exe headless --workspace <path.mcreator> environment

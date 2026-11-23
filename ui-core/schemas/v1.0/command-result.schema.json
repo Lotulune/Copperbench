@@ -362,6 +362,115 @@
         "modId": {
           "type": "string",
           "minLength": 1
+        },
+        "imported": {
+          "$ref": "#/$defs/dataPackImport"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dataPackImport": {
+      "description": "What a data pack workspace kept from its imported ZIP and what the content check found.",
+      "type": "object",
+      "required": [
+        "root",
+        "namespaces",
+        "dataFiles",
+        "packIcon",
+        "skipped",
+        "droppedMetadata",
+        "importedFiles",
+        "formatSupported",
+        "contentIssues"
+      ],
+      "properties": {
+        "root": {
+          "type": "string"
+        },
+        "packFormat": {},
+        "minFormat": {},
+        "maxFormat": {},
+        "supportedFormats": {},
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "suggestedGeneratorId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supportedGeneratorIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "suggestedModId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dataFiles": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "packIcon": {
+          "type": "boolean"
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "droppedMetadata": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "importedFiles": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "formatSupported": {
+          "type": "boolean"
+        },
+        "contentIssues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

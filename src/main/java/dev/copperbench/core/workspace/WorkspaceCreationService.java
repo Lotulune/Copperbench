@@ -56,9 +56,14 @@ public final class WorkspaceCreationService {
 
 	/** Result of a creation attempt; diagnostics are stable codes, never Java exception text. */
 	public record CreationResult(boolean complete, String workspaceFile, String generatorId,
-			List<String> diagnostics, String detail) {
+			List<String> diagnostics, String detail, JsonObject imported) {
 		public CreationResult(boolean complete, String workspaceFile, String generatorId, List<String> diagnostics) {
-			this(complete, workspaceFile, generatorId, diagnostics, null);
+			this(complete, workspaceFile, generatorId, diagnostics, null, null);
+		}
+
+		public CreationResult(boolean complete, String workspaceFile, String generatorId, List<String> diagnostics,
+				String detail) {
+			this(complete, workspaceFile, generatorId, diagnostics, detail, null);
 		}
 	}
 
@@ -191,12 +196,32 @@ public final class WorkspaceCreationService {
 	/** Called after the Core preview/authority gate; the ordinary overload continues to reject previews. */
 	public CreationResult create(String generatorId, String modName, String modId, String packageName,
 			String workspaceFolderPath, String version, boolean selectedPreview) {
+		return create(generatorId, modName, modId, packageName, workspaceFolderPath, version, selectedPreview, null);
+	}
+
+	/**
+	 * @param importArchive an existing data pack ZIP whose {@code data/} tree and icon a new data pack workspace starts
+	 *                      with, or {@code null}; the result's {@code imported} summary then reports what was kept and
+	 *                      what the content check found
+	 */
+	public CreationResult create(String generatorId, String modName, String modId, String packageName,
+			String workspaceFolderPath, String version, boolean selectedPreview, @Nullable Path importArchive) {
 		Objects.requireNonNull(generatorId);
 		Objects.requireNonNull(modName);
 		Objects.requireNonNull(modId);
 		List<String> diagnostics = validateCreation(generatorId, modName, modId, packageName, workspaceFolderPath, selectedPreview);
 		if (!diagnostics.isEmpty())
 			return new CreationResult(false, null, generatorId, diagnostics);
+		DataPackArchive.Inspection inspection = null;
+		if (importArchive != null) {
+			if (!isDataPackGenerator(generatorId))
+				return new CreationResult(false, null, generatorId, List.of("IMPORT_REQUIRES_DATA_PACK"));
+			try {
+				inspection = DataPackArchive.inspect(importArchive);
+			} catch (DataPackArchive.ArchiveException exception) {
+				return new CreationResult(false, null, generatorId, List.of(exception.code()), exception.getMessage());
+			}
+		}
 
 		Path workspaceFolder = Path.of(workspaceFolderPath).toAbsolutePath().normalize();
 		GeneratorConfiguration configuration = generatorConfiguration(generatorId);
@@ -207,25 +232,33 @@ public final class WorkspaceCreationService {
 		settings.setCurrentGenerator(configuration.getGeneratorName());
 		if (packageName != null && !packageName.isBlank())
 			settings.setModElementsPackage(packageName);
+		// The generated pack.mcmeta writes this description.
+		if (inspection != null && inspection.description() != null)
+			settings.setDescription(inspection.description());
 
 		File workspaceFile = workspaceFolder.resolve(modId + ".mcreator").toFile();
 		boolean preserveWorkspaceFolder = Files.exists(workspaceFolder);
 		try (Workspace workspace = Workspace.createWorkspace(workspaceFile, settings)) {
+			JsonObject imported = null;
 			try {
 				WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
 				GradleUtils.updateMCreatorBuildFile(workspace);
 				if (isResourcePackGenerator(generatorId))
 					setupResourcePackWorkspace(workspace, workspaceFolder);
-				else if (isDataPackGenerator(generatorId))
+				else if (isDataPackGenerator(generatorId)) {
 					setupDataPackWorkspace(workspace, workspaceFolder);
-				else
+					if (inspection != null)
+						imported = importDataPack(importArchive, inspection, workspaceFolder, generatorId, modId);
+				} else
 					setupJavaWorkspace(workspace, generatorId);
 			} catch (RuntimeException exception) {
-				if (exception instanceof WorkspaceBaseGenerationException)
+				if (exception instanceof WorkspaceBaseGenerationException || exception instanceof ImportFailure)
 					throw exception;
 				throw new WorkspaceSkeletonSetupException(exception);
 			}
-			return new CreationResult(true, workspaceFile.getAbsolutePath(), generatorId, List.of());
+			return new CreationResult(true, workspaceFile.getAbsolutePath(), generatorId, List.of(), null, imported);
+		} catch (ImportFailure failure) {
+			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder, failure.archive.code(), failure.archive);
 		} catch (WorkspaceBaseGenerationException exception) {
 			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder,
 					exception.diagnostic, exception);
@@ -247,6 +280,19 @@ public final class WorkspaceCreationService {
 	public List<String> validateCreation(String generatorId, String modName, String modId, String packageName,
 			String workspaceFolderPath) {
 		return validateCreation(generatorId, modName, modId, packageName, workspaceFolderPath, false);
+	}
+
+	/** Read-only preflight that also checks an import archive: a readable data pack ZIP for a data pack generator. */
+	public List<String> validateCreation(String generatorId, String modName, String modId, String packageName,
+			String workspaceFolderPath, boolean selectedPreview, @Nullable Path importArchive) {
+		List<String> diagnostics = new ArrayList<>(validateCreation(generatorId, modName, modId, packageName,
+				workspaceFolderPath, selectedPreview));
+		if (importArchive != null) {
+			if (!isDataPackGenerator(generatorId)) diagnostics.add("IMPORT_REQUIRES_DATA_PACK");
+			else try { DataPackArchive.inspect(importArchive); }
+			catch (DataPackArchive.ArchiveException exception) { diagnostics.add(exception.code()); }
+		}
+		return List.copyOf(diagnostics);
 	}
 
 	/** Read-only backend preflight. selectedPreview is an internal Core decision, never a form field. */
@@ -399,6 +445,48 @@ public final class WorkspaceCreationService {
 		if (!Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta"))
 				|| !Files.isRegularFile(workspaceFolder.resolve("src/main/pack.png")))
 			throw new WorkspaceSkeletonSetupException();
+	}
+
+	/**
+	 * Copies the archive into the generated skeleton and runs the data pack content check over the result, so the
+	 * summary names what the game would not load (for example 1.20 folder names imported into a 1.21 workspace).
+	 */
+	private static JsonObject importDataPack(Path archive, DataPackArchive.Inspection inspection, Path workspaceFolder,
+			String generatorId, String modId) {
+		Path source = workspaceFolder.resolve("src/main");
+		try {
+			int files = DataPackArchive.extract(archive, inspection, source);
+			JsonObject imported = inspection.toJson();
+			imported.addProperty("importedFiles", files);
+			imported.addProperty("formatSupported", inspection.supports(generatorId));
+			JsonArray issues = new JsonArray();
+			String namespace = modId.matches("[a-z][a-z0-9_]{1,63}") ? modId : null;
+			for (var issue : dev.copperbench.generator.datapack.DataPackContentValidator.validate(source, generatorId,
+					namespace, line -> { })) {
+				JsonObject item = new JsonObject();
+				item.addProperty("code", issue.code());
+				item.addProperty("path", issue.path());
+				item.addProperty("message", issue.message());
+				issues.add(item);
+			}
+			imported.add("contentIssues", issues);
+			return imported;
+		} catch (DataPackArchive.ArchiveException exception) {
+			throw new ImportFailure(exception);
+		} catch (IOException exception) {
+			throw new ImportFailure(new DataPackArchive.ArchiveException("IMPORT_ARCHIVE_UNREADABLE",
+					"The imported files could not be checked.", exception));
+		}
+	}
+
+	private static final class ImportFailure extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+		private final DataPackArchive.ArchiveException archive;
+
+		private ImportFailure(DataPackArchive.ArchiveException archive) {
+			super(archive);
+			this.archive = archive;
+		}
 	}
 
 	private static final class WorkspaceSkeletonSetupException extends RuntimeException {

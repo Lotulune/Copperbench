@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  * into the workspace's own namespace. It reports only what Minecraft would skip or fail to load. References into other
  * namespaces are not resolved, because the game, a mod or another pack may define them.
  */
-final class DataPackContentValidator {
+public final class DataPackContentValidator {
 	static final int MAX_FILES = 20_000, MAX_ISSUES = 50;
 	private static final long MAX_PARSE_BYTES = 8L * 1024 * 1024;
 	private static final Gson GSON = new Gson();
@@ -91,7 +91,7 @@ final class DataPackContentValidator {
 	 * @param sourceRoot   the workspace's {@code src/main} folder, which holds {@code pack.mcmeta} and {@code data/}
 	 * @param ownNamespace the workspace namespace whose references are resolved, or {@code null} to skip reference checks
 	 */
-	static List<ValidationIssue> validate(Path sourceRoot, String generatorId, String ownNamespace, Consumer<String> log)
+	public static List<ValidationIssue> validate(Path sourceRoot, String generatorId, String ownNamespace, Consumer<String> log)
 			throws IOException {
 		return new DataPackContentValidator(sourceRoot, generatorId, ownNamespace).run(log);
 	}

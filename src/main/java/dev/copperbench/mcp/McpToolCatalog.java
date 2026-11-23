@@ -235,6 +235,8 @@ final class McpToolCatalog {
 						"modId", Map.of("type", "string", "minLength", 1),
 						"packageName", Map.of("type", "string"),
 						"workspaceFolderPath", Map.of("type", "string", "minLength", 1),
+						"importArchivePath", Map.of("type", "string", "minLength", 1, "description",
+								"Absolute path to an existing data pack ZIP; data pack generators only"),
 						"version", Map.of("type", "string"),
 						"userApproved", Map.of("type", "boolean"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),

@@ -1996,6 +1996,12 @@ export class MockCoreBridge implements CoreBridge {
           generatorId: payload.generatorId,
           modId: payload.modId
         };
+        // The browser preview cannot read the ZIP, so it reports one copied file and a clean content check.
+        if (payload.importArchivePath) created.imported = {
+          root: '', description: null, suggestedGeneratorId: payload.generatorId, supportedGeneratorIds: [payload.generatorId],
+          namespaces: [payload.modId], suggestedModId: payload.modId, dataFiles: 1, packIcon: false, skipped: [],
+          droppedMetadata: [], importedFiles: 1, formatSupported: true, contentIssues: []
+        };
         const ev: CoreEvent = {
           messageType: 'event',
           schemaVersion: '1.0',

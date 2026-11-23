@@ -692,8 +692,35 @@ export interface CreateWorkspacePayload {
   modId: string;
   packageName?: string;
   workspaceFolderPath: string;
+  /** Absolute path to an existing data pack ZIP; data pack generators only. */
+  importArchivePath?: string;
   version?: string;
   userApproved: boolean;
+}
+
+/** What a data pack ZIP holds, as the desktop picker inspects it and as create_workspace reports it. */
+export interface DataPackArchiveInspection {
+  root: string;
+  packFormat?: unknown;
+  minFormat?: unknown;
+  maxFormat?: unknown;
+  supportedFormats?: unknown;
+  description: string | null;
+  suggestedGeneratorId: string | null;
+  /** Bundled data pack generators whose pack format the pack declares, newest first. */
+  supportedGeneratorIds: string[];
+  namespaces: string[];
+  suggestedModId: string | null;
+  dataFiles: number;
+  packIcon: boolean;
+  skipped: string[];
+  droppedMetadata: string[];
+}
+
+export interface DataPackImport extends DataPackArchiveInspection {
+  importedFiles: number;
+  formatSupported: boolean;
+  contentIssues: { code: string; path?: string | null; message: string }[];
 }
 
 export interface CreateModElementPayload {
@@ -977,6 +1004,7 @@ export interface CommandResultData {
   workspaceFile?: string;
   generatorId?: string;
   modId?: string;
+  imported?: DataPackImport;
   taskId?: UUID;
   sourceRevision?: Revision;
   currentRevision?: Revision;

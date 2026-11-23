@@ -209,7 +209,7 @@ public final class HeadlessCli {
 		}
 		Set<String> allowed = Set.of("--revision", "--output", "--target", "--output-name", "--approve", "--source",
 				"--name", "--pack", "--source-directory", "--generator-id", "--mod-name", "--mod-id",
-				"--package-name", "--workspace-folder", "--version", "--element-id", "--edits-json", "--registry",
+				"--package-name", "--workspace-folder", "--import-archive", "--version", "--element-id", "--edits-json", "--registry",
 				"--entry-json", "--entry-id", "--changes-json", "--new-name", "--force", "--task-id",
 				"--manifest-hash", "--after-log-sequence", "--task-authorization", "--authorization-id", "--label", "--recovery-point", "--stream");
 		for (String option : options.keySet()) {
@@ -286,6 +286,9 @@ public final class HeadlessCli {
 			payload.addProperty("packageName", options.get("--package-name"));
 		if (options.containsKey("--workspace-folder"))
 			payload.addProperty("workspaceFolderPath", options.get("--workspace-folder"));
+		if (options.containsKey("--import-archive"))
+			payload.addProperty("importArchivePath", java.nio.file.Path.of(options.get("--import-archive")).toAbsolutePath()
+					.normalize().toString());
 		if (options.containsKey("--version"))
 			payload.addProperty("version", options.get("--version"));
 		if (options.containsKey("--approve"))

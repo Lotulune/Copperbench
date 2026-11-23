@@ -57,6 +57,41 @@ class BootstrapProductLauncherTest {
 		assertFalse(Files.exists(scope.resolve("second")));
 	}
 
+	@Test void taskAuthorityImportsOnlyADataPackZipInsideItsRoot(@org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
+		Path scope = temporary.resolve("task");
+		var authority = new dev.copperbench.automation.security.TaskAuthorizationStore(temporary.resolve("private"), java.time.Clock.systemUTC());
+		String id = authority.issue(dev.copperbench.core.contract.UiCore.Actor.UI, true, "Pack import", scope,
+				java.util.List.of("create"), 3600, false).get("id").getAsString();
+		Path outside = dataPackZip(temporary.resolve("outside.zip"));
+		Path inside = dataPackZip(Files.createDirectories(scope.resolve("downloads")).resolve("ember.zip"));
+		String[] args = { "create-workspace", "--generator-id", "datapack-1.21.1", "--mod-name", "Ember", "--mod-id", "ember",
+				"--workspace-folder", scope.resolve("ember").toString(), "--import-archive", outside.toString(),
+				"--task-authorization", id, "--no-prompt", "true" };
+		StringWriter output = new StringWriter();
+		assertEquals(HeadlessExitCode.PERMISSION_DENIED.code(), BootstrapProductLauncher.run(args, new PrintWriter(output, true),
+				new WorkspaceCreationService(), request -> { throw new AssertionError("no prompt"); }, authority), output.toString());
+		assertTrue(output.toString().contains("TASK_AUTHORIZATION_SCOPE_MISMATCH"), output.toString());
+		assertFalse(Files.exists(scope.resolve("ember")));
+
+		args[10] = inside.toString();
+		output = new StringWriter();
+		assertEquals(HeadlessExitCode.SUCCESS.code(), BootstrapProductLauncher.run(args, new PrintWriter(output, true),
+				new WorkspaceCreationService(), request -> { throw new AssertionError("no prompt"); }, authority), output.toString());
+		JsonObject imported = JsonParser.parseString(output.toString()).getAsJsonObject().getAsJsonObject("data").getAsJsonObject("imported");
+		assertEquals(1, imported.get("importedFiles").getAsInt(), imported.toString());
+		assertEquals("say imported\n", Files.readString(scope.resolve("ember/src/main/data/ember/function/start.mcfunction")));
+	}
+
+	private static Path dataPackZip(Path file) throws IOException {
+		try (var zip = new java.util.zip.ZipOutputStream(Files.newOutputStream(file))) {
+			zip.putNextEntry(new java.util.zip.ZipEntry("pack.mcmeta"));
+			zip.write("{\"pack\":{\"pack_format\":48,\"description\":\"Ember\"}}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+			zip.putNextEntry(new java.util.zip.ZipEntry("data/ember/function/start.mcfunction"));
+			zip.write("say imported\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		}
+		return file;
+	}
+
 	@BeforeAll static void initializeUpstreamRuntime() throws Exception {
 		McreatorTestRuntime.ensureInitialized();
 	}

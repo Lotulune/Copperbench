@@ -115,6 +115,81 @@ test.describe('New Workspace (product shell native flow)', () => {
     await expect(page.getByTestId('new-workspace-package-input')).toHaveCount(0);
   });
 
+  test('a data pack can start from an inspected ZIP, and the receipt follows creation', async ({ page }, testInfo) => {
+    await page.addInitScript(() => {
+      (window as unknown as Record<string, unknown>).__COPPERBENCH_WORKSPACE_OPEN_HOST__ = {
+        available: false,
+        dataPackArchivePickerAvailable: true,
+        async chooseDataPackArchive() {
+          return { cancelled: false, path: 'D:/Downloads/Ember Tweaks.zip', inspection: {
+            root: '', packFormat: 48, description: 'Ember', suggestedGeneratorId: 'datapack-1.21.1',
+            supportedGeneratorIds: ['datapack-1.21.1'], namespaces: ['ember', 'minecraft'], suggestedModId: 'ember',
+            dataFiles: 12, packIcon: true, skipped: ['README.md'], droppedMetadata: ['overlays'] } };
+        },
+        async open() {}
+      };
+    });
+    await page.goto('/');
+    await page.click('[data-testid="nav-new-workspace"]');
+    await page.getByTestId('generator-option-datapack-26.1.x').click();
+    await expect(page.getByTestId('new-workspace-import-path')).toContainText('不导入');
+    await page.getByTestId('new-workspace-import-browse-btn').click();
+
+    // The pack's declared format picks the version; its name and namespace fill the empty fields.
+    await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('datapack-1.21.1');
+    await expect(page.getByTestId('new-workspace-mod-name-input')).toHaveValue('Ember Tweaks');
+    await expect(page.getByTestId('new-workspace-mod-id-input')).toHaveValue('ember');
+    const summary = page.getByTestId('new-workspace-import-summary');
+    await expect(summary).toContainText('12 个数据文件');
+    await expect(summary).toContainText('README.md');
+    await expect(summary).toContainText('overlays');
+    await expect(page.getByTestId('new-workspace-import-format-warning')).toHaveCount(0);
+    await page.getByTestId('generator-option-datapack-1.20.1').click();
+    await expect(page.getByTestId('new-workspace-import-format-warning')).toContainText('datapack-1.21.1');
+    await page.getByTestId('new-workspace-info').screenshot({ path: testInfo.outputPath('new-workspace-import.png'), animations: 'disabled' });
+    await page.getByTestId('generator-option-datapack-1.21.1').click();
+
+    await page.getByTestId('new-workspace-folder-input').fill('C:\\Users\\example\\MCreatorWorkspaces\\ember');
+    await page.getByTestId('confirm-create-workspace-checkbox').check();
+    await expect(page.locator('.new-workspace-confirm')).toContainText('D:/Downloads/Ember Tweaks.zip');
+    await page.getByTestId('create-workspace-submit-btn').click();
+    const banner = page.getByTestId('workspace-created-banner');
+    await expect(banner).toContainText('ember.mcreator');
+    await expect(page.getByTestId('workspace-import-result')).toContainText('已从 ZIP 导入 1 个文件');
+    await expect(page.getByTestId('workspace-import-result')).toContainText('内容检查没有发现');
+  });
+
+  test('a ZIP the host refuses shows why and is not sent with the creation', async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as unknown as Record<string, unknown>).__COPPERBENCH_WORKSPACE_OPEN_HOST__ = {
+        available: false,
+        dataPackArchivePickerAvailable: true,
+        async chooseDataPackArchive() {
+          return { cancelled: false, path: 'D:/Downloads/textures.zip', code: 'IMPORT_ARCHIVE_NOT_DATA_PACK',
+            message: 'The ZIP has no files under data/; it looks like a resource pack.' };
+        },
+        async open() {}
+      };
+    });
+    await page.goto('/');
+    await page.click('[data-testid="nav-new-workspace"]');
+    await page.getByTestId('generator-option-datapack-1.21.1').click();
+    await page.getByTestId('new-workspace-import-browse-btn').click();
+    const error = page.getByTestId('new-workspace-import-error');
+    await expect(error).toContainText('这个 ZIP 不是数据包');
+    await expect(error).toContainText('resource pack');
+    await expect(page.getByTestId('new-workspace-import-summary')).toHaveCount(0);
+    await page.getByTestId('new-workspace-mod-name-input').fill('Plain Pack');
+    await page.getByTestId('new-workspace-mod-id-input').fill('plain_pack');
+    await page.getByTestId('new-workspace-folder-input').fill('C:\\Users\\example\\MCreatorWorkspaces\\plain_pack');
+    await page.getByTestId('confirm-create-workspace-checkbox').check();
+    await expect(page.locator('.new-workspace-confirm')).not.toContainText('textures.zip');
+    await page.getByTestId('create-workspace-submit-btn').click();
+    await expect(page.getByTestId('workspace-created-banner')).toContainText('plain_pack.mcreator');
+    // The mock reports an import receipt only when importArchivePath reaches Core.
+    await expect(page.getByTestId('workspace-import-result')).toHaveCount(0);
+  });
+
   test('mod id drives package autofill and the suggested folder path', async ({ page }) => {
     await page.click('[data-testid="nav-new-workspace"]');
     await page.fill('[data-testid="new-workspace-mod-id-input"]', 'copper_trails');
