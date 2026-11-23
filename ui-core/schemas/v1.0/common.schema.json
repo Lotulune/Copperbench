@@ -1059,7 +1059,7 @@
         "availableTypes": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/modElementType"
+            "$ref": "#/$defs/modElementListType"
           },
           "uniqueItems": true
         }

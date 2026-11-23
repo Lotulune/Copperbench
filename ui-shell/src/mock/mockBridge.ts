@@ -432,6 +432,7 @@ export class MockCoreBridge implements CoreBridge {
       } else if (qr.operation === 'list_mod_elements') {
         const list = qr.data as ModElementListProjection;
         this.state.elements = list.items;
+        if (list.availableTypes) this.state.availableElementTypes = [...list.availableTypes];
         this.updateWorkbenchCounts();
       } else if (qr.operation === 'get_mod_element_editor') {
         const editor = qr.data as ModElementEditorProjection;

@@ -5,6 +5,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 ## 2026-11-22 data packs as a workspace kind (unreleased source)
 
 - Offer the inherited `datapack-26.1.x`, `datapack-1.21.1` and `datapack-1.20.1` generators in the new-workspace flow, CLI and MCP catalog without a Java package, and project their workspaces as `kind` / `loader` `data_pack`. Earlier projections derived the loader from the generator id (`datapack`), a value outside the UI-Core enum that the shell displayed as Fabric. UI-Core 1.0 gains the `data_pack` value in its loader, track and workspace-kind enums, following the earlier `resource_pack` addition; strict older clients need the updated schema. No generator templates changed.
+- Offer and accept only the element types the workspace generator declares templates for. `list_mod_elements` reports them in `availableTypes` and the create dialog lists them, so a data pack is not offered blocks or items; `create_mod_element` rejects other types with `GENERATOR_ELEMENT_TYPE_UNSUPPORTED` instead of storing an element that generates no files. Preview targets keep their negotiated scope. UI-Core 1.0 types `availableTypes` like list item types, since Core already returned the whole first-party catalog there.
 
 ## 2026-11-17 Agent route and creation defaults (unreleased source)
 

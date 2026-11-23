@@ -1976,6 +1976,11 @@ public final class WorkspaceApplicationService {
 
 		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
 			WorkspaceState before = state.copy();
+			// The generator would store such an element but write no files for it.
+			if (!availableElementTypes(state).contains(type))
+				return Decision.abort(Mutation.rejected(diagnostic("GENERATOR_ELEMENT_TYPE_UNSUPPORTED",
+						"diagnostic.generator_element_type_unsupported",
+						"This workspace's generator cannot generate this element type.", "/elementType", null)));
 			if (state.hasElementName(name))
 				return Decision.abort(Mutation.rejected(diagnostic("MOD_ELEMENT_NAME_CONFLICT",
 						"diagnostic.mod_element_name_conflict", "An element with this name already exists.", "/name", null)));
@@ -3300,9 +3305,23 @@ public final class WorkspaceApplicationService {
 		else
 			result.add("nextCursor", JsonNull.INSTANCE);
 		JsonArray availableTypes = new JsonArray();
-		ElementCoverageCatalog.FIRST_PARTY_SLICE.forEach(availableTypes::add);
+		availableElementTypes(state).forEach(availableTypes::add);
 		result.add("availableTypes", availableTypes);
 		return result;
+	}
+
+	/**
+	 * First-party types the workspace generator declares templates for, so a data pack is not offered blocks or items.
+	 * Without a loaded generator the whole slice stays; preview targets negotiate their own element scope.
+	 */
+	static List<String> availableElementTypes(WorkspaceState state) {
+		String generator = optionalString(state.generator(), "id");
+		if (generator == null || !net.mcreator.generator.Generator.GENERATOR_CACHE.containsKey(generator)
+				|| dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generator))
+			return ElementCoverageCatalog.FIRST_PARTY_SLICE;
+		return ElementCoverageCatalog.FIRST_PARTY_SLICE.stream()
+				.filter(type -> dev.copperbench.release.GeneratorElementCapabilityCatalog.decision(generator, type).generatable())
+				.toList();
 	}
 
 	private static String listSearch(JsonObject payload, JsonObject filter) {
