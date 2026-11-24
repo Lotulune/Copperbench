@@ -65,6 +65,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#SOUND" tabindex="0">SOUND</a></li>
 <li><a href="#RESOURCE_PACK" tabindex="0">RESOURCE_PACK</a></li>
 <li><a href="#BLOCKSTATE" tabindex="0">BLOCKSTATE</a></li>
+<li><a href="#STRUCTURE" tabindex="0">STRUCTURE</a></li>
 <li><a href="#OTHER" tabindex="0">OTHER</a></li>
 </ol>
 </li>
@@ -73,6 +74,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#values()" tabindex="0">values()</a></li>
 <li><a href="#valueOf(java.lang.String)" tabindex="0">valueOf(String)</a></li>
 <li><a href="#fromRelativePath(java.lang.String)" tabindex="0">fromRelativePath(String)</a></li>
+<li><a href="#textureUsage(java.lang.String)" tabindex="0">textureUsage(String)</a></li>
 </ol>
 </li>
 </ol>
@@ -132,8 +134,12 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#SOUND" class="member-name-link">SOUND</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#TEXTURE" class="member-name-link">TEXTURE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#STRUCTURE" class="member-name-link">STRUCTURE</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Structure templates (<code>.nbt</code>) under a data root.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="#TEXTURE" class="member-name-link">TEXTURE</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -151,14 +157,20 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fromRelativePath(java.lang.String)" class="member-name-link">fromRelativePath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;relativePath)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#valueOf(java.lang.String)" class="member-name-link">valueOf</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#textureUsage(java.lang.String)" class="member-name-link">textureUsage</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;relativePath)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">What a texture is for, from its first folder under <code>textures/</code>: block, item, entity, gui and the other
+vanilla texture folders, <code>other</code> for anything else, or <code>null</code> when the path is not under textures/.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#valueOf(java.lang.String)" class="member-name-link">valueOf</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a>[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#values()" class="member-name-link">values</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a>[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#values()" class="member-name-link">values</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
 </div>
@@ -239,6 +251,15 @@ the order they are declared.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="STRUCTURE">
+<h3>STRUCTURE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a></span>&nbsp;<span class="element-name">STRUCTURE</span></div>
+<div class="block">Structure templates (<code>.nbt</code>) under a data root.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="OTHER">
 <h3>OTHER</h3>
 <div class="horizontal-scroll">
@@ -294,6 +315,16 @@ not permitted.)</div>
 <h3>fromRelativePath</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="AssetCategory.html" title="enum class in dev.copperbench.assets">AssetCategory</a></span>&nbsp;<span class="element-name">fromRelativePath</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;relativePath)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="textureUsage(java.lang.String)">
+<h3>textureUsage</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">textureUsage</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;relativePath)</span></div>
+<div class="block">What a texture is for, from its first folder under <code>textures/</code>: block, item, entity, gui and the other
+vanilla texture folders, <code>other</code> for anything else, or <code>null</code> when the path is not under textures/.</div>
 </div>
 </section>
 </li>

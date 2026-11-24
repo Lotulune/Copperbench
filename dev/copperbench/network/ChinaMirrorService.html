@@ -70,6 +70,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#rememberChoice(boolean)" tabindex="0">rememberChoice(boolean)</a></li>
 <li><a href="#syncUserHome()" tabindex="0">syncUserHome()</a></li>
 <li><a href="#applyToWorkspace(net.mcreator.workspace.Workspace)" tabindex="0">applyToWorkspace(Workspace)</a></li>
+<li><a href="#wrapperDistributionBase()" tabindex="0">wrapperDistributionBase()</a></li>
 <li><a href="#applyToWorkspace(java.nio.file.Path,boolean)" tabindex="0">applyToWorkspace(Path, boolean)</a></li>
 <li><a href="#applyUserHome(java.nio.file.Path,boolean)" tabindex="0">applyUserHome(Path, boolean)</a></li>
 <li><a href="#loadInitScript()" tabindex="0">loadInitScript()</a></li>
@@ -135,7 +136,9 @@ Gradle wrapper downloads happen before init scripts, so the wrapper URL must be 
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#applyToWorkspace(java.nio.file.Path,boolean)" class="member-name-link">applyToWorkspace</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;workspaceFolder,
  boolean&nbsp;enabled)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Points the workspace wrapper at the mirror when enabled and back at services.gradle.org when disabled.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#applyToWorkspace(net.mcreator.workspace.Workspace)" class="member-name-link">applyToWorkspace</a><wbr>(<a href="../../../net/mcreator/workspace/Workspace.html" title="class in net.mcreator.workspace">Workspace</a>&nbsp;workspace)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
@@ -158,10 +161,17 @@ Gradle wrapper downloads happen before init scripts, so the wrapper URL must be 
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#rewriteWrapperProperties(java.lang.String,boolean)" class="member-name-link">rewriteWrapperProperties</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;content,
  boolean&nbsp;enabled)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Enabled: official Gradle distributions move to the mirror and the network timeout is raised.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#syncUserHome()" class="member-name-link">syncUserHome</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wrapperDistributionBase()" class="member-name-link">wrapperDistributionBase</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">The wrapper's distribution base for the current setting, escaped for a properties file.</div>
+</div>
 </div>
 </div>
 </div>
@@ -293,11 +303,21 @@ Gradle wrapper downloads happen before init scripts, so the wrapper URL must be 
 </section>
 </li>
 <li>
+<section class="detail" id="wrapperDistributionBase()">
+<h3>wrapperDistributionBase</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">wrapperDistributionBase</span>()</div>
+<div class="block">The wrapper's distribution base for the current setting, escaped for a properties file.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="applyToWorkspace(java.nio.file.Path,boolean)">
 <h3>applyToWorkspace</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">applyToWorkspace</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;workspaceFolder,
  boolean&nbsp;enabled)</span></div>
+<div class="block">Points the workspace wrapper at the mirror when enabled and back at services.gradle.org when disabled.</div>
 </div>
 </section>
 </li>
@@ -329,6 +349,8 @@ Gradle wrapper downloads happen before init scripts, so the wrapper URL must be 
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">rewriteWrapperProperties</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;content,
  boolean&nbsp;enabled)</span></div>
+<div class="block">Enabled: official Gradle distributions move to the mirror and the network timeout is raised. Disabled: mirror
+distributions move back to services.gradle.org; the raised timeout stays, since the original value is unknown.</div>
 </div>
 </section>
 </li>

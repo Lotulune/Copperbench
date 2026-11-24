@@ -99,6 +99,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#removeVariableElement(net.mcreator.workspace.elements.VariableElement)" tabindex="0">removeVariableElement(VariableElement)</a></li>
 <li><a href="#removeTagElement(net.mcreator.workspace.elements.TagElement)" tabindex="0">removeTagElement(TagElement)</a></li>
 <li><a href="#removeSoundElement(net.mcreator.workspace.elements.SoundElement)" tabindex="0">removeSoundElement(SoundElement)</a></li>
+<li><a href="#unregisterSoundElement(net.mcreator.workspace.elements.SoundElement)" tabindex="0">unregisterSoundElement(SoundElement)</a></li>
 <li><a href="#putMetadata(java.lang.String,java.lang.Object)" tabindex="0">putMetadata(String, Object)</a></li>
 <li><a href="#getMetadata(java.lang.String)" tabindex="0">getMetadata(String)</a></li>
 <li><a href="#setMCreatorVersion(long)" tabindex="0">setMCreatorVersion(long)</a></li>
@@ -389,9 +390,15 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateLanguage(java.lang.String,java.util.LinkedHashMap)" class="member-name-link">updateLanguage</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;language,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#unregisterSoundElement(net.mcreator.workspace.elements.SoundElement)" class="member-name-link">unregisterSoundElement</a><wbr>(<a href="elements/SoundElement.html" title="class in net.mcreator.workspace.elements">SoundElement</a>&nbsp;element)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Copperbench: removes a sound event registration but keeps its sound files, which remain workspace assets with
+their own reviewed deletion.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateLanguage(java.lang.String,java.util.LinkedHashMap)" class="member-name-link">updateLanguage</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;language,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/LinkedHashMap.html" title="class or interface in java.util" class="external-link">LinkedHashMap</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;data)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -718,6 +725,16 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>removeSoundElement</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">removeSoundElement</span><wbr><span class="parameters">(<a href="elements/SoundElement.html" title="class in net.mcreator.workspace.elements">SoundElement</a>&nbsp;element)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="unregisterSoundElement(net.mcreator.workspace.elements.SoundElement)">
+<h3>unregisterSoundElement</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">unregisterSoundElement</span><wbr><span class="parameters">(<a href="elements/SoundElement.html" title="class in net.mcreator.workspace.elements">SoundElement</a>&nbsp;element)</span></div>
+<div class="block">Copperbench: removes a sound event registration but keeps its sound files, which remain workspace assets with
+their own reviewed deletion.</div>
 </div>
 </section>
 </li>
