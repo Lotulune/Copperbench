@@ -48,8 +48,13 @@ public final class BootstrapProductLauncher {
 		boolean approve(CreateRequest request);
 	}
 
+	/** @param importArchivePath an existing data pack ZIP the new data pack workspace starts from, or {@code null} */
 	record CreateRequest(String generatorId, String modName, String modId, String packageName,
-			String workspaceFolderPath, String version) {
+			String workspaceFolderPath, String version, String importArchivePath) {
+		CreateRequest(String generatorId, String modName, String modId, String packageName, String workspaceFolderPath,
+				String version) {
+			this(generatorId, modName, modId, packageName, workspaceFolderPath, version, null);
+		}
 	}
 
 	public static int run(String[] arguments, PrintWriter output) {
@@ -98,7 +103,11 @@ public final class BootstrapProductLauncher {
 		data.add("commands", commands);
 		data.addProperty("createUsage",
 				"bootstrap create-workspace --generator-id <id> --mod-name <name> --mod-id <id> "
-						+ "--workspace-folder <path> [--package-name <package>] [--version <version>] [--task-authorization <id>] [--no-prompt true]");
+						+ "--workspace-folder <path> [--package-name <package>] [--version <version>] [--import-archive <data-pack.zip>]"
+						+ " [--task-authorization <id>] [--no-prompt true]");
+		data.addProperty("importUsage", "--import-archive starts a data pack workspace (datapack-* generator) from an existing"
+				+ " data pack ZIP: its data/ tree and pack.png are copied, and data.imported reports skipped entries, dropped"
+				+ " pack.mcmeta fields and the content check.");
 		data.addProperty("approval", "Use a local UI confirmation or a user-issued task authorization covering the target directory.");
 		data.addProperty("nonInteractive", "External agents should pass --no-prompt true: missing authorization returns USER_APPROVAL_REQUIRED without opening a dialog.");
 		data.addProperty("authorizationUsage", "bootstrap authorize-task --root <absolute-directory> --label <task> [--capabilities create,edit,build,test,run_client] [--ttl-seconds 7200]");
@@ -122,13 +131,17 @@ public final class BootstrapProductLauncher {
 		String workspaceFolder = required(options, "--workspace-folder");
 		String packageName = options.get("--package-name");
 		if (packageName == null || packageName.isBlank())
-			packageName = "resourcepack-1.21.1".equals(generatorId) ? null
+			packageName = "resourcepack-1.21.1".equals(generatorId)
+					|| WorkspaceCreationService.isDataPackGenerator(generatorId) ? null
 					: "net.mcreator." + modId.replaceAll("[^a-z0-9_]", "");
 		String version = options.getOrDefault("--version", "1.0.0");
-		CreateRequest request = new CreateRequest(generatorId, modName, modId, packageName, workspaceFolder, version);
+		java.nio.file.Path importArchive = options.containsKey("--import-archive")
+				? java.nio.file.Path.of(options.get("--import-archive")).toAbsolutePath().normalize() : null;
+		CreateRequest request = new CreateRequest(generatorId, modName, modId, packageName, workspaceFolder, version,
+				importArchive == null ? null : importArchive.toString());
 
 		List<String> diagnostics = service.validateCreation(request.generatorId(), request.modName(), request.modId(),
-				request.packageName(), request.workspaceFolderPath());
+				request.packageName(), request.workspaceFolderPath(), false, importArchive);
 		if (!diagnostics.isEmpty())
 			return serviceFailure(output, diagnostics, HeadlessExitCode.VALIDATION_FAILED);
 
@@ -136,6 +149,9 @@ public final class BootstrapProductLauncher {
 		if (options.containsKey("--task-authorization")) {
 			var decision = authorizations.authorize(
 					options.get("--task-authorization"), java.nio.file.Path.of(workspaceFolder), Operation.CREATE_WORKSPACE);
+			// A task's authority covers one root, so it may import only a ZIP inside that root.
+			if (decision.allowed() && importArchive != null)
+				decision = authorizations.authorize(options.get("--task-authorization"), importArchive.getParent(), Operation.CREATE_WORKSPACE);
 			if (!decision.allowed()) return fail(output, HeadlessExitCode.PERMISSION_DENIED, decision.code(),
 					"Task authority does not allow creating this workspace. Review the root, lifetime and create capability.");
 			approved = true;
@@ -166,7 +182,7 @@ public final class BootstrapProductLauncher {
 		}
 
 		WorkspaceCreationService.CreationResult result = service.create(request.generatorId(), request.modName(),
-				request.modId(), request.packageName(), request.workspaceFolderPath(), request.version());
+				request.modId(), request.packageName(), request.workspaceFolderPath(), request.version(), false, importArchive);
 		if (!result.complete()) {
 			boolean validationFailure = result.diagnostics().stream().allMatch(BootstrapProductLauncher::validationCode);
 			return serviceFailure(output, result.diagnostics(),
@@ -178,6 +194,7 @@ public final class BootstrapProductLauncher {
 		data.addProperty("workspaceFile", result.workspaceFile());
 		data.addProperty("generatorId", result.generatorId());
 		data.addProperty("modId", request.modId());
+		if (result.imported() != null) data.add("imported", result.imported());
 		response.add("data", data);
 		write(output, response);
 		return HeadlessExitCode.SUCCESS.code();
@@ -189,7 +206,9 @@ public final class BootstrapProductLauncher {
 		String message = "<html><b>是否允许 Copperbench 创建此工作区？</b><br><br>"
 				+ "生成器（Generator）：" + escapeHtml(request.generatorId()) + "<br>"
 				+ "模组（Mod）：" + escapeHtml(request.modName()) + " (" + escapeHtml(request.modId()) + ")<br>"
-				+ "文件夹（Folder）：" + escapeHtml(request.workspaceFolderPath()) + "<br><br>"
+				+ "文件夹（Folder）：" + escapeHtml(request.workspaceFolderPath()) + "<br>"
+				+ (request.importArchivePath() == null ? "" : "导入数据包（Import）：" + escapeHtml(request.importArchivePath()) + "<br>")
+				+ "<br>"
 				+ "外部工具可能正在等待此次确认。确认后将在上述位置创建工作区文件。</html>";
         return LocalApprovalWindow.confirm(ProductIdentity.NAME + " 工作区创建确认", message);
 	}
@@ -214,7 +233,7 @@ public final class BootstrapProductLauncher {
 				throw new IllegalArgumentException("Options must use --name value pairs");
 			String option = arguments[index];
 			if (!List.of("--generator-id", "--mod-name", "--mod-id", "--package-name", "--workspace-folder",
-					"--version", "--task-authorization", "--no-prompt").contains(option))
+					"--version", "--import-archive", "--task-authorization", "--no-prompt").contains(option))
 				throw new IllegalArgumentException("Unknown option: " + option);
 			if (options.put(option, arguments[index + 1]) != null)
 				throw new IllegalArgumentException("Duplicate option: " + option);
@@ -250,7 +269,8 @@ public final class BootstrapProductLauncher {
 		return switch (code) {
 			case "UNSUPPORTED_GENERATOR", "GENERATOR_NOT_INSTALLED", "MOD_NAME_INVALID", "MOD_ID_INVALID",
 					"PACKAGE_NAME_INVALID", "WORKSPACE_FOLDER_REQUIRED", "WORKSPACE_FOLDER_OUTSIDE_ROOT",
-					"WORKSPACE_FOLDER_NOT_EMPTY" -> true;
+					"WORKSPACE_FOLDER_NOT_EMPTY", "IMPORT_REQUIRES_DATA_PACK", "IMPORT_ARCHIVE_UNREADABLE",
+					"IMPORT_ARCHIVE_NOT_DATA_PACK", "IMPORT_ARCHIVE_TOO_LARGE", "IMPORT_ARCHIVE_PATH_INVALID" -> true;
 			default -> false;
 		};
 	}

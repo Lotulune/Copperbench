@@ -10,7 +10,8 @@ async function settingsHost(page: Page, rejectSave = false) {
         { key: 'ide.editorTheme', section: 'ide' as const, type: 'choice' as const, value: 'MCreator', options: ['MCreator', 'Dark'] },
         { key: 'ide.fontSize', section: 'ide' as const, type: 'integer' as const, value: 12, min: 5, max: 48 },
         { key: 'gradle.Xmx', section: 'gradle' as const, type: 'integer' as const, value: 3072, min: 128, max: 8192 },
-        { key: 'gradle.offline', section: 'gradle' as const, type: 'boolean' as const, value: false }
+        { key: 'gradle.offline', section: 'gradle' as const, type: 'boolean' as const, value: false },
+        { key: 'gradle.useChinaMirrors', section: 'gradle' as const, type: 'boolean' as const, value: true }
       ]
     };
     const hostWindow = window as unknown as { __COPPERBENCH_WINDOW_HOST__: unknown; __SETTINGS_PATCHES__: unknown[] };
@@ -79,6 +80,22 @@ test('host ranges govern validation and search finds settings across categories'
   await settings.getByRole('button', { name: 'Discard & reload', exact: true }).click();
   await expect(memory).toHaveValue('3072');
   expect(await page.evaluate(() => (window as unknown as { __SETTINGS_PATCHES__: unknown[] }).__SETTINGS_PATCHES__)).toEqual([]);
+});
+
+test('mainland China mirrors can be turned off again from settings', async ({ page }) => {
+  await settingsHost(page);
+  const settings = await openSettings(page);
+  await settings.getByRole('button', { name: 'Build & run', exact: true }).click();
+  const mirrors = settings.getByRole('checkbox', { name: 'Mainland China mirrors', exact: true });
+  await expect(mirrors).toBeChecked();
+  await expect(settings.getByText('Turn off to use the official sources again.', { exact: false })).toBeVisible();
+  await mirrors.uncheck();
+  await settings.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(settings.getByText('Settings saved', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __SETTINGS_PATCHES__: unknown[] }).__SETTINGS_PATCHES__)).toEqual([
+    { revision: 'preferences-1', changes: { 'gradle.useChinaMirrors': false } }
+  ]);
+  await expect(mirrors).not.toBeChecked();
 });
 
 test('rejected save retains draft and never announces success', async ({ page }) => {

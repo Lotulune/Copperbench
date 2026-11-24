@@ -225,6 +225,29 @@ class MCreatorGenerationPreparationTest {
         }
     }
 
+    @Test void registryEditsInADataPackWorkspaceDoNotNeedLanguageFiles() throws Exception {
+        var settings = new WorkspaceSettings("cbdp"); settings.setCurrentGenerator("datapack-1.21.1");
+        settings.setModName("Data Probe"); settings.setVersion("1.0.0");
+        UUID id = UUID.randomUUID();
+        var mapper = new MCreatorWorkspaceStateMapper();
+        try (Workspace workspace = Workspace.createWorkspace(root.resolve("cbdp.mcreator").toFile(), settings)) {
+            assertTrue(workspace.getGenerator().generateBase());
+            assertTrue(workspace.getGeneratorConfiguration().getLanguageFileSpecification().isEmpty(),
+                    "the data-pack generator declares no language files");
+            var before = mapper.map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(id));
+            JsonObject registries = before.registries();
+            registries.getAsJsonArray("tags").add(com.google.gson.JsonParser.parseString("""
+                    {"name":"probe_items","namespace":"mod","category":"items","members":["Items.STICK"]}
+                    """).getAsJsonObject());
+            var after = before.copy(); after.replaceRegistries(registries);
+            // This threw a NullPointerException from Generator.getLangFilesRoot() and rolled the edit back.
+            new MCreatorWorkspaceMutationGateway(workspace, id).persistWorkspaceData(before, after, Operation.CREATE_REGISTRY_ENTRY);
+        }
+        var saved = com.google.gson.JsonParser.parseString(Files.readString(root.resolve("cbdp.mcreator"))).getAsJsonObject()
+                .getAsJsonObject("tag_elements");
+        assertTrue(saved.has("ITEMS:mod:probe_items"), saved.toString());
+    }
+
     @Test void tagRenameAndDeleteRetireOnlyTheirGeneratedFilesAndSurviveReopen() throws Exception {
         UUID id = UUID.randomUUID();
         Path folder = root.resolve("src/main/resources/data/cold_fields/tags/item");

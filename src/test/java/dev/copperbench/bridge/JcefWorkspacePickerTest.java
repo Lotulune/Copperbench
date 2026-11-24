@@ -74,7 +74,37 @@ class JcefWorkspacePickerTest {
 	@Test void bootstrapAdvertisesPickersWithoutRemovingExistingExportOperations() {
 		String script = JcefWorkspaceOpenBridgeTransport.generateBootstrapScript();
 		for (String value : new String[]{"workspacePickerAvailable: true", "workspaceFolderPickerAvailable: true",
-				"chooseWorkspace:", "chooseWorkspaceFolder:", "choose_workspace", "choose_workspace_folder",
+				"dataPackArchivePickerAvailable: true", "chooseWorkspace:", "chooseWorkspaceFolder:", "chooseDataPackArchive:",
+				"choose_workspace", "choose_workspace_folder", "choose_data_pack_archive",
 				"open_verified_export_folder", "open_build_folder"}) assertTrue(script.contains(value), value);
+		assertFalse(script.contains("%s"), "every query prefix placeholder is filled");
+	}
+
+	@Test void aChosenDataPackZipIsInspectedOrExplainedWithoutBeingCopied() throws Exception {
+		var cancelled = JcefWorkspaceOpenBridgeTransport.archivePickerResult(null);
+		assertTrue(cancelled.get("cancelled").getAsBoolean());
+		assertEquals(1, cancelled.size());
+
+		Path zip = directory.resolve("ember.zip");
+		try (var output = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip))) {
+			output.putNextEntry(new java.util.zip.ZipEntry("pack.mcmeta"));
+			output.write("{\"pack\":{\"pack_format\":48,\"description\":\"Ember\"}}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+			output.putNextEntry(new java.util.zip.ZipEntry("data/ember/function/start.mcfunction"));
+			output.write("say hi\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		}
+		var selected = JcefWorkspaceOpenBridgeTransport.archivePickerResult(zip.toFile());
+		assertEquals(zip.toAbsolutePath().toString(), selected.get("path").getAsString());
+		var inspection = selected.getAsJsonObject("inspection");
+		assertEquals("datapack-1.21.1", inspection.get("suggestedGeneratorId").getAsString());
+		assertEquals("ember", inspection.get("suggestedModId").getAsString());
+		assertEquals(1, inspection.get("dataFiles").getAsInt());
+		assertFalse(selected.has("code"));
+
+		Path notZip = Files.writeString(directory.resolve("notes.zip"), "plain text");
+		var refused = JcefWorkspaceOpenBridgeTransport.archivePickerResult(notZip.toFile());
+		assertEquals("IMPORT_ARCHIVE_UNREADABLE", refused.get("code").getAsString());
+		assertTrue(refused.has("message"));
+		assertFalse(refused.has("inspection"));
+		assertEquals("plain text", Files.readString(notZip));
 	}
 }

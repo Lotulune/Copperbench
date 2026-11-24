@@ -67,6 +67,23 @@ class AppPreferencesServiceTest {
         try (var files = Files.list(file().getParent())) { assertEquals(1, files.count()); }
     }
 
+    @Test void changingTheMirrorChoiceSyncsTheGradleHomeOnlyWhenItChanges() throws Exception {
+        BooleanEntry mirrors = new BooleanEntry("useChinaMirrors", true);
+        int[] syncs = {0};
+        AppPreferencesService service = new AppPreferencesService(file(),
+                Map.of("gradle.offline", offline, "gradle.useChinaMirrors", mirrors),
+                (path, document) -> Files.writeString(path, document.toString()), () -> syncs[0]++);
+        assertTrue(service.read().toString().contains("gradle.useChinaMirrors"), "the settings page lists the mirror choice");
+        Files.createDirectories(file().getParent());
+        service.save(patch(service, "{\"gradle.offline\":true}"));
+        assertEquals(0, syncs[0]);
+        service.save(patch(service, "{\"gradle.useChinaMirrors\":true}"));
+        assertEquals(0, syncs[0], "an unchanged value leaves the Gradle home alone");
+        service.save(patch(service, "{\"gradle.useChinaMirrors\":false}"));
+        assertFalse(mirrors.get());
+        assertEquals(1, syncs[0], "turning mirrors off removes them from the Gradle home");
+    }
+
     @Test void invalidChangesAreRejectedAsAWholeBeforeWritingOrChangingMemory() throws Exception {
         AppPreferencesService service = service();
         for (String invalid : new String[] {"{\"ide.fontSize\":4}", "{\"ide.fontSize\":12.5}",

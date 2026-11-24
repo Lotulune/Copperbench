@@ -22,7 +22,8 @@ import java.util.*;
 final class WorkspaceSourceService {
 	static final int MAX_FILE_BYTES = 1024 * 1024;
 	private static final int MAX_FILES = 2000, MAX_VISITED = 10000, MAX_INDEX_BYTES = 16 * 1024 * 1024, MAX_EVIDENCE = 300;
-	private static final Set<String> EXTENSIONS = Set.of("java", "json", "mcmeta", "xml", "properties", "toml", "yaml", "yml", "txt", "md", "gradle", "kts", "vert", "frag", "glsl", "vsh", "fsh", "lang");
+	// mcfunction: data-pack and mod functions are plain text like the JSON beside them.
+	private static final Set<String> EXTENSIONS = Set.of("java", "json", "mcmeta", "mcfunction", "xml", "properties", "toml", "yaml", "yml", "txt", "md", "gradle", "kts", "vert", "frag", "glsl", "vsh", "fsh", "lang");
 	private static final Set<String> ROOT_FILES = Set.of("build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "mcreator.gradle", "gradle.properties", "README.md", "pack.mcmeta",
 			dev.copperbench.generator.GameTestSupport.CONFIG_FILE);
 	private static final Set<String> EXCLUDED = Set.of("build", "target", "out", "run", "node_modules", "output", "logs", "cache", "caches");

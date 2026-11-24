@@ -82,7 +82,7 @@ const requiredMethods = [
   'getWorkspace', 'listModElements', 'createModElement', 'updateProcedure',
   'getWorkspaceHealth', 'createRegistryEntry', 'listWorkspaceRegistries', 'renameRegistryEntry', 'previewRegistryRename',
   'planWorkspaceChanges', 'planProcedureRefactor', 'previewWorkspacePlan', 'applyWorkspacePlan',
-  'listAssets', 'previewAssetMove', 'moveAsset',
+  'listAssets', 'previewAssetMove', 'moveAsset', 'previewAssetDelete', 'deleteAsset',
   'buildWorkspace', 'runDatagen', 'previewDatagenOutput', 'publishDatagenOutput', 'getTask', 'cancelTask',
   'createRecoveryPoint', 'restoreRecoveryPoint'
 ];
@@ -92,7 +92,7 @@ const requiredPythonMethods = [
   'get_workspace', 'get_workspace_health', 'list_mod_elements', 'create_mod_element', 'update_procedure',
   'create_registry_entry', 'list_workspace_registries', 'rename_registry_entry', 'preview_registry_rename',
   'plan_workspace_changes', 'plan_procedure_refactor', 'preview_workspace_plan', 'apply_workspace_plan',
-  'list_assets', 'preview_asset_move', 'move_asset',
+  'list_assets', 'preview_asset_move', 'move_asset', 'preview_asset_delete', 'delete_asset',
   'build_workspace', 'run_datagen', 'preview_datagen_output', 'publish_datagen_output', 'get_task', 'cancel_task',
   'create_recovery_point', 'restore_recovery_point'
 ];

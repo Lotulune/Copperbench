@@ -114,7 +114,7 @@
         "page": 1,
         "pageSize": 50,
         "total": 4,
-        "availableTypes": ["block", "item", "recipe", "procedure"]
+        "availableTypes": ["block", "item", "recipe", "procedure", "function", "loottable", "achievement", "armor", "armortrim", "tool", "itemextension", "attribute", "bannerpattern", "command", "damagetype", "enchantment", "gamerule", "keybind", "painting", "particle", "potion", "potioneffect", "tab", "villagerprofession", "villagertrade", "biome", "dimension", "feature", "fluid", "plant", "structure", "livingentity", "specialentity", "projectile", "gui", "overlay", "code"]
       },
       "diagnostics": []
     }

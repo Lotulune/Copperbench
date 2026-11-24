@@ -235,6 +235,8 @@ final class McpToolCatalog {
 						"modId", Map.of("type", "string", "minLength", 1),
 						"packageName", Map.of("type", "string"),
 						"workspaceFolderPath", Map.of("type", "string", "minLength", 1),
+						"importArchivePath", Map.of("type", "string", "minLength", 1, "description",
+								"Absolute path to an existing data pack ZIP; data pack generators only"),
 						"version", Map.of("type", "string"),
 						"userApproved", Map.of("type", "boolean"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
@@ -284,10 +286,10 @@ final class McpToolCatalog {
 				Map.of("type", "object", "properties", Map.of("target", Map.of("type", "string")),
 						"additionalProperties", false),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
-		tools.add(queryTool("list_workspace_registries", "List variables, tags, and language keys with stable IDs",
+		tools.add(queryTool("list_workspace_registries", "List variables, tags, language keys and sound events with stable IDs",
 				Operation.LIST_WORKSPACE_REGISTRIES,
 				Map.of("type", "object", "properties", Map.of(
-						"registry", Map.of("type", "string", "enum", List.of("variables", "tags", "languageKeys")),
+						"registry", Map.of("type", "string", "enum", List.of("variables", "tags", "languageKeys", "sounds")),
 						"cursor", Map.of("type", "string"),
 						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
 						"sort", Map.of("type", "string", "enum", List.of("name", "-name", "kind", "-kind", "id", "-id")),
@@ -364,10 +366,11 @@ final class McpToolCatalog {
 						List.of("elementId", "mode", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("update_procedure", "Commit structured Procedure graph edits",
 				Operation.UPDATE_PROCEDURE, procedureSchema(true), McpToolCatalog::mutationPayload));
-		tools.add(commandTool("create_registry_entry", "Create a variable, tag, or language key",
+		tools.add(commandTool("create_registry_entry", "Create a variable, tag, language key, or sound event"
+						+ " (sounds: {name, files: [path under sounds/ without .ogg], category, subtitle?})",
 				Operation.CREATE_REGISTRY_ENTRY,
 				requiredSchema(Map.of("registry", Map.of("type", "string", "enum",
-						List.of("variables", "tags", "languageKeys")), "entry", Map.of("type", "object"),
+						List.of("variables", "tags", "languageKeys", "sounds")), "entry", Map.of("type", "object"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("registry", "entry", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("update_registry_entry", "Update registry entry fields without changing its stable ID",
@@ -562,6 +565,20 @@ final class McpToolCatalog {
 				"Apply a reviewed asset move as one revision with pre-change recovery and exact reference rewrites",
 				Operation.MOVE_ASSET,
 				requiredSchema(Map.of("planToken", Map.of("type", "string", "minLength", 1),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(queryTool("preview_asset_delete",
+				"Preview deleting assets: the files, the asset references that would stop resolving and the workspace usage found."
+						+ " Only cleanup candidates delete without confirming that usage",
+				Operation.PREVIEW_ASSET_DELETE,
+				requiredSchema(Map.of("assetIds", Map.of("type", "array", "minItems", 1, "maxItems", 200, "uniqueItems", true,
+						"items", Map.of("type", "string", "minLength", 1))), List.of("assetIds")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("delete_asset",
+				"Delete reviewed assets as one revision after a recovery point; set confirmAffectedReferences when the preview requires it",
+				Operation.DELETE_ASSET,
+				requiredSchema(Map.of("planToken", Map.of("type", "string", "minLength", 1),
+						"confirmAffectedReferences", Map.of("type", "boolean"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
 		if (assets != null) {

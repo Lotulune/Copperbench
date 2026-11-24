@@ -62,5 +62,22 @@ test('browser-only hosts have no native picker capabilities', async t => {
   assert.equal(bridge.available, false);
   assert.equal(bridge.workspacePickerAvailable, false);
   assert.equal(bridge.workspaceFolderPickerAvailable, false);
+  assert.equal(bridge.dataPackArchivePickerAvailable, false);
   await assert.rejects(bridge.chooseWorkspace(), /Enter the path manually/);
+  await assert.rejects(bridge.chooseDataPackArchive(), /desktop app/);
+});
+
+test('the data pack picker returns the host inspection only when the host advertises it', async t => {
+  const inspected = { cancelled: false, path: 'D:/Downloads/ember.zip', inspection: { dataFiles: 3 } };
+  const calls = [];
+  const bridge = await bridgeFor(t, {
+    available: true, dataPackArchivePickerAvailable: true,
+    chooseDataPackArchive: async initialPath => { calls.push(initialPath); return inspected; },
+    open: async () => {}
+  });
+  assert.equal(bridge.dataPackArchivePickerAvailable, true);
+  assert.deepEqual(await bridge.chooseDataPackArchive('D:/Downloads/old.zip'), inspected);
+  assert.deepEqual(calls, ['D:/Downloads/old.zip']);
+  const older = await bridgeFor(t, { available: true, dataPackArchivePickerAvailable: true, open: async () => {} });
+  assert.equal(older.dataPackArchivePickerAvailable, false, 'a flag without a callable method is not a picker');
 });

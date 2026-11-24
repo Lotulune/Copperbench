@@ -858,7 +858,9 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		Set<Path> files = new LinkedHashSet<>();
 		if (workspace.getGenerator() == null || workspace.getGeneratorConfiguration() == null) return files;
 		Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
-		File languageRoot = includeLanguage ? workspace.getGenerator().getLangFilesRoot() : null;
+		// Data- and resource-pack generators declare no language files; getLangFilesRoot() then has no root to resolve.
+		boolean hasLanguageFiles = workspace.getGeneratorConfiguration().getLanguageFileSpecification().get("root_folder") != null;
+		File languageRoot = includeLanguage && hasLanguageFiles ? workspace.getGenerator().getLangFilesRoot() : null;
 		if (languageRoot != null && languageRoot.isDirectory()) {
 			Path language = languageRoot.toPath().toAbsolutePath().normalize();
 			if (language.startsWith(root)) try (var listed = Files.list(language)) {

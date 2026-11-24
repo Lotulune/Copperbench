@@ -121,7 +121,7 @@ interface WorkbenchContextType {
   updateProcedure: (elementId: UUID, edits: ProcedureEdit[], expectedRevision?: number) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
-  createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
+  createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys' | 'sounds', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
   updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
   planProcedureRefactor: (request: ProcedureRefactorRequest) => Promise<WorkspacePlan | null>;
@@ -175,6 +175,8 @@ interface WorkbenchContextType {
   importAssetBatch: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
   previewAssetMove: (sourceAssetId: string, targetRelativePath: string) => Promise<AssetMovePreview | null>;
   moveAsset: (planToken: string) => Promise<CommandResult>;
+  previewAssetDelete: (assetIds: string[]) => Promise<import('../types/contract').AssetDeletePreview>;
+  deleteAsset: (planToken: string, confirmAffectedReferences: boolean) => Promise<CommandResult>;
   workspacePreviewTarget: PreviewTarget | null;
   previewVersionCopyUpgrade: (targetGeneratorId: string) => Promise<import('../types/contract').VersionCopyUpgradeResult>;
   versionCopyUpgradeV2: (request: import('../types/contract').VersionCopyUpgradeV2Request) => Promise<import('../types/contract').VersionCopyUpgradeResult>;
@@ -186,6 +188,7 @@ interface WorkbenchContextType {
     modId: string;
     packageName?: string;
     workspaceFolderPath: string;
+    importArchivePath?: string;
     version?: string;
     userApproved: boolean;
   }) => Promise<CommandResult>;
@@ -519,6 +522,24 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   }, [state.workbench]);
 
+  const previewAssetDelete = useCallback(async (assetIds: string[]) => {
+    const res = await coreBridge.sendQuery<import('../types/contract').AssetDeletePreview>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), operation: 'preview_asset_delete', payload: { assetIds }
+    });
+    if (res.status !== 'succeeded' || !res.data)
+      throw new OperationFailure(res.diagnostics, uiMessage('资产删除预览失败。', 'Could not preview this asset deletion.'));
+    return res.data;
+  }, [state.workbench]);
+
+  const deleteAsset = useCallback(async (planToken: string, confirmAffectedReferences: boolean): Promise<CommandResult> => {
+    return coreBridge.sendCommand({
+      messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'delete_asset', payload: { clientMutationId: generateUUID(), planToken, confirmAffectedReferences }
+    });
+  }, [state.workbench]);
+
   const getWorkspaceHealth = useCallback(async (): Promise<WorkspaceHealthProjection | null> => {
     if (!state.workbench) return null;
     const res = await coreBridge.sendQuery<WorkspaceHealthProjection>({
@@ -664,7 +685,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [state.workbench]);
 
   const createRegistryEntry = useCallback(async (
-    registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>
+    registry: 'variables' | 'tags' | 'languageKeys' | 'sounds', entry: Partial<RegistryEntry>
   ): Promise<CommandResult> => coreBridge.sendCommand({
     messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
     workspaceId: state.workbench?.workspace.id || generateUUID(),
@@ -1383,6 +1404,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       modId: string;
       packageName?: string;
       workspaceFolderPath: string;
+      importArchivePath?: string;
       version?: string;
       userApproved: boolean;
     }): Promise<CommandResult> => {
@@ -1571,6 +1593,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       importAssetBatch,
       previewAssetMove,
       moveAsset,
+      previewAssetDelete,
+      deleteAsset,
       previewVersionCopyUpgrade,
       versionCopyUpgradeV2,
       previewTargets,
@@ -1664,6 +1688,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       importAssetBatch,
       previewAssetMove,
       moveAsset,
+      previewAssetDelete,
+      deleteAsset,
       previewVersionCopyUpgrade,
       versionCopyUpgradeV2,
       previewTargets,

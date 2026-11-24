@@ -15,8 +15,10 @@ export interface AssetPreviewImage {
 
 export interface AssetPreviewProjection extends AssetPreviewImage {
   schemaVersion: '1.0';
-  kind: 'image' | 'model_json' | 'model' | 'unsupported';
+  kind: 'image' | 'model_json' | 'model' | 'audio' | 'unsupported';
   image?: AssetPreviewImage;
+  /** Sound bytes for ogg and wav files up to 4 MiB. */
+  audio?: AssetPreviewImage;
   document?: string;
   textures: AssetPreviewImage[];
   linkedTextureCount?: number;

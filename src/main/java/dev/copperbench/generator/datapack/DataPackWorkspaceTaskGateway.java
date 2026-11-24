@@ -70,6 +70,15 @@ public final class DataPackWorkspaceTaskGateway implements WorkspaceTaskGateway,
 				return List.of();
 			}
 
+			@Override public List<ValidationIssue> validateContent(Path targetRoot, WorkspaceState workspace,
+					Consumer<String> log) throws java.io.IOException {
+				String namespace;
+				try { namespace = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(workspace); }
+				catch (IllegalArgumentException unresolved) { namespace = null; }
+				return DataPackContentValidator.validate(targetRoot.resolve("src/main"),
+						workspace.generator().get("id").getAsString(), namespace, log);
+			}
+
 			@Override public GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws Exception {
 				Path source = targetRoot.resolve("src/main").normalize();
 				if (!Files.isRegularFile(source.resolve("pack.mcmeta")))

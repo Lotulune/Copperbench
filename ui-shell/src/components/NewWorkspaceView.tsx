@@ -10,7 +10,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
+import { workspaceOpenBridge, type DataPackArchiveSelection } from '../bridge/workspaceOpenBridge';
 import { isNativeHostPresent } from '../bridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import {
@@ -18,6 +18,7 @@ import {
   PreviewTarget,
   PreviewResult,
   CommandResult,
+  DataPackImport,
   Diagnostic
 } from '../types/contract';
 import { renderUiMessage, t, uiMessage, uiText, useUiLocale, type UiMessage } from '../i18n';
@@ -25,9 +26,10 @@ import { useFirstCreation } from '../onboarding/FirstCreationContext';
 import { FIRST_CREATION_GENERATOR } from '../onboarding/firstCreationModel';
 import { useWorkbenchMode } from '../context/WorkbenchModeContext';
 import { creationModId } from '../onboarding/simpleCreationDefaults';
+import { archiveDisplayName, importGenerator } from './dataPackImport';
 import './newWorkspace.css';
 
-type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath';
+type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath' | 'importArchivePath';
 
 const FIELD_BY_DIAGNOSTIC: Record<string, WorkspaceFormField> = {
   UNSUPPORTED_GENERATOR: 'generatorId',
@@ -38,7 +40,12 @@ const FIELD_BY_DIAGNOSTIC: Record<string, WorkspaceFormField> = {
   WORKSPACE_FOLDER_REQUIRED: 'workspaceFolderPath',
   WORKSPACE_FOLDER_OUTSIDE_ROOT: 'workspaceFolderPath',
   WORKSPACE_FOLDER_NOT_EMPTY: 'workspaceFolderPath',
-  WORKSPACE_CREATE_FAILED: 'workspaceFolderPath'
+  WORKSPACE_CREATE_FAILED: 'workspaceFolderPath',
+  IMPORT_REQUIRES_DATA_PACK: 'importArchivePath',
+  IMPORT_ARCHIVE_UNREADABLE: 'importArchivePath',
+  IMPORT_ARCHIVE_NOT_DATA_PACK: 'importArchivePath',
+  IMPORT_ARCHIVE_TOO_LARGE: 'importArchivePath',
+  IMPORT_ARCHIVE_PATH_INVALID: 'importArchivePath'
 };
 
 const FIELD_ELEMENT_ID: Record<WorkspaceFormField, string> = {
@@ -46,7 +53,8 @@ const FIELD_ELEMENT_ID: Record<WorkspaceFormField, string> = {
   modName: 'new-workspace-mod-name',
   modId: 'new-workspace-mod-id',
   packageName: 'new-workspace-package-name',
-  workspaceFolderPath: 'new-workspace-folder'
+  workspaceFolderPath: 'new-workspace-folder',
+  importArchivePath: 'new-workspace-import-browse'
 };
 
 const diagnosticField = (diagnostic: Diagnostic): WorkspaceFormField | null => {
@@ -70,6 +78,38 @@ const operationLabel = (operation: string): string => ({
   run_server: tr("启动服务器"), run_datagen: tr("生成数据"), run_gametest: tr("运行验收"),
   prepare_game_tests: tr("准备验收"), export_workspace: tr("导出模组")
 }[operation] ?? operation);
+
+/** What the chosen ZIP holds and what importing it leaves behind, before anything is written. */
+const DataPackImportPreview: React.FC<{ inspection: import('../types/contract').DataPackArchiveInspection; generatorId: string }> = ({ inspection, generatorId }) => {
+  const namespaces = inspection.namespaces.join(', ');
+  return (
+    <ul className="new-workspace-import-summary" data-testid="new-workspace-import-summary">
+      <li>{uiText(`${inspection.dataFiles} 个数据文件，命名空间：${namespaces}`, `${inspection.dataFiles} data files in ${namespaces}`)}</li>
+      {!inspection.supportedGeneratorIds.includes(generatorId) && <li className="is-warning" data-testid="new-workspace-import-format-warning">
+        {inspection.supportedGeneratorIds.length
+          ? uiText(`这个包声明的格式对应 ${inspection.supportedGeneratorIds.join('、')}，与所选版本不同；导入后内容检查会指出不兼容的目录。`,
+            `The pack declares the format of ${inspection.supportedGeneratorIds.join(', ')}, not the selected version; the content check will name incompatible folders after import.`)
+          : uiText('这个包声明的格式不对应任何内置数据包版本，请选择游戏版本。', 'The pack declares no format of a bundled data pack version; choose the game version.')}</li>}
+      {inspection.skipped.length > 0 && <li>{uiText('不会导入：', 'Not imported: ')}<code>{inspection.skipped.join(', ')}</code></li>}
+      {inspection.droppedMetadata.length > 0 && <li>{uiText('pack.mcmeta 中不保留：', 'Not kept from pack.mcmeta: ')}
+        <code>{inspection.droppedMetadata.join(', ')}</code></li>}
+    </ul>
+  );
+};
+
+/** The import receipt beside the created workspace: copied files and what the content check found. */
+const ImportedDataPackSummary: React.FC<{ imported: DataPackImport }> = ({ imported }) => (
+  <div className="new-workspace-import-result" data-testid="workspace-import-result">
+    <span>{uiText(`已从 ZIP 导入 ${imported.importedFiles} 个文件。`, `Imported ${imported.importedFiles} files from the ZIP.`)}</span>
+    {imported.contentIssues.length === 0
+      ? <span>{uiText('内容检查没有发现游戏无法加载的内容。', 'The content check found nothing the game would fail to load.')}</span>
+      : <details open>
+        <summary>{uiText(`内容检查发现 ${imported.contentIssues.length} 个问题，修复前构建会失败：`,
+          `The content check found ${imported.contentIssues.length} problems; builds fail until they are fixed:`)}</summary>
+        <ul>{imported.contentIssues.slice(0, 8).map((issue, index) => <li key={index}><code>{issue.code}</code> {issue.message}</li>)}</ul>
+      </details>}
+  </div>
+);
 
 export const NewWorkspaceView: React.FC<{ active?: boolean }> = ({ active = true }) => {
   const [formId, setFormId] = useState(0);
@@ -119,6 +159,9 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
   const [packageName, setPackageName] = useState('');
   const [packageTouched, setPackageTouched] = useState(false);
   const [workspaceFolder, setWorkspaceFolder] = useState('');
+  const [importSelection, setImportSelection] = useState<DataPackArchiveSelection | null>(null);
+  const [archivePicking, setArchivePicking] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
   const [version, setVersion] = useState('1.0.0');
   const [userApproved, setUserApproved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -203,14 +246,36 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
     [generators, generatorId]
   );
   const isResourcePack = selectedGenerator?.loader === 'resource_pack';
+  const isDataPack = selectedGenerator?.loader === 'data_pack';
+  const isPack = isResourcePack || isDataPack;
+  // Only an inspected ZIP is sent; a refused one stays visible with its reason.
+  const importInspection = isDataPack ? importSelection?.inspection : undefined;
+  const importArchivePath = importInspection ? importSelection?.path : undefined;
+  const chooseImportArchive = () => {
+    setArchivePicking(true); setArchiveError(null);
+    void workspaceOpenBridge.chooseDataPackArchive(importSelection?.path).then(selection => {
+      if (selection.cancelled || !selection.path) return;
+      setImportSelection(selection);
+      const inspection = selection.inspection;
+      if (!inspection) return;
+      const suggested = importGenerator(inspection, generators.filter(item => item.available).map(item => item.generatorId));
+      if (suggested) setGeneratorId(suggested);
+      if (!modName.trim()) setModName(archiveDisplayName(selection.path));
+      if (!modIdTouched && inspection.suggestedModId) { setModIdTouched(true); setModId(inspection.suggestedModId); }
+    }).catch(error => setArchiveError(error instanceof Error ? error.message
+      : uiText('无法选择数据包文件。', 'Could not choose the data pack file.')))
+      .finally(() => setArchivePicking(false));
+  };
 
   // 按 track 分组渲染（目录按 track 顺序返回）
   const groupedByTrack = useMemo(() => {
     return [...new Set(generators.map((generator) => generator.trackId))].filter(id => id !== 'advanced' || showAdvanced).map((id) => {
       const group = generators.filter((generator) => generator.trackId === id);
       const minecraftVersion = group[0]?.minecraftVersion;
+      // Data packs span several Minecraft versions in one row, so the version sits on each option instead.
       const label = id === 'resource_pack'
         ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
+        : id === 'data_pack' ? tr("独立数据包")
         : `Minecraft ${minecraftVersion}`;
       return { id, label: id === 'advanced' ? tr("历史精确版本") : label, generators: group };
     });
@@ -266,8 +331,9 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
         generatorId,
         modName: modName.trim(),
         modId: modId.trim(),
-        packageName: packageName.trim() || undefined,
+        packageName: isDataPack ? undefined : packageName.trim() || undefined,
         workspaceFolderPath: effectiveFolder,
+        importArchivePath,
         version: version.trim() || undefined,
         userApproved
       };
@@ -347,7 +413,8 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
               : isPreview && !chosen ? uiText('先选择预览', 'Opt in to the preview')
                 : !previewCanCreate ? uiText('此预览目标暂不可创建', 'This preview target cannot be created yet')
                   : !userApproved ? uiText('勾选确认后创建', 'Tick the confirmation to create') : null;
-  const loaderName = (loader: string) => loader === 'resource_pack' ? tr("资源包") : loader === 'neoforge' ? 'NeoForge' : 'Fabric';
+  const loaderName = (loader: string) => loader === 'resource_pack' ? tr("资源包") : loader === 'data_pack' ? tr("数据包")
+    : loader === 'neoforge' ? 'NeoForge' : 'Fabric';
   const invalidClass = (field: WorkspaceFormField) => fieldError(field) ? 'is-invalid' : undefined;
 
   return (
@@ -383,6 +450,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
             <span>{workspaceOpenBridge.available
               ? uiText('已请求在新窗口打开工作区。', 'Opening the workspace in a new window was requested.')
               : tr("请在桌面版中打开此工作区。")}</span>
+            {result.data.imported && <ImportedDataPackSummary imported={result.data.imported} />}
           </div>
           <div className="new-workspace-banner-actions">
             {creationIntent && <button type="button" className="btn-secondary" data-testid="first-creation-open-created-guide" onClick={() => openGuide(result.data!.workspaceFile)}>{uiText('查看首作指引', 'View first-creation guide')}</button>}
@@ -511,7 +579,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
                       title={g.available ? g.workspaceGeneratorName : tr("生成器插件未安装或未加载")}
                     >
                       {/* The row already shows the version; exact historical targets differ within one row. */}
-                      <span>{loaderName(g.loader)}<span className={track.id === 'advanced' ? undefined : 'sr-only'}> {g.minecraftVersion}</span></span>
+                      <span>{loaderName(g.loader)}<span className={track.id === 'advanced' || track.id === 'data_pack' ? undefined : 'sr-only'}> {g.minecraftVersion}</span></span>
                       {!g.available ? <small>{uiText('未安装', 'Not installed')}</small>
                         : simpleMode && g.generatorId === FIRST_CREATION_GENERATOR && <small className="is-recommended">{uiText('推荐', 'Recommended')}</small>}
                     </button>
@@ -566,8 +634,41 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
         <div className="new-workspace-card" data-testid="new-workspace-info">
           <h3>{simpleMode ? uiText('作品信息', 'Work details') : tr("工作区信息")}</h3>
 
+          {isDataPack && (
+            <div className="new-workspace-field" data-testid="new-workspace-import">
+              <span id="new-workspace-import-label">{uiText('从已有数据包开始（可选）', 'Start from an existing data pack (optional)')}</span>
+              <div className="new-workspace-folder-row">
+                <code className="new-workspace-import-path" data-testid="new-workspace-import-path">
+                  {importSelection?.path ?? uiText('不导入，从空数据包开始', 'None: start from an empty data pack')}</code>
+                <button
+                  id={FIELD_ELEMENT_ID.importArchivePath}
+                  type="button"
+                  className="btn-secondary"
+                  data-testid="new-workspace-import-browse-btn"
+                  aria-describedby="new-workspace-import-label"
+                  disabled={!workspaceOpenBridge.dataPackArchivePickerAvailable || archivePicking || submitting}
+                  title={workspaceOpenBridge.dataPackArchivePickerAvailable ? uiText('选择数据包 ZIP', 'Choose a data pack ZIP')
+                    : uiText('请在桌面应用中选择 ZIP', 'Choose the ZIP in the desktop app')}
+                  onClick={chooseImportArchive}
+                >
+                  <FolderOpen size={14} aria-hidden="true" />
+                  {uiText('选择 ZIP…', 'Choose ZIP…')}</button>
+                {importSelection && <button type="button" className="btn-secondary" data-testid="new-workspace-import-clear-btn"
+                  disabled={submitting} onClick={() => { setImportSelection(null); setArchiveError(null); }}>{uiText('不导入', 'Remove')}</button>}
+              </div>
+              {archiveError && <span role="alert" className="new-workspace-error">{archiveError}</span>}
+              {importSelection?.code && <span role="alert" className="new-workspace-error" data-testid="new-workspace-import-error">
+                {t({ key: `diagnostic.${importSelection.code.toLowerCase()}`, fallback: importSelection.message ?? importSelection.code })}
+                {importSelection.message && <small className="new-workspace-import-detail">{importSelection.message}</small>}</span>}
+              {importInspection && <DataPackImportPreview inspection={importInspection} generatorId={generatorId} />}
+              {fieldError('importArchivePath') && (
+                <span role="alert" className="new-workspace-error">{t(fieldError('importArchivePath')!.message)}</span>
+              )}
+            </div>
+          )}
+
           <label className="new-workspace-field">
-            {isResourcePack ? tr("资源包名称") : simpleMode ? uiText('名称', 'Name') : tr("模组名称")}
+            {isResourcePack ? tr("资源包名称") : isDataPack ? tr("数据包名称") : simpleMode ? uiText('名称', 'Name') : tr("模组名称")}
             <input
               id={FIELD_ELEMENT_ID.modName}
               type="text"
@@ -591,7 +692,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
           {simpleMode && <button type="button" className="new-workspace-advanced-toggle" aria-expanded={advancedOpen} aria-controls="new-workspace-advanced" onClick={() => setAdvancedOpen(value => !value)}>{uiText('更多设置', 'More settings')}<ChevronDown size={14} aria-hidden="true" /></button>}
           <div id="new-workspace-advanced" className="new-workspace-advanced" hidden={simpleMode && !advancedOpen}>
           <label className="new-workspace-field">
-            {isResourcePack ? tr("资源包 ID（命名空间）") : tr("模组 ID（modid）")}
+            {isResourcePack ? tr("资源包 ID（命名空间）") : isDataPack ? tr("数据包 ID（命名空间）") : tr("模组 ID（modid）")}
             <input
               id={FIELD_ELEMENT_ID.modId}
               type="text"
@@ -615,7 +716,7 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
             )}
           </label>
 
-          {!isResourcePack && (
+          {!isPack && (
             <label className="new-workspace-field">
               {tr("Java 包名")}<input
                 id={FIELD_ELEMENT_ID.packageName}
@@ -711,7 +812,9 @@ const NewWorkspaceForm: React.FC<{ onCreated: () => void; onStartAnother: () => 
               onChange={(e) => setUserApproved(e.target.checked)}
             />
             <span>{uiText('在这里创建文件夹和 .mcreator 文件', 'Create the folder and .mcreator file here')}
-              {effectiveFolder && <code>{effectiveFolder}</code>}</span>
+              {effectiveFolder && <code>{effectiveFolder}</code>}
+              {importArchivePath && <>{uiText('，并复制此 ZIP 中的 data/ 与 pack.png', ', and copy data/ and pack.png from this ZIP')}
+                <code>{importArchivePath}</code></>}</span>
           </label>
           <div className="new-workspace-submit">
             {blocker && <span id="new-workspace-blocker" className="new-workspace-blocker">{blocker}</span>}

@@ -26,7 +26,8 @@ import java.util.regex.Pattern;
 /** Read-only asset catalog and reference graph service for a workspace. */
 public final class AssetWorkspaceService {
 	private static final List<Path> ASSET_ROOTS = List.of(Path.of("assets"), Path.of("models"),
-			Path.of("resourcepacks"), Path.of("src/main/resources/assets"), Path.of("src/main/assets"));
+			Path.of("resourcepacks"), Path.of("src/main/resources/assets"), Path.of("src/main/assets"),
+			Path.of("src/main/resources/data"), Path.of("src/main/data"));
 	private static final Set<String> RESOURCE_PREFIXES = Set.of("textures/", "models/", "animations/", "sounds/",
 			"lang/", "blockstates/", "items/", "font/", "shaders/");
 	private static final Set<String> KNOWN_EXTENSIONS = Set.of(".json", ".png", ".jpg", ".jpeg", ".ogg", ".wav",
@@ -78,7 +79,13 @@ public final class AssetWorkspaceService {
 				|| relative.startsWith("resourcepacks/") || relative.startsWith("src/main/resources/assets/")
 				|| relative.startsWith("src/main/assets/") || relative.equals("pack.mcmeta")
 				|| relative.equals("pack.png") || relative.equals("src/main/pack.mcmeta")
-				|| relative.equals("src/main/pack.png");
+				|| relative.equals("src/main/pack.png") || isDataAsset(relative);
+	}
+
+	/** Structure templates are the binary data files that have no editor of their own; data JSON stays source. */
+	static boolean isDataAsset(String relative) {
+		return (relative.startsWith("src/main/resources/data/") || relative.startsWith("src/main/data/"))
+				&& relative.toLowerCase(Locale.ROOT).endsWith(".nbt");
 	}
 
 	/** Alias used by query adapters that expose the catalog as an asset collection. */

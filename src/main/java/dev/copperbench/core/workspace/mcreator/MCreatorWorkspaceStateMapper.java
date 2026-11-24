@@ -162,6 +162,8 @@ public final class MCreatorWorkspaceStateMapper {
 		String id = workspace.getWorkspaceSettings().getCurrentGenerator();
 		if (RESOURCE_PACK_GENERATOR_ID.equals(id))
 			return resourcePackGenerator(id, workspace);
+		if (isDataPack(id))
+			return dataPackGenerator(id, workspace);
 		int separator = id.indexOf('-');
 		String loader = separator > 0 ? id.substring(0, separator) : id;
 		String minecraftVersion = separator > 0 ? id.substring(separator + 1) : "unknown";
@@ -176,8 +178,26 @@ public final class MCreatorWorkspaceStateMapper {
 	}
 
 	private String kind(Workspace workspace) {
-		return RESOURCE_PACK_GENERATOR_ID.equals(workspace.getWorkspaceSettings().getCurrentGenerator())
-				? "resource_pack" : "mod";
+		String id = workspace.getWorkspaceSettings().getCurrentGenerator();
+		if (RESOURCE_PACK_GENERATOR_ID.equals(id))
+			return "resource_pack";
+		return isDataPack(id) ? "data_pack" : "mod";
+	}
+
+	private static boolean isDataPack(String generatorId) {
+		return dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS.contains(generatorId);
+	}
+
+	/** A data pack has no mod loader; the id prefix must not leak into the contract's closed loader enum. */
+	private JsonObject dataPackGenerator(String id, Workspace workspace) {
+		String minecraftVersion = id.substring(id.indexOf('-') + 1);
+		JsonObject generator = new JsonObject();
+		generator.addProperty("id", id);
+		generator.addProperty("loader", "data_pack");
+		generator.addProperty("minecraftVersion", minecraftVersion);
+		generator.addProperty("displayName", "Data Pack " + minecraftVersion);
+		generator.addProperty("state", workspace.getGeneratorConfiguration() == null ? "missing" : "ready");
+		return generator;
 	}
 
 	private JsonObject resourcePackGenerator(String id, Workspace workspace) {

@@ -38,6 +38,7 @@
         "preview_asset_import",
         "preview_asset_import_batch",
         "preview_asset_move",
+        "preview_asset_delete",
         "list_mod_elements",
         "get_mod_element_editor",
         "get_element_visual_preview",
@@ -190,6 +191,10 @@
     {
       "if": {"properties": {"operation": {"const": "preview_asset_move"}}, "required": ["operation"]},
       "then": {"properties": {"payload": {"$ref": "#/$defs/assetMovePreviewPayload"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "preview_asset_delete"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/assetDeletePreviewPayload"}}}
     },
     {
       "if": {"properties": {"operation": {"const": "plan_procedure_refactor"}}, "required": ["operation"]},
@@ -633,6 +638,14 @@
       "properties": {
         "sourceAssetId": {"type": "string", "minLength": 1},
         "targetRelativePath": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "assetDeletePreviewPayload": {
+      "type": "object",
+      "required": ["assetIds"],
+      "properties": {
+        "assetIds": {"type": "array", "minItems": 1, "maxItems": 200, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
       },
       "additionalProperties": false
     },
@@ -1120,7 +1133,7 @@
     "registryListPayload": {
       "type": "object",
       "properties": {
-        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]},
+        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys", "sounds"]},
         "cursor": {"type": "string", "maxLength": 512},
         "limit": {"type": "integer", "minimum": 1, "maximum": 200},
         "sort": {"type": "string", "enum": ["name", "-name", "kind", "-kind", "id", "-id"]},

@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataPackWorkspaceTaskGatewayTest {
+    private static final String VALID_PACK = "{\"pack\":{\"pack_format\":48,\"description\":\"Test pack\"}}";
     @TempDir Path root;
 
     @ParameterizedTest @ValueSource(strings = {"https://services.gradle.org/distributions/", "https://mirrors.huaweicloud.com/gradle/"})
@@ -108,7 +109,7 @@ class DataPackWorkspaceTaskGatewayTest {
                 root, Clock.systemUTC(), UUID::randomUUID, process)) {
             tasks.setGenerationPreparation((state, target, operation, output) -> {
                 Files.createDirectories(target.resolve("src/main"));
-                Files.writeString(target.resolve("src/main/pack.mcmeta"), "{}");
+                Files.writeString(target.resolve("src/main/pack.mcmeta"), VALID_PACK);
             });
             UUID build = UUID.fromString(tasks.start(id, Operation.BUILD_WORKSPACE, new JsonObject()).get("id").getAsString());
             await(tasks, id, build, "succeeded");
@@ -122,6 +123,41 @@ class DataPackWorkspaceTaskGatewayTest {
             await(tasks, id, rejected, "failed");
             assertFalse(tasks.diagnostics(id, rejected).isEmpty());
             assertThrows(IllegalArgumentException.class, () -> tasks.start(id, Operation.RUN_GAMETEST, new JsonObject()));
+        }
+    }
+
+    @Test void contentMinecraftWouldNotLoadStopsValidationAndBuildBeforeGradle() throws Exception {
+        UUID id = UUID.randomUUID();
+        var calls = new CopyOnWriteArrayList<List<String>>();
+        GradleProcessRunner process = (target, arguments, timeout, output) -> {
+            calls.add(arguments);
+            return new GradleProcessRunner.ProcessResult(0, false);
+        };
+        Files.createDirectories(root.resolve("src/main/data/data_pack/function"));
+        Files.writeString(root.resolve("src/main/pack.mcmeta"), VALID_PACK);
+        Files.writeString(root.resolve("src/main/data/data_pack/function/main.mcfunction"), "function data_pack:missing\n");
+        try (var tasks = new DataPackWorkspaceTaskGateway(store(id, "datapack-1.21.1"), ignored -> root,
+                root, Clock.systemUTC(), UUID::randomUUID, process)) {
+            tasks.setGenerationPreparation((state, target, operation, output) -> { });
+            UUID validate = UUID.fromString(tasks.start(id, Operation.VALIDATE_WORKSPACE, new JsonObject()).get("id").getAsString());
+            await(tasks, id, validate, "failed");
+            JsonObject diagnostic = tasks.diagnostics(id, validate).getFirst();
+            assertEquals("DATA_PACK_REFERENCE_MISSING", diagnostic.get("code").getAsString());
+            assertEquals("/src/main/data/data_pack/function/main.mcfunction", diagnostic.get("path").getAsString());
+            assertTrue(diagnostic.toString().contains("expected src/main/data/data_pack/function/missing.mcfunction"), diagnostic.toString());
+
+            UUID generate = UUID.fromString(tasks.start(id, Operation.GENERATE_WORKSPACE, new JsonObject()).get("id").getAsString());
+            await(tasks, id, generate, "succeeded");
+            UUID build = UUID.fromString(tasks.start(id, Operation.BUILD_WORKSPACE, new JsonObject()).get("id").getAsString());
+            await(tasks, id, build, "failed");
+            assertEquals("DATA_PACK_REFERENCE_MISSING", tasks.diagnostics(id, build).getFirst().get("code").getAsString());
+            assertEquals(List.of(), calls, "Gradle does not run for content the game would not load");
+
+            Files.writeString(root.resolve("src/main/data/data_pack/function/missing.mcfunction"), "say found\n");
+            UUID valid = UUID.fromString(tasks.start(id, Operation.VALIDATE_WORKSPACE, new JsonObject()).get("id").getAsString());
+            await(tasks, id, valid, "succeeded");
+            assertTrue(tasks.logs(id, valid).toString().contains("Data pack content check: 2 files, 1 references into namespace data_pack"),
+                    tasks.logs(id, valid).toString());
         }
     }
 

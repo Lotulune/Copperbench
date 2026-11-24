@@ -9,6 +9,7 @@ export type AssetCategory =
   | 'sound'
   | 'resource_pack'
   | 'blockstate'
+  | 'structure'
   | 'other';
 
 export type AssetValidationStatus = 'ready' | 'draft' | 'warning' | 'error';
@@ -19,6 +20,8 @@ export interface AssetRecord {
   readonly name: string;
   readonly category: AssetCategory;
   readonly categoryLabel: string;
+  /** For textures: block, item, entity, gui and the other folders under textures/. */
+  readonly usage?: string;
   readonly path: string;
   readonly format: string;
   readonly size: string;
@@ -54,6 +57,7 @@ const categoryLabels = (): Record<AssetCategory, string> => ({
   sound: uiText("声音", "Sound"),
   resource_pack: uiText("资源包", "Resource packs"),
   blockstate: uiText("方块状态", "Block states"),
+  structure: uiText("结构", "Structure"),
   other: uiText("其他", "Other")
 });
 
@@ -105,6 +109,7 @@ export function assetRecordsFromProjection(projection: AssetProjection): AssetRe
       name: assetName(asset.relativePath),
       category,
       categoryLabel: categoryLabels()[category] ?? category,
+      usage: asset.usage,
       path: asset.relativePath,
       format: assetFormat(asset.relativePath),
       size: formatBytes(asset.size),

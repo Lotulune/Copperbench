@@ -81,7 +81,7 @@ class WorkspaceCreationServiceTest {
 
 	@Test void legacyCreationCatalogListsExecutableDisplayTargetsOnly() {
 		List<JsonObject> generators = service.listGenerators();
-		assertEquals(7, generators.size());
+		assertEquals(10, generators.size());
 		for (JsonObject generator : generators) {
 			assertNotNull(generator.get("generatorId").getAsString());
 			assertNotNull(generator.get("loader").getAsString());
@@ -100,10 +100,118 @@ class WorkspaceCreationServiceTest {
 		assertEquals("resource_pack", resourcePack.get("trackId").getAsString());
 	}
 
+	@Test void creationCatalogOffersEveryDataPackGeneratorTheTaskGatewayCanBuild() {
+		List<JsonObject> dataPacks = service.listGenerators().stream()
+				.filter(g -> "data_pack".equals(g.get("loader").getAsString())).toList();
+		assertEquals(WorkspaceCreationService.DATA_PACK_GENERATOR_IDS,
+				dataPacks.stream().map(g -> g.get("generatorId").getAsString()).toList());
+		// A data pack offered for creation must stay buildable: both lists name the same generators.
+		assertEquals(dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS,
+				java.util.Set.copyOf(WorkspaceCreationService.DATA_PACK_GENERATOR_IDS));
+		for (JsonObject dataPack : dataPacks) {
+			assertEquals("data_pack", dataPack.get("trackId").getAsString());
+			assertEquals(dataPack.get("generatorId").getAsString().substring("datapack-".length()),
+					dataPack.get("minecraftVersion").getAsString());
+			assertTrue(dataPack.get("available").getAsBoolean(), () -> "Not installed: " + dataPack);
+		}
+	}
+
+	@org.junit.jupiter.params.ParameterizedTest
+	@org.junit.jupiter.params.provider.ValueSource(strings = { "datapack-26.1.x", "datapack-1.21.1", "datapack-1.20.1" })
+	void createDataPackNeedsNoJavaPackageAndPersistsABuildableSkeleton(String generatorId) throws Exception {
+		Path suggestedRoot = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath()
+				.normalize();
+		Path workspaceFolder = suggestedRoot.resolve("copperbench-data-pack-" + UUID.randomUUID()).normalize();
+		try {
+			assertEquals(List.of(), service.validateCreation(generatorId, "Copper Data", "copper_data", null,
+					workspaceFolder.toString()));
+			WorkspaceCreationService.CreationResult result = service.create(generatorId, "Copper Data",
+					"copper_data", null, workspaceFolder.toString(), "1.0.0");
+
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
+			assertEquals(generatorId, result.generatorId());
+			Path workspaceFile = workspaceFolder.resolve("copper_data.mcreator");
+			assertTrue(Files.isRegularFile(workspaceFile));
+			assertTrue(Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta")));
+			assertTrue(Files.isRegularFile(workspaceFolder.resolve("build.gradle")));
+			JsonObject settings = JsonParser.parseString(Files.readString(workspaceFile)).getAsJsonObject()
+					.getAsJsonObject("workspaceSettings");
+			assertEquals(generatorId, settings.get("currentGenerator").getAsString());
+			assertEquals("copper_data", settings.get("modid").getAsString());
+			assertNotNull(JsonParser.parseString(Files.readString(workspaceFolder.resolve("src/main/pack.mcmeta")))
+					.getAsJsonObject().getAsJsonObject("pack"));
+		} finally {
+			deleteRecursively(workspaceFolder);
+		}
+	}
+
+	@Test void createDataPackFromAZipKeepsItsDataAndReportsWhatTheGameWouldNotLoad() throws Exception {
+		Path workspaceFolder = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath().normalize()
+				.resolve("copperbench-data-pack-import-" + UUID.randomUUID());
+		Path archive = zip(temporaryFolder.resolve("ember.zip"), java.util.Map.of(
+				"pack.mcmeta", "{\"pack\":{\"pack_format\":48,\"description\":\"Ember tweaks\"},\"overlays\":{\"entries\":[]}}",
+				"pack.png", "png",
+				"data/ember/function/start.mcfunction", "function ember:missing\n",
+				"data/minecraft/tags/function/load.json", "{\"values\":[\"ember:start\"]}",
+				"data/ember/recipes/old.json", "{\"type\":\"minecraft:crafting_shapeless\"}"));
+		try {
+			assertEquals(List.of(), service.validateCreation("datapack-1.21.1", "Ember", "ember", null,
+					workspaceFolder.toString(), false, archive));
+			WorkspaceCreationService.CreationResult result = service.create("datapack-1.21.1", "Ember", "ember", null,
+					workspaceFolder.toString(), "1.0.0", false, archive);
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
+			Path source = workspaceFolder.resolve("src/main");
+			assertEquals("function ember:missing\n", Files.readString(source.resolve("data/ember/function/start.mcfunction")));
+			assertEquals("png", Files.readString(source.resolve("pack.png")));
+			assertEquals("Ember tweaks", JsonParser.parseString(Files.readString(source.resolve("pack.mcmeta"))).getAsJsonObject()
+					.getAsJsonObject("pack").get("description").getAsString(), "the generated pack.mcmeta keeps the description");
+
+			JsonObject imported = result.imported();
+			assertEquals(4, imported.get("importedFiles").getAsInt());
+			assertTrue(imported.get("formatSupported").getAsBoolean());
+			assertEquals("ember", imported.get("suggestedModId").getAsString());
+			assertEquals("[\"overlays\"]", imported.get("droppedMetadata").toString());
+			List<String> codes = imported.getAsJsonArray("contentIssues").asList().stream()
+					.map(issue -> issue.getAsJsonObject().get("code").getAsString()).sorted().toList();
+			assertEquals(List.of("DATA_PACK_FOLDER_RENAMED", "DATA_PACK_REFERENCE_MISSING"), codes, imported.toString());
+		} finally {
+			deleteRecursively(workspaceFolder);
+		}
+	}
+
+	@Test void importNeedsADataPackGeneratorAndAReadableZipBeforeAnythingIsWritten() throws Exception {
+		Path workspaceFolder = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath().normalize()
+				.resolve("copperbench-data-pack-import-" + UUID.randomUUID());
+		Path archive = zip(temporaryFolder.resolve("valid.zip"), java.util.Map.of(
+				"pack.mcmeta", "{\"pack\":{\"pack_format\":48,\"description\":\"x\"}}", "data/ember/function/a.mcfunction", "say\n"));
+		assertEquals(List.of("IMPORT_REQUIRES_DATA_PACK"), service.create("fabric-1.21.1", "Ember", "ember", "dev.ember",
+				workspaceFolder.toString(), "1.0.0", false, archive).diagnostics());
+		Path broken = temporaryFolder.resolve("broken.zip");
+		Files.writeString(broken, "not a zip");
+		WorkspaceCreationService.CreationResult unreadable = service.create("datapack-1.21.1", "Ember", "ember", null,
+				workspaceFolder.toString(), "1.0.0", false, broken);
+		assertEquals(List.of("IMPORT_ARCHIVE_UNREADABLE"), unreadable.diagnostics());
+		assertNotNull(unreadable.detail());
+		assertFalse(Files.exists(workspaceFolder));
+		assertEquals(List.of("IMPORT_ARCHIVE_UNREADABLE"), service.validateCreation("datapack-1.21.1", "Ember", "ember", null,
+				workspaceFolder.toString(), false, broken));
+	}
+
+	private static Path zip(Path file, java.util.Map<String, String> entries) throws IOException {
+		try (var output = new java.util.zip.ZipOutputStream(Files.newOutputStream(file))) {
+			for (var entry : entries.entrySet()) {
+				output.putNextEntry(new java.util.zip.ZipEntry(entry.getKey()));
+				output.write(entry.getValue().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+				output.closeEntry();
+			}
+		}
+		return file;
+	}
+
 	@Test void projectionExposesSuggestedWorkspaceFoldersRoot() {
 		JsonObject projection = service.toProjection();
 		assertEquals("1.0", projection.get("schemaVersion").getAsString());
-		assertEquals(7, projection.getAsJsonArray("generators").size());
+		assertEquals(10, projection.getAsJsonArray("generators").size());
 		assertTrue(projection.get("suggestedWorkspaceFoldersRoot").getAsString().contains("MCreatorWorkspaces"));
 	}
 

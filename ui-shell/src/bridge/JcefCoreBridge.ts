@@ -379,6 +379,7 @@ export class JcefCoreBridge implements CoreBridge {
   }, baselineSequence: number, projectionRevision: number): Promise<boolean> {
     const pageSize = 200;
     const items: ModElementSummary[] = [];
+    let availableTypes: ModElementListProjection['availableTypes'] | undefined;
     let cursor: string | undefined;
     do {
       const query: Query = {
@@ -397,10 +398,12 @@ export class JcefCoreBridge implements CoreBridge {
       if (result.revision !== projectionRevision) return false;
       if (this.isStaleRevision(result.revision)) return true;
       items.push(...result.data.items);
+      availableTypes = result.data.availableTypes ?? availableTypes;
       cursor = result.data.nextCursor ?? undefined;
     } while (cursor);
     if (!this.isProjectionGenerationCurrent(baselineSequence)) return false;
     this.state.elements = items;
+    if (availableTypes) this.state.availableElementTypes = [...availableTypes];
     this.synchronizeElementProjection();
     this.notify();
     return true;
@@ -477,9 +480,12 @@ export class JcefCoreBridge implements CoreBridge {
         for (const taskId of Object.keys(this.state.tasks)) if (this.isTaskActive(taskId)) this.pollTask(taskId);
         this.state.viewportState = 'ready';
         break;
-      case 'list_mod_elements':
-        this.state.elements = [...(result.data as ModElementListProjection).items];
+      case 'list_mod_elements': {
+        const list = result.data as ModElementListProjection;
+        this.state.elements = [...list.items];
+        if (list.availableTypes) this.state.availableElementTypes = [...list.availableTypes];
         break;
+      }
       case 'get_mod_element_editor': {
         const editor = result.data as ModElementEditorProjection;
         this.state.elementEditors[editor.element.id] = editor;
@@ -571,6 +577,7 @@ export class JcefCoreBridge implements CoreBridge {
       case 'asset_imported':
       case 'assets_imported':
       case 'asset_moved':
+      case 'asset_deleted':
       case 'asset_external_edit_committed':
         this.state.currentRecoveryPointId = null;
         break;

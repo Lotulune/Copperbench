@@ -464,6 +464,8 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("inspect_asset_references"));
 			assertTrue(tools.body().contains("preview_asset_move"));
 			assertTrue(tools.body().contains("move_asset"));
+			assertTrue(tools.body().contains("preview_asset_delete"));
+			assertTrue(tools.body().contains("delete_asset"));
 
 			HttpResponse<String> coverageResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":35,\"method\":\"tools/call\",\"params\":{\"name\":\"get_element_coverage\",\"arguments\":{}}}",
@@ -522,7 +524,7 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			JsonObject generators = toolResult(generatorsResult);
 			assertEquals("succeeded", generators.get("status").getAsString());
-			assertEquals(7, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
+			assertEquals(10, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
 			assertTrue(generators.getAsJsonObject("data").getAsJsonArray("generators").toString()
 					.contains("resourcepack-1.21.1"));
 

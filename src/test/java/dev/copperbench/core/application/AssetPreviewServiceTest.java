@@ -92,4 +92,21 @@ class AssetPreviewServiceTest {
         assertEquals("model_invalid", result.getAsJsonObject("scene").get("reason").getAsString());
         assertFalse(result.has("image")); assertFalse(result.getAsJsonObject("scene").has("meshes"));
     }
+    @Test void soundsUpToTheLimitPreviewAsPlayableAudio() throws Exception {
+        Path sound = root.resolve("assets/test/sounds/chime.ogg"); Files.createDirectories(sound.getParent());
+        Files.write(sound, new byte[] { 'O', 'g', 'g', 'S', 0, 2 });
+        var graph = graph(); var asset = descriptor(graph, sound);
+        var result = AssetPreviewService.preview(root, graph, asset.id(), asset.sha256());
+        assertEquals("audio", result.get("kind").getAsString());
+        assertEquals("audio/ogg", result.getAsJsonObject("audio").get("mediaType").getAsString());
+        assertArrayEquals(Files.readAllBytes(sound), Base64.getDecoder().decode(result.getAsJsonObject("audio").get("base64").getAsString()));
+
+        Path music = root.resolve("assets/test/sounds/theme.ogg");
+        Files.write(music, new byte[AssetPreviewService.MAX_AUDIO_BYTES + 1]);
+        graph = graph(); asset = descriptor(graph, music);
+        var large = AssetPreviewService.preview(root, graph, asset.id(), asset.sha256());
+        assertEquals("unsupported", large.get("kind").getAsString());
+        assertEquals("audio_too_large", large.get("reason").getAsString());
+        assertFalse(large.has("audio"));
+    }
 }

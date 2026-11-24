@@ -80,7 +80,7 @@ class Fabric1211GeneratorTest {
 		assertTrue(gradle.contains("modImplementation \"net.fabricmc:fabric-loader"));
 		assertFalse(gradle.contains("implementation \"net.fabricmc:fabric-loader"));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
+				.contains(wrapperBase() + "gradle-9.7.0-bin.zip"));
 		String mod = Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"));
 		assertTrue(mod.contains("COPPERBENCH_STAGE3_READY"));
 		String language = Files.readString(
@@ -149,11 +149,15 @@ class Fabric1211GeneratorTest {
 		assertTrue(Files.isRegularFile(output.resolve("gradlew.bat")));
 		assertTrue(Files.isRegularFile(output.resolve("gradle/wrapper/gradle-wrapper.jar")));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
+				.contains(wrapperBase() + "gradle-9.7.0-bin.zip"));
 		assertTrue(result.generatedPaths().contains("src/main/java/net/mcreator/testmod/Testmod2Mod.java"));
 		assertTrue(result.generatedPaths().contains("src/main/java/net/mcreator/testmod/wanjian/WanJianGuiZongItem.java"));
 		assertFalse(Files.exists(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java")),
 				"projection generation must not replace an already materialized plugin workspace");
 	}
 
+	/** Generated wrappers follow the mainland China mirror setting of the test runtime. */
+	private static String wrapperBase() {
+		return dev.copperbench.network.ChinaMirrorService.isEnabled() ? "mirrors.huaweicloud.com/gradle/" : "services.gradle.org/distributions/";
+	}
 }

@@ -8,9 +8,11 @@ import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { WorkspacePreviewChoice } from './WorkspacePreviewChoice';
 import { elementVisual } from './elementVisual';
+import { offeredElementTypes } from './offeredElementTypes';
 
 export const CreateElementModal: React.FC = () => {
-  const { isCreateModalOpen, setIsCreateModalOpen, createModElement, workspacePreviewTarget } = useWorkbench();
+  const { isCreateModalOpen, setIsCreateModalOpen, createModElement, workspacePreviewTarget, state } = useWorkbench();
+  const offeredTypes = offeredElementTypes(ALL_MOD_ELEMENT_TYPES, state.availableElementTypes);
   const [elementType, setElementType] = useState<ModElementType>('block');
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +25,8 @@ export const CreateElementModal: React.FC = () => {
     && workspacePreviewTarget.capabilities.operations?.some(operation => operation.operation === 'create_mod_element' && operation.available));
   useEffect(() => {
     if (supportedTypes?.length && !supportedTypes.includes(elementType)) setElementType(supportedTypes[0] as ModElementType);
-  }, [workspacePreviewTarget, elementType]);
+    else if (offeredTypes.length && !offeredTypes.includes(elementType)) setElementType(offeredTypes[0]);
+  }, [workspacePreviewTarget, elementType, offeredTypes.join()]);
 
   if (!isCreateModalOpen) return null;
 
@@ -112,7 +115,7 @@ export const CreateElementModal: React.FC = () => {
               <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
                 {tr("元素类型")}</label>
               <div className="create-type-grid" role="group" aria-label={tr("元素类型")}>
-                {ALL_MOD_ELEMENT_TYPES.map((type) => {
+                {offeredTypes.map((type) => {
                   const { Icon, tone } = elementVisual(type);
                   const item = { type, label: elementLabel(type) };
                   const isSel = elementType === item.type;

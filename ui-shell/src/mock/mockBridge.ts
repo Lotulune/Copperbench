@@ -82,6 +82,9 @@ function generateUUID(): UUID {
   });
 }
 
+/** Assets the browser preview has deleted; list_assets hides them until reload. */
+const mockDeletedAssetIds = new Set<string>();
+
 function mockAssetProjection() {
   const assets = ASSET_FIXTURES.map((asset) => {
     const safeUnused = asset.id.endsWith('7777');
@@ -94,7 +97,8 @@ function mockAssetProjection() {
       id: asset.id,
       relativePath: asset.path,
       sourceAvailable: asset.sourceAvailable === true,
-      category: asset.category.toUpperCase() as 'MODEL' | 'TEXTURE' | 'ANIMATION' | 'LANGUAGE' | 'SOUND' | 'RESOURCE_PACK',
+      category: asset.category.toUpperCase() as 'MODEL' | 'TEXTURE' | 'ANIMATION' | 'LANGUAGE' | 'SOUND' | 'RESOURCE_PACK' | 'STRUCTURE',
+      usage: asset.category === 'texture' ? /\/textures\/([^/]+)\//.exec(asset.path)?.[1] ?? 'other' : undefined,
       size: asset.sizeBytes,
       sha256: '0000000000000000000000000000000000000000000000000000000000000000',
       mediaType: asset.format === 'PNG' ? 'image/png' : asset.format === 'OGG' ? 'audio/ogg' : 'application/octet-stream',
@@ -159,8 +163,9 @@ function mockAssetProjection() {
   };
 }
 
-function initialMockRegistries(): NonNullable<WorkspaceRegistriesProjection['registries']> {
+function initialMockRegistries(): Required<NonNullable<WorkspaceRegistriesProjection['registries']>> {
   return {
+    sounds: [],
     variables: [
       {
         id: '7a4be662-5208-4cc7-8984-c08ae63a447a',
@@ -432,6 +437,7 @@ export class MockCoreBridge implements CoreBridge {
       } else if (qr.operation === 'list_mod_elements') {
         const list = qr.data as ModElementListProjection;
         this.state.elements = list.items;
+        if (list.availableTypes) this.state.availableElementTypes = [...list.availableTypes];
         this.updateWorkbenchCounts();
       } else if (qr.operation === 'get_mod_element_editor') {
         const editor = qr.data as ModElementEditorProjection;
@@ -1197,6 +1203,38 @@ export class MockCoreBridge implements CoreBridge {
         return result;
       }
 
+      case 'delete_asset': {
+        const payload = command.payload as unknown as { planToken: string; confirmAffectedReferences?: boolean };
+        const [, mode, ids = ''] = payload.planToken.split('::');
+        if (mode === 'confirm' && !payload.confirmAffectedReferences) {
+          return {
+            messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+            operation: 'delete_asset', status: 'rejected', newRevision: currentRevision, recoveryPointId: null,
+            task: null, data: null, conflict: null, denial: null,
+            diagnostics: [{ code: 'ASSET_DELETE_CONFIRMATION_REQUIRED', severity: 'error', path: '/confirmAffectedReferences',
+              recoverable: true, actions: [], message: { key: 'diagnostic.asset_delete_failed',
+                fallback: 'Confirm the listed usage before deleting assets that are not cleanup candidates.' } }]
+          };
+        }
+        const deletedIds = ids.split(',').filter(Boolean);
+        deletedIds.forEach((id) => mockDeletedAssetIds.add(id));
+        const deletedPaths = deletedIds.map((id) => mockAssetProjection().assets.find((asset) => asset.id === id)?.relativePath ?? id);
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const deleted = { complete: true, deletedPaths, deletedAssetIds: deletedIds };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'asset_deleted',
+          causedByRequestId: command.requestId, payload: deleted
+        });
+        this.notifyState();
+        return {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'delete_asset', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null, data: deleted, conflict: null, denial: null, diagnostics: []
+        };
+      }
+
       case 'import_asset': {
         const payload = command.payload as unknown as { planToken: string; confirmReplace?: boolean };
         const replacing = payload.planToken.includes('REPLACE');
@@ -1487,7 +1525,7 @@ export class MockCoreBridge implements CoreBridge {
         if (command.operation === 'create_registry_entry') {
           const registry = payload.registry;
           if (!registry || !payload.entry) throw new Error('Registry and entry are required.');
-          const kind = registry === 'variables' ? 'variable' : registry === 'tags' ? 'tag' : 'language_key';
+          const kind = registry === 'variables' ? 'variable' : registry === 'tags' ? 'tag' : registry === 'sounds' ? 'sound' : 'language_key';
           const entry = {
             ...payload.entry,
             id: generateUUID(),
@@ -1994,6 +2032,12 @@ export class MockCoreBridge implements CoreBridge {
           workspaceFile,
           generatorId: payload.generatorId,
           modId: payload.modId
+        };
+        // The browser preview cannot read the ZIP, so it reports one copied file and a clean content check.
+        if (payload.importArchivePath) created.imported = {
+          root: '', description: null, suggestedGeneratorId: payload.generatorId, supportedGeneratorIds: [payload.generatorId],
+          namespaces: [payload.modId], suggestedModId: payload.modId, dataFiles: 1, packIcon: false, skipped: [],
+          droppedMetadata: [], importedFiles: 1, formatSupported: true, contentIssues: []
         };
         const ev: CoreEvent = {
           messageType: 'event',
@@ -2735,7 +2779,8 @@ export class MockCoreBridge implements CoreBridge {
           registries: {
             variables: [...this.mockRegistries.variables],
             tags: [...this.mockRegistries.tags],
-            languageKeys: [...this.mockRegistries.languageKeys]
+            languageKeys: [...this.mockRegistries.languageKeys],
+            sounds: [...this.mockRegistries.sounds]
           },
           variables: [...this.mockRegistries.variables],
           tags: [...this.mockRegistries.tags],
@@ -2940,9 +2985,34 @@ export class MockCoreBridge implements CoreBridge {
         } satisfies WorkspacePlan;
         break;
       }
-      case 'list_assets':
-        data = mockAssetProjection();
+      case 'list_assets': {
+        const projection = mockAssetProjection();
+        data = { ...projection, assets: projection.assets.filter((asset) => !mockDeletedAssetIds.has(asset.id)) };
         break;
+      }
+      case 'preview_asset_delete': {
+        const payload = query.payload as { assetIds?: string[] };
+        const projection = mockAssetProjection();
+        const selected = (payload.assetIds ?? []).map((id) => projection.assets.find((asset) => asset.id === id)).filter(Boolean) as typeof projection.assets;
+        // The fixture model uses the lamp texture, so deleting that texture alone breaks one reference.
+        const affectedReferences = selected.some((asset) => asset.relativePath.endsWith('textures/block/copper_lamp.png'))
+          && !selected.some((asset) => asset.relativePath === ASSET_FIXTURES[0].path)
+          ? [{ sourceAssetId: ASSET_FIXTURES[0].id, sourcePath: ASSET_FIXTURES[0].path, sourcePointer: '/textures/0/path',
+            rawValue: '../../textures/block/copper_lamp.png', targetPath: 'assets/coppertrails/textures/block/copper_lamp.png' }] : [];
+        const allCandidates = selected.every((asset) => asset.health.safeUnused);
+        const requiresReferenceConfirmation = !allCandidates || affectedReferences.length > 0;
+        data = {
+          entries: selected.map((asset) => ({ assetId: asset.id, relativePath: asset.relativePath, sha256: asset.sha256,
+            category: asset.category, size: asset.size, inboundReferences: asset.health.inboundCount,
+            workspaceReferenceCount: asset.health.workspaceReferenceCount, safeUnused: asset.health.safeUnused, issueCodes: [] })),
+          affectedReferences, canApply: selected.length > 0, requiresReferenceConfirmation,
+          issueCodes: [...(affectedReferences.length ? ['ASSET_DELETE_BREAKS_REFERENCES'] : []), ...(allCandidates ? [] : ['ASSET_DELETE_USAGE_NOT_ASSESSED'])],
+          deleteCount: selected.length, totalSize: selected.reduce((sum, asset) => sum + asset.size, 0),
+          planToken: `mock-delete::${requiresReferenceConfirmation ? 'confirm' : 'clean'}::${selected.map((asset) => asset.id).join(',')}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        };
+        break;
+      }
       case 'preview_asset_import': {
         const payload = query.payload as { sourceGrantId?: string; targetRelativePath?: string };
         const target = payload.targetRelativePath ?? 'assets/coppertrails/textures/imported/imported_texture.png';
@@ -3066,7 +3136,10 @@ export class MockCoreBridge implements CoreBridge {
             { generatorId: 'neoforge-1.21.1', loader: 'neoforge', minecraftVersion: '1.21.1', trackId: 'minecraft_1_21_1', displayName: 'NeoForge 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.21.1' },
             { generatorId: 'fabric-1.20.1', loader: 'fabric', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'Fabric 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'fabric-1.20.1' },
             { generatorId: 'neoforge-1.20.1', loader: 'neoforge', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'NeoForge 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.20.1' },
-            { generatorId: 'resourcepack-1.21.1', loader: 'resource_pack', minecraftVersion: '1.21.1', trackId: 'resource_pack', displayName: 'Resource Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'resourcepack-1.21.1' }
+            { generatorId: 'resourcepack-1.21.1', loader: 'resource_pack', minecraftVersion: '1.21.1', trackId: 'resource_pack', displayName: 'Resource Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'resourcepack-1.21.1' },
+            { generatorId: 'datapack-26.1.x', loader: 'data_pack', minecraftVersion: '26.1.x', trackId: 'data_pack', displayName: 'Data Pack 26.1.x', dynamic: false, available: true, workspaceGeneratorName: 'datapack-26.1.x' },
+            { generatorId: 'datapack-1.21.1', loader: 'data_pack', minecraftVersion: '1.21.1', trackId: 'data_pack', displayName: 'Data Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'datapack-1.21.1' },
+            { generatorId: 'datapack-1.20.1', loader: 'data_pack', minecraftVersion: '1.20.1', trackId: 'data_pack', displayName: 'Data Pack 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'datapack-1.20.1' }
           ],
           suggestedWorkspaceFoldersRoot: 'C:\\Users\\example\\MCreatorWorkspaces'
         } satisfies NewWorkspaceGeneratorCatalog;

@@ -38,6 +38,30 @@ export interface AssetMovePreview {
   expiresAt: string;
 }
 
+/** The reviewed impact of deleting assets; see preview_asset_delete. */
+export interface AssetDeletePreview {
+  entries: Array<{
+    assetId: string;
+    relativePath: string;
+    sha256: string;
+    category: AssetProjectionCategory;
+    size: number;
+    inboundReferences: number;
+    workspaceReferenceCount: number;
+    safeUnused: boolean;
+    issueCodes: string[];
+  }>;
+  affectedReferences: Array<{ sourceAssetId: string; sourcePath: string; sourcePointer: string; rawValue: string; targetPath: string }>;
+  canApply: boolean;
+  /** True unless every asset is an assessed cleanup candidate and no reference breaks. */
+  requiresReferenceConfirmation: boolean;
+  issueCodes: string[];
+  deleteCount: number;
+  totalSize: number;
+  planToken: string;
+  expiresAt: string;
+}
+
 export interface WorkspacePlanReviewObject {
   kind: string;
   elementId?: UUID;
@@ -111,7 +135,7 @@ export interface DiagnosticCounts {
 
 export interface GeneratorTarget {
   id: string;
-  loader: 'fabric' | 'neoforge' | 'resource_pack';
+  loader: 'fabric' | 'neoforge' | 'resource_pack' | 'data_pack';
   minecraftVersion: string;
   displayName: string;
   state: 'ready' | 'partial' | 'missing' | 'outdated' | 'incompatible';
@@ -125,7 +149,7 @@ export interface WorkspaceLock {
 export interface WorkspaceSummary {
   id: UUID;
   name: string;
-  kind: 'mod' | 'resource_pack';
+  kind: 'mod' | 'resource_pack' | 'data_pack';
   revision: Revision;
   dirty: boolean;
   generator: GeneratorTarget;
@@ -452,7 +476,7 @@ export interface ProcedureRelationships {
 
 export interface RegistryEntry {
   id: UUID;
-  kind: 'variable' | 'tag' | 'language_key';
+  kind: 'variable' | 'tag' | 'language_key' | 'sound';
   name?: string;
   key?: string;
   dataType?: string;
@@ -462,6 +486,9 @@ export interface RegistryEntry {
   value?: unknown;
   members?: string[];
   translations?: Record<string, string>;
+  /** Sound events: files named relative to sounds/ without .ogg. */
+  files?: string[];
+  subtitle?: string;
   support?: { state: string; reasonCode: string };
 }
 
@@ -470,11 +497,12 @@ export interface WorkspaceRegistriesProjection {
     variables: RegistryEntry[];
     tags: RegistryEntry[];
     languageKeys: RegistryEntry[];
+    sounds?: RegistryEntry[];
   };
   variables?: RegistryEntry[];
   tags?: RegistryEntry[];
   languageKeys?: RegistryEntry[];
-  registry?: 'variables' | 'tags' | 'languageKeys';
+  registry?: 'variables' | 'tags' | 'languageKeys' | 'sounds';
   items?: Array<Partial<RegistryEntry>>;
   total?: number;
   pageSize?: number;
@@ -692,8 +720,35 @@ export interface CreateWorkspacePayload {
   modId: string;
   packageName?: string;
   workspaceFolderPath: string;
+  /** Absolute path to an existing data pack ZIP; data pack generators only. */
+  importArchivePath?: string;
   version?: string;
   userApproved: boolean;
+}
+
+/** What a data pack ZIP holds, as the desktop picker inspects it and as create_workspace reports it. */
+export interface DataPackArchiveInspection {
+  root: string;
+  packFormat?: unknown;
+  minFormat?: unknown;
+  maxFormat?: unknown;
+  supportedFormats?: unknown;
+  description: string | null;
+  suggestedGeneratorId: string | null;
+  /** Bundled data pack generators whose pack format the pack declares, newest first. */
+  supportedGeneratorIds: string[];
+  namespaces: string[];
+  suggestedModId: string | null;
+  dataFiles: number;
+  packIcon: boolean;
+  skipped: string[];
+  droppedMetadata: string[];
+}
+
+export interface DataPackImport extends DataPackArchiveInspection {
+  importedFiles: number;
+  formatSupported: boolean;
+  contentIssues: { code: string; path?: string | null; message: string }[];
 }
 
 export interface CreateModElementPayload {
@@ -902,7 +957,8 @@ export type CommandOperation =
   | 'import_blockbench_task'
   | 'recover_blockbench_import'
   | 'bind_blockbench_model'
-  | 'move_asset';
+  | 'move_asset'
+  | 'delete_asset';
 
 export interface Command<T = unknown> {
   messageType: 'command';
@@ -977,6 +1033,7 @@ export interface CommandResultData {
   workspaceFile?: string;
   generatorId?: string;
   modId?: string;
+  imported?: DataPackImport;
   taskId?: UUID;
   sourceRevision?: Revision;
   currentRevision?: Revision;
@@ -1047,6 +1104,7 @@ export type QueryOperation =
   | 'preview_asset_import'
   | 'preview_asset_import_batch'
   | 'preview_asset_move'
+  | 'preview_asset_delete'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'get_element_visual_preview'
@@ -1179,8 +1237,9 @@ export type TrackId =
   | 'previous_stable'
   | 'minecraft_1_21_1'
   | 'minecraft_1_20_1'
-  | 'resource_pack';
-export type LoaderType = 'fabric' | 'neoforge' | 'resource_pack';
+  | 'resource_pack'
+  | 'data_pack';
+export type LoaderType = 'fabric' | 'neoforge' | 'resource_pack' | 'data_pack';
 
 export interface TrackLoader {
   loader: LoaderType;
@@ -1233,6 +1292,7 @@ export interface NewWorkspaceGeneratorCatalog {
 }
 
 export type AssetProjectionCategory =
+  | 'STRUCTURE'
   | 'MODEL'
   | 'TEXTURE'
   | 'ANIMATION'
@@ -1247,6 +1307,8 @@ export interface AssetProjectionAsset {
   id: string;
   relativePath: string;
   category: AssetProjectionCategory;
+  /** For textures: the folder under textures/ (block, item, entity, gui, ...), or other. */
+  usage?: string;
   size: number;
   sha256: string;
   mediaType: string;
@@ -1474,6 +1536,7 @@ export type EventType =
   | 'asset_imported'
   | 'assets_imported'
   | 'asset_moved'
+  | 'asset_deleted'
   | 'asset_external_edit_committed';
 
 export interface BaseEvent<E extends EventType, P> {
@@ -1653,6 +1716,11 @@ export type AssetMovedEvent = BaseEvent<
   CommandResultData
 >;
 
+export type AssetDeletedEvent = BaseEvent<
+  'asset_deleted',
+  CommandResultData
+>;
+
 export type AssetExternalEditCommittedEvent = BaseEvent<
   'asset_external_edit_committed',
   {
@@ -1691,6 +1759,7 @@ export type CoreEvent =
   | AssetImportedEvent
   | AssetsImportedEvent
   | AssetMovedEvent
+  | AssetDeletedEvent
   | AssetExternalEditCommittedEvent;
 
 /* =========================================================================

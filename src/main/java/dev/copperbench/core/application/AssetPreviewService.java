@@ -28,6 +28,8 @@ public final class AssetPreviewService {
     static final int MAX_DOCUMENT_BYTES = 256 * 1024;
     static final int MAX_IMAGE_DIMENSION = 2048;
     static final int MAX_TEXTURES = 4;
+    /** Sound effects fit; long music tracks are left to an external player. */
+    static final int MAX_AUDIO_BYTES = 4 * 1024 * 1024;
 
     public static JsonObject preview(Path root, AssetReferenceGraph graph, String assetId, String expectedSha256) throws IOException {
         if (assetId == null || !assetId.matches("asset:[0-9a-f]{64}") || expectedSha256 == null
@@ -77,6 +79,13 @@ public final class AssetPreviewService {
                 JsonObject scene = dev.copperbench.assets.ModelPreviewService.unavailable("model_invalid");
                 scene.addProperty("detail", error.getMessage()); result.add("scene", scene);
             }
+        } else if (asset.category() == dev.copperbench.assets.AssetCategory.SOUND
+                && Set.of("audio/ogg", "audio/wav").contains(asset.mediaType())) {
+            if (asset.size() > MAX_AUDIO_BYTES) return unsupported(result, "audio_too_large");
+            JsonObject audio = metadata(asset);
+            audio.addProperty("base64", Base64.getEncoder().encodeToString(readVerified(workspace, asset, MAX_AUDIO_BYTES)));
+            result.addProperty("kind", "audio");
+            result.add("audio", audio);
         } else return unsupported(result, "format_not_supported");
         return result;
     }

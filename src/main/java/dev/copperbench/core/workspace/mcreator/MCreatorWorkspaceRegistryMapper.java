@@ -7,6 +7,7 @@ import dev.copperbench.core.workspace.UnknownFieldPreservingJsonStore;
 import net.mcreator.minecraft.TagType;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.WorkspaceFileManager;
+import net.mcreator.workspace.elements.SoundElement;
 import net.mcreator.workspace.elements.TagElement;
 import net.mcreator.workspace.elements.VariableElement;
 import net.mcreator.workspace.elements.VariableType;
@@ -37,6 +38,7 @@ final class MCreatorWorkspaceRegistryMapper {
 		registries.add("variables", projectVariables(workspace, workspaceId, entries(existing, "variables")));
 		registries.add("tags", projectTags(workspace, workspaceId, entries(existing, "tags")));
 		registries.add("languageKeys", projectLanguage(workspace, workspaceId, entries(existing, "languageKeys")));
+		registries.add("sounds", projectSounds(workspace, workspaceId, entries(existing, "sounds")));
 		product.add("registries", registries);
 		document.add(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE, product);
 	}
@@ -81,7 +83,57 @@ final class MCreatorWorkspaceRegistryMapper {
 						.put(key, translation.getValue().getAsString());
 			for (var language : workspace.getLanguageMap().values()) language.putIfAbsent(key, "");
 		}
+
+		if (registries.has("sounds") && registries.get("sounds").isJsonArray()) synchronizeSounds(workspace, registries);
 		workspace.markDirty();
+	}
+
+	/**
+	 * Updates sound events in place. Removing one only unregisters it: its .ogg files stay, because they are workspace
+	 * assets with their own reviewed deletion.
+	 */
+	private static void synchronizeSounds(Workspace workspace, JsonObject registries) {
+		Map<String, JsonObject> wanted = new LinkedHashMap<>();
+		for (JsonElement raw : entries(registries, "sounds")) wanted.put(required(raw.getAsJsonObject(), "name"), raw.getAsJsonObject());
+		for (SoundElement sound : List.copyOf(workspace.getSoundElements()))
+			if (!wanted.containsKey(sound.getName())) workspace.unregisterSoundElement(sound);
+		Map<String, SoundElement> existing = new LinkedHashMap<>();
+		workspace.getSoundElements().forEach(sound -> existing.put(sound.getName(), sound));
+		for (var entry : wanted.entrySet()) {
+			JsonObject item = entry.getValue();
+			List<String> files = new ArrayList<>();
+			if (item.has("files") && item.get("files").isJsonArray()) item.getAsJsonArray("files").forEach(file -> files.add(file.getAsString()));
+			String subtitle = string(item, "subtitle", "");
+			SoundElement sound = existing.get(entry.getKey());
+			if (sound == null) {
+				workspace.addSoundElement(new SoundElement(entry.getKey(), files, string(item, "category", "neutral"),
+						subtitle.isBlank() ? null : subtitle));
+			} else {
+				sound.setFiles(files);
+				sound.setCategory(string(item, "category", "neutral"));
+				sound.setSubtitle(subtitle.isBlank() ? null : subtitle);
+			}
+		}
+	}
+
+	private static JsonArray projectSounds(Workspace workspace, UUID workspaceId, JsonArray existing) {
+		Map<String, JsonObject> byName = index(existing, "name");
+		JsonArray result = new JsonArray();
+		for (SoundElement sound : workspace.getSoundElements()) {
+			JsonObject item = copy(byName.get(sound.getName()));
+			identity(item, workspaceId, "sound", sound.getName());
+			item.addProperty("kind", "sound");
+			item.addProperty("name", sound.getName());
+			JsonArray files = new JsonArray();
+			sound.getFiles().forEach(files::add);
+			item.add("files", files);
+			item.addProperty("category", sound.getCategory());
+			if (sound.getSubtitle() != null && !sound.getSubtitle().isBlank()) item.addProperty("subtitle", sound.getSubtitle());
+			else item.remove("subtitle");
+			item.add("support", support("supported", "SOUND_SUPPORTED"));
+			result.add(item);
+		}
+		return result;
 	}
 
 	private static JsonArray projectVariables(Workspace workspace, UUID workspaceId, JsonArray existing) {

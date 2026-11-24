@@ -254,15 +254,17 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await page.selectOption('[data-testid="field-plantType"]', 'double');
     await expect(page.locator('[data-testid="field-textureBottom"]')).toBeEditable();
 
-    const listId = await page.locator('[data-testid="field-textureBottom"]').getAttribute('list');
-    expect(listId).toBeTruthy();
-    await expect(page.locator(`#${listId} option[value="copper_lamp.png"]`)).toHaveCount(1);
-    await expect(page.locator(`#${listId} option[value="assets/coppertrails/textures/block/copper_lamp.png"]`)).toHaveCount(0);
+    // MCreator names textures without .png; generators append the path and extension themselves.
+    await page.click('[data-testid="field-textureBottom-browse"]');
+    const options = page.locator('[data-testid="field-textureBottom-option"]');
+    await expect(options).toHaveCount(1);
+    await expect(options.first()).toHaveAttribute('data-value', 'copper_lamp');
+    await options.first().click();
+    await expect(page.locator('[data-testid="field-textureBottom"]')).toHaveValue('copper_lamp');
 
-    await page.fill('[data-testid="field-textureBottom"]', 'copper_lamp.png');
     await page.click('[data-testid="inspector-save-btn"]');
     await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
-    await expect(page.locator('[data-testid="field-textureBottom"]')).toHaveValue('copper_lamp.png');
+    await expect(page.locator('[data-testid="field-textureBottom"]')).toHaveValue('copper_lamp');
   });
   test('Stage 12 Villager Trade edits structured trade rows without raw JSON and survives reopen', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');

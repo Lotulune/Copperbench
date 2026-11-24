@@ -120,7 +120,12 @@ public final class WorkspaceApplicationService {
 	private static final Pattern VARIABLE_NAME = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]{0,63}$");
 	private static final Pattern RESOURCE_PATH = Pattern.compile("^[a-z0-9_./-]+$");
 	private static final Pattern LANGUAGE_KEY = Pattern.compile("^[a-z0-9_.-]+$");
-	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys");
+	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys", "sounds");
+	/** Sound events: dotted lowercase names, sound files named relative to sounds/ without .ogg, vanilla sound sources. */
+	private static final Pattern SOUND_NAME = Pattern.compile("^[a-z0-9_.-]+$");
+	private static final Pattern SOUND_FILE = Pattern.compile("^[a-z0-9_./-]+$");
+	private static final Set<String> SOUND_CATEGORIES = Set.of("master", "music", "record", "weather", "block", "hostile",
+			"neutral", "player", "ambient", "voice");
 	private static final Set<String> ELEMENT_TYPES = Set.copyOf(ElementCoverageCatalog.FIRST_PARTY_SLICE);
 	private static final int TASK_EVENT_HISTORY_LIMIT = 2048;
 	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
@@ -152,6 +157,7 @@ public final class WorkspaceApplicationService {
 	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportBatchPlanGrant> assetImportBatchPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetMovePlanGrant> assetMovePlanGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetDeletePlanGrant> assetDeletePlanGrants = new ConcurrentHashMap<>();
 	private static final Duration ASSET_IMPORT_GRANT_TTL = Duration.ofMinutes(10);
 	private static final Duration ASSET_MOVE_PLAN_TTL = Duration.ofMinutes(10);
 
@@ -751,6 +757,143 @@ public final class WorkspaceApplicationService {
 				refreshedHealth.findById(mutation.applied().asset().id()).orElseThrow()));
 		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
 		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_moved", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private record AssetDeletePlanGrant(String id, UUID workspaceId, List<String> assetIds,
+			dev.copperbench.assets.AssetDeletePlan plan, Instant expiresAt) {
+	}
+
+	private record AssetDeleteMutation(dev.copperbench.assets.AssetDeleteService.ApplyResult applied, long sequence,
+			Diagnostic diagnostic) {
+	}
+
+	/** Generator outputs are recreated on the next generation, so deleting them does not remove anything. */
+	private java.util.function.Predicate<String> generatorOwnedAsset() {
+		Map<String, String> ownership = mutations.workspaceSourceOwnership();
+		return relative -> ownership.entrySet().stream().anyMatch(entry -> entry.getValue().equals("generated")
+				&& (entry.getKey().endsWith("/") ? relative.startsWith(entry.getKey()) : relative.equals(entry.getKey())));
+	}
+
+	private AssetDeletePlanGrant assetDeletePlanGrant(String id, UUID workspaceId) {
+		Instant now = clock.instant();
+		assetDeletePlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+		AssetDeletePlanGrant grant = assetDeletePlanGrants.get(id);
+		if (grant == null || !grant.workspaceId().equals(workspaceId))
+			throw new dev.copperbench.assets.AssetDeleteService.AssetDeleteException("ASSET_DELETE_PLAN_INVALID",
+					"The asset delete preview is missing or expired. Preview the deletion again.");
+		return grant;
+	}
+
+	private static List<String> deleteAssetIds(JsonObject payload) {
+		JsonElement raw = payload.get("assetIds");
+		if (raw == null || !raw.isJsonArray()) throw new IllegalArgumentException("assetIds must be an array of asset IDs");
+		List<String> assetIds = new ArrayList<>();
+		for (JsonElement id : raw.getAsJsonArray()) {
+			if (!id.isJsonPrimitive() || !id.getAsJsonPrimitive().isString())
+				throw new IllegalArgumentException("assetIds must contain asset ID strings");
+			assetIds.add(id.getAsString());
+		}
+		return assetIds;
+	}
+
+	private QueryResult previewAssetDelete(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_DELETE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_delete_recovery_unavailable",
+					"Asset deletion requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset deletion.", null, null));
+		try {
+			List<String> assetIds = deleteAssetIds(query.payload());
+			AssetReferenceGraph graph = assetProjections.scan(root);
+			dev.copperbench.assets.AssetDeletePlan plan = new dev.copperbench.assets.AssetDeleteService(
+					new AssetWorkspaceService(root), history, generatorOwnedAsset())
+					.preview(assetIds, graph, assetProjections.health(graph, state));
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_MOVE_PLAN_TTL);
+			assetDeletePlanGrants.put(planToken, new AssetDeletePlanGrant(planToken, query.workspaceId(), assetIds, plan, expiresAt));
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			return querySuccess(query, state.revision(), data);
+		} catch (dev.copperbench.assets.AssetDeleteService.AssetDeleteException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_delete_preview_failed", exception.getMessage(), "/assetIds", null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private CommandOutcome deleteAsset(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_DELETE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_delete_recovery_unavailable",
+					"Asset deletion requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset deletion.", null, null));
+		AssetDeletePlanGrant approved;
+		boolean confirmed;
+		try {
+			approved = assetDeletePlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+			JsonElement confirmation = command.payload().get("confirmAffectedReferences");
+			if (confirmation != null && (!confirmation.isJsonPrimitive() || !confirmation.getAsJsonPrimitive().isBoolean()))
+				throw new IllegalArgumentException("confirmAffectedReferences must be a boolean");
+			confirmed = confirmation != null && confirmation.getAsBoolean();
+		} catch (dev.copperbench.assets.AssetDeleteService.AssetDeleteException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_delete_failed", exception.getMessage(), "/planToken", null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		var deleter = new dev.copperbench.assets.AssetDeleteService(new AssetWorkspaceService(root), history, generatorOwnedAsset());
+		String taskId = command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+				: command.requestId().toString();
+		TransactionResult<AssetDeleteMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				// Re-read usage inside the transaction so the deletion matches the workspace it changes.
+				AssetReferenceGraph graph = assetProjections.scan(root);
+				var current = deleter.preview(approved.assetIds(), graph, assetProjections.health(graph, state));
+				var applied = deleter.apply(approved.plan(), current, confirmed, context.actor(), taskId);
+				Diagnostic revisionFailure = persistAssetRevision(state, command, applied.recoveryPoint());
+				if (revisionFailure != null) return Decision.abort(new AssetDeleteMutation(null, 0, revisionFailure));
+				return Decision.commit(new AssetDeleteMutation(applied, state.nextEventSequence(), null),
+						applied.deletedPaths().stream().map(path -> "/" + path).toList());
+			} catch (dev.copperbench.assets.AssetDeleteService.AssetDeleteException exception) {
+				return Decision.abort(new AssetDeleteMutation(null, 0, diagnostic(exception.code(),
+						"diagnostic.asset_delete_failed", exception.getMessage(),
+						exception.code().equals("ASSET_DELETE_CONFIRMATION_REQUIRED") ? "/confirmAffectedReferences" : null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(new AssetDeleteMutation(null, 0, failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetDeleteMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetDeletePlanGrants.remove(approved.id());
+		AssetReferenceGraph refreshed = assetProjections.scan(root);
+		AssetHealthReport refreshedHealth = assetProjections.health(refreshed, store.read(command.workspaceId()).orElseThrow());
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.add("deletedPaths", GSON.toJsonTree(mutation.applied().deletedPaths()));
+		data.add("deletedAssetIds", GSON.toJsonTree(approved.plan().entries().stream()
+				.map(dev.copperbench.assets.AssetDeletePlan.Entry::assetId).toList()));
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_deleted", data.deepCopy());
 		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
 				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
@@ -1504,6 +1647,7 @@ public final class WorkspaceApplicationService {
 			case BIND_BLOCKBENCH_MODEL -> bindModelingResult(command, context);
 			case IMPORT_ASSET_BATCH -> importAssetBatch(command, context);
 			case MOVE_ASSET -> moveAsset(command, context);
+			case DELETE_ASSET -> deleteAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
 					"The requested operation is not supported.", null, null));
@@ -1560,6 +1704,7 @@ public final class WorkspaceApplicationService {
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
 				case PREVIEW_ASSET_IMPORT_BATCH -> previewAssetImportBatch(query, state);
 				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
+				case PREVIEW_ASSET_DELETE -> previewAssetDelete(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case GET_ELEMENT_VISUAL_PREVIEW -> elementVisualPreview(query, state);
@@ -1858,12 +2003,17 @@ public final class WorkspaceApplicationService {
 		String modId;
 		String packageName;
 		String workspaceFolderPath;
+		Path importArchive;
 		try {
 			generatorId = requiredString(command.payload(), "generatorId");
 			modName = requiredString(command.payload(), "modName");
 			modId = requiredString(command.payload(), "modId");
 			packageName = optionalString(command.payload(), "packageName");
 			workspaceFolderPath = requiredString(command.payload(), "workspaceFolderPath");
+			String archive = optionalString(command.payload(), "importArchivePath");
+			importArchive = archive == null ? null : Path.of(archive);
+			if (importArchive != null && !importArchive.isAbsolute())
+				throw new IllegalArgumentException("importArchivePath must be an absolute path to a .zip file");
 		} catch (RuntimeException exception) {
 			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
 		}
@@ -1875,7 +2025,7 @@ public final class WorkspaceApplicationService {
 		try {
 			coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
 				WorkspaceCreationService.CreationResult created = workspaceCreation.create(generatorId, modName, modId,
-						effectivePackageName, workspaceFolderPath, version, context.previewGeneratorId() != null);
+						effectivePackageName, workspaceFolderPath, version, context.previewGeneratorId() != null, importArchive);
 				return new WorkspaceCreationMutation(created, created.complete() ? state.nextEventSequence() : 0);
 			});
 		} catch (RuntimeException exception) {
@@ -1902,8 +2052,10 @@ public final class WorkspaceApplicationService {
 		payload.addProperty("generatorId", created.generatorId());
 		payload.addProperty("modId", modId);
 		Event event = event(command, coordinated.revision(), coordinated.value().sequence(), "workspace_created", payload);
+		JsonObject data = payload.deepCopy();
+		if (created.imported() != null) data.add("imported", created.imported().deepCopy());
 		return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
-				payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+				data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
 
 	private static String workspaceCreationFallback(String code) {
@@ -1917,6 +2069,11 @@ public final class WorkspaceApplicationService {
 			case "WORKSPACE_FOLDER_REQUIRED" -> "A workspace folder is required.";
 			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder must be an absolute child directory without path redirects.";
 			case "WORKSPACE_FOLDER_NOT_EMPTY" -> "The workspace folder is not empty.";
+			case "IMPORT_REQUIRES_DATA_PACK" -> "Only data pack workspaces can start from an imported ZIP.";
+			case "IMPORT_ARCHIVE_UNREADABLE" -> "The import file is not a readable .zip archive.";
+			case "IMPORT_ARCHIVE_NOT_DATA_PACK" -> "The ZIP is not a data pack: it needs pack.mcmeta at its top level and files under data/.";
+			case "IMPORT_ARCHIVE_TOO_LARGE" -> "The ZIP exceeds the import limit of 20000 entries, 64 MiB per file or 256 MiB in total.";
+			case "IMPORT_ARCHIVE_PATH_INVALID" -> "The ZIP contains an unsafe, duplicate or conflicting entry name.";
 			default -> "The new workspace form is invalid: " + code + ".";
 		};
 	}
@@ -1929,6 +2086,8 @@ public final class WorkspaceApplicationService {
 			case "PACKAGE_NAME_INVALID" -> "/packageName";
 			case "WORKSPACE_FOLDER_REQUIRED", "WORKSPACE_FOLDER_OUTSIDE_ROOT", "WORKSPACE_FOLDER_NOT_EMPTY" ->
 					"/workspaceFolderPath";
+			case "IMPORT_REQUIRES_DATA_PACK", "IMPORT_ARCHIVE_UNREADABLE", "IMPORT_ARCHIVE_NOT_DATA_PACK",
+					"IMPORT_ARCHIVE_TOO_LARGE", "IMPORT_ARCHIVE_PATH_INVALID" -> "/importArchivePath";
 			default -> null;
 		};
 	}
@@ -1976,6 +2135,11 @@ public final class WorkspaceApplicationService {
 
 		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
 			WorkspaceState before = state.copy();
+			// The generator would store such an element but write no files for it.
+			if (!availableElementTypes(state).contains(type))
+				return Decision.abort(Mutation.rejected(diagnostic("GENERATOR_ELEMENT_TYPE_UNSUPPORTED",
+						"diagnostic.generator_element_type_unsupported",
+						"This workspace's generator cannot generate this element type.", "/elementType", null)));
 			if (state.hasElementName(name))
 				return Decision.abort(Mutation.rejected(diagnostic("MOD_ELEMENT_NAME_CONFLICT",
 						"diagnostic.mod_element_name_conflict", "An element with this name already exists.", "/name", null)));
@@ -2928,7 +3092,13 @@ public final class WorkspaceApplicationService {
 		try {
 			Path target = command.operation() == Operation.CREATE_WORKSPACE
 					? Path.of(requiredString(command.payload(), "workspaceFolderPath")) : workspaceRoot(command.workspaceId());
-			return taskAuthorizations.authorize(requiredString(command.payload(), "taskAuthorizationId"), target, command.operation());
+			String authorization = requiredString(command.payload(), "taskAuthorizationId");
+			var decision = taskAuthorizations.authorize(authorization, target, command.operation());
+			// A task's authority covers one root, so it may import only a ZIP inside that root.
+			String archive = command.operation() == Operation.CREATE_WORKSPACE ? optionalString(command.payload(), "importArchivePath") : null;
+			if (decision.allowed() && archive != null)
+				return taskAuthorizations.authorize(authorization, Path.of(archive).toAbsolutePath().normalize().getParent(), command.operation());
+			return decision;
 		} catch (RuntimeException exception) {
 			return new TaskAuthorizationStore.Decision(false, "TASK_AUTHORIZATION_INVALID", false);
 		}
@@ -3300,9 +3470,23 @@ public final class WorkspaceApplicationService {
 		else
 			result.add("nextCursor", JsonNull.INSTANCE);
 		JsonArray availableTypes = new JsonArray();
-		ElementCoverageCatalog.FIRST_PARTY_SLICE.forEach(availableTypes::add);
+		availableElementTypes(state).forEach(availableTypes::add);
 		result.add("availableTypes", availableTypes);
 		return result;
+	}
+
+	/**
+	 * First-party types the workspace generator declares templates for, so a data pack is not offered blocks or items.
+	 * Without a loaded generator the whole slice stays; preview targets negotiate their own element scope.
+	 */
+	static List<String> availableElementTypes(WorkspaceState state) {
+		String generator = optionalString(state.generator(), "id");
+		if (generator == null || !net.mcreator.generator.Generator.GENERATOR_CACHE.containsKey(generator)
+				|| dev.copperbench.tracks.VersionTrackCatalog.official().requiresPreview(generator))
+			return ElementCoverageCatalog.FIRST_PARTY_SLICE;
+		return ElementCoverageCatalog.FIRST_PARTY_SLICE.stream()
+				.filter(type -> dev.copperbench.release.GeneratorElementCapabilityCatalog.decision(generator, type).generatable())
+				.toList();
 	}
 
 	private static String listSearch(JsonObject payload, JsonObject filter) {
@@ -4244,7 +4428,7 @@ public final class WorkspaceApplicationService {
 		String search = filter != null && filter.has("search")
 				? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
 		Set<String> fields = listFields(payload, Set.of("id", "kind", "name", "key", "dataType", "scope",
-				"namespace", "category", "value", "members", "translations", "support"), "registry entry");
+				"namespace", "category", "value", "members", "translations", "files", "subtitle", "support"), "registry entry");
 		List<JsonObject> entries = new ArrayList<>();
 		registries.getAsJsonArray(selected).forEach(raw -> entries.add(raw.getAsJsonObject().deepCopy()));
 		Comparator<JsonObject> comparator = registryEntryComparator(selected, sort);
@@ -4630,6 +4814,10 @@ public final class WorkspaceApplicationService {
 			if (!entry.has("namespace")) entry.addProperty("namespace", "mod");
 			if (!entry.has("category")) entry.addProperty("category", "items");
 			if (!entry.has("members")) entry.add("members", new JsonArray());
+		} else if (registry.equals("sounds")) {
+			if (!entry.has("category")) entry.addProperty("category", "neutral");
+			Diagnostic sound = validateSoundEntry(entry);
+			if (sound != null) throw new RegistryValidationException(sound);
 		} else if (!entry.has("translations")) entry.add("translations", new JsonObject());
 		entry.add("support", registrySupport("supported", "REGISTRY_ENTRY_SUPPORTED"));
 		registries.getAsJsonArray(registry).add(entry);
@@ -4656,6 +4844,8 @@ public final class WorkspaceApplicationService {
 		String name = registryName(location.registry(), entry);
 		Diagnostic validation = validateRegistryName(location.registry(), entry, name, registries, entryId);
 		if (validation != null) throw new RegistryValidationException(validation);
+		if (location.registry().equals("sounds") && (validation = validateSoundEntry(entry)) != null)
+			throw new RegistryValidationException(validation);
 		location.entries().set(location.index(), entry);
 		JsonObject data = new JsonObject();
 		data.add("entry", entry.deepCopy());
@@ -4889,7 +5079,7 @@ public final class WorkspaceApplicationService {
 		procedureNode(catalog, "mcitem_all", "context", "物品引用", "itemstack", true, null);
 		procedureNode(catalog, "call_procedure", "procedure", "调用 Procedure", "statement", true, null);
 		boolean javaGenerator = !state.generator().has("loader")
-				|| !state.generator().get("loader").getAsString().equals("resource_pack");
+				|| !List.of("resource_pack", "data_pack").contains(state.generator().get("loader").getAsString());
 		procedureNode(catalog, "return_number", "procedure", "返回数值", "statement", javaGenerator,
 				javaGenerator ? null : "PROCEDURE_RETURN_UNSUPPORTED");
 		return catalog;
@@ -6139,6 +6329,7 @@ public final class WorkspaceApplicationService {
 			case "tags" -> RESOURCE_PATH.matcher(name).matches()
 					&& RESOURCE_PATH.matcher(entry.has("namespace") ? entry.get("namespace").getAsString() : "mod").matches();
 			case "languageKeys" -> LANGUAGE_KEY.matcher(name).matches();
+			case "sounds" -> SOUND_NAME.matcher(name).matches();
 			default -> false;
 		};
 		if (!valid) return diagnostic("REGISTRY_ENTRY_NAME_INVALID", "diagnostic.registry_entry_name_invalid",
@@ -6157,6 +6348,25 @@ public final class WorkspaceApplicationService {
 		return null;
 	}
 
+	/** A sound event plays at least one sound file and belongs to one of the game's sound sources. */
+	private Diagnostic validateSoundEntry(JsonObject entry) {
+		JsonElement files = entry.get("files");
+		boolean filesValid = files != null && files.isJsonArray() && !files.getAsJsonArray().isEmpty();
+		if (filesValid) for (JsonElement file : files.getAsJsonArray())
+			filesValid &= file.isJsonPrimitive() && file.getAsJsonPrimitive().isString() && SOUND_FILE.matcher(file.getAsString()).matches();
+		if (!filesValid) return diagnostic("REGISTRY_SOUND_FILES_INVALID", "diagnostic.registry_sound_files_invalid",
+				"A sound event needs at least one sound file, named relative to sounds/ without .ogg (for example lamp/click).",
+				"/entry/files", null);
+		if (!(entry.get("category") instanceof com.google.gson.JsonPrimitive category) || !SOUND_CATEGORIES.contains(category.getAsString()))
+			return diagnostic("REGISTRY_SOUND_CATEGORY_INVALID", "diagnostic.registry_sound_category_invalid",
+					"Choose a sound category: " + String.join(", ", new java.util.TreeSet<>(SOUND_CATEGORIES)) + ".", "/entry/category", null);
+		if (entry.has("subtitle") && !(entry.get("subtitle").isJsonNull()
+				|| entry.get("subtitle").isJsonPrimitive() && entry.get("subtitle").getAsJsonPrimitive().isString()))
+			return diagnostic("REGISTRY_SOUND_SUBTITLE_INVALID", "diagnostic.registry_sound_subtitle_invalid",
+					"The subtitle must be text.", "/entry/subtitle", null);
+		return null;
+	}
+
 	private Diagnostic registryEntryNotFound(UUID entryId) {
 		return diagnostic("REGISTRY_ENTRY_NOT_FOUND", "diagnostic.registry_entry_not_found",
 				"The requested registry entry does not exist.", "/registries/" + entryId, null);
@@ -6171,6 +6381,7 @@ public final class WorkspaceApplicationService {
 			case "variables" -> "variable";
 			case "tags" -> "tag";
 			case "languageKeys" -> "language_key";
+			case "sounds" -> "sound";
 			default -> throw new IllegalArgumentException("Unsupported registry: " + registry);
 		};
 	}
@@ -6245,6 +6456,7 @@ public final class WorkspaceApplicationService {
 					|| normalized.equals("name") && parentPath.contains("/procedureIr/dependencies");
 			case "tags" -> normalized.contains("tag");
 			case "languageKeys" -> normalized.contains("language") || normalized.contains("translation");
+			case "sounds" -> normalized.contains("sound");
 			default -> false;
 		};
 	}

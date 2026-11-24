@@ -8,6 +8,7 @@ import {
   CoreEvent,
   WorkbenchProjection,
   ModElementSummary,
+  ModElementType,
   ModElementEditorProjection,
   TaskSummary,
   TaskLogEntry,
@@ -41,6 +42,8 @@ export interface BridgeState {
   expectedUi: ScenarioExpectedUi | null;
   workbench: WorkbenchProjection | null;
   elements: ModElementSummary[];
+  /** Types the workspace generator can create, from list_mod_elements; undefined until Core reports them. */
+  availableElementTypes?: ModElementType[];
   elementEditors: Record<UUID, ModElementEditorProjection>;
   tasks: Record<UUID, TaskSummary>;
   taskLogs: Record<UUID, TaskLogEntry[]>;

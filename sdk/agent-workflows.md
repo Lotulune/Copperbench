@@ -18,9 +18,44 @@ See [compatibility](compatibility.md) for actual names and contract floors.
 
 连接文件仅包含回环端点等非秘密信息；原生连接另有发现机制。桌面失联不会自动切换宿主。
 
-Read `get_workspace_environment` once for the current preparation step. Inspect
-generator, execution/toolchain, application identity and `data.fieldContracts`
-restrictions. For one creation type, use Native `discover_field_contract(type)`
+## Default route: native code / 默认路线：原生代码
+
+An Agent writes the mod as Java, JSON and resources in the workspace, then
+builds and verifies it through Copperbench. Structured elements, Procedures and
+templates are optional shortcuts. In Python:
+
+1. Start with `print(ws.native_edit_brief())`. On a standard Fabric project it
+   returns `ready` with the main class path, its ownership, `userCodeBlocks`
+   and the `build.gradle` mappings line, so the project need not be listed.
+   `needs_discovery` names the `reason` and `path` to inspect. Keep scripts,
+   task receipts and draft assets in its `scratchDir`
+   (`.gradle/copperbench-agent/`), which source snapshots ignore.
+2. Take one `ws.command("create_recovery_point", label="Before agent: <task>")`.
+3. Edit hand-written files with normal file tools, or add one with
+   `ws.write_file(path, text)` (pass `expected_sha256` to replace). Generated
+   files stay read-only outside their user code blocks: wire your class with
+   `ws.insert_user_code(main_path, "mod init", "MyContent.register();")`. Add
+   generated language entries with `create_registry_entry` on `languageKeys`
+   and import textures, sounds and models with `ws.import_asset(file, target)`.
+4. Start `ws.build()` and `ws.wait_task(task_id)`; read diagnostics on failure.
+   For behavior, run `ws.prepare_game_tests()` once, extend the starter class
+   (on Fabric 1.21.1 it provides `survivalPlayer(helper)`) and run
+   `ws.run_game_tests()`. Report which checks ran; a built JAR is not gameplay
+   acceptance.
+
+See the [Python SDK](python/README.md#修改与任务) for receipts and errors.
+
+Agent 默认直接编写 Java、JSON 与资源，再由产品构建和验证；结构化元素只是可选捷径。
+先读开工摘要并建一个恢复点，临时文件放在 `scratchDir`；生成文件只改用户代码块；
+构建成功不等于玩法验收，行为用 GameTest 证明。
+
+## Structured elements (optional) / 结构化元素（可选）
+
+Use an element only when it clearly covers the request.
+`get_workspace_environment(field_contracts="summary")` reports each contract's
+version, availability and field count; the default full read is about 180,000
+characters. Inspect generator, execution/toolchain, application identity and
+`data.fieldContracts` restrictions. For one creation type, use Native `discover_field_contract(type)`
 or MCP `get_mod_element_field_contract` / TypeScript `getModElementFieldContract`;
 inspect its explicit `available` / `not_exposed` / `unsupported` result and any
 reference discovery routes. Native readiness advertises these operation names,
@@ -31,8 +66,9 @@ discovery does not create probes, change revision or download dependencies.
 
 发现先读取真实生成器、工具链、合同与限制；未暴露的映射仍未知。故意错误输入只属于 W1。
 
-Pass the fresh environment to `field_contract(environment=...)` /
-`fieldContract(type, environment)` to avoid a duplicate full read. This is
+Pass a fresh full environment to `field_contract(environment=...)` /
+`fieldContract(type, environment)` to avoid a duplicate full read; Python
+rejects a summary there with `NATIVE_FIELD_CONTRACT_SUMMARY`. This is
 explicit reuse, not a TTL cache. Re-read after reconnecting or changing workspace,
 generator or contract context. Get applicable revision/hash before writes. Use
 selected list fields and single-object reads. On `LIST_CURSOR_STALE`, discard
@@ -45,6 +81,13 @@ Single-element helpers select editor schema `1.1`; pass `schema_version="1.0"`
 (Python) or `"1.0"` as TypeScript's second `readModElement` argument only when
 the frozen legacy projection is required. UI-Core's general wire schema remains
 `1.0`. Missing required editor semantics are errors rather than silent downgrades.
+
+## Fixed regressions / 固定回归
+
+W1 to W3 are engineering regressions of the public API, including the element
+route, in an isolated workspace. They are not the default Agent route.
+
+W1 至 W3 是公开接口的工程回归，包含元素路线，不是 Agent 的默认路线。
 
 ## W1: create, fail, fix / 创建、失败、修复
 

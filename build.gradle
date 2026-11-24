@@ -472,6 +472,16 @@ tasks.register('runAgentReadinessDelivery', JavaExec.class) {
     args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
 }
 
+tasks.register('runDataPackLoadDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Creates and builds a datapack-1.21.1 workspace through Core, then loads the ZIP in the Fabric 1.21.1 GameTest host.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.DataPackLoadDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
+}
+
 tasks.register('runAgentEvaluation', JavaExec.class) {
     group = 'verification'
     description = 'Scores finished Emberkit mod JARs with per-assertion results from the product GameTest host and the JAR resources.'
