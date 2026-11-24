@@ -27,7 +27,7 @@ Published versions and package-specific verification are maintained in [current 
 
 **再次：范围与流程**
 
-11. 为“接管现有 Fabric/NeoForge Gradle 工程”写范围决定：哪些能力不依赖 `.mcreator`，元数据放在哪里。进展：已起草 [ADR-0020](adr/0020-adopt-existing-gradle-projects.md)（提议中）：按源码列出不依赖 `.mcreator` 的能力，提议第一阶段只接管单模块 Fabric/NeoForge 工程、元数据放在 `.copperbench/workspace.json`、不改写构建脚本；四个待确认问题需要项目所有者决定。
+11. 为“接管现有 Fabric/NeoForge Gradle 工程”写范围决定：哪些能力不依赖 `.mcreator`，元数据放在哪里。进展：已起草 [ADR-0020](adr/0020-adopt-existing-gradle-projects.md)（提议中）：按源码列出不依赖 `.mcreator` 的能力，提议第一阶段只接管单模块 Fabric/NeoForge 工程、元数据放在 `.copperbench/workspace.json`、不改写构建脚本；四个选择已于 2026-11-24 按建议确认（`.gitignore` 询问、默认用产品 Gradle 用户目录、先支持单模块、打开入口接受文件夹），实现尚未开始。
 12. 修订[发布流程](build/release-process.md)：不改变已发布产物的改动不走发布授权；入库证据限于发布绑定所需。进展：[发布流程](build/release-process.md)已加入改动分级、按需发布和入库证据规则，[贡献指南](../CONTRIBUTING.md)同步；随 ADR-0019 一起待项目所有者确认。
 
 **停止投入**：扩充结构化元素类型和字段覆盖；以结构化元素覆盖率作为新版本轨道的发布条件。
