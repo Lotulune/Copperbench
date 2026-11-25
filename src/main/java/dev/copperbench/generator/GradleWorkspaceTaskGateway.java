@@ -88,7 +88,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {
 		WorkspaceState state = store.read(workspaceId)
 				.orElseThrow(() -> new IllegalArgumentException("Workspace not found: " + workspaceId));
-		if (!isTask(operation))
+		if (!isTask(operation) || !backend.generatesSources()
+				&& (operation == Operation.GENERATE_WORKSPACE || operation == Operation.RUN_DATAGEN))
 			throw new IllegalArgumentException(backend.displayName() + " task is not implemented yet: " + operation);
 		UUID taskId = ids.get();
 		Job job = new Job(workspaceId, task(taskId, operation));
@@ -176,26 +177,30 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				return;
 			}
 			if (operation == Operation.PREPARE_GAME_TESTS) {
-				job.record("gameTestSetup", GameTestSupport.prepare(root, backend.gameTestEnvironment(), backend.gameTestModId(state)));
+				job.record("gameTestSetup", GameTestSupport.prepare(root, backend.gameTestEnvironment(), backend.gameTestModId(state),
+						backend.gameTestDirectory()));
 				job.succeed("task.prepare_game_tests.completed", "GameTest starter prepared; add behavior assertions before acceptance");
 				return;
 			}
-			job.progress(0.25, "task.sources.preparing", "Preparing generator dependencies and sources");
-			generationPreparation.prepare(state, executionRoot, operation, line -> job.log("info", line));
-			if (job.cancellationRequested()) throw new InterruptedException("Source preparation cancelled");
-			job.progress(0.35, "task." + taskKind(operation) + ".generating", "Generating workspace sources");
-			var result = backend.generate(executionRoot, state);
-			job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
-					+ " files; modId=" + result.modId());
-			Map<String, UUID> sourceOwners = new HashMap<>(result.sourceElementOwners());
-			Map<String, UUID> preparedOwners = generationPreparation.sourceElementOwners(state, executionRoot);
-			Set<String> ambiguousSources = new HashSet<>();
-			preparedOwners.forEach((path, owner) -> {
-				UUID previous = sourceOwners.putIfAbsent(path, owner);
-				if (previous != null && !previous.equals(owner)) ambiguousSources.add(path);
-			});
-			ambiguousSources.forEach(sourceOwners::remove);
-			job.sourceElementOwners = Map.copyOf(sourceOwners);
+			GradleWorkspaceBackend.GenerationResult result = null;
+			if (backend.generatesSources()) {
+				job.progress(0.25, "task.sources.preparing", "Preparing generator dependencies and sources");
+				generationPreparation.prepare(state, executionRoot, operation, line -> job.log("info", line));
+				if (job.cancellationRequested()) throw new InterruptedException("Source preparation cancelled");
+				job.progress(0.35, "task." + taskKind(operation) + ".generating", "Generating workspace sources");
+				result = backend.generate(executionRoot, state);
+				job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
+						+ " files; modId=" + result.modId());
+				Map<String, UUID> sourceOwners = new HashMap<>(result.sourceElementOwners());
+				Map<String, UUID> preparedOwners = generationPreparation.sourceElementOwners(state, executionRoot);
+				Set<String> ambiguousSources = new HashSet<>();
+				preparedOwners.forEach((path, owner) -> {
+					UUID previous = sourceOwners.putIfAbsent(path, owner);
+					if (previous != null && !previous.equals(owner)) ambiguousSources.add(path);
+				});
+				ambiguousSources.forEach(sourceOwners::remove);
+				job.sourceElementOwners = Map.copyOf(sourceOwners);
+			}
 			if (operation != Operation.GENERATE_WORKSPACE) {
 				// Generated and hand-written files are both in place now; reject content the game would not load.
 				var content = backend.validateContent(executionRoot, state, line -> job.log("info", line));
@@ -404,6 +409,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	}
 
 	private boolean runGameTests(Path snapshot, WorkspaceState state, JsonObject payload, Job job) throws Exception {
+		// Generated workspaces declare runGameTest themselves; an adopted project's own tasks and report path are unknown.
+		if (!backend.generatesSources() && !Files.isRegularFile(snapshot.resolve(GameTestSupport.CONFIG_FILE)))
+			throw new GameTestSupport.TestSetupException("GAMETEST_NOT_CONFIGURED",
+					"This project has no " + GameTestSupport.CONFIG_FILE + ". Prepare GameTests first, or add the file to run the project's own test task.");
 		var configuration = GameTestSupport.configuration(snapshot);
 		RequiredCaseManifest required = payload.has("requiredCases") ? RequiredCaseManifest.parse(payload.getAsJsonObject("requiredCases")) : null;
 		if (required != null && !configuration.mode().equals("packaged_jar"))
@@ -434,10 +443,12 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.log("info", line); job.captureJavaCompileDiagnostic(snapshot, line);
 			});
 			if (build.exitCode() != 0) throw new GameTestSupport.TestSetupException("GAMETEST_BUILD_FAILED", "Tested mod build exited " + build.exitCode());
-			var host = GameTestSupport.host(snapshot, snapshot.resolveSibling("host"), configuration, backend.gameTestEnvironment());
-			// The new host declares the same Minecraft, mappings and loader dependencies as the frozen build.
-			GradleProjectCacheSeed.seedAndLog(snapshot, host.root(), "frozen workspace build", job::cancellationRequested,
-					line -> job.log("info", line));
+			var host = GameTestSupport.host(snapshot, snapshot.resolveSibling("host"), configuration, backend.gameTestEnvironment(),
+					target -> backend.installHostWrapper(snapshot, target));
+			// A generated workspace's host declares the same Minecraft, mappings and loader dependencies as the frozen build.
+			if (backend.hostSharesProjectCache(snapshot))
+				GradleProjectCacheSeed.seedAndLog(snapshot, host.root(), "frozen workspace build", job::cancellationRequested,
+						line -> job.log("info", line));
 			if (GameTestSupport.requiresServerEula(backend.gameTestEnvironment()))
 				Files.writeString(host.root().resolve("run/eula.txt"), "eula=true\n", StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE_NEW);
 			runRoot = host.root(); report = host.report(); arguments = List.of("runGameTest");

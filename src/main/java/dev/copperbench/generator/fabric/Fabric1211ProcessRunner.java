@@ -71,7 +71,8 @@ import java.util.function.Supplier;
 			boolean windows = platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
 			boolean clientRun = isClientRun(arguments);
 
-			List<String> command = wrapperCommand(windows, System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE"));
+			List<String> command = wrapperCommand(windows, System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE"),
+					java.nio.file.Files.isExecutable(workspaceRoot.resolve("gradlew")));
 			command.addAll(daemonArguments(arguments, dev.copperbench.gradle.GradleCachePolicy.reuseDaemon(System.getenv())));
 			var preferences = net.mcreator.preferences.PreferencesManager.PREFERENCES;
 			if (preferences != null && preferences.gradle.offline.get()
@@ -233,7 +234,7 @@ import java.util.function.Supplier;
 	 * The workspace wrapper is addressed relative to the process directory. A bare {@code gradlew.bat} relies on
 	 * cmd's current-directory search, which {@code NoDefaultCurrentDirectoryInExePath} disables.
 	 */
-	static List<String> wrapperCommand(boolean windows, String configuredGradle) {
+	static List<String> wrapperCommand(boolean windows, String configuredGradle, boolean launcherExecutable) {
 		boolean configured = configuredGradle != null && !configuredGradle.isBlank();
 		List<String> command = new ArrayList<>();
 		if (windows) {
@@ -241,6 +242,8 @@ import java.util.function.Supplier;
 			command.add("/c");
 			command.add(configured ? configuredGradle : ".\\gradlew.bat");
 		} else {
+			// An adopted project may lack the executable bit, and its wrapper must not be changed to run it.
+			if (!configured && !launcherExecutable) command.add("sh");
 			command.add(configured ? configuredGradle : "./gradlew");
 		}
 		return command;

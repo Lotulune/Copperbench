@@ -88,10 +88,11 @@ class WorkspaceExecutionSnapshotTest {
         String[] inputs = {"example.mcreator", "build.gradle", "settings.gradle", "gradlew", "gradle/wrapper/gradle-wrapper.jar",
                 "src/main/java/custom/Native.java", "src/gametest/java/custom/Behavior.java", "copperbench-tests.json",
                 "src/main/resources/fabric.mod.json", "src/main/resources/assets/example/lang/zh_cn.json",
-                "src/main/resources/data/run/recipe.json"};
+                "src/main/resources/data/run/recipe.json", "buildSrc/src/main/groovy/Convention.groovy"};
         for (String input : inputs) write(root.resolve(input), "bytes:" + input);
         for (String excluded : new String[]{".git", ".env", ".copperbench/mcp-connection.json", ".gradle/cache",
-                "build/libs/old.jar", "run/saves/user-world/level.dat", "runs/server/world/level.dat"})
+                ".kotlin/sessions/build.salive", "buildSrc/build/libs/buildSrc.jar", "buildSrc/.gradle/cache",
+                "build-logic/build/libs/build-logic.jar", "build/libs/old.jar", "run/saves/user-world/level.dat", "runs/server/world/level.dat"})
             write(root.resolve(excluded), "private");
         Path destination = root.resolve(".copperbench/task-runs/run_gametest/one/workspace");
         var snapshot = WorkspaceExecutionSnapshot.capture(root, destination, UUID.randomUUID(), 7, Clock.systemUTC(), () -> false);

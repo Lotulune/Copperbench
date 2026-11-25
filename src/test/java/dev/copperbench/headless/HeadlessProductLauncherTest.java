@@ -135,7 +135,7 @@ class HeadlessProductLauncherTest {
 		try (var files = Files.list(empty)) { assertTrue(files.toList().isEmpty(), "a refused folder is left untouched"); }
 	}
 
-	@Test void gradleProjectFoldersAnswerQueriesAndRefuseGeneratorCommands() throws Exception {
+	@Test void gradleProjectFoldersAnswerQueriesRunTasksAndRefuseGeneratorCommands() throws Exception {
 		Path project = Files.createDirectory(tempDir.resolve("ember-kit"));
 		Path example = Path.of("examples/agent-native/survey-pulse");
 		try (var paths = Files.walk(example)) {
@@ -152,8 +152,19 @@ class HeadlessProductLauncherTest {
 		assertEquals("fabric-1.21.1", data.getAsJsonObject("generator").get("id").getAsString());
 		assertEquals("survey_pulse", data.getAsJsonObject("gradleProject").get("modId").getAsString());
 
+		JsonObject validated = run(project, "validate");
+		assertEquals("succeeded", validated.get("status").getAsString(), validated.toString());
+		assertEquals("succeeded", validated.getAsJsonObject("task").get("state").getAsString(), "the command waits for its task");
+		JsonObject prepared = run(project, "prepare-game-tests");
+		assertEquals("succeeded", prepared.get("status").getAsString(), prepared.toString());
+		assertTrue(Files.isRegularFile(project.resolve("src/copperbenchTest/java/copperbench/acceptance/AcceptanceTests.java")));
+
+		JsonObject datagen = run(project, "run-datagen");
+		assertEquals("GRADLE_PROJECT_TASKS_UNAVAILABLE", datagen.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+		// Without its wrapper the project cannot be built, so no Gradle process starts here.
+		Files.delete(project.resolve("gradle/wrapper/gradle-wrapper.jar"));
 		JsonObject build = run(project, "build");
-		assertEquals("GRADLE_PROJECT_TASKS_UNAVAILABLE", build.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+		assertEquals("GRADLE_PROJECT_UNSUPPORTED", build.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
 		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(project, "api").get("code").getAsString());
 		assertFalse(Files.exists(project.resolve(".git")));
 		assertFalse(Files.exists(project.resolve("build")));

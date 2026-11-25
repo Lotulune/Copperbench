@@ -77,7 +77,13 @@ final class HeadlessRuntimeBootstrap {
 			Generator.GENERATOR_CACHE.computeIfAbsent(generator, GeneratorConfiguration::new);
 		}
 
-		ChinaMirrorService.syncUserHome();
+		prepareGradleHome();
+	}
+
+	/** Applies the mirror setting and packaged distributions to the Gradle user home that workspace tasks use. */
+	static void prepareGradleHome() {
+		// Without loaded preferences the mirror choice is unknown; leave the user's setup as it is.
+		if (PreferencesManager.PREFERENCES != null) ChinaMirrorService.syncUserHome();
 		GradleDistributionPool.seedPackagedDistributions();
 	}
 }

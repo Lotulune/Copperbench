@@ -67,6 +67,8 @@ await client.prepareGameTests(currentRevision);
 3. 调用 `run_gametest` 或执行 `headless ... run-gametest`。
 4. 查询任务直到终态，再检查 `task.verification` 的结果、用例和被测内容。
 
+接管的 Gradle 工程（[ADR-0020](../adr/0020-adopt-existing-gradle-projects.md)）流程相同，但测试放在 `src/copperbenchTest`，工程自己的构建不会编译它们；`createdPaths` 列出实际位置。没有 `copperbench-tests.json` 时返回 `GAMETEST_NOT_CONFIGURED`，不会猜测工程的测试任务。
+
 准备命令会创建配置、README 和版本对应的加载检查用例；已有配置或测试文件不会被覆盖。具备本地历史服务时，准备前先创建恢复点。**初始用例只验证模组加载，玩法行为需要自己补充断言。** 桌面任务面板在测试失败时提供“准备测试模板”，准备完成后可直接“运行测试”。
 
 默认配置：
@@ -82,7 +84,7 @@ await client.prepareGameTests(currentRevision);
 }
 ```
 
-`packaged_jar` 模式使用当前生成器固定的 Minecraft、Loader、API 和 Gradle 插件坐标。产品自动构建真实工作区快照，选择唯一的模组 JAR，创建独立测试宿主，并复制该 JAR 到宿主的 `run/mods`。宿主包含测试源码与加载/报告辅助代码，不复制模组实现源码。测试可以引用被测 JAR 的类型；需要额外依赖或定制运行环境的项目可使用下面的 `workspace` 模式。
+`packaged_jar` 模式使用当前生成器固定的 Minecraft、Loader、API 和 Gradle 插件坐标。产品自动构建真实工作区快照，选择唯一的模组 JAR，创建独立测试宿主，并复制该 JAR 到宿主的 `run/mods`。宿主包含测试源码与加载/报告辅助代码，不复制模组实现源码。测试可以引用被测 JAR 的类型；需要额外依赖或定制运行环境的项目可使用下面的 `workspace` 模式。接管的工程用自己的 wrapper 和依赖构建，宿主使用对应版本轨道的 wrapper 和坐标，两者的 Gradle、Loom 与映射可以不同；宿主不包含工程声明的其他模组，依赖它们的模组需要 `workspace` 模式。
 
 Fabric 测试入口由 `entrypoints` 注册。NeoForge 1.20.1/1.21.1 使用 GameTest 注解，26.x 使用事件注册；生成的模板已经包含相应入口和报告器。NeoForge 1.20.1 启动 GameTest 仍需要带有 EULA 接受记录的 `run_server` 授权；准备和编译模板不会接受 EULA。
 
@@ -104,7 +106,7 @@ Fabric 测试入口由 `entrypoints` 注册。NeoForge 1.20.1/1.21.1 使用 Game
 
 内部 `.mcreator/localHistory`、`.mcreator/workspaceBackups` 和 `.mcreator/userSettings` 不属于验收输入；历史服务的临时文件和用户设置更新不会干扰快照。根目录的 `*.mcreator` 工作区定义、真实源码以及 `.mcreator` 下其他自定义输入仍会进入指纹。真实输入在捕获期间消失或改变会返回 `WORKSPACE_SNAPSHOT_CHANGED`，需要从当前文件重试。
 
-`run_server`、`run_datagen`、`run_gametest` 都复制当前磁盘上的源码、资源、入口、构建脚本、测试和 `.mcreator` 文件。快照排除根目录的 `build`、`out`、`run`、`runs`、日志、IDE 状态、`.copperbench` 和 `.env` / `.env.*`，以及 Git/Gradle/Node 缓存。用户原有运行世界不会随这些目录复制。路径中的符号链接和重定向会被拒绝；复制前后文件清单或内容变化会返回 `WORKSPACE_SNAPSHOT_CHANGED`，不会继续验证混合版本。
+`run_server`、`run_datagen`、`run_gametest` 都复制当前磁盘上的源码、资源、入口、构建脚本、测试和 `.mcreator` 文件。快照排除根目录的 `build`、`out`、`run`、`runs`、`buildSrc/build`、日志、IDE 状态、`.kotlin`、`.copperbench` 和 `.env` / `.env.*`，以及 Git/Gradle/Node 缓存。用户原有运行世界不会随这些目录复制。路径中的符号链接和重定向会被拒绝；复制前后文件清单或内容变化会返回 `WORKSPACE_SNAPSHOT_CHANGED`，不会继续验证混合版本。
 
 每次任务使用新的 `.copperbench/task-runs/<kind>/<taskId>/`，其中包含 `source-manifest.json`。GameTest 另写 `verification.json`，任务查询和 JSONL 事件也返回同一份结构化结果：
 

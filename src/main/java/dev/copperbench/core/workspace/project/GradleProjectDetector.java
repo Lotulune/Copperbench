@@ -6,6 +6,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import dev.copperbench.core.workspace.WorkspaceFiles;
 import dev.copperbench.core.workspace.project.GradleProjectIdentity.Problem;
+import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.tracks.VersionTrackCatalog;
 
 import java.io.IOException;
@@ -85,9 +86,13 @@ public final class GradleProjectDetector {
 		} catch (IllegalArgumentException invalid) {
 			problems.add(new Problem(METADATA_INVALID, "gradle.properties could not be read: " + invalid.getMessage()));
 		}
-		if (!file(root, "gradle/wrapper/gradle-wrapper.properties") || !file(root, "gradle/wrapper/gradle-wrapper.jar")
-				|| !file(root, "gradlew") && !file(root, "gradlew.bat"))
-			problems.add(new Problem(WRAPPER_MISSING, "The project's Gradle Wrapper is incomplete; Copperbench builds with it and does not add one."));
+		String launcher = RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS ? "gradlew.bat" : "gradlew";
+		for (String part : List.of(launcher, "gradle/wrapper/gradle-wrapper.jar", "gradle/wrapper/gradle-wrapper.properties")) {
+			if (file(root, part)) continue;
+			problems.add(new Problem(WRAPPER_MISSING, "The project's Gradle Wrapper is incomplete: " + part
+					+ " is missing. Copperbench builds with it and does not add one."));
+			break;
+		}
 		if (settings != null && INCLUDE.matcher(withoutComments(settings)).find())
 			problems.add(new Problem(MULTI_MODULE, "The settings script includes other modules. Only single-module projects are supported."));
 

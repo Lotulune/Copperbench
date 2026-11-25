@@ -40,8 +40,22 @@ public interface GradleWorkspaceBackend {
 
 	GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws Exception;
 
+	/** Whether tasks generate sources first. Adopted Gradle projects keep every file as it is and have no datagen publishing. */
+	default boolean generatesSources() { return true; }
+
 	/** Pinned loader coordinates used to create an independent acceptance-test host. */
 	default JsonObject gameTestEnvironment() { return new JsonObject(); }
+
+	/** Directory that new GameTest starters are written to. */
+	default String gameTestDirectory() { return GameTestSupport.DEFAULT_DIRECTORY; }
+
+	/** Installs the Gradle Wrapper a new acceptance host builds with; by default the tested workspace's own. */
+	default void installHostWrapper(Path snapshot, Path host) throws java.io.IOException {
+		GameTestSupport.copyWrapper(snapshot, host);
+	}
+
+	/** Whether the frozen build prepared its Loom cache with the same Loom version as the acceptance host. */
+	default boolean hostSharesProjectCache(Path snapshot) throws java.io.IOException { return true; }
 
 	default String gameTestModId(WorkspaceState workspace) {
 		return dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(workspace);

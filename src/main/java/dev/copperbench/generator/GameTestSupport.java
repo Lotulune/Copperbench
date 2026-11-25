@@ -17,6 +17,7 @@ import java.util.Locale;
 /** Local test scaffolding and isolated hosts for the first-party Java generators. */
 public final class GameTestSupport {
     public static final String CONFIG_FILE = "copperbench-tests.json";
+    public static final String DEFAULT_DIRECTORY = "src/gametest";
     private static final String HOST_ID = "copperbench_test_host";
     private static final String TEST_CLASS = "copperbench.acceptance.AcceptanceTests";
     private GameTestSupport() {}
@@ -29,6 +30,9 @@ public final class GameTestSupport {
     public record Configuration(String mode, String task, String reportPath, String sourceDirectory,
             String resourceDirectory, List<String> entrypoints, int minimumTests) {}
     public record Host(Path root, Path report, Path jar, String jarSha256) {}
+
+    /** Puts the Gradle Wrapper a new host builds with into its directory. */
+    @FunctionalInterface public interface HostWrapper { void install(Path host) throws IOException; }
 
     public static Configuration configuration(Path root) throws IOException {
         Path path = safePath(root, CONFIG_FILE);
@@ -81,19 +85,24 @@ public final class GameTestSupport {
     }
 
     public static JsonObject prepare(Path root, JsonObject environment, String modId) throws IOException {
+        return prepare(root, environment, modId, DEFAULT_DIRECTORY);
+    }
+
+    /** Writes the starter into {@code directory}; an adopted project may already use the default one for its own tests. */
+    public static JsonObject prepare(Path root, JsonObject environment, String modId, String directory) throws IOException {
         requireSupported(environment);
         Path configPath = safePath(root, CONFIG_FILE);
         if (Files.exists(configPath)) { configuration(root); return describe(root, environment); }
         String loader = environment.get("loader").getAsString();
         String version = environment.get("minecraftVersion").getAsString();
         String source = starter(loader, version, modId);
-        Path sourcePath = safePath(root, "src/gametest/java/copperbench/acceptance/AcceptanceTests.java");
-        Path readme = safePath(root, "src/gametest/README.md");
+        Path sourcePath = safePath(root, directory + "/java/copperbench/acceptance/AcceptanceTests.java");
+        Path readme = safePath(root, directory + "/README.md");
         for (Path path : List.of(configPath, sourcePath, readme))
             if (Files.exists(path)) throw new TestSetupException("GAMETEST_SETUP_CONFLICT", "Existing test files will not be overwritten: " + path);
         JsonObject config = new JsonObject(); config.addProperty("schemaVersion", "1.0");
-        config.addProperty("mode", "packaged_jar"); config.addProperty("sourceDirectory", "src/gametest/java");
-        config.addProperty("resourceDirectory", "src/gametest/resources"); config.addProperty("minimumTests", 1);
+        config.addProperty("mode", "packaged_jar"); config.addProperty("sourceDirectory", directory + "/java");
+        config.addProperty("resourceDirectory", directory + "/resources"); config.addProperty("minimumTests", 1);
         JsonArray entrypoints = new JsonArray(); entrypoints.add(TEST_CLASS); config.add("entrypoints", entrypoints);
         List<Path> created = new ArrayList<>();
         try {
@@ -114,6 +123,11 @@ public final class GameTestSupport {
     }
 
     public static Host host(Path snapshot, Path host, Configuration configuration, JsonObject environment) throws IOException {
+        return host(snapshot, host, configuration, environment, target -> copyWrapper(snapshot, target));
+    }
+
+    public static Host host(Path snapshot, Path host, Configuration configuration, JsonObject environment, HostWrapper wrapper)
+            throws IOException {
         requireSupported(environment);
         String loader = environment.get("loader").getAsString(), version = environment.get("minecraftVersion").getAsString();
         boolean oldNeo = loader.equals("neoforge") && version.equals("1.20.1");
@@ -122,12 +136,7 @@ public final class GameTestSupport {
         Path artifact = artifact(snapshot, loader);
         Path report = host.resolve("run/gametest-results.xml");
         Files.createDirectories(report.getParent());
-        for (String path : List.of("gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar", "gradle/wrapper/gradle-wrapper.properties")) {
-            Path from = safePath(snapshot, path), to = safePath(host, path);
-            if (!Files.isRegularFile(from)) throw new TestSetupException("GAMETEST_WRAPPER_MISSING", "Workspace wrapper is incomplete: " + path);
-            Files.createDirectories(to.getParent()); Files.copy(from, to);
-        }
-        dev.copperbench.platform.ExecutableFilePermissions.ensureOwnerExecutable(host.resolve("gradlew"));
+        wrapper.install(host);
         copyTree(safePath(snapshot, configuration.sourceDirectory()), host.resolve("src/main/java"));
         copyTree(safePath(snapshot, configuration.resourceDirectory()), host.resolve("src/main/resources"));
         Path deployed = host.resolve("run/mods").resolve(artifact.getFileName()); Files.createDirectories(deployed.getParent());
@@ -142,6 +151,16 @@ public final class GameTestSupport {
         writeNew(host.resolve("build.gradle"), hostBuild(environment, report), new ArrayList<>());
         writeMetadata(host, loader, version, configuration.entrypoints());
         return new Host(host, report, deployed, fingerprint);
+    }
+
+    /** Uses the tested workspace's own wrapper for its host. */
+    static void copyWrapper(Path snapshot, Path host) throws IOException {
+        for (String path : List.of("gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar", "gradle/wrapper/gradle-wrapper.properties")) {
+            Path from = safePath(snapshot, path), to = safePath(host, path);
+            if (!Files.isRegularFile(from)) throw new TestSetupException("GAMETEST_WRAPPER_MISSING", "Workspace wrapper is incomplete: " + path);
+            Files.createDirectories(to.getParent()); Files.copy(from, to);
+        }
+        dev.copperbench.platform.ExecutableFilePermissions.ensureOwnerExecutable(host.resolve("gradlew"));
     }
 
     public static boolean requiresServerEula(JsonObject environment) {
