@@ -4,6 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.core.contract.UiCore;
+import dev.copperbench.core.workspace.WorkspaceFiles;
+import dev.copperbench.core.workspace.project.GradleProjectDetector;
+import dev.copperbench.core.workspace.project.GradleProjectIdentity.Problem;
+import dev.copperbench.core.workspace.project.GradleProjectOperations;
 import dev.copperbench.generator.GradleDistributionIntegrity;
 import dev.copperbench.generator.WorkspaceExecutionEnvironment;
 
@@ -39,12 +43,31 @@ public final class WorkspaceDoctor {
         return inspect(root, generator, () -> WorkspaceExecutionEnvironment.describe(root, distributionRoot, generator));
     }
 
+    /** Inspects a Gradle project folder Copperbench did not create (ADR-0020) without opening or writing to it. */
+    public static JsonObject inspectClosedProject(Path folder, Path distributionRoot) throws IOException {
+        Path root = WorkspaceFiles.requireDirectory(folder);
+        var identity = GradleProjectDetector.inspect(root);
+        return inspectProject(root, identity.generatorId(), identity.problems(),
+                () -> WorkspaceExecutionEnvironment.adoptedProject(root, distributionRoot, identity.generatorId()));
+    }
+
+    /** Observes an adopted project: its wrapper belongs to the project, and identification problems are findings. */
+    public static JsonObject inspectProject(Path root, String generator, List<Problem> problems, Supplier<JsonObject> execution) {
+        return inspect(root, generator, execution, System.getenv(), List.copyOf(problems));
+    }
+
     /** Observes the active task backend; an unavailable backend remains an explicit unknown finding. */
     public static JsonObject inspect(Path root, String generator, Supplier<JsonObject> execution) {
         return inspect(root, generator, execution, System.getenv());
     }
 
     static JsonObject inspect(Path root, String generator, Supplier<JsonObject> execution, Map<String, String> environment) {
+        return inspect(root, generator, execution, environment, null);
+    }
+
+    /** {@code problems} is null for generated workspaces and lists what identification found for adopted projects. */
+    static JsonObject inspect(Path root, String generator, Supplier<JsonObject> execution, Map<String, String> environment,
+            List<Problem> problems) {
         JsonObject report = new JsonObject();
         report.addProperty("schemaVersion", "1.0");
         report.addProperty("scope", "local_observation");
@@ -58,8 +81,9 @@ public final class WorkspaceDoctor {
         capabilities.addProperty("coreSchemaVersion", UiCore.SCHEMA_VERSION);
         capabilities.addProperty("doctorSchemaVersion", "1.0");
         JsonArray queries = new JsonArray();
-        List.of("get_workspace_doctor", "get_workspace_environment", "get_mod_element_field_contract",
-                "get_field_reference_options", "preview_generation", "get_task").forEach(queries::add);
+        (problems != null ? List.of("get_workspace_doctor", "get_workspace_environment", "get_task")
+                : List.of("get_workspace_doctor", "get_workspace_environment", "get_mod_element_field_contract",
+                "get_field_reference_options", "preview_generation", "get_task")).forEach(queries::add);
         capabilities.add("queries", queries);
         capabilities.addProperty("implicitNetworkProbe", false);
         capabilities.addProperty("implicitTaskAuthorization", false);
@@ -80,6 +104,7 @@ public final class WorkspaceDoctor {
                 : !Files.isReadable(root) ? "blocked" : "available";
         finding(findings, "workspace_directory", rootState, "WORKSPACE_DIRECTORY",
                 "Workspace directory observation.", "Select an existing readable workspace.", new JsonObject());
+        if (problems != null) projectFinding(findings, generator, problems);
 
         JsonObject observed = new JsonObject();
         try {
@@ -99,7 +124,7 @@ public final class WorkspaceDoctor {
         }
         report.add("execution", observed);
         javaFinding(findings, observed.has("java") ? observed.getAsJsonObject("java") : new JsonObject());
-        wrapperFinding(findings, root, observed.has("gradle") ? observed.getAsJsonObject("gradle") : new JsonObject());
+        wrapperFinding(findings, root, observed.has("gradle") ? observed.getAsJsonObject("gradle") : new JsonObject(), problems != null);
         cacheFinding(findings, observed);
         JsonObject network = new JsonObject();
         network.addProperty("proxyConfigured", List.of("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
@@ -172,7 +197,24 @@ public final class WorkspaceDoctor {
         }
     }
 
-    private static void wrapperFinding(JsonArray findings, Path root, JsonObject configured) {
+    private static void projectFinding(JsonArray findings, String generator, List<Problem> problems) {
+        JsonObject detail = new JsonObject();
+        JsonArray listed = new JsonArray();
+        for (Problem problem : problems) {
+            JsonObject item = new JsonObject();
+            item.addProperty("code", problem.code());
+            item.addProperty("message", problem.message());
+            listed.add(item);
+        }
+        detail.add("problems", listed);
+        if (problems.isEmpty()) finding(findings, "gradle_project", "available", "GRADLE_PROJECT_IDENTIFIED",
+                "The project's files identify " + generator + ".", "Build and test it through Copperbench.", detail);
+        else finding(findings, "gradle_project", "unsupported", GradleProjectOperations.UNSUPPORTED,
+                String.join(" ", problems.stream().map(Problem::message).toList()),
+                "Resolve the listed problems to build and test; reading and editing stay available.", detail);
+    }
+
+    private static void wrapperFinding(JsonArray findings, Path root, JsonObject configured, boolean projectOwned) {
         JsonObject detail = new JsonObject();
         if (configured.has("distribution")) detail.add("declaredDistribution", configured.get("distribution").deepCopy());
         if (configured.has("launcherOverride")) {
@@ -190,7 +232,7 @@ public final class WorkspaceDoctor {
         }
         detail.addProperty("propertiesPath", file.toString());
         try {
-			wrapperRuntimeFinding(findings, root);
+			wrapperRuntimeFinding(findings, root, projectOwned);
             if (!file.toRealPath().startsWith(root.toRealPath())) {
                 finding(findings, "wrapper", "blocked", "WRAPPER_OUTSIDE_WORKSPACE", "Wrapper properties resolve outside this workspace.",
                         "Review the linked path before using the wrapper.", detail);
@@ -205,7 +247,9 @@ public final class WorkspaceDoctor {
             String expected = properties.getProperty("distributionSha256Sum");
             detail.addProperty("distributionSha256Sum", expected);
             var reviewed = GradleDistributionIntegrity.find(archive);
-            String status = reviewed.isEmpty() ? "unsupported" : expected == null ? "missing"
+            // An adopted project chooses its own distribution; not having reviewed it is not a fault of the project.
+            String status = reviewed.isEmpty() ? projectOwned ? "unknown" : "unsupported"
+                    : expected == null ? projectOwned ? "unknown" : "missing"
                     : reviewed.get().equals(expected) ? "available" : "blocked";
             String code = reviewed.isEmpty() ? "WRAPPER_DISTRIBUTION_UNREVIEWED" : expected == null
                     ? "WRAPPER_CHECKSUM_MISSING" : reviewed.get().equals(expected) ? "WRAPPER_CHECKSUM_CONFIGURED" : "WRAPPER_CHECKSUM_MISMATCH";
@@ -221,7 +265,7 @@ public final class WorkspaceDoctor {
         }
     }
 
-    private static void wrapperRuntimeFinding(JsonArray findings, Path root) throws IOException {
+    private static void wrapperRuntimeFinding(JsonArray findings, Path root, boolean projectOwned) throws IOException {
         JsonObject detail = new JsonObject();
         Path launcher = root.resolve(System.getProperty("os.name").toLowerCase(java.util.Locale.ROOT).contains("win") ? "gradlew.bat" : "gradlew");
         Path jar = root.resolve("gradle/wrapper/gradle-wrapper.jar");
@@ -230,14 +274,17 @@ public final class WorkspaceDoctor {
         String status;
         if (!Files.isRegularFile(launcher) || !Files.isRegularFile(jar)) status = "missing";
         else if (!jar.toRealPath().startsWith(root.toRealPath()) || !launcher.toRealPath().startsWith(root.toRealPath())
-                || !Files.isReadable(jar) || !Files.isReadable(launcher) || !Files.isExecutable(launcher)) status = "blocked";
+                // A project's POSIX launcher without the executable bit is started through sh.
+                || !Files.isReadable(jar) || !Files.isReadable(launcher) || !projectOwned && !Files.isExecutable(launcher)) status = "blocked";
         else {
             String checksum = dev.copperbench.generator.WorkspaceExecutionSnapshot.sha256(jar);
             detail.addProperty("jarSha256", checksum);
-            status = GradleDistributionIntegrity.reviewedWrapper(checksum) ? "available" : "unsupported";
+            status = GradleDistributionIntegrity.reviewedWrapper(checksum) ? "available" : projectOwned ? "unknown" : "unsupported";
         }
         finding(findings, "wrapper_runtime", status, "WRAPPER_RUNTIME_FILES",
-                "Local wrapper launcher and JAR observation.", "Use the workspace's reviewed wrapper runtime files.", detail);
+                "Local wrapper launcher and JAR observation.", projectOwned
+                        ? "Copperbench builds with the project's own wrapper and does not change it."
+                        : "Use the workspace's reviewed wrapper runtime files.", detail);
     }
 
     private static void cacheFinding(JsonArray findings, JsonObject execution) {

@@ -115,6 +115,40 @@ class WorkspaceDoctorTest {
         assertEquals("unknown", detail.get("artifactCompleteness").getAsString());
     }
 
+    @Test void anAdoptedProjectIsInspectedClosedAndItsOwnWrapperIsNotAFault() throws Exception {
+        Path root = Files.createDirectories(directory.resolve("project"));
+        writeProject(root, "gradle-8.14.3-bin.zip");
+        var before = inventory();
+        JsonObject report = WorkspaceDoctor.inspectClosedProject(root, Path.of("."));
+        assertEquals(before, inventory(), "Doctor must not adopt the project: no lease, history or metadata");
+        assertEquals("fabric-1.21.1", report.get("generatorId").getAsString());
+        assertEquals("available", row(report, "gradle_project").get("status").getAsString());
+        assertEquals("project", report.getAsJsonObject("execution").get("dependencySource").getAsString());
+        assertEquals("WRAPPER_DISTRIBUTION_UNREVIEWED", row(report, "wrapper").get("code").getAsString());
+        assertEquals("unknown", row(report, "wrapper").get("status").getAsString());
+        assertEquals("unknown", row(report, "wrapper_runtime").get("status").getAsString());
+        assertFalse(report.getAsJsonObject("capabilities").getAsJsonArray("queries").toString().contains("field_contract"));
+
+        Files.delete(root.resolve("gradle/wrapper/gradle-wrapper.jar"));
+        JsonObject incomplete = WorkspaceDoctor.inspectClosedProject(root, Path.of("."));
+        assertEquals("blocked", incomplete.get("status").getAsString());
+        assertEquals("unsupported", row(incomplete, "gradle_project").get("status").getAsString());
+        assertTrue(row(incomplete, "gradle_project").getAsJsonObject("details").toString().contains("GRADLE_PROJECT_WRAPPER_MISSING"));
+    }
+
+    private static void writeProject(Path root, String gradle) throws Exception {
+        Files.createDirectories(root.resolve("gradle/wrapper"));
+        Files.createDirectories(root.resolve("src/main/resources"));
+        Files.writeString(root.resolve("gradlew"), "#!/bin/sh\n");
+        Files.writeString(root.resolve("gradlew.bat"), "@echo off\r\n");
+        Files.writeString(root.resolve("gradle/wrapper/gradle-wrapper.jar"), "project wrapper");
+        Files.writeString(root.resolve("gradle/wrapper/gradle-wrapper.properties"),
+                "distributionUrl=https\\://services.gradle.org/distributions/" + gradle + "\n");
+        Files.writeString(root.resolve("build.gradle"), "plugins { id 'fabric-loom' version '1.10.5' }\n");
+        Files.writeString(root.resolve("gradle.properties"), "minecraft_version=1.21.1\n");
+        Files.writeString(root.resolve("src/main/resources/fabric.mod.json"), "{\"schemaVersion\":1,\"id\":\"emberkit\"}\n");
+    }
+
     private JsonObject fakeExecution(String version) throws Exception {
         Path root = directory.resolve("workspace"); Files.createDirectories(root);
         Path binary = directory.resolve("jdk/bin/java" + (java.io.File.separatorChar == '\\' ? ".exe" : ""));

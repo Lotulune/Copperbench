@@ -80,7 +80,8 @@ public final class PythonConsoleService implements AutoCloseable {
                     : System.getProperty("os.name").startsWith("Windows") ? "python" : "python3";
         }
         ProcessBuilder builder = new ProcessBuilder(executable, "-u", workerFile.toString(), workspaceFile.toString())
-                .directory(workspaceFile.getParent().toFile());
+                // An adopted Gradle project is opened by its folder instead of a workspace file.
+                .directory((Files.isDirectory(workspaceFile) ? workspaceFile : workspaceFile.getParent()).toFile());
         builder.environment().put("PYTHONIOENCODING", "utf-8");
         Process started = builder.start();
         process = started;

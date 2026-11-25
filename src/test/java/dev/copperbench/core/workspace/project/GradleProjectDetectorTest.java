@@ -84,6 +84,15 @@ class GradleProjectDetectorTest {
 		assertFalse(identity.supported());
 	}
 
+	@Test void aPreviewTrackIsNotATargetForExistingProjects() throws Exception {
+		fabric("26.3");
+		GradleProjectIdentity identity = GradleProjectDetector.inspect(root);
+		assertEquals(List.of(GradleProjectDetector.VERSION_UNSUPPORTED), codes(identity));
+		assertTrue(identity.problems().getFirst().message().contains("preview"), identity.toString());
+		assertEquals("26.3", identity.minecraftVersion());
+		assertNull(identity.generatorId(), "the preview contract's evidence covers generated workspaces only");
+	}
+
 	@Test void aVersionOutsideTheTracksStaysIdentifiedButUnsupported() throws Exception {
 		fabric("1.21.4");
 		GradleProjectIdentity identity = GradleProjectDetector.inspect(root);

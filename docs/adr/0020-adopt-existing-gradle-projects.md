@@ -34,7 +34,7 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 ## 决定
 
 1. **范围。** 第一阶段只接管单模块的 Fabric 或 NeoForge Gradle 工程，提供上表“只依赖工程根目录”的能力：源码、构建、运行客户端或服务器、GameTest 验收与已验证导出、资产工具、恢复点、任务授权、MCP 与内置对话的原生路线。结构化元素、Procedure、注册表、生成器模板、加载器迁移和版本副本在接管的工程里不可用，界面与 MCP 直接说明原因，不提供降级替代。
-2. **识别而不改写。** 打开时只读工程文件，识别加载器、Minecraft 版本和模组 ID：Fabric 读 `fabric.mod.json` 与 `gradle.properties`，`gradle.properties` 没有 `minecraft_version` 时接受构建脚本中唯一的字面坐标 `com.mojang:minecraft:<版本>`（Agent 手写的工程常这样声明，例如 `examples/agent-native/survey-pulse`）；NeoForge 读 `META-INF/neoforge.mods.toml`（1.20.1 为 `mods.toml`）与 `gradle.properties`。识别结果必须对应产品已支持的版本轨道，GameTest 宿主才会沿用该轨道固定的坐标。识别不出或版本不受支持时，工程仍可打开浏览和编辑，但构建与验收不可用，并说明缺什么。产品不修改 `build.gradle`、`settings.gradle` 或 wrapper；构建使用工程自己的 Gradle Wrapper。验收宿主是产品自己的工程，使用该轨道固定的 wrapper 与插件：固定的 Loom 1.17.19 声明的 Gradle 插件 API 是 9.5.0，实测用 Gradle 8.8 的 wrapper 无法解析它，而现有工程常用 Gradle 8 和更早的 Loom。
+2. **识别而不改写。** 打开时只读工程文件，识别加载器、Minecraft 版本和模组 ID：Fabric 读 `fabric.mod.json` 与 `gradle.properties`，`gradle.properties` 没有 `minecraft_version` 时接受构建脚本中唯一的字面坐标 `com.mojang:minecraft:<版本>`（Agent 手写的工程常这样声明，例如 `examples/agent-native/survey-pulse`）；NeoForge 读 `META-INF/neoforge.mods.toml`（1.20.1 为 `mods.toml`）与 `gradle.properties`。识别结果必须对应产品已支持的版本轨道，GameTest 宿主才会沿用该轨道固定的坐标；预览轨道（当前为 26.3）的验收证据只覆盖生成的工作区，因此不作为接管工程的目标，按版本不受支持处理。识别不出或版本不受支持时，工程仍可打开浏览和编辑，但构建与验收不可用，并说明缺什么。产品不修改 `build.gradle`、`settings.gradle` 或 wrapper；构建使用工程自己的 Gradle Wrapper。验收宿主是产品自己的工程，使用该轨道固定的 wrapper 与插件：固定的 Loom 1.17.19 声明的 Gradle 插件 API 是 9.5.0，实测用 Gradle 8.8 的 wrapper 无法解析它，而现有工程常用 Gradle 8 和更早的 Loom。
 3. **元数据放在 `.copperbench/`。** 新增 `.copperbench/workspace.json`，记录工作区 ID、修订号和识别结果，其余状态沿用现有的 `.copperbench/*` 位置。不在工程里写 `.mcreator` 文件：那会让 MCreator 生成器认为自己拥有文件并在生成时改写它们。
 4. **所有文件都是手写文件。** 接管的工程没有生成器归属，`update_workspace_file` 可以编辑允许范围内的全部文本文件；生成器源码的保护规则不适用。
 5. **使用情况按“未评估”处理。** 资产健康检查不为接管的工程计算可清理候选，删除资产总要确认受影响的引用（第 9 项的现有规则）。
@@ -62,7 +62,7 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 
 1. 识别与打开：源码、资产、本地历史。已实现：`GradleProjectDetector` 识别工程，`GradleProjectWorkspaceSession` 以 `.copperbench/workspace.json` 提供身份、修订号与单会话占用；源码编辑沿用带哈希的 `update_workspace_file` 与恢复点，因此没有另设只读模式。结构化操作返回 `GRADLE_PROJECT_OPERATION_UNAVAILABLE`，构建与运行返回 `GRADLE_PROJECT_TASKS_UNAVAILABLE`；资产健康检查不列清理候选。入口只有 `headless --workspace <文件夹>` 的单次命令。
 2. 构建、运行与 GameTest 验收。已实现：`GradleProjectTaskGateway` 按识别出的轨道复用 `GradleWorkspaceTaskGateway`，不生成文件、不准备生成器；校验、构建、导出、运行客户端与服务器、准备与运行 GameTest、已验证导出可用，`headless` 单次命令等待任务结束。每个任务重新读取磁盘上的工程文件，与打开时的识别结果不一致时拒绝执行（`GRADLE_PROJECT_TARGET_CHANGED` 或具体问题）；识别不完整的工程返回 `GRADLE_PROJECT_UNSUPPORTED` 并列出原因。起步测试放在 `src/copperbenchTest`，避免与工程自己的 `gametest` 源集冲突；没有 `copperbench-tests.json` 时返回 `GAMETEST_NOT_CONFIGURED`。datagen 与发布批次不在第一阶段范围内，返回 `GRADLE_PROJECT_TASKS_UNAVAILABLE`。
-3. MCP、SDK 与内置对话的原生路线，包括 `headless … api`、`serve` 与 `doctor`。
+3. MCP、SDK 与内置对话的原生路线，包括 `headless … api`、`serve` 与 `doctor`。已实现：三个 `headless` 入口接受文件夹，`doctor` 不接管也不写入工程，工程自带的 wrapper 未经产品审核只记为未知；Python SDK 的 `open`、`attach`、`connect` 接受工程文件夹，`native_edit_brief` 另给出测试目录与验收宿主版本；MCP 的 `tools/list` 不列出第一阶段不提供的工具，并在 `initialize` 的 `instructions` 说明原因，直接经 Core 调用这些操作仍返回原有诊断码；内置对话按文件夹识别接管的工程，使用单独的说明；环境查询不再为没有元素的工程返回字段契约。MCP 与内置对话由桌面启动，入口随第 4 步提供。
 4. 桌面入口与界面，包括决定 7 的 `.gitignore` 询问与决定 8 的设置。
 
 第 2 步的实机记录（2026-11-25，Windows）：
@@ -73,8 +73,10 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 | 同一工程改为 Yarn | Gradle 8.8、Loom 1.7.4、Fabric API 0.116.4 | 验收 3 项通过，首次下载依赖约 5 分钟 |
 | 按 MDK 布局新建的 NeoForge 1.21.1 工程 | Gradle 9.6.1、ModDevGradle 2.0.141、NeoForge 21.1.209 | 加载检查通过，首次下载依赖约 7 分钟 |
 
-三个工程的原有文件哈希都没有变化；把配方产量改错后验收失败并指出原因。1.21.1 以外的轨道只有单元测试；没有启动专用服务器，因为那需要使用者接受 Minecraft EULA。
+三个工程的原有文件哈希都没有变化；把配方产量改错后验收失败并指出原因。第 3 步在裸组工程的另一份副本上用 Python SDK 走完 Agent 路线：取摘要、建恢复点、加一个右键解冻的物品及其纹理、构建、写行为测试、断开后重连等待验收、导出验证产物，全部通过，原有文件只改动了主类；后台宿主冷启动 3.4 秒，重连 0.1 秒。1.21.1 以外的轨道只有单元测试；没有启动专用服务器，因为那需要使用者接受 Minecraft EULA。
 
 已知限制：验收宿主只带被测 JAR 与该轨道的 Fabric API 或 NeoForge，依赖其他模组的工程要用 `workspace` 模式运行自己的测试任务；构建依赖 Git 信息、符号链接或工程目录以外的包含构建时，冻结副本中的构建会失败并给出 Gradle 的错误。
+
+尚未完成：由 Agent 在接管的工程里完成与对照实验相同的任务，并记录与 `.mcreator` 路线的成本对比。
 
 完成标准沿用 ADR-0019 决定 7：用裸 Gradle 组在对照实验中产出的 Fabric 1.21.1 工程，原样由 Copperbench 打开，完成构建与 GameTest 验收，且不修改其构建脚本；同一任务的成本与验证深度和 `.mcreator` 路线一起记录。

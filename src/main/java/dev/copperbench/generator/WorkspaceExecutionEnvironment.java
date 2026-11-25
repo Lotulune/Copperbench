@@ -90,7 +90,17 @@ public final class WorkspaceExecutionEnvironment {
         JsonObject tasks = gradle.getAsJsonObject("tasks");
         tasks.remove("runDatagen");
         tasks.remove("runGameTest");
-        value.getAsJsonObject("testing").add("host", host);
+        JsonObject testing = value.getAsJsonObject("testing");
+        testing.add("host", host);
+        if ("configured".equals(testing.get("state").getAsString())) {
+            try { testing.addProperty("sourceDirectory", GameTestSupport.configuration(root).sourceDirectory()); }
+            catch (IOException changed) { testing.addProperty("state", "invalid_configuration"); }
+        } else if ("not_configured".equals(testing.get("state").getAsString())) {
+            // Preparing creates the packaged-JAR setup; the generated workspaces' default task does not apply.
+            testing.remove("mode");
+            testing.remove("minimumTests");
+            testing.addProperty("sourceDirectory", GameTestSupport.ADOPTED_DIRECTORY + "/java");
+        }
         return value;
     }
 

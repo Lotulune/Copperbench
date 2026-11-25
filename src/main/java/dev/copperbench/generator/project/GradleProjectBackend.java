@@ -15,6 +15,7 @@ import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.project.GradleProjectDetector;
 import dev.copperbench.core.workspace.project.GradleProjectIdentity.Problem;
 import dev.copperbench.core.workspace.project.GradleProjectOperations;
+import dev.copperbench.generator.GameTestSupport;
 import dev.copperbench.generator.GradleWorkspaceBackend;
 import dev.copperbench.generator.JavaGeneratorProfile;
 import dev.copperbench.generator.PluginWorkspaceLayout;
@@ -39,8 +40,6 @@ import java.util.regex.Pattern;
  */
 final class GradleProjectBackend implements GradleWorkspaceBackend {
 
-	/** A source set name no template uses, so the project's own build never compiles or runs these tests. */
-	static final String TEST_DIRECTORY = "src/copperbenchTest";
 	static final String TARGET_CHANGED = "GRADLE_PROJECT_TARGET_CHANGED";
 
 	private final Path distribution;
@@ -106,7 +105,7 @@ final class GradleProjectBackend implements GradleWorkspaceBackend {
 	}
 
 	@Override public String gameTestDirectory() {
-		return TEST_DIRECTORY;
+		return GameTestSupport.ADOPTED_DIRECTORY;
 	}
 
 	/** The pinned host plugins need the track's Gradle version, which the project's own wrapper may not provide. */

@@ -73,6 +73,37 @@ class BackgroundHostTest(unittest.TestCase):
         argv = json.loads(self.record.read_text(encoding='utf-8'))['argv']
         self.assertEqual(['headless', '--workspace', str(self.workspace.resolve()), 'serve', '--idle-timeout', '61'], argv)
 
+    def test_a_gradle_project_folder_is_served_by_its_folder(self):
+        project = self.root / 'ember kit'
+        project.mkdir()
+        (project / 'build.gradle.kts').write_text('plugins { }', encoding='utf-8')
+        unavailable = NativeApiError('none', 'NATIVE_CONNECTION_UNAVAILABLE')
+        self.addCleanup(self.stop_fixture)
+        with patch.dict(os.environ, {'FIXTURE_MODE': 'serving'}), \
+                patch.object(Workspace, 'connect', side_effect=[unavailable, unavailable, object()]):
+            Workspace.attach(project, launcher=self.launcher(), idle_timeout=60)
+        argv = json.loads(self.record.read_text(encoding='utf-8'))['argv']
+        self.assertEqual(['headless', '--workspace', str(project.resolve()), 'serve', '--idle-timeout', '60'], argv)
+        self.assertTrue((project / '.copperbench/python-host-start.lock').is_file())
+        self.assertFalse((self.root / '.copperbench').exists(), 'nothing is written beside the project')
+
+    def test_folders_resolve_like_the_launcher(self):
+        folder = self.root / 'folder'
+        folder.mkdir()
+        with self.assertRaisesRegex(ValueError, 'Gradle project folder'):
+            Workspace.open(folder, launcher=self.launcher())
+        (folder / 'build.gradle').write_text('', encoding='utf-8')
+        self.assertEqual(folder.resolve(), Workspace._workspace_path(folder))
+        (folder / 'one.mcreator').write_text('{}', encoding='utf-8')
+        self.assertEqual((folder / 'one.mcreator').resolve(), Workspace._workspace_path(folder))
+        (folder / 'two.mcreator').write_text('{}', encoding='utf-8')
+        with self.assertRaisesRegex(ValueError, 'more than one'):
+            Workspace._workspace_path(folder)
+        with self.assertRaisesRegex(ValueError, 'Gradle project folder'):
+            Workspace._workspace_path(self.script)
+        with self.assertRaises(FileNotFoundError):
+            Workspace._workspace_path(self.root / 'missing')
+
     def test_a_concurrent_start_reconnects_to_the_host_that_won_the_write_lock(self):
         session = object()
         unavailable = NativeApiError('none', 'NATIVE_CONNECTION_UNAVAILABLE')

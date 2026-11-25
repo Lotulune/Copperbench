@@ -14,7 +14,7 @@ Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作
 
 ## 安装与打开工作区
 
-接入前只读检查可运行 `copperbench headless --workspace <path.mcreator> doctor`；它不打开写入会话、不下载依赖，也不创建授权。已有 Native 或 MCP 会话可调用 `workspace.doctor()` / `client.doctor()`。报告区分产品 Java 25、工作区 JDK、wrapper、缓存和未知的网络/渲染状态；查询成功不代表构建或游戏通过。报告结构见随包 [doctor schema](../../ui-core/schemas/v1.0/workspace-doctor.schema.json)。
+接入前只读检查可运行 `copperbench headless --workspace <path.mcreator|Gradle 工程文件夹> doctor`；它不打开写入会话、不下载依赖，也不创建授权。已有 Native 或 MCP 会话可调用 `workspace.doctor()` / `client.doctor()`。报告区分产品 Java 25、工作区 JDK、wrapper、缓存和未知的网络/渲染状态；查询成功不代表构建或游戏通过。报告结构见随包 [doctor schema](../../ui-core/schemas/v1.0/workspace-doctor.schema.json)。
 
 item/recipe 创建前可调用 `workspace.discover_field_contract("item")`：
 `availability` 为 `available`、`not_exposed` 或 `unsupported`，只有
@@ -95,6 +95,17 @@ Linux 的 `launcher` 使用发行包内的 `copperbench.sh`。省略时，从 `C
 正常空闲时，`close()` 或退出 `with` 会发送 EOF，最多等待 30 秒让独立宿主完成保存和本地历史关闭；超时仍会终止该进程。启动或传输故障、请求仍在进行时的关闭继续使用较短的中断预算，不延长请求超时，也不重放操作。`Workspace.connect(...)` 的关闭仍只断开脚本连接。
 
 独立打开采用独占写锁。如果桌面编辑器或另一个脚本已打开该工作区，会返回 `WORKSPACE_WRITE_LOCKED`。需要操作桌面当前工作区时，使用上面的 `Workspace.connect(...)`，也可选择 MCP 客户端。
+
+### 打开现有的 Gradle 工程
+
+`Workspace.open`、`Workspace.attach` 和 `Workspace.connect` 也接受文件夹：其中恰好有一个 `.mcreator` 文件时打开该工作区；没有时，把含 `build.gradle` 或 `build.gradle.kts` 的文件夹作为不是由 Copperbench 创建的单模块 Fabric/NeoForge 工程打开。
+
+```python
+with Workspace.attach(r"D:\ModProjects\emberkit", launcher=r"D:\Apps\Copperbench\copperbench.exe") as project:
+    print(project.native_edit_brief())
+```
+
+工程的每个文件都是手写文件，产品只在 `.copperbench/` 写入，构建使用工程自己的 Gradle Wrapper。结构化元素、Procedure、注册表、生成与版本复制返回 `GRADLE_PROJECT_OPERATION_UNAVAILABLE`；识别不出版本或加载器的工程仍可编辑，构建返回 `GRADLE_PROJECT_UNSUPPORTED` 并列出原因。开工摘要的 `gameTestSources` 是测试目录，`gameTestHost` 是验收宿主固定的版本：测试一律按 Mojang 映射编译，与工程自己的映射无关。
 
 ### 多个脚本共用一个 Core
 

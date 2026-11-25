@@ -11,6 +11,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgentWorkspaceContextTest {
     @TempDir Path root;
 
+    @Test void anExistingGradleProjectIsConnectedByItsFolderAndHasNoStructuredLayer() throws Exception {
+        Files.writeString(root.resolve("build.gradle"), "plugins { id 'fabric-loom' version '1.7.4' }\n");
+        AgentWorkspaceContext context = AgentWorkspaceContext.discover(root);
+        assertTrue(context.gradleProject());
+        String instructions = context.instructions();
+        for (String expected : new String[]{"Workspace.connect(project_root)", "Project root: " + context.root(), "create_recovery_point", "every file is hand-written",
+                "ws.native_edit_brief()", "only when the request needs it", "ws.build()", "src/copperbenchTest", "gameTestHost", "ws.run_game_tests()",
+                "A built JAR is not gameplay acceptance", "An accepted receipt is not success",
+                "never read, print, copy or ask the player to paste credentials", "Do not start the Minecraft client", "accept EULA, mint authorizations"})
+            assertTrue(instructions.contains(expected), expected);
+        for (String absent : new String[]{".mcreator", "insert_user_code", "languageKeys", "Structured elements, Procedures and templates are optional"})
+            assertFalse(instructions.contains(absent), absent);
+
+        Files.writeString(root.resolve("ember.mcreator"), "{}");
+        assertFalse(AgentWorkspaceContext.discover(root).gradleProject(), "a folder with a workspace file is that workspace");
+        Files.writeString(root.resolve("second.mcreator"), "{}");
+        assertFalse(AgentWorkspaceContext.discover(root).gradleProject());
+        assertTrue(AgentWorkspaceContext.discover(root).instructions().contains("ask if ambiguous"));
+    }
+
     @Test void defaultRouteWritesCodeThroughCoreAndVerifiesInGame() throws Exception {
         Path workspaceFile = Files.writeString(root.resolve("ember.mcreator"), "{}");
         String instructions = new AgentWorkspaceContext(root, workspaceFile, root.resolve("sdk/python")).instructions();

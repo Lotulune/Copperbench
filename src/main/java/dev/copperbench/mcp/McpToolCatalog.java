@@ -26,6 +26,7 @@ import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.contract.UiCore.Query;
+import dev.copperbench.core.workspace.project.GradleProjectOperations;
 import dev.copperbench.release.ElementCoverageCatalog;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
@@ -50,6 +51,9 @@ final class McpToolCatalog {
 	private final JsonLineAuditLog audit;
 	private final Clock clock;
 	private final AssetWorkspaceService assets;
+	private final boolean gradleProject;
+	/** Core operation behind each generic tool, so an adopted project can leave out what it never offers. */
+	private final Map<String, Operation> operations = new java.util.HashMap<>();
 
 	McpToolCatalog(UUID workspaceId, McpWorkspaceEntryAdapter adapter, JsonLineAuditLog audit, Clock clock) {
 		this(workspaceId, adapter, audit, clock, null);
@@ -152,6 +156,25 @@ final class McpToolCatalog {
 		this.audit = audit;
 		this.clock = clock;
 		this.assets = assets;
+		this.gradleProject = gradleProject();
+	}
+
+	private boolean gradleProject() {
+		var workbench = adapter.query(Query.of(UUID.randomUUID(), workspaceId, Operation.GET_WORKBENCH, new JsonObject()));
+		if (!"succeeded".equals(workbench.status()) || !workbench.data().isJsonObject()) return false;
+		var workspace = workbench.data().getAsJsonObject().get("workspace");
+		return workspace != null && workspace.isJsonObject() && workspace.getAsJsonObject().has("kind")
+				&& GradleProjectOperations.KIND.equals(workspace.getAsJsonObject().get("kind").getAsString());
+	}
+
+	/** Why an adopted project's tool list is shorter (ADR-0020); {@code null} for generated workspaces. */
+	String instructions() {
+		return !gradleProject ? null : "This workspace is an existing Gradle mod project that Copperbench did not create. "
+				+ "Every file is hand-written: edit the project's files directly, create a recovery point first, then use build_workspace, "
+				+ "prepare_game_tests, run_gametest and export_verified_artifact. Tools for structured elements, procedures, registries, "
+				+ "generation, workspace plans, datagen, publish batches, loader migration and version copies are not offered, because "
+				+ "they need the MCreator workspace model. get_workspace_environment reports the identified target, the project's own Gradle "
+				+ "distribution and the acceptance host's pinned versions.";
 	}
 
 	List<McpServerFeatures.SyncToolSpecification> tools() {
@@ -585,6 +608,12 @@ final class McpToolCatalog {
 			tools.add(assetListTool());
 			tools.add(assetReferencesTool());
 		}
+		if (gradleProject) tools.removeIf(specification -> {
+			String name = specification.tool().name();
+			Operation operation = operations.get(name);
+			return operation != null ? !GradleProjectOperations.offered(operation)
+					: List.of("create_mod_element", "preview", "version_copy_upgrade").contains(name);
+		});
 		return List.copyOf(tools);
 	}
 
@@ -721,6 +750,7 @@ final class McpToolCatalog {
 
 	private McpServerFeatures.SyncToolSpecification queryTool(String name, String description, Operation operation,
 			Map<String, Object> schema, java.util.function.Function<Map<String, Object>, JsonObject> payloadFactory) {
+		operations.put(name, operation);
 		return McpServerFeatures.SyncToolSpecification.builder()
 				.tool(Tool.builder(name, schema).description(description).build())
 				.callHandler((exchange, request) -> {
@@ -742,6 +772,7 @@ final class McpToolCatalog {
 
 	private McpServerFeatures.SyncToolSpecification commandTool(String name, String description, Operation operation,
 			Map<String, Object> schema, java.util.function.Function<Map<String, Object>, JsonObject> payloadFactory) {
+		operations.put(name, operation);
 		return McpServerFeatures.SyncToolSpecification.builder()
 				.tool(Tool.builder(name, authorizationSchema(schema)).description(description).build())
 				.callHandler((exchange, request) -> {

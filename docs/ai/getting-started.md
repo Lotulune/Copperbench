@@ -4,6 +4,8 @@
 
 先选入口：已有桌面工作区使用 `Workspace.connect(...)`；独立 Python 使用 `Workspace.open(...)` 并保持宿主活到任务结束，多个短脚本处理同一工作区时改用 `Workspace.attach(...)`，共用一个空闲后自动退出的后台宿主（见 [SDK 说明](../../sdk/python/README.md#多个脚本共用一个-core)）；通用 MCP 客户端打开工作区后，使用桌面「工具 → AI 与 MCP」的用户配对及非秘密连接元数据。该路径不依赖旧版本启动窗口中的「连接外部 Agent」帮助入口；帮助文本不会签发 token。
 
+不是由 Copperbench 创建的 Fabric 或 NeoForge Gradle 工程（单模块，[范围与限制](../adr/0020-adopt-existing-gradle-projects.md)）用工程文件夹代替 `.mcreator` 路径：`Workspace.attach(工程文件夹)`、`Workspace.open(工程文件夹)` 或 `headless --workspace <文件夹>`。这类工程的每个文件都是手写文件，没有生成器、结构化元素和用户代码块；`workspaceKind` 为 `gradle_project`，测试写在开工摘要给出的 `gameTestSources`，在独立宿主中按 Mojang 映射编译。桌面入口尚未提供。
+
 三个[最小可执行示例](../../sdk/agent-workflows.md)说明当前客户端的入口、前提和退出方式。各平台发布版本与包级验证见[当前下载](../releases/current.md)，实际接口以所连宿主的能力发现为准。编码前核对 MCP `2025-11-25`、Native transport `1`、Core 握手／普通操作 `1.0`；编辑器查询另选 `1.1`，不能从成功的 `1.0` 握手推断支持。原有权限和计划边界继续适用。
 
 只读发现先核对 ready operations／MCP `tools/list`，再取 `get_workspace_environment` 的生成器、工具链、应用身份与 `data.fieldContracts`。当前主线提供 `get_mod_element_field_contract` 和 `get_field_reference_options`；Native `discover_field_contract(...)` 区分 available／not_exposed／unsupported，不创建探针元素。Native 旧环境提取的缺类型诊断为 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，MCP／TypeScript 的旧环境便捷方法使用 `FIELD_CONTRACT_NOT_EXPOSED`；两者均保留 Core 诊断与格式错误。修改前重读适用 revision／hash，分页遍历到 `nextCursor=null`。从 [W1/W2/W3](../../sdk/agent-workflows.md)进入失败修复、原任务恢复与精确导出。

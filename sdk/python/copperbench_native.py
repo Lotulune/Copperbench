@@ -35,7 +35,7 @@ class NativeApiError(RuntimeError):
 @contextmanager
 def _host_start_lock(workspace: Path, deadline: float):
     """Only cold starters coordinate; closing the handle also releases it after a crash."""
-    directory = workspace.parent / '.copperbench'
+    directory = (workspace if workspace.is_dir() else workspace.parent) / '.copperbench'
     directory.mkdir(exist_ok=True)
     with (directory / 'python-host-start.lock').open('a+b') as lock:
         if os.name == 'nt':
@@ -129,13 +129,18 @@ class Workspace:
              task_authorization_id: str | None = None, startup_timeout: float = 120,
              request_timeout: float = 30, cwd: str | Path | None = None,
              metrics: ClientMetrics | None = None) -> Workspace:
-        """Open an existing .mcreator file without an MCP token or running desktop.
+        """Open an existing .mcreator file, or the folder of an existing Gradle mod project, without an MCP
+        token or running desktop.
+
+        A folder holding exactly one .mcreator file opens that workspace. Any other folder with a build.gradle
+        or build.gradle.kts is opened as a project Copperbench did not create: every file is hand-written, and
+        structured operations are refused with GRADLE_PROJECT_OPERATION_UNAVAILABLE.
 
         launcher is the Copperbench executable, or an explicit argv sequence
         (for example a Java launcher). No shell is used. cwd may specify the
         distribution root for a development Java command.
         """
-        path = cls._workspace_file(workspace)
+        path = cls._workspace_path(workspace)
         cls._check_timeout(startup_timeout)
         cls._check_timeout(request_timeout)
         argv = cls._launcher_argv(launcher)
@@ -181,11 +186,20 @@ class Workspace:
             raise ValueError("timeouts must be positive and finite")
 
     @staticmethod
-    def _workspace_file(workspace: str | Path) -> Path:
+    def _workspace_path(workspace: str | Path) -> Path:
+        """The .mcreator file to open, or the folder of a Gradle project without one; the launcher applies the same rule."""
         path = Path(workspace).resolve(strict=True)
-        if not path.is_file() or path.suffix != ".mcreator":
-            raise ValueError("workspace must be an existing .mcreator file")
-        return path
+        if path.is_dir():
+            files = [entry for entry in path.iterdir() if entry.suffix == ".mcreator" and entry.is_file()]
+            if len(files) == 1:
+                return files[0].resolve(strict=True)
+            if len(files) > 1:
+                raise ValueError("the folder holds more than one .mcreator file; pass the file to open")
+            if any((path / name).is_file() for name in ("build.gradle", "build.gradle.kts")):
+                return path
+        elif path.is_file() and path.suffix == ".mcreator":
+            return path
+        raise ValueError("workspace must be an existing .mcreator file or a Gradle project folder")
 
     @staticmethod
     def _launcher_argv(launcher: str | Path | Sequence[str] | None) -> list[str]:
@@ -213,7 +227,7 @@ class Workspace:
         disconnects, so a submitted task keeps running and wait_task() can
         resume it from the next script.
         """
-        path = cls._workspace_file(workspace)
+        path = cls._workspace_path(workspace)
         cls._check_timeout(startup_timeout)
         cls._check_timeout(request_timeout)
         if not math.isfinite(idle_timeout) or not 5 <= idle_timeout <= 8 * 3600:
@@ -316,9 +330,7 @@ class Workspace:
         from MCP. No workspace is reopened and no desktop approval is forged.
         """
         cls._check_timeout(request_timeout)
-        path = Path(workspace).resolve(strict=True)
-        if not path.is_file() or path.suffix != '.mcreator':
-            raise ValueError('workspace must be an existing .mcreator file')
+        path = cls._workspace_path(workspace)
         key = path.as_posix().lower() if os.name == 'nt' else path.as_posix()
         digest = hashlib.sha256(key.encode('utf-8')).hexdigest()
         connection_file = Path.home() / '.copperbench/python-sessions' / (digest + '.json')
@@ -561,7 +573,7 @@ class Workspace:
         """Inspect this session's backend without writes, downloads or implicit authorization.
 
         For checks before opening a writer session, use the product command
-        ``headless --workspace <path.mcreator> doctor``.
+        ``headless --workspace <path.mcreator|Gradle project folder> doctor``.
         """
         return self.query("get_workspace_doctor")
 
@@ -700,7 +712,9 @@ class Workspace:
         ``ready`` describes the files read, not permission to edit them. ``needs_discovery``
         gives the reason to inspect a custom layout. ``scratchDir`` is workspace-relative,
         for disposable scripts, receipts and import sources. This call does not create it.
-        No inventory scan or retry is implicit.
+        No inventory scan or retry is implicit. A project Copperbench did not create also
+        reports ``gameTestSources`` and ``gameTestHost``: its tests compile with Mojang mappings
+        against the host's pinned versions, whatever the project itself uses.
         """
         env = self.get_workspace_environment(field_contracts="summary")["data"]
         execution = env.get("execution", {})
@@ -710,6 +724,13 @@ class Workspace:
                  "minecraftVersion": generator.get("minecraftVersion"),
                  "sourceRoot": execution.get("sourceRoot"), "resourceRoot": execution.get("resourceRoot"),
                  "gameTests": execution.get("testing", {}).get("state")}
+        if env.get("workspaceKind") == "gradle_project":
+            project = env.get("gradleProject") or {}
+            testing = execution.get("testing", {})
+            brief.update(workspaceKind="gradle_project", modId=project.get("modId"),
+                         gameTestSources=testing.get("sourceDirectory"), gameTestHost=testing.get("host"))
+            if project.get("problems"):
+                return {**brief, "reason": "project_unsupported", "problems": project["problems"]}
         if execution.get("loader") != "fabric":
             return {**brief, "reason": "not_standard_fabric"}
 
@@ -751,8 +772,10 @@ class Workspace:
         source = read("src/main/java/" + mains[0].replace(".", "/") + ".java")
         if source is None:
             return brief
+        if "workspaceKind" not in brief:
+            # The track's versions; a project Copperbench did not create declares its own in its build files.
+            brief.update(loaderVersion=execution.get("loaderVersion"), fabricApiVersion=execution.get("fabricApiVersion"))
         return {**brief, "status": "ready", "mappings": mappings[0],
-                "loaderVersion": execution.get("loaderVersion"), "fabricApiVersion": execution.get("fabricApiVersion"),
                 "main": source["relativePath"], "ownership": source["ownership"], "editable": source["editable"],
                 "userCodeBlocks": source.get("userCodeBlocks", [])}
 
