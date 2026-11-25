@@ -165,11 +165,16 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 		Path historyDirectory = workspace.resolve(HISTORY_DIRECTORY);
 		try {
 			Files.createDirectories(historyDirectory.getParent());
-			boolean create = !Files.isRegularFile(historyDirectory.resolve("HEAD"));
+			if (!Files.isRegularFile(historyDirectory.resolve("HEAD"))) {
+				// Creating it with a work tree also writes a .git link there: that replaces the link of a Git
+				// worktree or submodule, and makes the user's own "git init" or commit land in this history.
+				// configure() turns the bare repository into one with a work tree.
+				try (Repository created = new FileRepositoryBuilder().setGitDir(historyDirectory.toFile()).setBare().build()) {
+					created.create(true);
+				}
+			}
 			Repository repository = new FileRepositoryBuilder().setGitDir(historyDirectory.toFile())
 					.setWorkTree(workspace.toFile()).build();
-			if (create)
-				repository.create(false);
 			configure(repository, workspace);
 			return new JGitLocalHistoryService(clock, new Git(repository));
 		} catch (IOException exception) {
