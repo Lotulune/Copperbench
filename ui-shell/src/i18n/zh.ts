@@ -70,6 +70,8 @@ export const zh: Record<string, string> = {
   'diagnostic.code_bundle_invalid': '代码文件包无效：{message}',
   'diagnostic.history_restore_preview_failed': '无法读取恢复影响。',
   'diagnostic.java_compile_error': 'Java 编译错误：{message}',
+  'diagnostic.gradle_project_operation_unavailable': '接管的 Gradle 工程没有结构化元素、注册表或生成器，请直接编辑源码文件。',
+  'diagnostic.gradle_project_tasks_unavailable': '接管的 Gradle 工程暂不能在 Copperbench 中构建和运行。',
   'diagnostic.data_pack_json_invalid': '数据包 JSON 无法解析：{message}',
   'diagnostic.data_pack_resource_path_invalid': '数据包文件位置或名称不会被游戏读取：{message}',
   'diagnostic.data_pack_folder_renamed': '数据包目录名与目标 Minecraft 版本不符：{message}',

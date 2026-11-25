@@ -43,6 +43,7 @@ import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.assets.ResourcePackClientLoadService;
 import dev.copperbench.assets.ResourcePackExportService;
 import dev.copperbench.core.workspace.WorkspaceState;
+import dev.copperbench.core.workspace.project.GradleProjectOperations;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
@@ -509,6 +510,8 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("workspaceKind", state.kind());
 			projection.addProperty("revision", state.revision());
 			projection.add("generator", state.generator());
+			JsonObject gradleProject = gradleProject(state);
+			if (gradleProject != null) projection.add("gradleProject", gradleProject);
 			projection.add("versionTracks", versionTracks(state));
 			JsonObject fieldContracts = FieldContractProjection.environment(optionalString(state.generator(), "id"));
 			fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
@@ -1558,6 +1561,9 @@ public final class WorkspaceApplicationService {
 
 	/** Read-only version-copy upgrade contract, separate from loader migration. */
 	public JsonObject versionCopyUpgrade(UUID workspaceId, UUID requestId, JsonObject request, RequestContext context) {
+		if (store.read(workspaceId).filter(state -> GradleProjectOperations.KIND.equals(state.kind())).isPresent())
+			return VersionCopyUpgradeAccess.unavailable(workspaceId, requestId, GradleProjectOperations.UNAVAILABLE,
+					gradleProjectText(GradleProjectOperations.UNAVAILABLE).fallback());
 		if (request.has("supportedVersions") && request.get("supportedVersions").isJsonArray()
 				&& request.getAsJsonArray("supportedVersions").asList().stream().anyMatch(v -> v.isJsonPrimitive()
 				&& v.getAsJsonPrimitive().isString() && "2".equals(v.getAsString())))
@@ -1579,6 +1585,8 @@ public final class WorkspaceApplicationService {
 				&& command.operation() != Operation.VALIDATE_WORKSPACE)
 			return denied(command, context.permission(), PermissionProfile.WORKSPACE);
 		var coordinated = store.coordinate(command.workspaceId(), currentRevision(command.workspaceId()), state -> {
+			Diagnostic refusal = gradleProjectRefusal(state, command.operation());
+			if (refusal != null) return failed(command, state.revision(), refusal);
 			String reason;
 			try {
 				boolean preview = context.previewGeneratorId() != null
@@ -1658,6 +1666,9 @@ public final class WorkspaceApplicationService {
 		WorkspaceState state = store.read(query.workspaceId()).orElse(null);
 		if (state == null)
 			return queryFailure(query, 0, workspaceNotFound());
+		Diagnostic refusal = gradleProjectRefusal(state, query.operation());
+		if (refusal != null)
+			return queryFailure(query, state.revision(), refusal);
 		try {
 			return switch (query.operation()) {
 				case LIST_TASK_AUTHORIZATIONS -> listTaskAuthorizations(query, state, context);
@@ -3400,6 +3411,8 @@ public final class WorkspaceApplicationService {
 		workspace.addProperty("revision", state.revision());
 		workspace.addProperty("dirty", state.dirty());
 		workspace.add("generator", state.generator());
+		JsonObject gradleProject = gradleProject(state);
+		if (gradleProject != null) workspace.add("gradleProject", gradleProject);
 		JsonObject lock = new JsonObject();
 		lock.addProperty("state", context.permission() == PermissionProfile.READ_ONLY ? "read_only" : "write_available");
 		lock.add("holder", JsonNull.INSTANCE);
@@ -5738,6 +5751,16 @@ public final class WorkspaceApplicationService {
 			}
 			return capabilities;
 		}
+		if (GradleProjectOperations.KIND.equals(state.kind())) {
+			for (String id : List.of("mod_elements.create", "workspace.build", "workspace.migrate_loader", "workspace.import_upstream", "assets.publish_batch")) {
+				JsonObject item = capability(id, "unavailable");
+				String code = id.equals("workspace.build") ? GradleProjectOperations.TASKS_UNAVAILABLE : GradleProjectOperations.UNAVAILABLE;
+				item.addProperty("reasonCode", code);
+				item.add("message", UiCore.wireGson().toJsonTree(gradleProjectText(code)));
+				capabilities.add(item);
+			}
+			return capabilities;
+		}
 		capabilities.add(capability("mod_elements.create", context.permission() == PermissionProfile.READ_ONLY
 				? "unavailable" : "available"));
 		capabilities.add(capability("workspace.build", context.permission() == PermissionProfile.READ_ONLY
@@ -5749,6 +5772,32 @@ public final class WorkspaceApplicationService {
 		capabilities.add(capability("assets.publish_batch", context.permission() == PermissionProfile.READ_ONLY
 				? "unavailable" : "available"));
 		return capabilities;
+	}
+
+	/** Why an adopted Gradle project refuses the operation (ADR-0020), or {@code null} when it is available. */
+	private Diagnostic gradleProjectRefusal(WorkspaceState state, Operation operation) {
+		String code = GradleProjectOperations.refusal(state.kind(), operation);
+		return code == null ? null : new Diagnostic(code, UiCore.Severity.ERROR, gradleProjectText(code), null, null, true, List.of());
+	}
+
+	private static LocalizedText gradleProjectText(String code) {
+		return code.equals(GradleProjectOperations.TASKS_UNAVAILABLE)
+				? LocalizedText.of("diagnostic.gradle_project_tasks_unavailable",
+						"Building and running adopted Gradle projects is not available yet.")
+				: LocalizedText.of("diagnostic.gradle_project_operation_unavailable",
+						"An adopted Gradle project has no structured elements, registries or generator. Edit its source files instead.");
+	}
+
+	/** Identification results for an adopted project; {@code null} for every other workspace kind. */
+	private static JsonObject gradleProject(WorkspaceState state) {
+		if (!GradleProjectOperations.KIND.equals(state.kind())) return null;
+		JsonObject document = state.upstreamDocument();
+		JsonObject projection = document.has("gradleProject") && document.get("gradleProject").isJsonObject()
+				? document.getAsJsonObject("gradleProject") : new JsonObject();
+		JsonElement product = document.get("copperbench");
+		projection.add("modId", product != null && product.isJsonObject() && product.getAsJsonObject().has("modId")
+				? product.getAsJsonObject().get("modId") : JsonNull.INSTANCE);
+		return projection;
 	}
 
 	private JsonObject capability(String id, String availability) {

@@ -1,6 +1,6 @@
 # ADR-0020：接管现有 Fabric/NeoForge Gradle 工程的范围
 
-- 状态：提议；决定 7 至 10 的四个选择已由项目所有者于 2026-11-24 按建议确认，其余随合并采纳
+- 状态：已采纳。决定 7 至 10 由项目所有者于 2026-11-24 确认，其余随 [#184](https://github.com/Lotulune/Copperbench/pull/184) 于同日合并采纳；实施进展见文末
 - 日期：2026-11-24
 - 细化：[ADR-0019](0019-agent-harness-and-asset-workbench.md) 决定 4；[ADR-0017](0017-native-first-agent-workbench.md) 当时把“接管任意第三方 Gradle 工程”留作单独决定
 - 待办落点：[维护清单第 11 项](../remaining-work.md#下一阶段方向调整)
@@ -31,10 +31,10 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 
 另有一处会误导用户：资产健康检查在没有自定义代码元素时，把工作区内的使用情况视为已完整评估（`AssetProjectionService.health`）。接管的工程里全是任意 Java 代码，不能沿用这条规则，否则资源会被错误地列为可清理候选。
 
-## 决定（提议）
+## 决定
 
 1. **范围。** 第一阶段只接管单模块的 Fabric 或 NeoForge Gradle 工程，提供上表“只依赖工程根目录”的能力：源码、构建、运行客户端或服务器、GameTest 验收与已验证导出、资产工具、恢复点、任务授权、MCP 与内置对话的原生路线。结构化元素、Procedure、注册表、生成器模板、加载器迁移和版本副本在接管的工程里不可用，界面与 MCP 直接说明原因，不提供降级替代。
-2. **识别而不改写。** 打开时只读工程文件，识别加载器、Minecraft 版本和模组 ID：Fabric 读 `fabric.mod.json` 与 `gradle.properties`；NeoForge 读 `META-INF/neoforge.mods.toml`（1.20.1 为 `mods.toml`）与 `gradle.properties`。识别结果必须对应产品已支持的版本轨道，GameTest 宿主才会沿用该轨道固定的坐标。识别不出或版本不受支持时，工程仍可打开浏览和编辑，但构建与验收不可用，并说明缺什么。产品不修改 `build.gradle`、`settings.gradle` 或 wrapper；构建使用工程自己的 Gradle Wrapper。
+2. **识别而不改写。** 打开时只读工程文件，识别加载器、Minecraft 版本和模组 ID：Fabric 读 `fabric.mod.json` 与 `gradle.properties`，`gradle.properties` 没有 `minecraft_version` 时接受构建脚本中唯一的字面坐标 `com.mojang:minecraft:<版本>`（Agent 手写的工程常这样声明，例如 `examples/agent-native/survey-pulse`）；NeoForge 读 `META-INF/neoforge.mods.toml`（1.20.1 为 `mods.toml`）与 `gradle.properties`。识别结果必须对应产品已支持的版本轨道，GameTest 宿主才会沿用该轨道固定的坐标。识别不出或版本不受支持时，工程仍可打开浏览和编辑，但构建与验收不可用，并说明缺什么。产品不修改 `build.gradle`、`settings.gradle` 或 wrapper；构建使用工程自己的 Gradle Wrapper。
 3. **元数据放在 `.copperbench/`。** 新增 `.copperbench/workspace.json`，记录工作区 ID、修订号和识别结果，其余状态沿用现有的 `.copperbench/*` 位置。不在工程里写 `.mcreator` 文件：那会让 MCreator 生成器认为自己拥有文件并在生成时改写它们。
 4. **所有文件都是手写文件。** 接管的工程没有生成器归属，`update_workspace_file` 可以编辑允许范围内的全部文本文件；生成器源码的保护规则不适用。
 5. **使用情况按“未评估”处理。** 资产健康检查不为接管的工程计算可清理候选，删除资产总要确认受影响的引用（第 9 项的现有规则）。
@@ -49,6 +49,7 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 - 需要新的会话实现，它不附着 MCreator `Workspace`，而是用 `.copperbench/workspace.json` 提供身份与修订号。现有 `WorkspaceApplicationService` 的任务、源码、资产与历史路径通过工作区根目录复用；元素与注册表操作对 `gradle_project` 返回“不支持”诊断。
 - GameTest 宿主、任务授权、MCP 工具与 SDK 的调用方式不变，只是多了一种工作区类型。
 - 识别规则只覆盖常见模板。超出模板的工程得到明确的“不支持”结果，而不是猜测出的版本。
+- 本地历史不得在工作区根目录写 `.git` 链接：此前打开没有仓库的工作区会写入该链接，Git worktree 与子模块的链接会被替换（[#186](https://github.com/Lotulune/Copperbench/pull/186) 修复）。
 - 现有 `.mcreator` 工作区、已发布版本的支持范围和兼容承诺不受影响。
 
 ## 未采纳的方案
@@ -59,9 +60,9 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 
 ## 实施顺序与完成标准
 
-1. 识别与只读打开：源码、资产、本地历史。
+1. 识别与打开：源码、资产、本地历史。已实现：`GradleProjectDetector` 识别工程，`GradleProjectWorkspaceSession` 以 `.copperbench/workspace.json` 提供身份、修订号与单会话占用；源码编辑沿用带哈希的 `update_workspace_file` 与恢复点，因此没有另设只读模式。结构化操作返回 `GRADLE_PROJECT_OPERATION_UNAVAILABLE`，构建与运行返回 `GRADLE_PROJECT_TASKS_UNAVAILABLE`；资产健康检查不列清理候选。入口只有 `headless --workspace <文件夹>` 的单次命令。
 2. 构建、运行与 GameTest 验收。
-3. MCP、SDK 与内置对话的原生路线。
-4. 桌面入口与界面。
+3. MCP、SDK 与内置对话的原生路线，包括 `headless … api`、`serve` 与 `doctor`。
+4. 桌面入口与界面，包括决定 7 的 `.gitignore` 询问与决定 8 的设置。
 
 完成标准沿用 ADR-0019 决定 7：用裸 Gradle 组在对照实验中产出的 Fabric 1.21.1 工程，原样由 Copperbench 打开，完成构建与 GameTest 验收，且不修改其构建脚本；同一任务的成本与验证深度和 `.mcreator` 路线一起记录。

@@ -53,6 +53,14 @@ final class VersionCopyUpgradeAccess {
         }
     }
 
+    /** Rejects the extension for a workspace kind that has no versioned workspace model to copy. */
+    static JsonObject unavailable(UUID workspaceId, UUID requestId, String code, String text) {
+        JsonObject result = new JsonObject(); result.addProperty("contract", "version_copy_upgrade");
+        result.addProperty("schemaVersion", "1"); result.addProperty("requestId", requestId.toString());
+        result.addProperty("workspaceId", workspaceId.toString()); result.add("diagnostics", new JsonArray());
+        return reject(result, code, text);
+    }
+
     private static JsonObject reject(JsonObject result, String code, String text) {
         result.addProperty("status", "rejected"); JsonObject diagnostic = new JsonObject();
         diagnostic.addProperty("code", code); diagnostic.addProperty("message", text); result.getAsJsonArray("diagnostics").add(diagnostic); return result;

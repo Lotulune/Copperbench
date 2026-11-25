@@ -135,7 +135,8 @@ export interface DiagnosticCounts {
 
 export interface GeneratorTarget {
   id: string;
-  loader: 'fabric' | 'neoforge' | 'resource_pack' | 'data_pack';
+  /** `unknown` only for an adopted Gradle project whose loader could not be read. */
+  loader: 'fabric' | 'neoforge' | 'resource_pack' | 'data_pack' | 'unknown';
   minecraftVersion: string;
   displayName: string;
   state: 'ready' | 'partial' | 'missing' | 'outdated' | 'incompatible';
@@ -146,13 +147,20 @@ export interface WorkspaceLock {
   holder: string | null;
 }
 
+export interface GradleProjectSummary {
+  modId: string | null;
+  problems: { code: string; message: string }[];
+}
+
 export interface WorkspaceSummary {
   id: UUID;
   name: string;
-  kind: 'mod' | 'resource_pack' | 'data_pack';
+  kind: 'mod' | 'resource_pack' | 'data_pack' | 'gradle_project';
   revision: Revision;
   dirty: boolean;
   generator: GeneratorTarget;
+  /** Identification results; present only for an adopted Gradle project. */
+  gradleProject?: GradleProjectSummary;
   lock: WorkspaceLock;
   compatibility: {
     mode: 'native' | 'upstream' | 'partial';
