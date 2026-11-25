@@ -94,6 +94,30 @@ class WorkspacePersistenceFoundationTest {
 		assertEquals(17, result.get("future").getAsInt());
 	}
 
+	@Test void savingAnUnchangedWorkspaceKeepsItsBytesWhenFieldsFollowTheTagMap() throws Exception {
+		// Core appends its namespace after the fields MCreator wrote. The saved bytes are part of the GameTest
+		// input fingerprint, so saving an unchanged model must not move the tag map behind that namespace.
+		Path file = temporaryDirectory.resolve("stable.mcreator");
+		var gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+		String model = "{\"tag_elements\":{\"ITEMS:mod:kept\":[\"Items.STICK\"]},\"language_map\":{}}";
+		String saved = gson.toJson(JsonParser.parseString("{\"tag_elements\":{\"ITEMS:mod:kept\":[\"Items.STICK\"]},"
+				+ "\"language_map\":{},\"dev.copperbench\":{\"revision\":2}}"));
+		Files.writeString(file, saved, StandardCharsets.UTF_8);
+
+		assertEquals(saved, UnknownFieldPreservingJsonMerge.mergeExistingFile(file, model, model, gson));
+	}
+
+	@Test void savingAWorkspaceDropsRetiredTagsAndKeepsTheTagMapInPlace() throws Exception {
+		Path file = temporaryDirectory.resolve("retired.mcreator");
+		Files.writeString(file, "{\"tag_elements\":{\"ITEMS:mod:old\":[\"Items.STICK\"],\"ITEMS:mod:kept\":[\"Items.BREAD\"]},"
+				+ "\"dev.copperbench\":{\"revision\":2}}", StandardCharsets.UTF_8);
+		String model = "{\"tag_elements\":{\"ITEMS:mod:kept\":[\"Items.BREAD\"]}}";
+
+		String merged = UnknownFieldPreservingJsonMerge.mergeExistingFile(file, model, model, new com.google.gson.Gson());
+
+		assertEquals("{\"tag_elements\":{\"ITEMS:mod:kept\":[\"Items.BREAD\"]},\"dev.copperbench\":{\"revision\":2}}", merged);
+	}
+
 	@Test void onlyOneWriterLeaseCanBeHeldForAWorkspace() throws Exception {
 		try (WorkspaceFileLease first = WorkspaceFileLease.tryAcquire(temporaryDirectory).orElseThrow()) {
 			assertFalse(WorkspaceFileLease.tryAcquire(temporaryDirectory).isPresent());

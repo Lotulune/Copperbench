@@ -25,6 +25,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +63,11 @@ class Stage14BNativeAuthoringLoopTest {
 			assertEquals(HeadlessExitCode.SUCCESS.code(), created.exitCode(), created.json().toString());
 			assertEquals(workspaceFile.toAbsolutePath().normalize(), Path.of(created.json().getAsJsonObject("data")
 					.get("workspaceFile").getAsString()).toAbsolutePath().normalize());
+
+			// A reused daemon stays idle for minutes and keeps Loom's remapped JARs open, so Windows refuses to delete
+			// this workspace afterwards. Single-use daemons end with each build.
+			Files.writeString(workspaceRoot.resolve("gradle.properties"), System.lineSeparator() + "org.gradle.daemon=false"
+					+ System.lineSeparator(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
 
 			RunResult environment = product(workspaceFile, "environment");
 			assertEquals(HeadlessExitCode.SUCCESS.code(), environment.exitCode(), environment.json().toString());
