@@ -20,6 +20,8 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.QueryResult;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
+import dev.copperbench.core.workspace.project.GradleProjectDetector;
+import dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession;
 import dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway;
 import net.mcreator.workspace.Workspace;
 
@@ -32,6 +34,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -114,6 +117,7 @@ public final class HeadlessProductLauncher {
 	static int run(String[] arguments, PrintWriter output, java.io.Reader input) {
 		try {
 			Invocation invocation = parse(arguments);
+			if (invocation.gradleProject()) return runGradleProject(invocation, output);
 			if ("doctor".equals(invocation.commandArguments()[0])) {
 				if (invocation.commandArguments().length != 1)
 					throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> doctor");
@@ -175,6 +179,8 @@ public final class HeadlessProductLauncher {
 		} catch (IllegalArgumentException exception) {
 			return fail(output, HeadlessExitCode.INVALID_ARGUMENTS, "HEADLESS_INVALID_ARGUMENTS",
 					exception.getMessage());
+		} catch (GradleProjectDetector.NotAProjectException exception) {
+			return fail(output, HeadlessExitCode.INVALID_ARGUMENTS, exception.code(), exception.getMessage());
 		} catch (Exception | LinkageError exception) {
 			for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
 				if (cause instanceof dev.copperbench.core.workspace.WorkspaceWriteLockedException)
@@ -185,18 +191,52 @@ public final class HeadlessProductLauncher {
 		}
 	}
 
+	/**
+	 * One command against a Gradle project Copperbench did not create (ADR-0020). It needs no MCreator workspace or
+	 * generator runtime; long-lived hosts and the closed-workspace doctor still work on {@code .mcreator} files only.
+	 */
+	private static int runGradleProject(Invocation invocation, PrintWriter output) throws java.io.IOException {
+		String command = invocation.commandArguments()[0];
+		if (List.of("doctor", "api", "serve").contains(command))
+			throw new IllegalArgumentException("'" + command + "' is not available for Gradle project folders; it needs a .mcreator workspace");
+		try (GradleProjectWorkspaceSession session = GradleProjectWorkspaceSession.open(invocation.workspace(),
+				Clock.systemUTC(), UUID::randomUUID)) {
+			StringWriter buffered = new StringWriter();
+			int exitCode = new HeadlessCli(session.headlessEntry(PermissionProfile.WORKSPACE), session.workspaceId(), UUID::randomUUID)
+					.run(invocation.commandArguments(), new PrintWriter(buffered, true));
+			output.println(GSON.toJson(JsonParser.parseString(buffered.toString().trim())));
+			output.flush();
+			return exitCode;
+		}
+	}
+
 	static Invocation parse(String[] arguments) {
 		if (arguments == null || arguments.length < 3 || !"--workspace".equals(arguments[0]))
-			throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> <command> [options]");
+			throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator|Gradle project folder> <command> [options]");
 		Path workspace = Path.of(arguments[1]).toAbsolutePath().normalize();
-		if (!workspace.getFileName().toString().endsWith(".mcreator"))
-			throw new IllegalArgumentException("--workspace must point to a .mcreator file");
-		if (!Files.isRegularFile(workspace))
+		boolean folder = Files.isDirectory(workspace);
+		if (folder) {
+			List<Path> workspaceFiles;
+			try (var entries = Files.list(workspace)) {
+				workspaceFiles = entries.filter(entry -> entry.getFileName().toString().endsWith(".mcreator")
+						&& Files.isRegularFile(entry)).toList();
+			} catch (java.io.IOException exception) {
+				throw new IllegalArgumentException("Workspace folder is not readable: " + workspace);
+			}
+			if (workspaceFiles.size() > 1)
+				throw new IllegalArgumentException("The folder holds more than one .mcreator file; pass the file to open: " + workspace);
+			if (!workspaceFiles.isEmpty()) {
+				workspace = workspaceFiles.getFirst();
+				folder = false;
+			}
+		} else if (workspace.getFileName() == null || !workspace.getFileName().toString().endsWith(".mcreator"))
+			throw new IllegalArgumentException("--workspace must point to a .mcreator file or a Gradle project folder");
+		if (!folder && !Files.isRegularFile(workspace))
 			throw new IllegalArgumentException("Workspace file does not exist: " + workspace);
 		String[] commandArguments = Arrays.copyOfRange(arguments, 2, arguments.length);
 		if (commandArguments.length == 0 || commandArguments[0].isBlank())
 			throw new IllegalArgumentException("A headless command is required");
-		return new Invocation(workspace, commandArguments);
+		return new Invocation(workspace, folder, commandArguments);
 	}
 
 	private static int fail(PrintWriter output, HeadlessExitCode exitCode, String code, String message) {
@@ -218,6 +258,6 @@ public final class HeadlessProductLauncher {
 		return exitCode.code();
 	}
 
-	record Invocation(Path workspace, String[] commandArguments) {
+	record Invocation(Path workspace, boolean gradleProject, String[] commandArguments) {
 	}
 }

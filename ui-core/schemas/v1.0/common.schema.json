@@ -273,7 +273,8 @@
             "fabric",
             "neoforge",
             "resource_pack",
-            "data_pack"
+            "data_pack",
+            "unknown"
           ]
         },
         "minecraftVersion": {
@@ -428,7 +429,8 @@
           "enum": [
             "mod",
             "resource_pack",
-            "data_pack"
+            "data_pack",
+            "gradle_project"
           ]
         },
         "revision": {
@@ -439,6 +441,9 @@
         },
         "generator": {
           "$ref": "#/$defs/generatorTarget"
+        },
+        "gradleProject": {
+          "$ref": "#/$defs/gradleProjectSummary"
         },
         "lock": {
           "$ref": "#/$defs/workspaceLock"
@@ -463,6 +468,43 @@
             }
           },
           "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "gradleProjectSummary": {
+      "type": "object",
+      "required": [
+        "modId",
+        "problems"
+      ],
+      "properties": {
+        "modId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^GRADLE_PROJECT_[A-Z_]+$"
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

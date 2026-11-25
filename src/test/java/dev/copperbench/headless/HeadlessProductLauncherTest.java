@@ -119,6 +119,56 @@ class HeadlessProductLauncherTest {
 		assertArrayEquals(new String[] { "build", "--example", "value" }, invocation.commandArguments());
 	}
 
+	@Test void aFolderOpensItsWorkspaceFileOrTheGradleProjectInIt() throws Exception {
+		Path workspace = Files.createDirectory(tempDir.resolve("workspace"));
+		Files.writeString(workspace.resolve("one.mcreator"), "{}");
+		var opened = HeadlessProductLauncher.parse(new String[] { "--workspace", workspace.toString(), "build" });
+		assertEquals(workspace.resolve("one.mcreator").toAbsolutePath().normalize(), opened.workspace());
+		assertFalse(opened.gradleProject());
+		Files.writeString(workspace.resolve("two.mcreator"), "{}");
+		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(workspace, "build").get("code").getAsString());
+
+		Path empty = Files.createDirectory(tempDir.resolve("empty"));
+		JsonObject notAProject = run(empty, "environment");
+		assertEquals("GRADLE_PROJECT_NOT_FOUND", notAProject.get("code").getAsString());
+		assertEquals(HeadlessExitCode.INVALID_ARGUMENTS.code(), notAProject.get("exitCode").getAsInt());
+		try (var files = Files.list(empty)) { assertTrue(files.toList().isEmpty(), "a refused folder is left untouched"); }
+	}
+
+	@Test void gradleProjectFoldersAnswerQueriesAndRefuseGeneratorCommands() throws Exception {
+		Path project = Files.createDirectory(tempDir.resolve("ember-kit"));
+		Path example = Path.of("examples/agent-native/survey-pulse");
+		try (var paths = Files.walk(example)) {
+			for (Path path : paths.filter(Files::isRegularFile).toList()) {
+				Path target = project.resolve(example.relativize(path).toString());
+				Files.createDirectories(target.getParent());
+				Files.copy(path, target);
+			}
+		}
+		JsonObject environment = run(project, "environment");
+		assertEquals("succeeded", environment.get("status").getAsString(), environment.toString());
+		JsonObject data = environment.getAsJsonObject("data");
+		assertEquals("gradle_project", data.get("workspaceKind").getAsString());
+		assertEquals("fabric-1.21.1", data.getAsJsonObject("generator").get("id").getAsString());
+		assertEquals("survey_pulse", data.getAsJsonObject("gradleProject").get("modId").getAsString());
+
+		JsonObject build = run(project, "build");
+		assertEquals("GRADLE_PROJECT_TASKS_UNAVAILABLE", build.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(project, "api").get("code").getAsString());
+		assertFalse(Files.exists(project.resolve(".git")));
+		assertFalse(Files.exists(project.resolve("build")));
+	}
+
+	private static JsonObject run(Path workspace, String... command) {
+		String[] arguments = new String[command.length + 2];
+		arguments[0] = "--workspace";
+		arguments[1] = workspace.toString();
+		System.arraycopy(command, 0, arguments, 2, command.length);
+		StringWriter buffer = new StringWriter();
+		HeadlessProductLauncher.run(arguments, new PrintWriter(buffer, true));
+		return JsonParser.parseString(buffer.toString().trim()).getAsJsonObject();
+	}
+
 	@ParameterizedTest
 	@CsvSource({ "run_client,true", "run_client,false", "run_server,true", "run_server,false" })
 	void interactiveSessionKeepsPollingAfterFortyFiveMinutesAndReportsNormalClose(String operation, boolean stream)

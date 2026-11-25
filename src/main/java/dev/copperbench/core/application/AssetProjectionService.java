@@ -81,8 +81,10 @@ final class AssetProjectionService {
 		collectWorkspaceTextSignals(state.generator(), textSignals);
 		collectWorkspaceTextSignals(state.upstreamDocument(), textSignals);
 		collectWorkspaceTextSignals(state.registries(), textSignals);
-		// Data packs carry elements like mods do; only resource packs have no element-side usage to assess.
-		boolean workspaceUsageComplete = !"resource_pack".equals(state.kind()) && state.elements().stream()
+		// Data packs carry elements like mods do; resource packs have no element-side usage to assess, and an adopted
+		// Gradle project's usage is arbitrary code that no element describes.
+		boolean workspaceUsageComplete = !"resource_pack".equals(state.kind())
+				&& !dev.copperbench.core.workspace.project.GradleProjectOperations.KIND.equals(state.kind()) && state.elements().stream()
 				.allMatch(element -> ElementCoverageCatalog.isFirstParty(element.type()) && !element.type().equals("code")
 						&& workspaceTextSignalsComplete(element.values()))
 				&& workspaceTextSignalsComplete(state.generator())

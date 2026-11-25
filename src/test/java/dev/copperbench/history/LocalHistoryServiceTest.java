@@ -64,6 +64,33 @@ class LocalHistoryServiceTest {
 		}
 	}
 
+	@Test void openingHistoryNeverWritesTheWorkspaceGitLink() throws Exception {
+		Files.writeString(workspace.resolve("model.json"), "{}");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			history.createRecoveryPoint(new RecoveryPointRequest("First", Actor.HEADLESS, ""));
+		}
+		// A link here would make the user's own "git init" or commit land in this history.
+		assertFalse(Files.exists(workspace.resolve(".git")));
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			assertEquals(1, history.listRecoveryPoints().size());
+		}
+	}
+
+	@Test void openingHistoryKeepsTheGitLinkOfAWorktreeOrSubmodule() throws Exception {
+		Path repository = Files.createDirectory(workspace.resolve("repository"));
+		Path project = Files.createDirectory(workspace.resolve("project"));
+		String link = "gitdir: " + repository.resolve(".git/worktrees/project").toString().replace('\\', '/') + "\n";
+		Files.writeString(project.resolve(".git"), link);
+		Files.writeString(project.resolve("model.json"), "{}");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(project, CLOCK)) {
+			RecoveryPoint point = history.createRecoveryPoint(new RecoveryPointRequest("First", Actor.HEADLESS, ""));
+			Files.writeString(project.resolve("model.json"), "{\"changed\":true}");
+			history.restore(point.id());
+			assertEquals("{}", Files.readString(project.resolve("model.json")));
+		}
+		assertEquals(link, Files.readString(project.resolve(".git")));
+	}
+
 	@Test void checkpointCapturesContentRewrittenWithTheSameSizeAndTimestamp() throws Exception {
 		Path source = workspace.resolve("model.json");
 		Files.writeString(source, "{\"value\":1}");

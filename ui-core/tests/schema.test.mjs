@@ -981,3 +981,21 @@ test('data packs are a workspace kind and loader of their own, not an id-derived
   assert.equal(summary(dataPack), true, JSON.stringify(summary.errors));
   assert.equal(summary({ ...dataPack, kind: 'datapack' }), false);
 });
+
+test('adopted Gradle projects are a workspace kind with identification results', async () => {
+  const { ajv } = await createValidator();
+  const summary = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/workspaceSummary' });
+  const scenario = JSON.parse(await readFile(new URL('../fixtures/v1.0/scenarios/ready.json', import.meta.url), 'utf8'));
+  const workspace = scenario.initialMessages.map(message => message.data?.workspace).find(Boolean);
+  const project = { ...workspace, kind: 'gradle_project', gradleProject: { modId: 'emberkit', problems: [] } };
+  assert.equal(summary(project), true, JSON.stringify(summary.errors));
+  const unidentified = { ...project,
+    generator: { id: 'gradle-project', loader: 'unknown', minecraftVersion: 'unknown', displayName: 'Gradle', state: 'incompatible' },
+    gradleProject: { modId: null, problems: [{ code: 'GRADLE_PROJECT_LOADER_UNKNOWN', message: 'No mod metadata was found.' }] } };
+  assert.equal(summary(unidentified), true, JSON.stringify(summary.errors));
+  assert.equal(summary({ ...unidentified, gradleProject: { modId: null, problems: [{ code: 'OTHER', message: 'x' }] } }), false);
+  // Only an adopted project can have an unknown loader; the new-workspace list never offers one.
+  const generator = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/newWorkspaceGenerator' });
+  assert.equal(generator({ generatorId: 'gradle-project', loader: 'unknown', minecraftVersion: 'unknown', trackId: 'data_pack',
+    displayName: 'Gradle', dynamic: false, available: true, workspaceGeneratorName: 'gradle-project' }), false);
+});
