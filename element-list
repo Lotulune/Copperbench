@@ -16,6 +16,7 @@ dev.copperbench.generator
 dev.copperbench.generator.datapack
 dev.copperbench.generator.fabric
 dev.copperbench.generator.neoforge
+dev.copperbench.generator.project
 dev.copperbench.generator.resourcepack
 dev.copperbench.gradle
 dev.copperbench.headless

@@ -59,6 +59,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#field-detail" tabindex="0">Field Details</a>
 <ol class="toc-list">
 <li><a href="#CONFIG_FILE" tabindex="0">CONFIG_FILE</a></li>
+<li><a href="#DEFAULT_DIRECTORY" tabindex="0">DEFAULT_DIRECTORY</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -66,7 +67,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#configuration(java.nio.file.Path)" tabindex="0">configuration(Path)</a></li>
 <li><a href="#describe(java.nio.file.Path,com.google.gson.JsonObject)" tabindex="0">describe(Path, JsonObject)</a></li>
 <li><a href="#prepare(java.nio.file.Path,com.google.gson.JsonObject,java.lang.String)" tabindex="0">prepare(Path, JsonObject, String)</a></li>
+<li><a href="#prepare(java.nio.file.Path,com.google.gson.JsonObject,java.lang.String,java.lang.String)" tabindex="0">prepare(Path, JsonObject, String, String)</a></li>
 <li><a href="#host(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.GameTestSupport.Configuration,com.google.gson.JsonObject)" tabindex="0">host(Path, Path, GameTestSupport.Configuration, JsonObject)</a></li>
+<li><a href="#host(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.GameTestSupport.Configuration,com.google.gson.JsonObject,dev.copperbench.generator.GameTestSupport.HostWrapper)" tabindex="0">host(Path, Path, GameTestSupport.Configuration, JsonObject, GameTestSupport.HostWrapper)</a></li>
 <li><a href="#requiresServerEula(com.google.gson.JsonObject)" tabindex="0">requiresServerEula(JsonObject)</a></li>
 <li><a href="#requireServerAuthorization(com.google.gson.JsonObject,boolean)" tabindex="0">requireServerAuthorization(JsonObject, boolean)</a></li>
 <li><a href="#safePath(java.nio.file.Path,java.lang.String)" tabindex="0">safePath(Path, String)</a></li>
@@ -107,9 +110,14 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
 <div class="col-second odd-row-color"><code><a href="GameTestSupport.Host.html" class="type-name-link" title="class in dev.copperbench.generator">GameTestSupport.Host</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="GameTestSupport.TestSetupException.html" class="type-name-link" title="class in dev.copperbench.generator">GameTestSupport.TestSetupException</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="GameTestSupport.HostWrapper.html" class="type-name-link" title="interface in dev.copperbench.generator">GameTestSupport.HostWrapper</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Puts the Gradle Wrapper a new host builds with into its directory.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="GameTestSupport.TestSetupException.html" class="type-name-link" title="class in dev.copperbench.generator">GameTestSupport.TestSetupException</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -125,6 +133,9 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color"><code><a href="#CONFIG_FILE" class="member-name-link">CONFIG_FILE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#DEFAULT_DIRECTORY" class="member-name-link">DEFAULT_DIRECTORY</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -152,11 +163,26 @@ loadScripts(document, 'script');</script>
  <a href="GameTestSupport.Configuration.html" title="class in dev.copperbench.generator">GameTestSupport.Configuration</a>&nbsp;configuration,
  com.google.gson.JsonObject&nbsp;environment)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#prepare(java.nio.file.Path,com.google.gson.JsonObject,java.lang.String)" class="member-name-link">prepare</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="GameTestSupport.Host.html" title="class in dev.copperbench.generator">GameTestSupport.Host</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#host(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.GameTestSupport.Configuration,com.google.gson.JsonObject,dev.copperbench.generator.GameTestSupport.HostWrapper)" class="member-name-link">host</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;snapshot,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;host,
+ <a href="GameTestSupport.Configuration.html" title="class in dev.copperbench.generator">GameTestSupport.Configuration</a>&nbsp;configuration,
+ com.google.gson.JsonObject&nbsp;environment,
+ <a href="GameTestSupport.HostWrapper.html" title="interface in dev.copperbench.generator">GameTestSupport.HostWrapper</a>&nbsp;wrapper)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#prepare(java.nio.file.Path,com.google.gson.JsonObject,java.lang.String)" class="member-name-link">prepare</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
  com.google.gson.JsonObject&nbsp;environment,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modId)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#prepare(java.nio.file.Path,com.google.gson.JsonObject,java.lang.String,java.lang.String)" class="member-name-link">prepare</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+ com.google.gson.JsonObject&nbsp;environment,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;directory)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Writes the starter into <code>directory</code>; an adopted project may already use the default one for its own tests.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#requireServerAuthorization(com.google.gson.JsonObject,boolean)" class="member-name-link">requireServerAuthorization</a><wbr>(com.google.gson.JsonObject&nbsp;environment,
  boolean&nbsp;authorized)</code></div>
@@ -195,6 +221,22 @@ loadScripts(document, 'script');</script>
 <dd>
 <ul class="tag-list">
 <li><a href="../../../constant-values.html#dev.copperbench.generator.GameTestSupport.CONFIG_FILE">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="DEFAULT_DIRECTORY">
+<h3>DEFAULT_DIRECTORY</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">DEFAULT_DIRECTORY</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../constant-values.html#dev.copperbench.generator.GameTestSupport.DEFAULT_DIRECTORY">Constant Field Values</a></li>
 </ul>
 </dd>
 </dl>
@@ -247,6 +289,23 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="prepare(java.nio.file.Path,com.google.gson.JsonObject,java.lang.String,java.lang.String)">
+<h3>prepare</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">prepare</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+ com.google.gson.JsonObject&nbsp;environment,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;directory)</span>
+                                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Writes the starter into <code>directory</code>; an adopted project may already use the default one for its own tests.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="host(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.GameTestSupport.Configuration,com.google.gson.JsonObject)">
 <h3>host</h3>
 <div class="horizontal-scroll">
@@ -254,6 +313,23 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;host,
  <a href="GameTestSupport.Configuration.html" title="class in dev.copperbench.generator">GameTestSupport.Configuration</a>&nbsp;configuration,
  com.google.gson.JsonObject&nbsp;environment)</span>
+                                 throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="host(java.nio.file.Path,java.nio.file.Path,dev.copperbench.generator.GameTestSupport.Configuration,com.google.gson.JsonObject,dev.copperbench.generator.GameTestSupport.HostWrapper)">
+<h3>host</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="GameTestSupport.Host.html" title="class in dev.copperbench.generator">GameTestSupport.Host</a></span>&nbsp;<span class="element-name">host</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;snapshot,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;host,
+ <a href="GameTestSupport.Configuration.html" title="class in dev.copperbench.generator">GameTestSupport.Configuration</a>&nbsp;configuration,
+ com.google.gson.JsonObject&nbsp;environment,
+ <a href="GameTestSupport.HostWrapper.html" title="interface in dev.copperbench.generator">GameTestSupport.HostWrapper</a>&nbsp;wrapper)</span>
                                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <dl class="notes">
 <dt>Throws:</dt>

@@ -62,7 +62,11 @@ loadScripts(document, 'script');</script>
 <li><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">validate(WorkspaceState)</a></li>
 <li><a href="#validateContent(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState,java.util.function.Consumer)" tabindex="0">validateContent(Path, WorkspaceState, Consumer)</a></li>
 <li><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">generate(Path, WorkspaceState)</a></li>
+<li><a href="#generatesSources()" tabindex="0">generatesSources()</a></li>
 <li><a href="#gameTestEnvironment()" tabindex="0">gameTestEnvironment()</a></li>
+<li><a href="#gameTestDirectory()" tabindex="0">gameTestDirectory()</a></li>
+<li><a href="#installHostWrapper(java.nio.file.Path,java.nio.file.Path)" tabindex="0">installHostWrapper(Path, Path)</a></li>
+<li><a href="#hostSharesProjectCache(java.nio.file.Path)" tabindex="0">hostSharesProjectCache(Path)</a></li>
 <li><a href="#gameTestModId(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">gameTestModId(WorkspaceState)</a></li>
 <li><a href="#gradleArguments(dev.copperbench.core.contract.UiCore.Operation)" tabindex="0">gradleArguments(UiCore.Operation)</a></li>
 <li><a href="#serverRunDirectory(java.nio.file.Path)" tabindex="0">serverRunDirectory(Path)</a></li>
@@ -142,22 +146,43 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#displayName()" class="member-name-link">displayName</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestEnvironment()" class="member-name-link">gameTestEnvironment</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestDirectory()" class="member-name-link">gameTestDirectory</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Directory that new GameTest starters are written to.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestEnvironment()" class="member-name-link">gameTestEnvironment</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Pinned loader coordinates used to create an independent acceptance-test host.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestModId(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">gameTestModId</a><wbr>(<a href="../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="GradleWorkspaceBackend.GenerationResult.html" title="class in dev.copperbench.generator">GradleWorkspaceBackend.GenerationResult</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">generate</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestModId(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">gameTestModId</a><wbr>(<a href="../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="GradleWorkspaceBackend.GenerationResult.html" title="class in dev.copperbench.generator">GradleWorkspaceBackend.GenerationResult</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">generate</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
  <a href="../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#generatesSources()" class="member-name-link">generatesSources</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether tasks generate sources first.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gradleArguments(dev.copperbench.core.contract.UiCore.Operation)" class="member-name-link">gradleArguments</a><wbr>(<a href="../core/contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Gradle arguments for the task operation; resource-pack generators use a nested client task.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hostSharesProjectCache(java.nio.file.Path)" class="member-name-link">hostSharesProjectCache</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;snapshot)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether the frozen build prepared its Loom cache with the same Loom version as the acceptance host.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#installHostWrapper(java.nio.file.Path,java.nio.file.Path)" class="member-name-link">installHostWrapper</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;snapshot,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;host)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Installs the Gradle Wrapper a new acceptance host builds with; by default the tested workspace's own.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#prepareServerRun(java.nio.file.Path)" class="member-name-link">prepareServerRun</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot)</code></div>
@@ -247,11 +272,58 @@ fail the task like <a href="#validate(dev.copperbench.core.workspace.WorkspaceSt
 </section>
 </li>
 <li>
+<section class="detail" id="generatesSources()">
+<h3>generatesSources</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">generatesSources</span>()</div>
+<div class="block">Whether tasks generate sources first. Adopted Gradle projects keep every file as it is and have no datagen publishing.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="gameTestEnvironment()">
 <h3>gameTestEnvironment</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">gameTestEnvironment</span>()</div>
 <div class="block">Pinned loader coordinates used to create an independent acceptance-test host.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="gameTestDirectory()">
+<h3>gameTestDirectory</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">gameTestDirectory</span>()</div>
+<div class="block">Directory that new GameTest starters are written to.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="installHostWrapper(java.nio.file.Path,java.nio.file.Path)">
+<h3>installHostWrapper</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">installHostWrapper</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;snapshot,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;host)</span>
+                         throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Installs the Gradle Wrapper a new acceptance host builds with; by default the tested workspace's own.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="hostSharesProjectCache(java.nio.file.Path)">
+<h3>hostSharesProjectCache</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">hostSharesProjectCache</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;snapshot)</span>
+                                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Whether the frozen build prepared its Loom cache with the same Loom version as the acceptance host.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
 </div>
 </section>
 </li>

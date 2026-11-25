@@ -68,7 +68,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#system(java.lang.String)" tabindex="0">system(String)</a></li>
 <li><a href="#system(java.lang.String,java.nio.file.Path)" tabindex="0">system(String, Path)</a></li>
 <li><a href="#system(java.lang.String,java.util.function.Supplier)" tabindex="0">system(String, Supplier)</a></li>
-<li><a href="#wrapperCommand(boolean,java.lang.String)" tabindex="0">wrapperCommand(boolean, String)</a></li>
+<li><a href="#wrapperCommand(boolean,java.lang.String,boolean)" tabindex="0">wrapperCommand(boolean, String, boolean)</a></li>
 <li><a href="#daemonArguments(java.util.List,boolean)" tabindex="0">daemonArguments(List, boolean)</a></li>
 <li><a href="#isClientRun(java.util.List)" tabindex="0">isClientRun(List)</a></li>
 <li><a href="#isServerRun(java.util.List)" tabindex="0">isServerRun(List)</a></li>
@@ -199,8 +199,9 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;javaHome)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#wrapperCommand(boolean,java.lang.String)" class="member-name-link">wrapperCommand</a><wbr>(boolean&nbsp;windows,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;configuredGradle)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#wrapperCommand(boolean,java.lang.String,boolean)" class="member-name-link">wrapperCommand</a><wbr>(boolean&nbsp;windows,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;configuredGradle,
+ boolean&nbsp;launcherExecutable)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
 <div class="block">The workspace wrapper is addressed relative to the process directory.</div>
 </div>
@@ -286,11 +287,12 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="wrapperCommand(boolean,java.lang.String)">
+<section class="detail" id="wrapperCommand(boolean,java.lang.String,boolean)">
 <h3>wrapperCommand</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">wrapperCommand</span><wbr><span class="parameters">(boolean&nbsp;windows,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;configuredGradle)</span></div>
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;configuredGradle,
+ boolean&nbsp;launcherExecutable)</span></div>
 <div class="block">The workspace wrapper is addressed relative to the process directory. A bare <code>gradlew.bat</code> relies on
 cmd's current-directory search, which <code>NoDefaultCurrentDirectoryInExePath</code> disables.</div>
 </div>

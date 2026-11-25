@@ -53,6 +53,7 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#nested-class-summary" tabindex="0">Nested Class Summary</a></li>
 <li><a href="#field-summary" tabindex="0">Field Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#field-detail" tabindex="0">Field Details</a>
@@ -62,7 +63,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#open(java.nio.file.Path,java.time.Clock,java.util.function.Supplier)" tabindex="0">open(Path, Clock, Supplier)</a></li>
+<li><a href="#open(java.nio.file.Path,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession.TaskFactory,java.time.Clock,java.util.function.Supplier)" tabindex="0">open(Path, GradleProjectWorkspaceSession.TaskFactory, Clock, Supplier)</a></li>
 <li><a href="#workspaceId()" tabindex="0">workspaceId()</a></li>
 <li><a href="#root()" tabindex="0">root()</a></li>
 <li><a href="#service()" tabindex="0">service()</a></li>
@@ -98,6 +99,23 @@ live in <code>.copperbench/workspace.json</code>; every file stays hand-written 
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Class</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="GradleProjectWorkspaceSession.TaskFactory.html" class="type-name-link" title="interface in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession.TaskFactory</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Creates the session's task gateway over its revision store and canonical project root.</div>
+</div>
+</div>
+</section>
+</li>
 <!-- =========== FIELD SUMMARY =========== -->
 <li>
 <section class="field-summary" id="field-summary">
@@ -134,7 +152,8 @@ live in <code>.copperbench/workspace.json</code>; every file stays hand-written 
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#mcpEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">mcpEntry</a><wbr>(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="GradleProjectWorkspaceSession.html" title="class in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#open(java.nio.file.Path,java.time.Clock,java.util.function.Supplier)" class="member-name-link">open</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#open(java.nio.file.Path,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession.TaskFactory,java.time.Clock,java.util.function.Supplier)" class="member-name-link">open</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
+ <a href="GradleProjectWorkspaceSession.TaskFactory.html" title="interface in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession.TaskFactory</a>&nbsp;taskFactory,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html" title="class or interface in java.time" class="external-link">Clock</a>&nbsp;clock,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&gt;&nbsp;ids)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
@@ -194,14 +213,16 @@ live in <code>.copperbench/workspace.json</code>; every file stays hand-written 
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="open(java.nio.file.Path,java.time.Clock,java.util.function.Supplier)">
+<section class="detail" id="open(java.nio.file.Path,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession.TaskFactory,java.time.Clock,java.util.function.Supplier)">
 <h3>open</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="GradleProjectWorkspaceSession.html" title="class in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession</a></span>&nbsp;<span class="element-name">open</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
+ <a href="GradleProjectWorkspaceSession.TaskFactory.html" title="interface in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession.TaskFactory</a>&nbsp;taskFactory,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html" title="class or interface in java.time" class="external-link">Clock</a>&nbsp;clock,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&gt;&nbsp;ids)</span>
                                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">Opens the project for this session. Only <code>.copperbench/</code> is written, and only one session can hold it.</div>
+<div class="block">Opens the project for this session. Only <code>.copperbench/</code> is written, and only one session can hold it.
+The session owns the gateway <code>taskFactory</code> creates and closes it before its history and lease.</div>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code><a href="GradleProjectDetector.NotAProjectException.html" title="class in dev.copperbench.core.workspace.project">GradleProjectDetector.NotAProjectException</a></code> - when the folder is not a Gradle project to adopt</dd>
