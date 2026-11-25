@@ -10,6 +10,7 @@ dev.copperbench.core.diagnostics
 dev.copperbench.core.plugin
 dev.copperbench.core.workspace
 dev.copperbench.core.workspace.mcreator
+dev.copperbench.core.workspace.project
 dev.copperbench.diagnostics
 dev.copperbench.generator
 dev.copperbench.generator.datapack
