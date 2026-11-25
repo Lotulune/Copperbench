@@ -101,7 +101,7 @@
   },
   "dependencyGraph": {
     "gradle.lockfile": "b3d77145b1b294691b6d48276d0f21e69239cdc83d49c83185214ea124afee69",
-    "gradle/verification-metadata.xml": "56db4e6d4668b2f547e05cc605246384364dd916f5aa70183d3131c5010444e3",
+    "gradle/verification-metadata.xml": "1fa96e5a0236a60bd83576eaf2a8b48faa9d6eb3c83f8dac9f37411a23f84840",
     "gradle/linux.lockfile": "4ea6fdbbeaf6e6fb720a90472431d3ba36c680bfffa3d540286c3eed887a0737"
   },
   "pluginMarkerPoms": {
@@ -155,6 +155,15 @@
       "version": "5.3.39",
       "file": "spring-framework-bom-5.3.39.module",
       "sha256": "f88b40e2a50333b40b42f181eee272b75ec75dd8666cb145bd90b15b97e183e3",
+      "upstreamChecksumAlgorithm": "sha1",
+      "upstreamPublishedChecksumMatched": true
+    },
+    {
+      "group": "org.jspecify",
+      "name": "jspecify",
+      "version": "1.0.1",
+      "file": "jspecify-1.0.1.pom",
+      "sha256": "55b38bf1a7b1d8ea518cf2f4f3ae9aaa236e61bbf0b6bd31ffb49753a059dd5e",
       "upstreamChecksumAlgorithm": "sha1",
       "upstreamPublishedChecksumMatched": true
     }
