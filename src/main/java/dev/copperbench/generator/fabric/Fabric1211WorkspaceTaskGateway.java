@@ -54,7 +54,8 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 		return (workspace, args, timeout, output) -> runner.run(workspace, headlessBuildArgs(args), timeout, output);
 	}
 
-	static List<String> headlessBuildArgs(List<String> args) {
+	/** Arguments for a command-line build of a remapped Fabric project. */
+	public static List<String> headlessBuildArgs(List<String> args) {
 		// Loom 1.17.19 skips dependency *sources* download/remapping in CI mode. The binary remap,
 		// project sources JAR and tests still run. Do not set CI globally or change the IDE project.
 		if (args.size() == 1 && (args.getFirst().equals("build") || args.getFirst().equals("runGameTest")))

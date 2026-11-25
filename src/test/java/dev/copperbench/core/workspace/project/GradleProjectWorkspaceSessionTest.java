@@ -59,7 +59,9 @@ class GradleProjectWorkspaceSessionTest {
 	}
 
 	private GradleProjectWorkspaceSession open() throws Exception {
-		return GradleProjectWorkspaceSession.open(root, Clock.systemUTC(), UUID::randomUUID);
+		return GradleProjectWorkspaceSession.open(root, (store, folder) ->
+				new dev.copperbench.core.application.InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID),
+				Clock.systemUTC(), UUID::randomUUID);
 	}
 
 	private static QueryResult query(GradleProjectWorkspaceSession session, Operation operation, JsonObject payload) {
@@ -141,7 +143,7 @@ class GradleProjectWorkspaceSessionTest {
 		}
 	}
 
-	@Test void structuredOperationsAndTasksAreRefusedWithAReason() throws Exception {
+	@Test void structuredOperationsAreRefusedWithAReason() throws Exception {
 		try (var session = open()) {
 			JsonObject create = payload("elementType", "item", "name", "ember");
 			assertEquals(GradleProjectOperations.UNAVAILABLE,
@@ -150,16 +152,18 @@ class GradleProjectWorkspaceSessionTest {
 					query(session, Operation.GET_MOD_ELEMENT_FIELD_CONTRACT, payload("elementType", "item")).diagnostics().getFirst().code());
 			assertEquals(GradleProjectOperations.UNAVAILABLE,
 					command(session, 0, Operation.CREATE_REGISTRY_ENTRY, payload("registry", "tags")).diagnostics().getFirst().code());
-			for (Operation task : List.of(Operation.BUILD_WORKSPACE, Operation.RUN_CLIENT, Operation.RUN_GAMETEST, Operation.PREPARE_GAME_TESTS))
+			for (Operation task : List.of(Operation.RUN_DATAGEN, Operation.CREATE_PUBLISH_BATCH))
 				assertEquals(GradleProjectOperations.TASKS_UNAVAILABLE,
 						command(session, 0, task, new JsonObject()).diagnostics().getFirst().code(), task.name());
 			assertTrue(query(session, Operation.LIST_MOD_ELEMENTS, JsonParser.parseString("{\"page\":1,\"pageSize\":50}").getAsJsonObject())
 					.data().getAsJsonObject().getAsJsonArray("items").isEmpty());
 
 			JsonObject workbench = query(session, Operation.GET_WORKBENCH, new JsonObject()).data().getAsJsonObject();
-			for (var capability : workbench.getAsJsonArray("capabilities")) {
-				assertEquals("unavailable", capability.getAsJsonObject().get("availability").getAsString(), capability.toString());
-				assertTrue(capability.getAsJsonObject().get("reasonCode").getAsString().startsWith("GRADLE_PROJECT_"), capability.toString());
+			for (var raw : workbench.getAsJsonArray("capabilities")) {
+				JsonObject capability = raw.getAsJsonObject();
+				boolean build = capability.get("id").getAsString().equals("workspace.build");
+				assertEquals(build ? "available" : "unavailable", capability.get("availability").getAsString(), capability.toString());
+				if (!build) assertTrue(capability.get("reasonCode").getAsString().startsWith("GRADLE_PROJECT_"), capability.toString());
 			}
 			JsonObject copy = session.service().versionCopyUpgrade(session.workspaceId(), UUID.randomUUID(),
 					JsonParser.parseString("{\"supportedVersions\":[\"1\"],\"operation\":\"preview\",\"targetGeneratorId\":\"fabric-26.2\"}").getAsJsonObject(),
@@ -199,7 +203,47 @@ class GradleProjectWorkspaceSessionTest {
 					workspace.getAsJsonObject("gradleProject").getAsJsonArray("problems").asList().stream()
 							.map(problem -> problem.getAsJsonObject().get("code").getAsString()).toList());
 			assertEquals("committed", edit(session, 0, SOURCE, "package com.example.emberkit;\n").status());
+			for (Operation task : List.of(Operation.VALIDATE_WORKSPACE, Operation.BUILD_WORKSPACE, Operation.EXPORT_WORKSPACE,
+					Operation.RUN_CLIENT, Operation.RUN_SERVER, Operation.RUN_GAMETEST, Operation.PREPARE_GAME_TESTS)) {
+				var refused = command(session, 1, task, new JsonObject()).diagnostics().getFirst();
+				assertEquals(GradleProjectOperations.UNSUPPORTED, refused.code(), task.name());
+				assertTrue(refused.message().args().get("reasons").getAsString().contains("1.21.4"), refused.toString());
+			}
+			JsonObject build = query(session, Operation.GET_WORKBENCH, new JsonObject()).data().getAsJsonObject().getAsJsonArray("capabilities")
+					.asList().stream().map(item -> item.getAsJsonObject()).filter(item -> item.get("id").getAsString().equals("workspace.build"))
+					.findFirst().orElseThrow();
+			assertEquals("unavailable", build.get("availability").getAsString());
+			assertEquals(GradleProjectOperations.UNSUPPORTED, build.get("reasonCode").getAsString());
 		}
+	}
+
+	@Test void anIdentifiedProjectStartsTasks() throws Exception {
+		try (var session = open()) {
+			for (Operation task : List.of(Operation.VALIDATE_WORKSPACE, Operation.BUILD_WORKSPACE)) {
+				CommandResult started = command(session, 0, task, new JsonObject());
+				assertEquals("accepted", started.status(), started.diagnostics().toString());
+			}
+		}
+	}
+
+	@Test void closingStopsTheTasksBeforeTheProjectIsReleased() throws Exception {
+		var closed = new java.util.concurrent.atomic.AtomicInteger();
+		class Tasks implements dev.copperbench.core.application.WorkspaceTaskGateway, AutoCloseable {
+			@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) { return new JsonObject(); }
+			@Override public java.util.Optional<JsonObject> find(UUID workspaceId, UUID taskId) { return java.util.Optional.empty(); }
+			@Override public List<JsonObject> active(UUID workspaceId) { return List.of(); }
+			@Override public java.util.Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) { return java.util.Optional.empty(); }
+			@Override public void close() {
+				assertThrows(WorkspaceWriteLockedException.class, GradleProjectWorkspaceSessionTest.this::open, "the project is still held");
+				closed.incrementAndGet();
+			}
+		}
+		GradleProjectWorkspaceSession.open(root, (store, folder) -> new Tasks(), Clock.systemUTC(), UUID::randomUUID).close();
+		assertEquals(1, closed.get());
+		assertThrows(java.io.IOException.class, () -> GradleProjectWorkspaceSession.open(root, (store, folder) -> {
+			throw new IllegalStateException("no tasks");
+		}, Clock.systemUTC(), UUID::randomUUID));
+		open().close();
 	}
 
 	@Test void editingTheBuildFilesRefreshesTheIdentity() throws Exception {

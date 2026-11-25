@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import dev.copperbench.core.application.HeadlessWorkspaceEntryAdapter;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.application.WorkspaceApplicationService;
@@ -37,7 +36,6 @@ import java.nio.file.StandardOpenOption;
 import java.time.Clock;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -53,30 +51,40 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 	private final UUID workspaceId;
 	private final Path root;
 	private final WorkspaceApplicationService service;
+	private final WorkspaceTaskGateway tasks;
 	private final JGitLocalHistoryService history;
 	private final WorkspaceFileLease lease;
 
 	private GradleProjectWorkspaceSession(UUID workspaceId, Path root, WorkspaceApplicationService service,
-			JGitLocalHistoryService history, WorkspaceFileLease lease) {
+			WorkspaceTaskGateway tasks, JGitLocalHistoryService history, WorkspaceFileLease lease) {
 		this.workspaceId = workspaceId;
 		this.root = root;
 		this.service = service;
+		this.tasks = tasks;
 		this.history = history;
 		this.lease = lease;
 	}
 
+	/** Creates the session's task gateway over its revision store and canonical project root. */
+	@FunctionalInterface public interface TaskFactory {
+		WorkspaceTaskGateway create(RevisionedWorkspaceStore store, Path root);
+	}
+
 	/**
 	 * Opens the project for this session. Only {@code .copperbench/} is written, and only one session can hold it.
+	 * The session owns the gateway {@code taskFactory} creates and closes it before its history and lease.
 	 *
 	 * @throws GradleProjectDetector.NotAProjectException when the folder is not a Gradle project to adopt
 	 * @throws WorkspaceWriteLockedException when another session already has the project open
 	 */
-	public static GradleProjectWorkspaceSession open(Path folder, Clock clock, Supplier<UUID> ids) throws IOException {
+	public static GradleProjectWorkspaceSession open(Path folder, TaskFactory taskFactory, Clock clock, Supplier<UUID> ids)
+			throws IOException {
 		Path root = WorkspaceFiles.requireDirectory(folder);
 		GradleProjectIdentity identity = GradleProjectDetector.inspect(root);
 		WorkspaceExecutionSnapshot.rejectLinks(root.resolve(METADATA_FILE));
 		WorkspaceFileLease lease = WorkspaceFileLease.tryAcquire(root).orElseThrow(() -> new WorkspaceWriteLockedException(root));
 		JGitLocalHistoryService history = null;
+		WorkspaceTaskGateway tasks = null;
 		try {
 			var documents = new UnknownFieldPreservingJsonStore();
 			var manager = new ProductMetadataManager(documents);
@@ -93,21 +101,39 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 			RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 			store.register(state(workspaceId, metadata.revision(), identity));
 			history = JGitLocalHistoryService.open(root, clock);
-			WorkspaceApplicationService service = new WorkspaceApplicationService(store, new NoTasks(),
+			tasks = taskFactory.create(store, root);
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
 					new HandWrittenFiles(manager, metadataFile, workspaceId, lease), history,
 					ignored -> state(workspaceId, manager.loadOrCreate(metadataFile, workspaceId, lease).revision(),
 							GradleProjectDetector.inspect(root)),
 					ignored -> root, clock, ids);
-			return new GradleProjectWorkspaceSession(workspaceId, root, service, history, lease);
-		} catch (LocalHistoryException | JsonParseException | IllegalStateException | IOException failure) {
+			return new GradleProjectWorkspaceSession(workspaceId, root, service, tasks, history, lease);
+		} catch (LocalHistoryException | RuntimeException | IOException failure) {
+			try {
+				close(tasks, history, lease);
+			} catch (IOException | RuntimeException cleanup) {
+				failure.addSuppressed(cleanup);
+			}
+			if (failure instanceof IOException unreadable) throw unreadable;
+			if (failure instanceof ProductMetadataManager.UnsupportedMetadataVersionException newer) throw newer;
+			throw new IOException("Could not open the Gradle project: " + failure.getMessage(), failure);
+		}
+	}
+
+	/** Tasks stop before the history and lease they work under are released. */
+	private static void close(WorkspaceTaskGateway tasks, JGitLocalHistoryService history, WorkspaceFileLease lease) throws IOException {
+		try {
+			if (tasks instanceof AutoCloseable closeable) closeable.close();
+		} catch (IOException | RuntimeException failure) {
+			throw failure;
+		} catch (Exception failure) {
+			throw new IOException("Could not stop the project's tasks", failure);
+		} finally {
 			try {
 				if (history != null) history.close();
 			} finally {
 				lease.close();
 			}
-			if (failure instanceof IOException unreadable) throw unreadable;
-			if (failure instanceof ProductMetadataManager.UnsupportedMetadataVersionException newer) throw newer;
-			throw new IOException("Could not open the Gradle project: " + failure.getMessage(), failure);
 		}
 	}
 
@@ -180,11 +206,7 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 	}
 
 	@Override public void close() throws IOException {
-		try {
-			history.close();
-		} finally {
-			lease.close();
-		}
+		close(tasks, history, lease);
 	}
 
 	/** Files have no generator owner; only the durable revision follows source, asset and history transactions. */
@@ -205,25 +227,6 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 
 		@Override public void persistRestoredRevision(WorkspaceState restored, long newRevision) throws Exception {
 			manager.synchronizeRevision(metadataFile, workspaceId, newRevision, lease);
-		}
-	}
-
-	/** Building and running adopted projects follows in the next stage; nothing is started meanwhile. */
-	private static final class NoTasks implements WorkspaceTaskGateway {
-		@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {
-			throw new IllegalArgumentException(GradleProjectOperations.TASKS_UNAVAILABLE);
-		}
-
-		@Override public Optional<JsonObject> find(UUID workspaceId, UUID taskId) {
-			return Optional.empty();
-		}
-
-		@Override public List<JsonObject> active(UUID workspaceId) {
-			return List.of();
-		}
-
-		@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
-			return Optional.empty();
 		}
 	}
 }

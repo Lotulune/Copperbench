@@ -30,8 +30,9 @@ import java.util.function.BooleanSupplier;
 /** Freezes real workspace inputs without copying caches, credentials or player worlds. */
 public final class WorkspaceExecutionSnapshot {
     private static final Set<String> EXCLUDED_ROOTS = Set.of(
-            ".git", ".gradle", ".copperbench", ".idea", ".vscode", "build", "out", "run", "runs",
+            ".git", ".gradle", ".kotlin", ".copperbench", ".idea", ".vscode", "build", "out", "run", "runs",
             "logs", "node_modules", ".env");
+    private static final Set<String> BUILD_LOGIC = Set.of("buildSrc", "build-logic");
     private static final Set<String> EXCLUDED_ANYWHERE = Set.of(".git", ".gradle", "node_modules");
     private static final Set<String> LEGACY_RUNTIME_ENTRIES = Set.of("localHistory", "workspaceBackups", "userSettings");
     private static final int MAX_FILES = 100_000;
@@ -214,6 +215,8 @@ public final class WorkspaceExecutionSnapshot {
         if (relative.getNameCount() == 0) return false;
         String first = relative.getName(0).toString();
         if (EXCLUDED_ROOTS.contains(first) || first.startsWith(".env.")) return true;
+        // Gradle compiles these build-logic projects during every build; their output is not an authored input.
+        if (BUILD_LOGIC.contains(first) && relative.getNameCount() > 1 && relative.getName(1).toString().equals("build")) return true;
         if (first.equals(".mcreator") && relative.getNameCount() > 1
                 && LEGACY_RUNTIME_ENTRIES.contains(relative.getName(1).toString())) return true;
         for (Path component : relative) if (EXCLUDED_ANYWHERE.contains(component.toString())) return true;

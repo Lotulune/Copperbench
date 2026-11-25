@@ -1563,7 +1563,7 @@ public final class WorkspaceApplicationService {
 	public JsonObject versionCopyUpgrade(UUID workspaceId, UUID requestId, JsonObject request, RequestContext context) {
 		if (store.read(workspaceId).filter(state -> GradleProjectOperations.KIND.equals(state.kind())).isPresent())
 			return VersionCopyUpgradeAccess.unavailable(workspaceId, requestId, GradleProjectOperations.UNAVAILABLE,
-					gradleProjectText(GradleProjectOperations.UNAVAILABLE).fallback());
+					gradleProjectText(store.read(workspaceId).orElseThrow(), GradleProjectOperations.UNAVAILABLE).fallback());
 		if (request.has("supportedVersions") && request.get("supportedVersions").isJsonArray()
 				&& request.getAsJsonArray("supportedVersions").asList().stream().anyMatch(v -> v.isJsonPrimitive()
 				&& v.getAsJsonPrimitive().isString() && "2".equals(v.getAsString())))
@@ -5754,9 +5754,17 @@ public final class WorkspaceApplicationService {
 		if (GradleProjectOperations.KIND.equals(state.kind())) {
 			for (String id : List.of("mod_elements.create", "workspace.build", "workspace.migrate_loader", "workspace.import_upstream", "assets.publish_batch")) {
 				JsonObject item = capability(id, "unavailable");
-				String code = id.equals("workspace.build") ? GradleProjectOperations.TASKS_UNAVAILABLE : GradleProjectOperations.UNAVAILABLE;
-				item.addProperty("reasonCode", code);
-				item.add("message", UiCore.wireGson().toJsonTree(gradleProjectText(code)));
+				String code = switch (id) {
+					case "workspace.build" -> GradleProjectOperations.supported(state) ? null : GradleProjectOperations.UNSUPPORTED;
+					case "assets.publish_batch" -> GradleProjectOperations.TASKS_UNAVAILABLE;
+					default -> GradleProjectOperations.UNAVAILABLE;
+				};
+				if (code == null) {
+					item = capability(id, context.permission() == PermissionProfile.READ_ONLY ? "unavailable" : "available");
+				} else {
+					item.addProperty("reasonCode", code);
+					item.add("message", UiCore.wireGson().toJsonTree(gradleProjectText(state, code)));
+				}
 				capabilities.add(item);
 			}
 			return capabilities;
@@ -5776,14 +5784,21 @@ public final class WorkspaceApplicationService {
 
 	/** Why an adopted Gradle project refuses the operation (ADR-0020), or {@code null} when it is available. */
 	private Diagnostic gradleProjectRefusal(WorkspaceState state, Operation operation) {
-		String code = GradleProjectOperations.refusal(state.kind(), operation);
-		return code == null ? null : new Diagnostic(code, UiCore.Severity.ERROR, gradleProjectText(code), null, null, true, List.of());
+		String code = GradleProjectOperations.refusal(state, operation);
+		return code == null ? null : new Diagnostic(code, UiCore.Severity.ERROR, gradleProjectText(state, code), null, null, true, List.of());
 	}
 
-	private static LocalizedText gradleProjectText(String code) {
+	private static LocalizedText gradleProjectText(WorkspaceState state, String code) {
+		if (code.equals(GradleProjectOperations.UNSUPPORTED)) {
+			JsonObject args = new JsonObject();
+			args.addProperty("reasons", String.join(" ", GradleProjectOperations.problems(state).stream()
+					.map(problem -> problem.message()).toList()));
+			return LocalizedText.of("diagnostic.gradle_project_unsupported",
+					"Copperbench cannot build or test this project: {reasons}", args);
+		}
 		return code.equals(GradleProjectOperations.TASKS_UNAVAILABLE)
 				? LocalizedText.of("diagnostic.gradle_project_tasks_unavailable",
-						"Building and running adopted Gradle projects is not available yet.")
+						"This task is not available for adopted Gradle projects.")
 				: LocalizedText.of("diagnostic.gradle_project_operation_unavailable",
 						"An adopted Gradle project has no structured elements, registries or generator. Edit its source files instead.");
 	}

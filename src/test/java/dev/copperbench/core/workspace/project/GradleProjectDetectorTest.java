@@ -156,6 +156,7 @@ class GradleProjectDetectorTest {
 		write("src/main/resources/fabric.mod.json", "{\"id\":\"${mod_id}\"}");
 		GradleProjectIdentity identity = GradleProjectDetector.inspect(root);
 		assertEquals(List.of(GradleProjectDetector.WRAPPER_MISSING, GradleProjectDetector.MOD_ID_UNKNOWN), codes(identity));
+		assertTrue(identity.problems().getFirst().message().contains("gradle-wrapper.jar"));
 		assertNull(identity.modId());
 		assertFalse(identity.supported());
 	}

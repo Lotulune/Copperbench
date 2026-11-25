@@ -23,6 +23,7 @@ import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
 import dev.copperbench.core.workspace.project.GradleProjectDetector;
 import dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession;
 import dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway;
+import dev.copperbench.generator.project.GradleProjectTaskGateway;
 import net.mcreator.workspace.Workspace;
 
 import java.io.File;
@@ -133,11 +134,7 @@ public final class HeadlessProductLauncher {
 				output.flush();
 				return 0;
 			}
-			boolean stream = false;
-			for (int index = 0; index < invocation.commandArguments().length; index++)
-				if (invocation.commandArguments()[index].equals("--stream") && index + 1 < invocation.commandArguments().length)
-					stream = Boolean.parseBoolean(invocation.commandArguments()[index + 1]);
-			if (stream) { output.println("{\"messageType\":\"task_update\",\"schemaVersion\":\"1.0\",\"status\":\"initializing\"}"); output.flush(); }
+			boolean stream = announceStream(invocation, output);
 			HeadlessRuntimeBootstrap.ensureInitialized();
 			File workspaceFile = invocation.workspace().toFile();
 			boolean serve = "serve".equals(invocation.commandArguments()[0]);
@@ -166,15 +163,7 @@ public final class HeadlessProductLauncher {
 					return HeadlessPythonHost.serve(invocation.workspace(), workspaceId, adapter,
 							() -> !gateway.get().active(workspaceId).isEmpty(), idleTimeout, output);
 				}
-				HeadlessCli cli = new HeadlessCli(adapter, session.workspaceId(), ids);
-				StringWriter buffered = new StringWriter();
-				int exitCode = cli.run(invocation.commandArguments(), new PrintWriter(buffered, true));
-				JsonObject response = JsonParser.parseString(buffered.toString().trim()).getAsJsonObject();
-				if (exitCode == HeadlessExitCode.SUCCESS.code() && isAcceptedTask(response))
-					exitCode = awaitTask(adapter::query, session.workspaceId(), ids, response, output, stream, Instant::now);
-				output.println(GSON.toJson(response));
-				output.flush();
-				return exitCode;
+				return runCommand(adapter, session.workspaceId(), ids, invocation.commandArguments(), output, stream);
 			}
 		} catch (IllegalArgumentException exception) {
 			return fail(output, HeadlessExitCode.INVALID_ARGUMENTS, "HEADLESS_INVALID_ARGUMENTS",
@@ -195,19 +184,41 @@ public final class HeadlessProductLauncher {
 	 * One command against a Gradle project Copperbench did not create (ADR-0020). It needs no MCreator workspace or
 	 * generator runtime; long-lived hosts and the closed-workspace doctor still work on {@code .mcreator} files only.
 	 */
-	private static int runGradleProject(Invocation invocation, PrintWriter output) throws java.io.IOException {
+	private static int runGradleProject(Invocation invocation, PrintWriter output) throws java.io.IOException, InterruptedException {
 		String command = invocation.commandArguments()[0];
 		if (List.of("doctor", "api", "serve").contains(command))
 			throw new IllegalArgumentException("'" + command + "' is not available for Gradle project folders; it needs a .mcreator workspace");
+		boolean stream = announceStream(invocation, output);
+		Path distribution = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
 		try (GradleProjectWorkspaceSession session = GradleProjectWorkspaceSession.open(invocation.workspace(),
+				(store, root) -> new GradleProjectTaskGateway(store, ignored -> root, distribution, Clock.systemUTC(), UUID::randomUUID,
+						profile -> GradleProjectTaskGateway.productProcesses(distribution, profile, HeadlessRuntimeBootstrap::prepareGradleHome)),
 				Clock.systemUTC(), UUID::randomUUID)) {
-			StringWriter buffered = new StringWriter();
-			int exitCode = new HeadlessCli(session.headlessEntry(PermissionProfile.WORKSPACE), session.workspaceId(), UUID::randomUUID)
-					.run(invocation.commandArguments(), new PrintWriter(buffered, true));
-			output.println(GSON.toJson(JsonParser.parseString(buffered.toString().trim())));
-			output.flush();
-			return exitCode;
+			return runCommand(session.headlessEntry(PermissionProfile.WORKSPACE), session.workspaceId(), UUID::randomUUID,
+					invocation.commandArguments(), output, stream);
 		}
+	}
+
+	/** Reports that a streaming command started before the workspace is ready to answer. */
+	private static boolean announceStream(Invocation invocation, PrintWriter output) {
+		boolean stream = false;
+		for (int index = 0; index < invocation.commandArguments().length; index++)
+			if (invocation.commandArguments()[index].equals("--stream") && index + 1 < invocation.commandArguments().length)
+				stream = Boolean.parseBoolean(invocation.commandArguments()[index + 1]);
+		if (stream) { output.println("{\"messageType\":\"task_update\",\"schemaVersion\":\"1.0\",\"status\":\"initializing\"}"); output.flush(); }
+		return stream;
+	}
+
+	private static int runCommand(HeadlessWorkspaceEntryAdapter adapter, UUID workspaceId, Supplier<UUID> ids,
+			String[] commandArguments, PrintWriter output, boolean stream) throws InterruptedException {
+		StringWriter buffered = new StringWriter();
+		int exitCode = new HeadlessCli(adapter, workspaceId, ids).run(commandArguments, new PrintWriter(buffered, true));
+		JsonObject response = JsonParser.parseString(buffered.toString().trim()).getAsJsonObject();
+		if (exitCode == HeadlessExitCode.SUCCESS.code() && isAcceptedTask(response))
+			exitCode = awaitTask(adapter::query, workspaceId, ids, response, output, stream, Instant::now);
+		output.println(GSON.toJson(response));
+		output.flush();
+		return exitCode;
 	}
 
 	static Invocation parse(String[] arguments) {

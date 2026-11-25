@@ -7,8 +7,14 @@ import dev.copperbench.generator.neoforge.NeoForge1211Generator;
 import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.tracks.VersionTrackCatalog;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /** Read-only execution configuration shared by task gateways and pre-session doctor. */
 public final class WorkspaceExecutionEnvironment {
@@ -64,6 +70,43 @@ public final class WorkspaceExecutionEnvironment {
         value.addProperty("loaderDependency", profile.loaderDependency());
         value.add("testing", GameTestSupport.describe(root, new NeoForge1211Generator(distribution, profile).gameTestEnvironment()));
         return value;
+    }
+
+    /**
+     * Describes an adopted Gradle project's execution (ADR-0020): its own wrapper and dependencies build it, and only
+     * the isolated acceptance host uses the track's pinned coordinates.
+     */
+    public static JsonObject adoptedProject(Path root, Path distribution, String generator) {
+        JsonObject value = describe(root, distribution, generator);
+        if (!value.has("testing")) return value;
+        JsonObject host = new JsonObject();
+        for (String key : List.of("loaderVersion", "fabricApiVersion", "loomVersion", "loaderDependency"))
+            if (value.has(key)) host.add(key, value.remove(key));
+        value.addProperty("dependencySource", "project");
+        JsonObject gradle = value.getAsJsonObject("gradle");
+        host.add("gradleDistribution", gradle.remove("distribution"));
+        String declared = wrapperDistribution(root);
+        if (declared != null) gradle.addProperty("distribution", declared);
+        JsonObject tasks = gradle.getAsJsonObject("tasks");
+        tasks.remove("runDatagen");
+        tasks.remove("runGameTest");
+        value.getAsJsonObject("testing").add("host", host);
+        return value;
+    }
+
+    /** The archive name of the project's declared Gradle distribution; the host and any credentials stay out. */
+    private static String wrapperDistribution(Path root) {
+        Path file = root.resolve("gradle/wrapper/gradle-wrapper.properties");
+        try {
+            if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) || Files.size(file) > 65536) return null;
+            Properties properties = new Properties();
+            try (var reader = Files.newBufferedReader(file)) { properties.load(reader); }
+            String path = URI.create(properties.getProperty("distributionUrl", "")).getPath();
+            String name = path == null ? "" : path.substring(path.lastIndexOf('/') + 1);
+            return name.isBlank() ? null : name;
+        } catch (IOException | IllegalArgumentException unreadable) {
+            return null;
+        }
     }
 
     private static JsonObject common(Path root, Path distribution, String generator, String minecraft,
