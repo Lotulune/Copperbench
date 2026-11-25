@@ -248,6 +248,24 @@ class MCreatorGenerationPreparationTest {
         assertTrue(saved.has("ITEMS:mod:probe_items"), saved.toString());
     }
 
+    @Test void closingAndReopeningAnUnchangedWorkspaceKeepsItsGameTestInputs() throws Exception {
+        UUID id = UUID.randomUUID();
+        var observed = new java.util.ArrayList<String>();
+        // The first Core session appends the product namespace to a workspace MCreator just saved.
+        Workspace workspace = cold();
+        for (int open = 0; open < 3; open++) {
+            if (open > 0) workspace = Workspace.readFromFS(root.resolve("cold_fields.mcreator").toFile(), null);
+            try (Workspace opened = workspace; var session = MCreatorWorkspaceSession.attach(opened, id,
+                    new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+                assertNotNull(session.workspaceId());
+                observed.add(dev.copperbench.generator.WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+            }
+            observed.add(dev.copperbench.generator.WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+        }
+        assertEquals(1, new java.util.HashSet<>(observed).size(),
+                "A verified export must stay current across close and reopen: " + observed);
+    }
+
     @Test void tagRenameAndDeleteRetireOnlyTheirGeneratedFilesAndSurviveReopen() throws Exception {
         UUID id = UUID.randomUUID();
         Path folder = root.resolve("src/main/resources/data/cold_fields/tags/item");
