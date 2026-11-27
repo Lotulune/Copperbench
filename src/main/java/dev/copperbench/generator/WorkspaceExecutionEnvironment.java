@@ -87,6 +87,10 @@ public final class WorkspaceExecutionEnvironment {
         host.add("gradleDistribution", gradle.remove("distribution"));
         String declared = wrapperDistribution(root);
         if (declared != null) gradle.addProperty("distribution", declared);
+        if (dev.copperbench.core.workspace.project.GradleProjectSettings.read(root).environmentGradleHome()) {
+            gradle.addProperty("userHome", dev.copperbench.core.workspace.project.GradleProjectSettings.environmentGradleUserHome().toString());
+            gradle.addProperty("userHomeSource", "project_environment");
+        }
         JsonObject tasks = gradle.getAsJsonObject("tasks");
         tasks.remove("runDatagen");
         tasks.remove("runGameTest");

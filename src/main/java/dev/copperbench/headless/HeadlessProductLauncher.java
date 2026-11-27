@@ -201,7 +201,8 @@ public final class HeadlessProductLauncher {
 		try (GradleProjectWorkspaceSession session = GradleProjectWorkspaceSession.open(invocation.workspace(),
 				(store, root) -> {
 					var created = new GradleProjectTaskGateway(store, ignored -> root, distribution, Clock.systemUTC(), UUID::randomUUID,
-							profile -> GradleProjectTaskGateway.productProcesses(distribution, profile, HeadlessRuntimeBootstrap::prepareGradleHome));
+							profile -> GradleProjectTaskGateway.productProcesses(distribution, profile, HeadlessRuntimeBootstrap::prepareGradleHome,
+									() -> dev.copperbench.core.workspace.project.GradleProjectSettings.read(root).environmentGradleHome()));
 					gateway.set(created);
 					return created;
 				}, Clock.systemUTC(), UUID::randomUUID)) {

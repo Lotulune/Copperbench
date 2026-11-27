@@ -1,10 +1,25 @@
 import { Box, Bot, Database, FileCode2, FolderOpen, GitBranch, HelpCircle, LayoutDashboard, Network, Plug, Plus, Settings, Terminal, Waypoints } from 'lucide-react';
 import type { NavView } from '../context/WorkbenchContext';
+import type { WorkspaceSummary } from '../types/contract';
 import { uiText } from '../i18n';
 
 export const OPEN_WORKBENCH_SEARCH_EVENT = 'copperbench:open-workbench-search';
 
-export function workbenchNavigation() {
+/**
+ * Views that need the MCreator workspace model: an adopted Gradle project (ADR-0020) has no structured elements,
+ * relationships, workspace variables, version migration or MCreator plugins.
+ */
+export const GRADLE_PROJECT_HIDDEN_VIEWS: ReadonlySet<NavView> = new Set<NavView>(['elements', 'relations', 'data', 'tracks', 'plugins']);
+
+export function viewAvailable(view: NavView, kind: WorkspaceSummary['kind'] | undefined): boolean {
+  return kind !== 'gradle_project' || !GRADLE_PROJECT_HIDDEN_VIEWS.has(view);
+}
+
+export function workbenchNavigation(kind?: WorkspaceSummary['kind']) {
+  return allNavigation().filter(item => viewAvailable(item.id, kind));
+}
+
+function allNavigation() {
   return [
     { id: 'hub', label: uiText('总览', 'Overview'), icon: LayoutDashboard, group: 'project' },
     { id: 'elements', label: uiText('模组元素', 'Mod elements'), icon: Box, group: 'project' },

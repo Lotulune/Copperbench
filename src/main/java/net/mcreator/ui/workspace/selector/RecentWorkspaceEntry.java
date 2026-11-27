@@ -41,6 +41,25 @@ public final class RecentWorkspaceEntry {
 		this.mcrVersion = mcrVersion;
 	}
 
+	/** A Gradle project folder Copperbench did not create (ADR-0020); its path is the folder itself. */
+	public RecentWorkspaceEntry(@Nonnull String name, File folder, GeneratorFlavor type) {
+		this.name = name;
+		this.path = folder.toString();
+		this.type = type;
+		this.mcrVersion = null;
+	}
+
+	/** Whether this entry is a project folder rather than a {@code .mcreator} file. */
+	public boolean isFolder() {
+		return getPath().isDirectory();
+	}
+
+	/** The folder that holds the project: the entry itself for a project folder. */
+	@Nonnull public File getFolder() {
+		File entry = getPath();
+		return entry.isDirectory() ? entry : entry.getAbsoluteFile().getParentFile();
+	}
+
 	public void update(RecentWorkspaceEntry source) {
 		this.name = source.getName();
 		this.type = source.getType();

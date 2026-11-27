@@ -17,6 +17,16 @@
 
 工作区文件扩展名仍是 `.mcreator`，以便兼容上游插件。Windows 偏好设置默认位于 `%USERPROFILE%\.copperbench`；Linux 使用 XDG 配置目录，默认为 `~/.config/copperbench`。旧设置迁移和显式目录覆盖见 [Linux 安装说明](./linux-installation.md)。工作区内的 `.copperbench` 是项目元数据。
 
+### 打开已有的 Gradle 工程
+
+当前源码的启动页提供「打开文件夹」，也可以把文件夹拖进启动页。文件夹里只有一个 `.mcreator` 时按工作区打开；否则 Copperbench 按单模块的 Fabric 或 NeoForge Gradle 工程识别，并在单独的窗口中打开。识别结果、不能构建的原因和支持范围见[ADR-0020](../adr/0020-adopt-existing-gradle-projects.md)。
+
+- Copperbench 不生成也不改写这类工程的文件，构建使用工程自己的 Gradle Wrapper；自己的数据只写在工程的 `.copperbench/` 中。
+- 可以浏览和编辑源码、管理资产、使用本地历史、构建、运行、GameTest 验收和导出，并通过 AI 与 MCP、Python 工作台让 Agent 工作。模组元素、Procedure、变量与数据、版本迁移和插件中心不可用，工作台固定为专业模式。
+- 工程在 Git 仓库中时，总览页会询问是否把 `.copperbench/` 加入工程的 `.gitignore`。不回答或选择「不改动」都不会修改工程文件；选择加入时会先建恢复点。
+- 构建默认使用产品的 Gradle 用户目录，以复用缓存和镜像设置；总览页可以改为工程环境默认的目录（`GRADLE_USER_HOME`，否则用户目录下的 `.gradle`），从下一个任务起生效。
+- 最近列表会记住打开过的工程文件夹；从列表移除不会删除文件夹。
+
 ## 版本轨道
 
 | 轨道 | 状态 |

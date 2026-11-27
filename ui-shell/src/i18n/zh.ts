@@ -330,6 +330,7 @@ export const zh: Record<string, string> = {
   /* ---- 场景标题 (scenario.*)，测试托盘用 ---- */
   'scenario.ready': '就绪工作区',
   'scenario.empty_workspace': '空白工作区',
+  'scenario.gradle_project': '接管的 Gradle 工程',
   'scenario.loading_workbench': '加载中',
   'scenario.validation_failed': '字段校验失败',
   'scenario.compile_diagnostic': '编译诊断定位',

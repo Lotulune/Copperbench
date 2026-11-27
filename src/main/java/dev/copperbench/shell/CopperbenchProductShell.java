@@ -22,7 +22,10 @@ import dev.copperbench.bridge.JcefMcpBridgeTransport;
 import dev.copperbench.bridge.JcefWindowBridgeTransport;
 import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
 import dev.copperbench.bridge.JcefFirstCreationBridgeTransport;
+import dev.copperbench.bridge.JcefGradleProjectBridgeTransport;
+import dev.copperbench.core.application.WorkspaceSession;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
+import dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.diagnostics.DiagnosticBundleService;
 import dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway;
@@ -50,7 +53,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 	public static final String UI_URL = "http://mcreator/copperbench/ui/index.html";
 
-	private final MCreatorWorkspaceSession session;
+	private final WorkspaceSession session;
 	private final DesktopMcpRuntime mcpRuntime;
 	private final dev.copperbench.headless.DesktopPythonRuntime pythonRuntime;
 	private final dev.copperbench.headless.PythonConsoleService pythonConsole;
@@ -60,50 +63,64 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 	private final AtomicInteger unsavedSourceCount = new AtomicInteger();
 
-	private CopperbenchProductShell(JFrame owner, Workspace workspace, Path distributionRoot, Runnable closeAction,
-			Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
-			WindowsWindowChromeController windowChromeController)
+	private static MCreatorWorkspaceSession attach(Workspace workspace, Path distributionRoot) throws IOException {
+		Clock clock = Clock.systemUTC();
+		return MCreatorWorkspaceSession.attach(workspace,
+				store -> new LoaderRoutingWorkspaceTaskGateway(store,
+				ignored -> workspace.getWorkspaceFolder().toPath(), distributionRoot, clock, UUID::randomUUID),
+				clock, UUID::randomUUID);
+	}
+
+	/**
+	 * Hosts {@code createdSession}, which this shell owns from here on and closes on failure. {@code workspaceFile} is
+	 * {@code null} for an adopted Gradle project (ADR-0020), which is opened by its folder and has neither the legacy
+	 * plugin window nor the first-creation guide.
+	 */
+	private CopperbenchProductShell(JFrame owner, WorkspaceSession createdSession, Path workspaceRoot, Path workspaceFile,
+			Path distributionRoot, Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
+			WindowsWindowChromeController windowChromeController, GradleProjectWorkspaceSession gradleProject)
 			throws IOException {
 		setLayout(new BorderLayout());
 		setMinimumSize(new Dimension(500, 600));
 
 		Clock clock = Clock.systemUTC();
-		MCreatorWorkspaceSession createdSession = MCreatorWorkspaceSession.attach(workspace,
-				store -> new LoaderRoutingWorkspaceTaskGateway(store,
-				ignored -> workspace.getWorkspaceFolder().toPath(), distributionRoot, clock, UUID::randomUUID),
-				clock, UUID::randomUUID);
-		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
-		DesktopMcpRuntime createdMcpRuntime = DesktopMcpRuntime.start(workspaceRoot, createdSession.workspaceId(),
-				createdSession.mcpEntry(UiCore.PermissionProfile.WORKSPACE), clock);
+		Path target = workspaceFile != null ? workspaceFile : workspaceRoot;
+		DesktopMcpRuntime createdMcpRuntime;
+		try {
+			createdMcpRuntime = DesktopMcpRuntime.start(workspaceRoot, createdSession.workspaceId(),
+					createdSession.mcpEntry(UiCore.PermissionProfile.WORKSPACE), clock);
+		} catch (RuntimeException exception) {
+			closeQuietly(createdSession, exception);
+			throw exception;
+		}
 		dev.copperbench.headless.DesktopPythonRuntime createdPythonRuntime = null;
 		try {
 			createdPythonRuntime = dev.copperbench.headless.DesktopPythonRuntime.start(
-					workspace.getFileManager().getWorkspaceFile().toPath(), createdSession.workspaceId(),
+					target, createdSession.workspaceId(),
 					createdSession.headlessEntry(UiCore.PermissionProfile.WORKSPACE));
 		} catch (IOException | RuntimeException exception) {
 			org.apache.logging.log4j.LogManager.getLogger(CopperbenchProductShell.class)
 					.warn("Could not start local Python access", exception);
 		}
 		var createdPythonConsole = createdPythonRuntime == null ? null : new dev.copperbench.headless.PythonConsoleService(
-				workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot.resolve("sdk/python"),
+				target, distributionRoot.resolve("sdk/python"),
 				createdPythonRuntime.context());
 		RecoverableBrowserHost createdBrowserHost;
 		AgentChatService createdAgentChat = null;
 		try {
-			createdAgentChat = new AgentChatService(workspaceRoot,
-					workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot.resolve("sdk/python"));
+			createdAgentChat = new AgentChatService(workspaceRoot, workspaceFile, distributionRoot.resolve("sdk/python"));
 			createdAgentChat.setVerification(new dev.copperbench.agent.AgentVerification(createdSession.uiEntry(), createdSession.workspaceId()));
 			AgentChatService workspaceAgentChat = createdAgentChat;
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
 							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime, createdPythonConsole,
-							workspaceAgentChat, unsavedSourceCount::set, workspace.getFileManager().getWorkspaceFile().toPath()), closeAction);
+							workspaceAgentChat, unsavedSourceCount::set, workspaceFile, gradleProject), closeAction);
 		} catch (RuntimeException exception) {
 			if (createdAgentChat != null) createdAgentChat.close();
 			if (createdPythonConsole != null) createdPythonConsole.close();
 			if (createdPythonRuntime != null) createdPythonRuntime.close();
 			createdMcpRuntime.close();
-			createdSession.close();
+			closeQuietly(createdSession, exception);
 			throw exception;
 		}
 		this.session = createdSession;
@@ -122,8 +139,27 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			WindowsWindowChromeController windowChromeController)
 			throws IOException {
 		Path distributionRoot = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
-		return new CopperbenchProductShell(owner, workspace, distributionRoot, closeAction, openLegacyPluginWindow,
-				openWorkspaceAction, windowChromeController);
+		return new CopperbenchProductShell(owner, attach(workspace, distributionRoot),
+				workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize(),
+				workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot, closeAction, openLegacyPluginWindow,
+				openWorkspaceAction, windowChromeController, null);
+	}
+
+	/** Hosts an adopted Gradle project's session (ADR-0020); the shell owns and closes it. */
+	public static CopperbenchProductShell openGradleProject(JFrame owner, GradleProjectWorkspaceSession session,
+			Runnable closeAction, Consumer<File> openWorkspaceAction, WindowsWindowChromeController windowChromeController)
+			throws IOException {
+		Path distributionRoot = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+		return new CopperbenchProductShell(owner, session, session.root(), null, distributionRoot, closeAction, null,
+				openWorkspaceAction, windowChromeController, session);
+	}
+
+	private static void closeQuietly(WorkspaceSession session, Exception failure) {
+		try {
+			session.close();
+		} catch (IOException | RuntimeException cleanup) {
+			failure.addSuppressed(cleanup);
+		}
 	}
 
 	public void forceLoad() {
@@ -206,6 +242,10 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		}
 		try {
 			session.close();
+		} catch (IOException exception) {
+			RuntimeException wrapped = new java.io.UncheckedIOException(exception);
+			if (failure == null) failure = wrapped;
+			else failure.addSuppressed(wrapped);
 		} catch (RuntimeException exception) {
 			if (failure == null) failure = exception;
 			else failure.addSuppressed(exception);
@@ -228,11 +268,11 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		return true;
 	}
 
-	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
+	private static RecoverableBrowserHost.BrowserHandle createBrowser(WorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
 			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime,
 			dev.copperbench.headless.PythonConsoleService pythonConsole, AgentChatService agentChat,
-			Consumer<Integer> unsavedSourceConsumer, Path workspaceFile) {
+			Consumer<Integer> unsavedSourceConsumer, Path workspaceFile, GradleProjectWorkspaceSession gradleProject) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
@@ -245,18 +285,20 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefMcpBridgeTransport mcpTransport = null;
 		dev.copperbench.bridge.JcefPythonBridgeTransport pythonTransport = null;
 		JcefAgentBridgeTransport agentTransport = null;
+		JcefGradleProjectBridgeTransport gradleProjectTransport = null;
 		try {
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
 					? JcefWindowBridgeTransport.attach(webView, owner, closeAction, windowChromeController::accept,
 							windowChromeController::isUsingCustomFrame, windowChromeController::pointerGesture, unsavedSourceConsumer)
 					: JcefWindowBridgeTransport.attach(webView, owner, closeAction, null, () -> false, null, unsavedSourceConsumer);
-			legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
+			if (openLegacyPluginWindow != null) legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
 			workspaceOpenTransport = JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction, workspaceRoot, session.workspaceId());
-			firstCreationTransport = JcefFirstCreationBridgeTransport.attach(webView, workspaceFile, session.workspaceId(), taskIds -> {
+			if (workspaceFile != null) firstCreationTransport = JcefFirstCreationBridgeTransport.attach(webView, workspaceFile, session.workspaceId(), taskIds -> {
 				try { return session.service().observeTaskInputs(session.workspaceId(), taskIds); }
 				catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
 			});
+			if (gradleProject != null) gradleProjectTransport = JcefGradleProjectBridgeTransport.attach(webView, gradleProject);
 			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView,
 					new DiagnosticBundleService(UserFolderManager.getFileFromUserFolder("diagnostics").toPath(),
 							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
@@ -278,6 +320,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefMcpBridgeTransport attachedMcp = mcpTransport;
 			var attachedPython = pythonTransport;
 			JcefAgentBridgeTransport attachedAgent = agentTransport;
+			JcefGradleProjectBridgeTransport attachedGradleProject = gradleProjectTransport;
 			return new RecoverableBrowserHost.BrowserHandle() {
 				@Override public Component component() {
 					return webView;
@@ -313,7 +356,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 				@Override public void close() {
 					attachedAgent.close();
-					attachedFirstCreation.close();
+					if (attachedGradleProject != null) attachedGradleProject.close();
+					if (attachedFirstCreation != null) attachedFirstCreation.close();
 					if (attachedPython != null) attachedPython.close();
 					attachedAssetImport.close();
 					attachedBlockbench.close();
@@ -321,7 +365,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 					attachedDiagnostics.close();
 					if (attachedWorkspaceOpen != null)
 						attachedWorkspaceOpen.close();
-					attachedLegacyPlugin.close();
+					if (attachedLegacyPlugin != null) attachedLegacyPlugin.close();
 					attachedWindow.close();
 					attachedCore.close();
 					webView.close();
@@ -329,6 +373,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			};
 		} catch (RuntimeException exception) {
 			if (agentTransport != null) agentTransport.close();
+			if (gradleProjectTransport != null) gradleProjectTransport.close();
 			if (firstCreationTransport != null) firstCreationTransport.close();
 			if (pythonTransport != null) pythonTransport.close();
 			if (assetImportTransport != null)
@@ -359,7 +404,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				: Path.of(configured).toAbsolutePath().normalize().resolve("logs");
 	}
 
-	private static com.google.gson.JsonObject diagnosticSnapshot(MCreatorWorkspaceSession session) {
+	private static com.google.gson.JsonObject diagnosticSnapshot(WorkspaceSession session) {
 		var result = session.uiEntry().query(UiCore.Query.of(UUID.randomUUID(), session.workspaceId(),
 				UiCore.Operation.GET_WORKBENCH, new com.google.gson.JsonObject()));
 		com.google.gson.JsonObject snapshot = new com.google.gson.JsonObject();

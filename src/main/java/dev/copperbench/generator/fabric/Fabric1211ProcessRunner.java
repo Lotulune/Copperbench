@@ -38,15 +38,24 @@ import java.util.function.Supplier;
 	}
 
 	static Fabric1211ProcessRunner system(String readinessMarker) {
-		return new SystemProcessRunner(readinessMarker, null);
+		return new SystemProcessRunner(readinessMarker, null, () -> true);
 	}
 
 	static Fabric1211ProcessRunner system(String readinessMarker, Path javaHome) {
-		return new SystemProcessRunner(readinessMarker, () -> javaHome);
+		return new SystemProcessRunner(readinessMarker, () -> javaHome, () -> true);
 	}
 
 	static Fabric1211ProcessRunner system(String readinessMarker, Supplier<Path> javaHome) {
-		return new SystemProcessRunner(readinessMarker, javaHome);
+		return new SystemProcessRunner(readinessMarker, javaHome, () -> true);
+	}
+
+	/**
+	 * Like {@link #system(String, Supplier)}; while {@code productGradleHome} is false the process keeps the
+	 * environment's own Gradle user home instead of the product's, and with it the product's mirror settings.
+	 */
+	static Fabric1211ProcessRunner system(String readinessMarker, Supplier<Path> javaHome,
+			java.util.function.BooleanSupplier productGradleHome) {
+		return new SystemProcessRunner(readinessMarker, javaHome, productGradleHome);
 	}
 
 	record ProcessResult(int exitCode, boolean readinessMarkerSeen, String runtimeFailureCode) {
@@ -59,10 +68,13 @@ import java.util.function.Supplier;
 		private static final Duration SERVER_STABILITY_WINDOW = Duration.ofSeconds(2);
 		private final String readinessMarker;
 		private final Supplier<Path> javaHome;
+		private final java.util.function.BooleanSupplier productGradleHome;
 
-		private SystemProcessRunner(String readinessMarker, Supplier<Path> javaHome) {
+		private SystemProcessRunner(String readinessMarker, Supplier<Path> javaHome,
+				java.util.function.BooleanSupplier productGradleHome) {
 			this.readinessMarker = readinessMarker;
 			this.javaHome = javaHome;
+			this.productGradleHome = productGradleHome;
 		}
 
 		@Override public ProcessResult run(Path workspaceRoot, List<String> arguments, Duration timeout,
@@ -91,7 +103,8 @@ import java.util.function.Supplier;
 			if (resolvedJavaHome != null) {
 				builder.environment().put("JAVA_HOME", resolvedJavaHome.toAbsolutePath().normalize().toString());
 			}
-			configureGradleHome(builder.environment(), net.mcreator.io.UserFolderManager.getGradleHome().toPath());
+			if (productGradleHome.getAsBoolean())
+				configureGradleHome(builder.environment(), net.mcreator.io.UserFolderManager.getGradleHome().toPath());
 			if (resolvedJavaHome != null)
 				dev.copperbench.gradle.GradleRuntimeCompatibility.configure(resolvedJavaHome, builder.environment(), output);
 			Process process;

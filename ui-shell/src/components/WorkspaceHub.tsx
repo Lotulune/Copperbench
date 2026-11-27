@@ -8,6 +8,7 @@ import type { WorkspaceSourceIndex } from '../types/contract';
 import { BlockbenchOnboarding } from './BlockbenchOnboarding';
 import './workspaceHub.css';
 import { ElementPlate } from './ElementPlate';
+import { GradleProjectPanel } from './GradleProjectPanel';
 
 export const WorkspaceHub = () => {
   const { state, workspaceHealth, setActiveView, setSelectedElementId, setIsCreateModalOpen,
@@ -36,6 +37,8 @@ export const WorkspaceHub = () => {
   }, [workspace?.id, workspace?.revision, sourceRefresh]);
   const sourceEntries = sourceIndex?.entries.slice(0, 6) ?? [];
   const assetCount = workspaceHealth?.assets.indexed ? workspaceHealth.assets.summary?.totalAssets : undefined;
+  // An adopted Gradle project (ADR-0020) has no structured elements, generator or version migration to show.
+  const gradleProject = workspace?.kind === 'gradle_project';
 
   if (state.viewportState === 'loading') return <div className="workspace-overview-loading" data-testid="workbench-loading" role="status">
     {uiText('正在加载工作区…', 'Loading workspace…')}
@@ -46,19 +49,20 @@ export const WorkspaceHub = () => {
       <header className="overview-heading">
         <div><h1>{workspace?.name || uiText('工作区', 'Workspace')}</h1>
           <div className="overview-project-line">
-            <button type="button" data-testid="hub-tracks-badge" onClick={() => setActiveView('tracks')}>
-              {workspace?.generator?.displayName || uiText('查看版本', 'View version')}
-            </button>
+            {gradleProject ? <span data-testid="hub-target">{workspace?.generator?.displayName}</span>
+              : <button type="button" data-testid="hub-tracks-badge" onClick={() => setActiveView('tracks')}>
+                {workspace?.generator?.displayName || uiText('查看版本', 'View version')}
+              </button>}
             {workspace?.lock.state !== 'write_available' && <span className="overview-locked"><LockKeyhole size={12} aria-hidden="true" />{uiText('已锁定', 'Locked')}</span>}
           </div>
         </div>
         <div className="overview-heading-actions">
           <button type="button" className="overview-action" data-testid="hub-build-btn" onClick={() => buildWorkspace()}><Hammer size={14} aria-hidden="true" />{uiText('构建', 'Build')}</button>
-          <button type="button" className="overview-action overview-action-primary" data-testid="empty-primary-action" onClick={() => setIsCreateModalOpen(true)}><Plus size={14} aria-hidden="true" />{uiText('新建元素', 'New element')}</button>
+          {!gradleProject && <button type="button" className="overview-action overview-action-primary" data-testid="empty-primary-action" onClick={() => setIsCreateModalOpen(true)}><Plus size={14} aria-hidden="true" />{uiText('新建元素', 'New element')}</button>}
         </div>
       </header>
       <div className="overview-counts" aria-label={uiText('工作区内容', 'Workspace contents')}>
-        <span>{uiText('模组元素', 'Mod elements')} <strong>{counts?.total ?? 0}</strong></span>
+        {!gradleProject && <span>{uiText('模组元素', 'Mod elements')} <strong>{counts?.total ?? 0}</strong></span>}
         {assetCount !== undefined && <button type="button" onClick={() => setActiveView('assets')}>{uiText('资产', 'Assets')} <strong>{assetCount}</strong></button>}
         {!!counts?.draft && <span>{uiText('草稿', 'Drafts')} <strong>{counts.draft}</strong></span>}
         {(workspaceHealth?.diagnostics.error ?? 0) > 0 && <button type="button" onClick={() => { setHealthOpen(true); document.getElementById('workspace-health-panel')?.scrollIntoView({ block: 'nearest' }); }}>
@@ -82,7 +86,9 @@ export const WorkspaceHub = () => {
         {activeTask.cancellable && <button type="button" className="overview-task-cancel" onClick={() => cancelTask(activeTask.id)} aria-label={uiText('取消任务', 'Cancel task')}><X size={14} aria-hidden="true" /></button>}
       </div>}
 
-      <section className="overview-section" aria-labelledby="overview-recent-title">
+      {gradleProject && workspace && <GradleProjectPanel workspace={workspace} />}
+
+      {!gradleProject && <section className="overview-section" aria-labelledby="overview-recent-title">
         <div className="overview-section-heading"><h2 id="overview-recent-title">{uiText('近期元素', 'Recent elements')}</h2>
           <button type="button" className="overview-link" onClick={() => setActiveView('elements')}>{uiText('全部元素', 'All elements')}<ArrowRight size={13} aria-hidden="true" /></button></div>
         {recentElements.length ? <div className="overview-recent-list">{recentElements.slice(0, 6).map(element => <button type="button" className="overview-recent-item" key={element.id} data-element-id={element.id}
@@ -93,7 +99,7 @@ export const WorkspaceHub = () => {
           <ArrowRight size={14} aria-hidden="true" />
         </button>)}</div> : <div className="overview-empty-line" data-testid="hub-elements-empty"><span>{uiText('暂无模组元素', 'No mod elements yet')}</span>
           <button type="button" className="overview-link" onClick={() => setIsCreateModalOpen(true)}>{uiText('创建一个', 'Create one')}<Plus size={13} aria-hidden="true" /></button></div>}
-      </section>
+      </section>}
 
       <section className="overview-section" aria-labelledby="overview-source-title" data-testid="hub-source-entries">
         <div className="overview-section-heading"><h2 id="overview-source-title">{uiText('源码入口', 'Source entry points')}</h2>
@@ -107,7 +113,7 @@ export const WorkspaceHub = () => {
         {sourceError && <details className="overview-error-detail"><summary>{uiText('错误详情', 'Error details')}</summary><p>{sourceError}</p></details>}
       </section>
 
-      {workspaceHealth && <section className="overview-health" data-testid="workspace-health-panel" id="workspace-health-panel" tabIndex={-1} role="region" aria-label={uiText('项目健康', 'Workspace health')}>
+      {workspaceHealth && !gradleProject && <section className="overview-health" data-testid="workspace-health-panel" id="workspace-health-panel" tabIndex={-1} role="region" aria-label={uiText('项目健康', 'Workspace health')}>
         <details open={healthOpen} onToggle={event => setHealthOpen(event.currentTarget.open)}>
           <summary className="overview-health-summary"><span>{uiText('项目健康', 'Workspace health')}</span>
             <span data-testid="workspace-health-diagnostics"><span className="overview-health-diagnostic-label">{uiText('诊断', 'Diagnostics')} </span>{uiText(`${workspaceHealth.diagnostics.total} 条 · ${workspaceHealth.diagnostics.error} 错误`, `${workspaceHealth.diagnostics.total} total · ${englishCount(workspaceHealth.diagnostics.error, 'error')}`)}</span><ChevronDown size={14} aria-hidden="true" /></summary>

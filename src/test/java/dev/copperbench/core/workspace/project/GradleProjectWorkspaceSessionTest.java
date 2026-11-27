@@ -24,6 +24,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -274,6 +275,43 @@ class GradleProjectWorkspaceSessionTest {
 		try (var session = open()) {
 			assertEquals("ember-kit", workspace(session).getAsJsonObject("gradleProject").get("modId").getAsString());
 		}
+	}
+
+	@Test void theGitIgnoreAnswerIsRecordedAndOnlyAddingChangesTheProject() throws Exception {
+		var before = projectFiles();
+		try (var session = open()) {
+			assertNull(session.settings().gitIgnore(), "nobody has answered yet");
+			session.decideGitIgnore(false);
+			assertEquals(GradleProjectSettings.DECLINED, session.settings().gitIgnore());
+		}
+		assertEquals(before, projectFiles(), "declining leaves the project's files alone");
+		try (var session = open()) {
+			assertEquals(GradleProjectSettings.DECLINED, session.settings().gitIgnore(), "the answer survives reopening");
+			session.decideGitIgnore(true);
+			assertEquals(GradleProjectSettings.ADDED, session.settings().gitIgnore());
+			assertEquals(".copperbench/\n", Files.readString(root.resolve(".gitignore")));
+			String history = query(session, Operation.GET_HISTORY, new JsonObject()).data().toString();
+			assertTrue(history.contains("Before adding .copperbench/ to .gitignore"), history);
+		}
+		var after = projectFiles();
+		after.remove(".gitignore");
+		assertEquals(before, after, "only .gitignore changed");
+	}
+
+	@Test void theGradleUserHomeChoiceIsKeptWithTheProjectIdentity() throws Exception {
+		UUID id;
+		try (var session = open()) {
+			id = session.workspaceId();
+			assertFalse(session.settings().environmentGradleHome(), "the product's Gradle user home is the default");
+			session.useEnvironmentGradleHome(true);
+			assertTrue(session.settings().environmentGradleHome());
+		}
+		try (var session = open()) {
+			assertEquals(id, session.workspaceId(), "a setting does not replace the project's identity");
+			assertTrue(session.settings().environmentGradleHome());
+			session.useEnvironmentGradleHome(false);
+		}
+		assertFalse(GradleProjectSettings.read(root).environmentGradleHome());
 	}
 
 	private TreeMap<String, String> projectFiles() throws Exception {

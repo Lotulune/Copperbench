@@ -35,6 +35,7 @@ import { WorkbenchTourProvider } from './onboarding/WorkbenchTour';
 import { SimpleCreationView } from './components/SimpleCreationView';
 import { AgentProvider } from './context/AgentContext';
 import { ProfessionalAgentPanel, AgentPanelToggle } from './components/ProfessionalAgentPanel';
+import { viewAvailable } from './components/workbenchNavigation';
 import './styles/global.css';
 import './styles/workbench.css';
 import './components/simpleCreation.css';
@@ -42,9 +43,12 @@ import './styles/notebook.css';
 import './styles/motion.css';
 
 const ShellContent: React.FC = () => {
-  const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();
+  const { activeView, announcement, state, sourceFocusRequest, setActiveView } = useWorkbench();
   const { mode } = useWorkbenchMode();
   const simple = mode === 'simple';
+  const kind = state.workbench?.workspace.kind;
+  // A view an adopted Gradle project does not have (a link or shortcut may still ask for one) falls back to the overview.
+  useEffect(() => { if (!viewAvailable(activeView, kind)) setActiveView('hub'); }, [activeView, kind, setActiveView]);
   const [settingsOpened, setSettingsOpened] = useState(activeView === 'settings');
   const [newWorkspaceOpened, setNewWorkspaceOpened] = useState(activeView === 'new-workspace');
   // View arrival motion lives in CSS: a view root animates when it mounts or stops being hidden.
@@ -70,15 +74,15 @@ const ShellContent: React.FC = () => {
           <SimpleCreationView active={simple}>
           <div className="workbench-view-content">
           {activeView === 'hub' && <WorkspaceHub />}
-          {activeView === 'elements' && <ModElementsWorkbench key={`elements-${state.workbench?.workspace.id}`} />}
-          {activeView === 'relations' && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}
-          {activeView === 'data' && <CreatorDataView />}
-          {activeView === 'tracks' && <TracksAndMigrationView />}
+          {activeView === 'elements' && viewAvailable('elements', kind) && <ModElementsWorkbench key={`elements-${state.workbench?.workspace.id}`} />}
+          {activeView === 'relations' && viewAvailable('relations', kind) && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}
+          {activeView === 'data' && viewAvailable('data', kind) && <CreatorDataView />}
+          {activeView === 'tracks' && viewAvailable('tracks', kind) && <TracksAndMigrationView />}
           {(newWorkspaceOpened || activeView === 'new-workspace') && <div className="workbench-persistent-view" hidden={activeView !== 'new-workspace'}><NewWorkspaceView active={activeView === 'new-workspace'} /></div>}
           {activeView === 'assets' && <AssetsView />}
           {activeView === 'history' && <HistoryView />}
           {activeView === 'ai' && <AIControlView />}
-          {activeView === 'plugins' && <PluginsView />}
+          {activeView === 'plugins' && viewAvailable('plugins', kind) && <PluginsView />}
           {activeView === 'help' && <HelpView />}
           {(settingsOpened || activeView === 'settings') && <div className="workbench-persistent-view" hidden={activeView !== 'settings'}><SettingsView /></div>}
           {state.workbench && <SourceWorkbench key={`source-${state.workbench.workspace.id}`} active={activeView === 'source'}

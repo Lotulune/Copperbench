@@ -62,6 +62,24 @@
 .overview-task progress { width: 100px; height: 3px; accent-color: var(--accent-copper); }
 .overview-task-cancel { display: grid; place-items: center; width: 26px; height: 26px; }
 .workspace-overview-page > .blockbench-setup { margin-top: 30px !important; }
+.overview-project-facts { display: flex; flex-wrap: wrap; gap: 10px 32px; margin: 0; font-size: 12px; }
+.overview-project-facts > div { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.overview-project-facts dt { color: var(--text-muted); }
+.overview-project-facts dd { margin: 0; color: var(--text-main); overflow-wrap: anywhere; }
+.overview-project-root { flex-basis: 100%; }
+.overview-project-note, .overview-project-line-status { margin: 12px 0 0; color: var(--text-sub); font-size: 12px; line-height: 1.7; }
+.overview-project-line-status { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.overview-project-line-status.is-error { color: var(--badge-red); }
+.overview-project-question { margin-top: 16px; padding: 14px 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); font-size: 12px; line-height: 1.7; }
+.overview-project-question p { margin: 0 0 10px; }
+.overview-project-choice { margin: 18px 0 0; padding: 0; border: 0; font-size: 12px; }
+.overview-project-choice legend { margin-bottom: 8px; padding: 0; color: var(--text-main); font-weight: 500; }
+.overview-project-choice label { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; cursor: pointer; }
+.overview-project-choice input { margin-top: 3px; accent-color: var(--accent-copper); }
+.overview-project-choice label > span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.overview-project-choice small { color: var(--text-sub); font-size: 11px; }
+.overview-project-choice code { color: var(--text-muted); font-size: 11px; overflow-wrap: anywhere; }
+.overview-project-choice:disabled label { cursor: progress; }
 @media (max-width: 1000px) {
   .workspace-overview-page { padding: 32px; }
   .overview-source-list, .overview-health-facts { grid-template-columns: 1fr; }

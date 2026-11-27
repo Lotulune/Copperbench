@@ -10,7 +10,7 @@ export const NavRail: React.FC = () => {
   const { activeView, setActiveView, state } = useWorkbench();
   const [toolsOpen, setToolsOpen] = useState(false);
   const aiNavigationRef = useRef<HTMLButtonElement | null>(null);
-  const navigation = workbenchNavigation();
+  const navigation = workbenchNavigation(state.workbench?.workspace.kind);
   useEffect(() => {
     const openAi = (event: KeyboardEvent) => {
       if (!event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.key.toLowerCase() !== 'm') return;

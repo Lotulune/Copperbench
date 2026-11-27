@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /** Attaches the shared application service to an already opened, writer-leased upstream workspace. */
-public final class MCreatorWorkspaceSession implements AutoCloseable {
+public final class MCreatorWorkspaceSession implements dev.copperbench.core.application.WorkspaceSession {
 
 	private final UUID workspaceId;
 	private final WorkspaceApplicationService service;

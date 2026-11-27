@@ -17,7 +17,7 @@ export const WorkbenchNavigationBar: React.FC = () => {
   const searchRef = useRef<HTMLInputElement>(null);
   const tabListRef = useRef<HTMLDivElement>(null);
   const dialogRef = useDialogA11y(open, () => setOpen(false));
-  const navigation = workbenchNavigation();
+  const navigation = workbenchNavigation(state.workbench?.workspace.kind);
   useEffect(() => { setTabs(previous => previous.includes(activeView) ? previous : [...previous, activeView]); }, [activeView]);
   useEffect(() => { setTabs([activeView]); }, [state.workbench?.workspace.id]);
   useEffect(() => {
