@@ -63,7 +63,7 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 1. 识别与打开：源码、资产、本地历史。已实现：`GradleProjectDetector` 识别工程，`GradleProjectWorkspaceSession` 以 `.copperbench/workspace.json` 提供身份、修订号与单会话占用；源码编辑沿用带哈希的 `update_workspace_file` 与恢复点，因此没有另设只读模式。结构化操作返回 `GRADLE_PROJECT_OPERATION_UNAVAILABLE`，构建与运行返回 `GRADLE_PROJECT_TASKS_UNAVAILABLE`；资产健康检查不列清理候选。入口只有 `headless --workspace <文件夹>` 的单次命令。
 2. 构建、运行与 GameTest 验收。已实现：`GradleProjectTaskGateway` 按识别出的轨道复用 `GradleWorkspaceTaskGateway`，不生成文件、不准备生成器；校验、构建、导出、运行客户端与服务器、准备与运行 GameTest、已验证导出可用，`headless` 单次命令等待任务结束。每个任务重新读取磁盘上的工程文件，与打开时的识别结果不一致时拒绝执行（`GRADLE_PROJECT_TARGET_CHANGED` 或具体问题）；识别不完整的工程返回 `GRADLE_PROJECT_UNSUPPORTED` 并列出原因。起步测试放在 `src/copperbenchTest`，避免与工程自己的 `gametest` 源集冲突；没有 `copperbench-tests.json` 时返回 `GAMETEST_NOT_CONFIGURED`。datagen 与发布批次不在第一阶段范围内，返回 `GRADLE_PROJECT_TASKS_UNAVAILABLE`。
 3. MCP、SDK 与内置对话的原生路线，包括 `headless … api`、`serve` 与 `doctor`。已实现：三个 `headless` 入口接受文件夹，`doctor` 不接管也不写入工程，工程自带的 wrapper 未经产品审核只记为未知；Python SDK 的 `open`、`attach`、`connect` 接受工程文件夹，`native_edit_brief` 另给出测试目录与验收宿主版本；MCP 的 `tools/list` 不列出第一阶段不提供的工具，并在 `initialize` 的 `instructions` 说明原因，直接经 Core 调用这些操作仍返回原有诊断码；内置对话按文件夹识别接管的工程，使用单独的说明；环境查询不再为没有元素的工程返回字段契约。MCP 与内置对话由桌面启动，入口随第 4 步提供。
-4. 桌面入口与界面，包括决定 7 的 `.gitignore` 询问与决定 8 的设置。
+4. 桌面入口与界面，包括决定 7 的 `.gitignore` 询问与决定 8 的设置。已实现：启动页的「打开文件夹」、拖入的文件夹、启动参数和工作台内的「打开已有工作区」都接受文件夹；文件夹里只有一个 `.mcreator` 时按原方式打开，否则按 `gradle_project` 识别，识别不出时说明原因，工程已被另一个窗口或命令行会话占用时提示先关闭那边。接管的工程在自己的窗口（`GradleProjectWindow`）中打开，沿用同一个工作台以及 MCP、内置对话和 Python；最近列表记住工程文件夹，但不提供“从磁盘删除”。界面只保留总览、资产、源码、本地历史、AI 与 MCP、Python 工作台，固定为专业工作台，不提供生成源码与数据生成。总览页列出识别结果和不能构建的原因。工程在 Git 仓库中、而工程的 `.gitignore` 还没有忽略 `.copperbench/` 时询问一次：选择加入时先建恢复点再追加一行，回答记在 `.copperbench/workspace.json` 的 `settings` 中。Gradle 用户目录可在产品目录与工程环境默认（`GRADLE_USER_HOME`，否则 `~/.gradle`）之间切换，从下一个任务起作用于该工程的全部 Gradle 进程，包括验收宿主。
 
 第 2 步的实机记录（2026-11-25，Windows）：
 
@@ -77,6 +77,20 @@ ADR-0019 把产品的差异点定为环境与工具链、构建到游戏内的�
 
 已知限制：验收宿主只带被测 JAR 与该轨道的 Fabric API 或 NeoForge，依赖其他模组的工程要用 `workspace` 模式运行自己的测试任务；构建依赖 Git 信息、符号链接或工程目录以外的包含构建时，冻结副本中的构建会失败并给出 Gradle 的错误。
 
-尚未完成：由 Agent 在接管的工程里完成与对照实验相同的任务，并记录与 `.mcreator` 路线的成本对比。
+第 4 步的实机记录（2026-11-27，Windows，源码构建，独立的 `COPPERBENCH_HOME`）：对照实验裸组工程的副本放在一个新建的 Git 仓库里，作为启动参数交给已运行的应用后，在新窗口打开；总览显示 Fabric 1.21.1 与模组 ID。选择加入 `.gitignore` 后，Git 不再列出 `.copperbench/`；切换 Gradle 用户目录后设置写入工程元数据；在窗口中构建 22 秒成功；关闭最后一个窗口后应用正常退出，写锁已释放，工程原有文件的哈希都没有变化。不含构建脚本的文件夹给出说明。启动页的系统文件夹选择框受自动化工具的限制没有逐级操作，它与启动参数进入同一个打开流程；拖入文件夹没有实测。
 
-完成标准沿用 ADR-0019 决定 7：用裸 Gradle 组在对照实验中产出的 Fabric 1.21.1 工程，原样由 Copperbench 打开，完成构建与 GameTest 验收，且不修改其构建脚本；同一任务的成本与验证深度和 `.mcreator` 路线一起记录。
+实测中发现并修复了两个问题。其一，窗口没有焦点时，按下鼠标会让页面获得焦点并重新加载项目健康；接管工程的总览没有元素计数，统计行在重新加载期间变空，下面的内容上移，松开鼠标时已不在按钮上，第一次点击「加入 .gitignore」因此无效。现在统计行保留上一次的资产数，首次加载时用占位符撑住这一行。其二，带参数启动时启动页尚未读取最近列表，打开的工作区或工程会覆盖原有记录（`.mcreator` 参数原本也有这个问题），现在先读取再添加。修复后在没有焦点的窗口中点击一次即写入 `.gitignore`，最近列表保留原有记录。
+
+Agent 成本对比（2026-11-27）。被试为 Claude Opus 5.5（effort=high），每格一次全新子代理运行，同一台机器、同一个已预热的 Gradle 用户目录，任务为 Emberkit T2（[任务与评分器](../../examples/agent-eval/emberkit/README.md)）：
+
+| 组 | 起点 | 结束时上下文（token） | 工具调用 | 时长 | 被试自己做的运行时检查 | 评分 |
+| --- | --- | ---: | ---: | ---: | --- | :---: |
+| 裸 Gradle | 对照实验的空工程 | 73,254 | 6 | 127 秒 | 无（构建、查看 jar、`javap`） | 13/13 |
+| `.mcreator` 工作区，Python SDK | 对照实验 Copperbench 组工作区的恢复点 | 102,955 | 26 | 355 秒 | 4 个 GameTest | 13/13 |
+| 接管的 Gradle 工程，Python SDK | 与裸组相同的空工程 | 84,772 | 9 | 195 秒 | 4 个 GameTest | 13/13 |
+
+评分来自 `runAgentEvaluation` 在同一个 GameTest 宿主中的 13 项断言。接管路线与 `.mcreator` 路线相比，上下文少 18%，工具调用约为三分之一，时长约为 55%，验证深度相同；与裸 Gradle 相比，上下文多 16%，时长约 1.5 倍，多出的部分换来恢复点和 GameTest 验收，裸组没有做运行时检查。接管组没有修改构建脚本、`gradle.properties` 或 wrapper。`.mcreator` 组有一次 GameTest 只跑了起步测试，原因是被试所用编辑工具要求先读后写，不是产品故障。
+
+限制：每格只有一次运行，只有一个模型、一条版本轨道和一个小任务；`.mcreator` 组从带历史的工作区起步；“结束时上下文”是子代理报告的运行结束时用量，不是计费量；评分器不断言声音和客户端行为；三组都没有进入游戏，不是玩法验收。运行记录与评分报告保存在本地，不入库。
+
+完成标准沿用 ADR-0019 决定 7：用裸 Gradle 组在对照实验中产出的 Fabric 1.21.1 工程，原样由 Copperbench 打开，完成构建与 GameTest 验收，且不修改其构建脚本；同一任务的成本与验证深度和 `.mcreator` 路线一起记录。两项都已满足：第 2 步的实机记录和上面的对比。

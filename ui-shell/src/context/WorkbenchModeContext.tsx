@@ -23,22 +23,24 @@ const initialMode: WorkbenchMode = (() => {
   try { return typeof window === 'undefined' ? 'professional' : readInitialWorkbenchMode(window.localStorage); }
   catch { return 'professional'; }
 })();
-const ModeContext = createContext<{ mode: WorkbenchMode; setMode: (mode: WorkbenchMode) => void } | null>(null);
+const ModeContext = createContext<{ mode: WorkbenchMode; setMode: (mode: WorkbenchMode) => void; locked: boolean } | null>(null);
 
 export function WorkbenchModeProvider({ children }: { children: ReactNode }) {
-  const { activeView, setActiveView } = useWorkbench();
+  const { activeView, setActiveView, state } = useWorkbench();
   const [mode, updateMode] = useState<WorkbenchMode>(initialMode);
   const professionalView = useRef<NavView>('hub');
+  // Simple creation makes structured elements; an adopted Gradle project (ADR-0020) is edited as source files.
+  const locked = state.workbench?.workspace.kind === 'gradle_project';
   const setMode = useCallback((next: WorkbenchMode) => {
-    if (next === mode) return;
+    if (next === mode || locked) return;
     if (next === 'simple') { professionalView.current = activeView; setActiveView('hub'); }
     else setActiveView(professionalView.current);
     updateMode(next);
-  }, [activeView, mode, setActiveView]);
+  }, [activeView, locked, mode, setActiveView]);
   useEffect(() => {
     try { window.localStorage.setItem(WORKBENCH_MODE_STORAGE_KEY, mode); } catch { /* Preserve the current window's choice. */ }
   }, [mode]);
-  return <ModeContext.Provider value={{ mode, setMode }}>{children}</ModeContext.Provider>;
+  return <ModeContext.Provider value={{ mode: locked ? 'professional' : mode, setMode, locked }}>{children}</ModeContext.Provider>;
 }
 
 export function useWorkbenchMode() {

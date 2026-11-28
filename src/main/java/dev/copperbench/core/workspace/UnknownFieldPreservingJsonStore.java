@@ -39,6 +39,14 @@ public final class UnknownFieldPreservingJsonStore {
 		return document.deepCopy();
 	}
 
+	/** Replaces the whole document with {@code update}'s result; fields it leaves alone are kept. */
+	public JsonObject updateDocument(Path workspaceFile, UnaryOperator<JsonObject> update) throws IOException {
+		JsonObject document = read(workspaceFile);
+		JsonObject replacement = Objects.requireNonNull(update.apply(document.deepCopy()));
+		if (!replacement.equals(document)) writeAtomically(workspaceFile, replacement);
+		return replacement.deepCopy();
+	}
+
 	private void writeAtomically(Path workspaceFile, JsonObject document) throws IOException {
 		Path absolute = workspaceFile.toAbsolutePath().normalize();
 		Path parent = Objects.requireNonNull(absolute.getParent(), "Workspace file must have a parent directory");

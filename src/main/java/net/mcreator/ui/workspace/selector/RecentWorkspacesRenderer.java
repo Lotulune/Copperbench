@@ -50,9 +50,10 @@ class RecentWorkspacesRenderer extends JPanel implements ListCellRenderer<Recent
         path.setForeground(selected ? foreground : ProductTheme.muted());
         version.setForeground(path.getForeground());
         name.setText(entry.getName());
-        String location = entry.getPath().getParentFile().getAbsolutePath();
+        String location = entry.getFolder().getAbsolutePath();
         path.setText(location);
-        version.setText(entry.getMCRVersion() == null ? "" : "MCreator " + entry.getMCRVersion());
+        version.setText(entry.isFolder() ? dev.copperbench.shell.UiLocalePreferences.text("Gradle 工程", "Gradle project")
+                : entry.getMCRVersion() == null ? "" : "MCreator " + entry.getMCRVersion());
         icon.setForeground(path.getForeground());
         icon.setIcon(entry.getType() == GeneratorFlavor.UNKNOWN ? null : ProductTheme.monochrome(entry.getType().getIcon()));
         setToolTipText(entry.getName() + " — " + location);

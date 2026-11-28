@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * Attaches the application service to a Gradle project Copperbench did not create (ADR-0020). Identity and revision
  * live in {@code .copperbench/workspace.json}; every file stays hand-written and no project file is changed by opening.
  */
-public final class GradleProjectWorkspaceSession implements AutoCloseable {
+public final class GradleProjectWorkspaceSession implements dev.copperbench.core.application.WorkspaceSession {
 
 	public static final String METADATA_FILE = ".copperbench/workspace.json";
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -54,15 +54,18 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 	private final WorkspaceTaskGateway tasks;
 	private final JGitLocalHistoryService history;
 	private final WorkspaceFileLease lease;
+	private final UnknownFieldPreservingJsonStore documents;
 
 	private GradleProjectWorkspaceSession(UUID workspaceId, Path root, WorkspaceApplicationService service,
-			WorkspaceTaskGateway tasks, JGitLocalHistoryService history, WorkspaceFileLease lease) {
+			WorkspaceTaskGateway tasks, JGitLocalHistoryService history, WorkspaceFileLease lease,
+			UnknownFieldPreservingJsonStore documents) {
 		this.workspaceId = workspaceId;
 		this.root = root;
 		this.service = service;
 		this.tasks = tasks;
 		this.history = history;
 		this.lease = lease;
+		this.documents = documents;
 	}
 
 	/** Creates the session's task gateway over its revision store and canonical project root. */
@@ -107,7 +110,7 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 					ignored -> state(workspaceId, manager.loadOrCreate(metadataFile, workspaceId, lease).revision(),
 							GradleProjectDetector.inspect(root)),
 					ignored -> root, clock, ids);
-			return new GradleProjectWorkspaceSession(workspaceId, root, service, tasks, history, lease);
+			return new GradleProjectWorkspaceSession(workspaceId, root, service, tasks, history, lease, documents);
 		} catch (LocalHistoryException | RuntimeException | IOException failure) {
 			try {
 				close(tasks, history, lease);
@@ -191,6 +194,45 @@ public final class GradleProjectWorkspaceSession implements AutoCloseable {
 
 	public WorkspaceApplicationService service() {
 		return service;
+	}
+
+	/** The project's own choices; see {@link GradleProjectSettings}. */
+	public GradleProjectSettings settings() {
+		return GradleProjectSettings.read(root);
+	}
+
+	/**
+	 * Records the answer to the {@code .gitignore} question (ADR-0020 decision 7). Adding the entry first takes a
+	 * recovery point; declining leaves the project's files as they are.
+	 */
+	public synchronized void decideGitIgnore(boolean add) throws IOException {
+		if (add) {
+			try {
+				history.createRecoveryPoint(new dev.copperbench.history.RecoveryPointRequest(
+						"Before adding .copperbench/ to .gitignore", Actor.UI, ""));
+			} catch (LocalHistoryException failure) {
+				throw new IOException("Could not create a recovery point before changing .gitignore", failure);
+			}
+			GradleProjectSettings.addToGitIgnore(root);
+		}
+		updateSettings("gitIgnore", add ? GradleProjectSettings.ADDED : GradleProjectSettings.DECLINED);
+	}
+
+	/** Chooses the Gradle user home the project's builds use (ADR-0020 decision 8); the product's is the default. */
+	public synchronized void useEnvironmentGradleHome(boolean environment) throws IOException {
+		updateSettings("gradleUserHome", environment ? "environment" : "product");
+	}
+
+	private void updateSettings(String key, String value) throws IOException {
+		Path metadataFile = root.resolve(METADATA_FILE);
+		lease.requireValidFor(metadataFile);
+		documents.updateDocument(metadataFile, document -> {
+			JsonObject settings = document.has(GradleProjectSettings.KEY) && document.get(GradleProjectSettings.KEY).isJsonObject()
+					? document.getAsJsonObject(GradleProjectSettings.KEY) : new JsonObject();
+			settings.addProperty(key, value);
+			document.add(GradleProjectSettings.KEY, settings);
+			return document;
+		});
 	}
 
 	public HeadlessWorkspaceEntryAdapter headlessEntry(PermissionProfile permission) {

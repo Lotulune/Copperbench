@@ -70,6 +70,31 @@ class Fabric1211ProcessRunnerTest {
 		assertTrue(output.contains("OBSERVED_GRADLE_HOME=" + expected.get("GRADLE_USER_HOME")), output.toString());
 	}
 
+	/** ADR-0020 decision 8: an adopted project may keep the environment's own Gradle user home. */
+	@Test void environmentGradleHomeChoiceLeavesTheInheritedUserHome() throws Exception {
+		org.junit.jupiter.api.Assumptions.assumeTrue(System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE") == null);
+		java.nio.file.Path root = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build").toAbsolutePath(), "adr20-process-home-");
+		boolean windows = RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
+		java.nio.file.Path wrapper = root.resolve(windows ? "gradlew.bat" : "gradlew");
+		java.nio.file.Files.writeString(wrapper, windows ? "@echo off\r\necho OBSERVED_GRADLE_HOME=[%GRADLE_USER_HOME%]\r\n"
+				: "#!/bin/sh\nprintf 'OBSERVED_GRADLE_HOME=[%s]\\n' \"$GRADLE_USER_HOME\"\n");
+		if (!windows) assertTrue(wrapper.toFile().setExecutable(true));
+		java.util.concurrent.atomic.AtomicBoolean product = new java.util.concurrent.atomic.AtomicBoolean(false);
+		var runner = Fabric1211ProcessRunner.system("never", () -> null, product::get);
+		List<String> output = new java.util.concurrent.CopyOnWriteArrayList<>();
+		assertEquals(0, runner.run(root, List.of("build"), java.time.Duration.ofSeconds(15), output::add).exitCode());
+		String inherited = System.getenv("GRADLE_USER_HOME");
+		assertTrue(output.contains("OBSERVED_GRADLE_HOME=[" + (inherited == null ? "" : inherited) + "]"), output.toString());
+
+		// The choice is read for each process, so switching back applies to the next task.
+		product.set(true);
+		output.clear();
+		assertEquals(0, runner.run(root, List.of("build"), java.time.Duration.ofSeconds(15), output::add).exitCode());
+		var expected = new java.util.HashMap<>(System.getenv());
+		Fabric1211ProcessRunner.SystemProcessRunner.configureGradleHome(expected, net.mcreator.io.UserFolderManager.getGradleHome().toPath());
+		assertTrue(output.contains("OBSERVED_GRADLE_HOME=[" + expected.get("GRADLE_USER_HOME") + "]"), output.toString());
+	}
+
 	@Test void windowsWrapperIsFoundWhenCmdCurrentDirectoryLookupIsDisabled() throws Exception {
 		org.junit.jupiter.api.Assumptions.assumeTrue(
 				RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS);

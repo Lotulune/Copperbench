@@ -21,6 +21,7 @@ import schemaIncompatible from '../../../ui-core/fixtures/v1.0/scenarios/schema-
 import validationFailed from '../../../ui-core/fixtures/v1.0/scenarios/validation-failed.json';
 import historyReady from '../../../ui-core/fixtures/v1.0/scenarios/history-ready.json';
 import approvalRequired from '../../../ui-core/fixtures/v1.0/scenarios/approval-required.json';
+import gradleProject from '../../../ui-core/fixtures/v1.0/scenarios/gradle-project.json';
 
 const fixtureList: unknown[] = [
   bridgeRecovery,
@@ -40,7 +41,8 @@ const fixtureList: unknown[] = [
   schemaIncompatible,
   validationFailed,
   historyReady,
-  approvalRequired
+  approvalRequired,
+  gradleProject
 ];
 
 export const SCENARIOS: Record<string, ScenarioDefinition> = Object.fromEntries(

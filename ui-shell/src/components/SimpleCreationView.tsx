@@ -439,7 +439,7 @@ export function SimpleCreationView({ active, children }: { active: boolean; chil
         <div className="creation-heading">{!home && <button type="button" className="creation-back" onClick={() => setActiveView('hub')} aria-label={uiText('返回创作', 'Back to creation')} data-testid="simple-back"><ArrowLeft size={18} /></button>}
           {/* The sidebar already names the work; the heading names what is open in it. */}
           <div><h1>{home ? conversationTitle ?? workspace?.name ?? uiText('开始创作', 'Start creating')
-            : activeView === 'new-workspace' ? uiText('新建作品', 'New creation') : workbenchNavigation().find(item => item.id === activeView)?.label}</h1>
+            : activeView === 'new-workspace' ? uiText('新建作品', 'New creation') : workbenchNavigation(state.workbench?.workspace.kind).find(item => item.id === activeView)?.label}</h1>
             {home && conversationTitle && <span className="creation-version">{providerNames[effectiveProvider]}</span>}</div>
         </div>
         <div className="creation-header-actions">

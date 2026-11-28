@@ -71,7 +71,17 @@ public final class GradleProjectTaskGateway implements WorkspaceTaskGateway, Aut
 
 	/** The track's JDK with the project's or host's wrapper; {@code prepare} runs before each Gradle process. */
 	public static GradleProcessRunner productProcesses(Path distribution, JavaGeneratorProfile profile, Runnable prepare) {
-		var runner = Fabric1211ProcessRunner.system(SERVER_READY, () -> BundledJdkLocator.locate(distribution, profile.javaRelease()));
+		return productProcesses(distribution, profile, prepare, () -> false);
+	}
+
+	/**
+	 * Like {@link #productProcesses(Path, JavaGeneratorProfile, Runnable)}; {@code environmentGradleHome} is read
+	 * before each process, so a changed project setting applies to the next task.
+	 */
+	public static GradleProcessRunner productProcesses(Path distribution, JavaGeneratorProfile profile, Runnable prepare,
+			java.util.function.BooleanSupplier environmentGradleHome) {
+		var runner = Fabric1211ProcessRunner.system(SERVER_READY, () -> BundledJdkLocator.locate(distribution, profile.javaRelease()),
+				() -> !environmentGradleHome.getAsBoolean());
 		boolean remapped = profile.equals(Fabric1211Generator.Profile.FABRIC_1211);
 		return (root, arguments, timeout, output) -> {
 			prepare.run();

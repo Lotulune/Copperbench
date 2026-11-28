@@ -10,6 +10,8 @@ export const WorkspaceActions: React.FC = () => {
   const { state, generateWorkspace, buildWorkspace, runClient, runServer, runDatagen, runGameTest } = useWorkbench();
   const { openDelivery } = useFirstCreation();
   const [openingFolder, setOpeningFolder] = useState(false);
+  // An adopted Gradle project (ADR-0020) has no generated sources, and datagen is outside its first stage.
+  const gradleProject = state.workbench?.workspace.kind === 'gradle_project';
   const menu = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     const dismiss = (event: PointerEvent) => {
@@ -48,9 +50,9 @@ export const WorkspaceActions: React.FC = () => {
         <Ellipsis size={17} aria-hidden="true" />
       </summary>
       <div className="workspace-actions-popover" onClick={() => { if (menu.current) menu.current.open = false; }}>
-        <button type="button" data-testid="titlebar-generate-btn" aria-label={uiText('生成工作区源码', 'Generate workspace sources')} onClick={() => void generateWorkspace()}>
+        {!gradleProject && <button type="button" data-testid="titlebar-generate-btn" aria-label={uiText('生成工作区源码', 'Generate workspace sources')} onClick={() => void generateWorkspace()}>
           <Cog size={15} aria-hidden="true" />{uiText('生成源码', 'Generate sources')}
-        </button>
+        </button>}
         <button type="button" data-testid="compact-export-btn" disabled={!state.workbench || !isNativeHostPresent()}
           title={!isNativeHostPresent() ? uiText('在桌面应用中导出本机工作区', 'Export a local workspace in the desktop app') : undefined}
           onClick={() => { menu.current?.querySelector('summary')?.focus(); openDelivery(); }}><FileArchive size={15} aria-hidden="true" />{uiText('交付与导出', 'Delivery & export')}</button>
@@ -61,8 +63,8 @@ export const WorkspaceActions: React.FC = () => {
         <button type="button" aria-label={uiText('运行隔离专用服务端', 'Run isolated dedicated server')} onClick={() => {
           if (window.confirm(uiText('仅在隔离测试目录启动专用服务端。确认接受 Minecraft EULA 并继续？', 'Start a dedicated server in the isolated test directory. Accept the Minecraft EULA and continue?'))) void runServer(true);
         }}><Server size={15} aria-hidden="true" />{uiText('专用服务端', 'Dedicated server')}</button>
-        <button type="button" aria-label={uiText('在暂存区运行数据生成', 'Run staged data generation')} onClick={() => void runDatagen()}>
-          <DatabaseZap size={15} aria-hidden="true" />{uiText('数据生成', 'Data generation')}</button>
+        {!gradleProject && <button type="button" aria-label={uiText('在暂存区运行数据生成', 'Run staged data generation')} onClick={() => void runDatagen()}>
+          <DatabaseZap size={15} aria-hidden="true" />{uiText('数据生成', 'Data generation')}</button>}
         <button type="button" aria-label={uiText('运行已有 GameTest', 'Run existing GameTests')} onClick={() => void runGameTest()}>
           <TestTube2 size={15} aria-hidden="true" />{uiText('GameTest', 'GameTest')}</button>
       </div>

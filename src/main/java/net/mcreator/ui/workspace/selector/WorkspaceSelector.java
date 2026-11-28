@@ -82,6 +82,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 	private final JPanel recentPanel = new JPanel(recentPanes);
 	private final WorkspaceOpenListener workspaceOpenListener;
 	private RecentWorkspaces recentWorkspaces = new RecentWorkspaces();
+	private boolean recentWorkspacesLoaded;
 
 	@Nullable private final MCreatorApplication application;
 
@@ -128,6 +129,11 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 			File workspaceFile = FileDialogs.getOpenDialog(this, new String[] { ".mcreator" });
 			if (workspaceFile != null && workspaceFile.getParentFile().isDirectory())
 				workspaceOpenListener.workspaceOpened(workspaceFile);
+		});
+		addWorkspaceButton(text("打开文件夹", "Open folder"), UIRES.get("opnwrk"), _ -> {
+			File folder = chooseProjectFolder();
+			if (folder != null)
+				workspaceOpenListener.workspaceOpened(folder);
 		});
 		addWorkspaceButton(dev.copperbench.shell.UiLocalePreferences.text("连接外部 Agent", "Connect external Agent"), UIRES.get("info"), _ ->
 				dev.copperbench.shell.ProductDialogs.show(this, dev.copperbench.shell.UiLocalePreferences.text(
@@ -226,7 +232,11 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		recentsList.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed(KeyEvent e) {
 				if (recentsList.getSelectedValue() == null) return;
-				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+				if (e.getKeyCode() == KeyEvent.VK_DELETE && recentsList.getSelectedValue().isFolder()) {
+					// A project folder Copperbench did not create is never moved to the trash from here
+					removeRecentWorkspace(recentsList.getSelectedValue());
+					reloadRecents();
+				} else if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 					Object[] options = { L10N.t("dialog.workspace_selector.delete_workspace.recent_list"),
 							L10N.t("dialog.workspace_selector.delete_workspace.workspace"), L10N.t("common.cancel") };
 					int n = JOptionPane.showOptionDialog(WorkspaceSelector.this,
@@ -243,7 +253,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 								L10N.t("dialog.workspace_selector.delete_workspace.confirmation",
 										recentsList.getSelectedValue().getName()), L10N.t("common.confirmation"),
 								JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-						if (m == JOptionPane.YES_OPTION) {
+						if (m == JOptionPane.YES_OPTION && !recentsList.getSelectedValue().isFolder()) {
 							FileIO.moveToTrash(recentsList.getSelectedValue().getPath().getParentFile());
 							reloadRecents();
 						}
@@ -319,6 +329,16 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		});
 	}
 
+	/** A folder to open: a workspace folder, or a Gradle project Copperbench did not create (ADR-0020). */
+	private File chooseProjectFolder() {
+		com.formdev.flatlaf.util.SystemFileChooser chooser = new com.formdev.flatlaf.util.SystemFileChooser();
+		chooser.setMultiSelectionEnabled(false);
+		chooser.setDialogTitle(text("打开文件夹", "Open folder"));
+		chooser.setFileSelectionMode(com.formdev.flatlaf.util.SystemFileChooser.DIRECTORIES_ONLY);
+		return chooser.showOpenDialog(this) == com.formdev.flatlaf.util.SystemFileChooser.APPROVE_OPTION
+				&& chooser.getSelectedFile() != null && chooser.getSelectedFile().isDirectory() ? chooser.getSelectedFile() : null;
+	}
+
 	private void importWorkspaceFromZip(File file) {
 		File workspaceDir = FileDialogs.getWorkspaceDirectorySelectDialog(this, null);
 		if (workspaceDir != null) {
@@ -357,7 +377,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 
 		JMenuItem deleteFromFolder = new JMenuItem(L10N.t("dialog.workspace_selector.delete_workspace.workspace"));
 		deleteFromFolder.addActionListener(_ -> {
-			if (recentsList.getSelectedValue() != null) {
+			if (recentsList.getSelectedValue() != null && !recentsList.getSelectedValue().isFolder()) {
 				int m = JOptionPane.showConfirmDialog(WorkspaceSelector.this,
 						L10N.t("dialog.workspace_selector.delete_workspace.confirmation",
 								recentsList.getSelectedValue().getName()), L10N.t("common.confirmation"),
@@ -375,7 +395,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		JMenuItem openInSystemExplorer = new JMenuItem(L10N.t("action.open_workspace_folder"));
 		openInSystemExplorer.addActionListener(_ -> {
 			if (recentsList.getSelectedValue() != null) {
-				DesktopUtils.openSafe(recentsList.getSelectedValue().getPath().getParentFile());
+				DesktopUtils.openSafe(recentsList.getSelectedValue().getFolder());
 			}
 		});
 		recentListMenu.add(openInSystemExplorer);
@@ -383,6 +403,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		recentListMenu.addPopupMenuListener(new PopupMenuListener() {
 			@Override public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				recentsList.setSelectedIndex(recentsList.locationToIndex(recentsList.getMousePosition()));
+				deleteFromFolder.setEnabled(recentsList.getSelectedValue() == null || !recentsList.getSelectedValue().isFolder());
 			}
 
 			@Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
@@ -420,7 +441,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 				if (!transferData.isEmpty()) {
 					Object transfObj = transferData.getFirst();
 					if (transfObj instanceof File workspaceFile) {
-						if (workspaceFile.getName().endsWith(".mcreator")) {
+						if (workspaceFile.getName().endsWith(".mcreator") || workspaceFile.isDirectory()) {
 							workspaceOpenListener.workspaceOpened(workspaceFile);
 						} else if (workspaceFile.getName().endsWith(".zip")) {
 							importWorkspaceFromZip(workspaceFile);
@@ -445,7 +466,12 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		}
 	}
 
-	public void addOrUpdateRecentWorkspace(RecentWorkspaceEntry recentWorkspaceEntry) {
+	public synchronized void addOrUpdateRecentWorkspace(RecentWorkspaceEntry recentWorkspaceEntry) {
+		// Opening from a launch argument happens before this window was activated and read the saved list
+		if (!recentWorkspacesLoaded)
+			loadRecentWorkspaces();
+		if (recentWorkspaces == null)
+			return; // an unreadable list is kept on disk rather than replaced by this one entry
 		if (!recentWorkspaces.getList().contains(recentWorkspaceEntry))
 			recentWorkspaces.getList().add(recentWorkspaceEntry);
 		else
@@ -456,7 +482,11 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		saveRecentWorkspaces();
 	}
 
-	private void removeRecentWorkspace(RecentWorkspaceEntry recentWorkspace) {
+	private synchronized void removeRecentWorkspace(RecentWorkspaceEntry recentWorkspace) {
+		if (!recentWorkspacesLoaded)
+			loadRecentWorkspaces();
+		if (recentWorkspaces == null)
+			return;
 		recentWorkspaces.getList().remove(recentWorkspace);
 		saveRecentWorkspaces();
 	}
@@ -471,23 +501,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 	}
 
 	private synchronized void reloadRecents() {
-		if (UserFolderManager.getFileFromUserFolder("recentworkspaces").isFile()) {
-			try {
-				recentWorkspaces = gson.fromJson(
-						FileIO.readFileToString(UserFolderManager.getFileFromUserFolder("recentworkspaces")),
-						RecentWorkspaces.class);
-				if (recentWorkspaces != null) {
-					List<RecentWorkspaceEntry> recentWorkspacesFiltered = new ArrayList<>();
-					for (RecentWorkspaceEntry recentWorkspaceEntry : recentWorkspaces.getList())
-						if (recentWorkspaceEntry.getPath().isFile())
-							recentWorkspacesFiltered.add(recentWorkspaceEntry);
-					recentWorkspaces = new RecentWorkspaces(recentWorkspacesFiltered);
-				}
-			} catch (Exception e) {
-				recentWorkspaces = null;
-				LOG.warn("Failed to load recent workspaces", e);
-			}
-		}
+		loadRecentWorkspaces();
 
 		if (recentWorkspaces != null && !recentWorkspaces.getList().isEmpty()) {
 			defaultListModel.removeAllElements();
@@ -500,6 +514,28 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		}
 
 		recentPanel.revalidate();
+	}
+
+	/** Reads the saved list, leaving out entries whose workspace file or project folder is gone; {@code null} if unreadable. */
+	private synchronized void loadRecentWorkspaces() {
+		recentWorkspacesLoaded = true;
+		if (UserFolderManager.getFileFromUserFolder("recentworkspaces").isFile()) {
+			try {
+				recentWorkspaces = gson.fromJson(
+						FileIO.readFileToString(UserFolderManager.getFileFromUserFolder("recentworkspaces")),
+						RecentWorkspaces.class);
+				if (recentWorkspaces != null) {
+					List<RecentWorkspaceEntry> recentWorkspacesFiltered = new ArrayList<>();
+					for (RecentWorkspaceEntry recentWorkspaceEntry : recentWorkspaces.getList())
+						if (recentWorkspaceEntry.getPath().isFile() || recentWorkspaceEntry.isFolder())
+							recentWorkspacesFiltered.add(recentWorkspaceEntry);
+					recentWorkspaces = new RecentWorkspaces(recentWorkspacesFiltered);
+				}
+			} catch (Exception e) {
+				recentWorkspaces = null;
+				LOG.warn("Failed to load recent workspaces", e);
+			}
+		}
 	}
 
 	private JButton mainWorkspaceButton(String text, ImageIcon icon, ActionListener event) {

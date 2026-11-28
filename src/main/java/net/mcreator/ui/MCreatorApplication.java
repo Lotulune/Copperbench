@@ -84,6 +84,8 @@ public final class MCreatorApplication {
 	private static boolean applicationStarted = false;
 
 	private final List<MCreator> openMCreators = new CopyOnWriteArrayList<>();
+	private final List<dev.copperbench.shell.GradleProjectWindow> openGradleProjects = new CopyOnWriteArrayList<>();
+	private volatile boolean closingApplication;
 
 	private WorkspaceSelector workspaceSelector;
 	private DeviceInfo deviceInfo;
@@ -101,7 +103,9 @@ public final class MCreatorApplication {
 					if (!openMCreatorFromArgs(relaunchArgs)) {
 						// If we fail or relaunchArgs are empty, we either open the workspace selector
 						// or bring the existing MCreator to the front
-						if (openMCreators.isEmpty()) {
+						if (openMCreators.isEmpty() && !openGradleProjects.isEmpty()) {
+							SingleAppHandler.bringToFront(openGradleProjects.getFirst());
+						} else if (openMCreators.isEmpty()) {
 							SingleAppHandler.bringToFront(workspaceSelector);
 						} else {
 							SingleAppHandler.bringToFront(openMCreators.getFirst());
@@ -270,6 +274,13 @@ public final class MCreatorApplication {
 		if (lastArg.length() >= 2 && lastArg.charAt(0) == '"' && lastArg.charAt(lastArg.length() - 1) == '"')
 			lastArg = lastArg.substring(1, lastArg.length() - 1);
 		File passedFile = new File(lastArg);
+		if (passedFile.isDirectory()) {
+			// A project folder (ADR-0020): its .mcreator workspace when it has one, otherwise the Gradle project
+			File workspaceFile = workspaceFileInFolder(passedFile);
+			if (workspaceFile == null)
+				return openGradleProject(passedFile) != null;
+			passedFile = workspaceFile;
+		}
 		if (passedFile.isFile() && passedFile.getName().endsWith(".mcreator")) {
 			MCreator mcreator = openWorkspaceInMCreator(passedFile);
 			StartupNotifications.handleStartupNotifications(mcreator);
@@ -311,6 +322,14 @@ public final class MCreatorApplication {
 	 * @return MCreator if new instance, null if existing is open or open failed
 	 */
 	public MCreator openWorkspaceInMCreator(File workspaceFile, boolean forceRegenerate) {
+		if (workspaceFile.isDirectory()) {
+			File folderWorkspace = workspaceFileInFolder(workspaceFile);
+			if (folderWorkspace == null) {
+				openGradleProject(workspaceFile);
+				return null;
+			}
+			return openWorkspaceInMCreator(folderWorkspace, forceRegenerate);
+		}
 		this.workspaceSelector.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		try {
 			Workspace workspace = Workspace.readFromFS(workspaceFile, this.workspaceSelector);
@@ -390,6 +409,93 @@ public final class MCreatorApplication {
 		return null;
 	}
 
+	/** The folder's only {@code .mcreator} file, or {@code null} when it has none or more than one. */
+	static File workspaceFileInFolder(File folder) {
+		File[] workspaceFiles = folder.listFiles(file -> file.isFile() && file.getName().endsWith(".mcreator"));
+		return workspaceFiles != null && workspaceFiles.length == 1 ? workspaceFiles[0] : null;
+	}
+
+	/**
+	 * Opens a Gradle project Copperbench did not create in its own window (ADR-0020), or brings the window that
+	 * already has it to the front.
+	 *
+	 * @return the project's window, or {@code null} when the folder could not be opened
+	 */
+	public dev.copperbench.shell.GradleProjectWindow openGradleProject(File folder) {
+		java.nio.file.Path root = canonical(folder.toPath());
+		for (dev.copperbench.shell.GradleProjectWindow open : openGradleProjects) {
+			if (canonical(open.root()).equals(root)) {
+				ThreadUtil.runOnSwingThreadAndWait(() -> {
+					open.toFront();
+					open.requestFocus();
+				});
+				return open;
+			}
+		}
+		AtomicReference<dev.copperbench.shell.GradleProjectWindow> opened = new AtomicReference<>();
+		ThreadUtil.runOnSwingThreadAndWait(() -> {
+			workspaceSelector.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			try {
+				dev.copperbench.shell.GradleProjectWindow window = dev.copperbench.shell.GradleProjectWindow.open(root,
+						this::openWorkspaceInMCreator, this::gradleProjectClosed);
+				workspaceSelector.setVisible(false);
+				openGradleProjects.add(window);
+				window.setVisible(true);
+				window.toFront();
+				opened.set(window);
+				var identity = window.identity();
+				workspaceSelector.addOrUpdateRecentWorkspace(new RecentWorkspaceEntry(identity.name(), root.toFile(),
+						switch (identity.loader()) {
+							case "fabric" -> net.mcreator.generator.GeneratorFlavor.FABRIC;
+							case "neoforge" -> net.mcreator.generator.GeneratorFlavor.NEOFORGE;
+							default -> net.mcreator.generator.GeneratorFlavor.UNKNOWN;
+						}));
+			} catch (dev.copperbench.core.workspace.project.GradleProjectDetector.NotAProjectException notAProject) {
+				// A folder with exactly one .mcreator file was opened as that workspace before reaching here
+				String message = switch (notAProject.code()) {
+					case dev.copperbench.core.workspace.project.GradleProjectDetector.NOT_A_PROJECT ->
+							dev.copperbench.shell.UiLocalePreferences.text("这个文件夹里没有 build.gradle 或 build.gradle.kts，不是可以打开的 Gradle 工程。",
+									"This folder has no build.gradle or build.gradle.kts, so it is not a Gradle project to open.");
+					case dev.copperbench.core.workspace.project.GradleProjectDetector.MCREATOR_WORKSPACE ->
+							dev.copperbench.shell.UiLocalePreferences.text("这个文件夹里有多个 .mcreator 工作区文件，请直接打开其中一个。",
+									"This folder holds more than one .mcreator workspace file; open one of them directly.");
+					default -> notAProject.getMessage();
+				};
+				JOptionPane.showMessageDialog(workspaceSelector, message,
+						dev.copperbench.shell.UiLocalePreferences.text("无法打开这个文件夹", "This folder cannot be opened"),
+						JOptionPane.WARNING_MESSAGE);
+			} catch (dev.copperbench.core.workspace.WorkspaceWriteLockedException locked) {
+				JOptionPane.showMessageDialog(workspaceSelector, dev.copperbench.shell.UiLocalePreferences.text(
+								"这个工程已在另一个 Copperbench 窗口或命令行会话中打开。关闭那边后再试。",
+								"This project is already open in another Copperbench window or command-line session. Close it there and try again."),
+						dev.copperbench.shell.UiLocalePreferences.text("工程已打开", "Project already open"),
+						JOptionPane.WARNING_MESSAGE);
+			} catch (IOException | RuntimeException failure) {
+				LOG.error("Failed to open the Gradle project {}", root, failure);
+				JOptionPane.showMessageDialog(workspaceSelector,
+						L10N.t("dialog.workspace.is_not_valid_message") + failure.getMessage(),
+						L10N.t("dialog.workspace.is_not_valid_title"), JOptionPane.ERROR_MESSAGE);
+			} finally {
+				workspaceSelector.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+		});
+		return opened.get();
+	}
+
+	private void gradleProjectClosed(dev.copperbench.shell.GradleProjectWindow window) {
+		openGradleProjects.remove(window);
+		if (!closingApplication && openMCreators.isEmpty() && openGradleProjects.isEmpty())
+			closeApplication();
+	}
+
+	private static java.nio.file.Path canonical(java.nio.file.Path path) {
+		try {
+			return path.toRealPath();
+		} catch (IOException | RuntimeException ignored) {
+			return path.toAbsolutePath().normalize();
+		}
+	}
+
 	private void reportFailedWorkspaceOpen(Exception e) {
 		ThreadUtil.runOnSwingThreadAndWait(() -> JOptionPane.showMessageDialog(this.workspaceSelector,
 				L10N.t("dialog.workspace.is_not_valid_message") + e.getMessage(),
@@ -410,6 +516,14 @@ public final class MCreatorApplication {
 					return;
 				}
 			}
+			closingApplication = true;
+			for (dev.copperbench.shell.GradleProjectWindow project : new ArrayList<>(openGradleProjects)) {
+				if (!project.closeWindow()) {
+					canNotClose.set(true);
+					break;
+				}
+			}
+			closingApplication = false;
 		});
 		if (canNotClose.get())
 			return; // if we fail to close all windows, we cancel the application close
@@ -459,6 +573,11 @@ public final class MCreatorApplication {
 
 	public List<MCreator> getOpenMCreators() {
 		return openMCreators;
+	}
+
+	/** The open windows of Gradle projects Copperbench did not create (ADR-0020). */
+	public List<dev.copperbench.shell.GradleProjectWindow> getOpenGradleProjects() {
+		return openGradleProjects;
 	}
 
 	public DiscordClient getDiscordClient() {

@@ -156,8 +156,9 @@ public final class JcefWorkspaceOpenBridgeTransport extends CefMessageRouterHand
 			callback.failure(400, "Invalid workspace open request: " + exception.getMessage());
 			return true;
 		}
-		if (!workspaceFile.isFile() || !workspaceFile.getName().endsWith(".mcreator")) {
-			callback.failure(404, "Workspace file does not exist: " + workspaceFile.getName());
+		// A folder opens its .mcreator workspace, or the Gradle project it holds (ADR-0020)
+		if (!workspaceFile.isDirectory() && (!workspaceFile.isFile() || !workspaceFile.getName().endsWith(".mcreator"))) {
+			callback.failure(404, "Workspace file or project folder does not exist: " + workspaceFile.getName());
 			return true;
 		}
 

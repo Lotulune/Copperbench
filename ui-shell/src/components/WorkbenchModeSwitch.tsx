@@ -7,7 +7,7 @@ const modes: WorkbenchMode[] = ['simple', 'professional'];
 
 /** A stable title-bar slot with a locally expanding, equal-width segmented control. */
 export function WorkbenchModeSwitch() {
-  const { mode, setMode } = useWorkbenchMode();
+  const { mode, setMode, locked } = useWorkbenchMode();
   const [expanded, setExpanded] = useState(false);
   const control = useRef<HTMLDivElement>(null);
   const buttons = useRef<Partial<Record<WorkbenchMode, HTMLButtonElement | null>>>({});
@@ -45,6 +45,8 @@ export function WorkbenchModeSwitch() {
       requestAnimationFrame(() => buttons.current[modes[index]]?.focus({ preventScroll: true }));
     }
   };
+  // An adopted Gradle project has only the professional workbench; the empty slot keeps the title bar in place.
+  if (locked) return <div className="workbench-mode-slot" data-testid="workbench-mode-locked" />;
   return <div className="workbench-mode-slot">
     <div ref={control} className="workbench-mode-switch" role="group" aria-label={uiText('工作模式', 'Workbench mode')}
       data-testid="workbench-mode-control" data-expanded={expanded} data-mode={mode}
