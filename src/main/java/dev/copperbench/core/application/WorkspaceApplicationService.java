@@ -513,8 +513,10 @@ public final class WorkspaceApplicationService {
 			JsonObject gradleProject = gradleProject(state);
 			if (gradleProject != null) projection.add("gradleProject", gradleProject);
 			projection.add("versionTracks", versionTracks(state));
-			JsonObject fieldContracts = FieldContractProjection.environment(optionalString(state.generator(), "id"));
-			fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
+			// Adopted projects have no elements, so they publish no contracts instead of a generator's full set.
+			JsonObject fieldContracts = gradleProject != null ? new JsonObject()
+					: FieldContractProjection.environment(optionalString(state.generator(), "id"));
+			if (gradleProject == null) fieldContracts.add("inputPreflight", ElementInputPreflight.capabilities());
 			// Full contracts are about 180,000 characters; an agent that only needs versions and roots asks for a summary.
 			boolean summary = "summary".equals(detail);
 			projection.add("fieldContracts", summary ? FieldContractProjection.summary(fieldContracts) : fieldContracts);
@@ -535,8 +537,10 @@ public final class WorkspaceApplicationService {
 			workflow.addProperty("buildOperation", "build_workspace");
 			workflow.addProperty("diagnosticsOperation", "get_task");
 			workflow.addProperty("healthOperation", "get_workspace_health");
-			workflow.addProperty("planOperation", "plan_workspace_changes");
-			workflow.addProperty("generationPreflightOperation", "preview_generation");
+			if (gradleProject == null) {
+				workflow.addProperty("planOperation", "plan_workspace_changes");
+				workflow.addProperty("generationPreflightOperation", "preview_generation");
+			}
 			projection.add("agentWorkflow", workflow);
 			return querySuccess(query, state.revision(), projection);
 		} catch (RuntimeException exception) {
@@ -1677,7 +1681,10 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_DOCTOR -> {
 					if (!query.payload().isEmpty())
 						yield queryFailure(query, state.revision(), invalidPayload("get_workspace_doctor accepts an empty payload"));
-					yield querySuccess(query, state.revision(), WorkspaceDoctor.inspect(workspaceRoot(state.id()),
+					yield querySuccess(query, state.revision(), GradleProjectOperations.KIND.equals(state.kind())
+							? WorkspaceDoctor.inspectProject(workspaceRoot(state.id()), optionalString(state.generator(), "id"),
+									GradleProjectOperations.problems(state), () -> tasks.environment(state.id()))
+							: WorkspaceDoctor.inspect(workspaceRoot(state.id()),
 							optionalString(state.generator(), "id"), () -> tasks.environment(state.id())));
 				}
 				case PREVIEW_GENERATION -> previewGeneration(query, state);

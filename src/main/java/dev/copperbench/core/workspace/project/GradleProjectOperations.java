@@ -56,6 +56,11 @@ public final class GradleProjectOperations {
 		return TASKS.contains(operation) && !supported(state) ? UNSUPPORTED : null;
 	}
 
+	/** Whether an adopted project ever offers the operation; a listing can leave out the others. */
+	public static boolean offered(Operation operation) {
+		return !STRUCTURED.contains(operation) && !LATER_TASKS.contains(operation);
+	}
+
 	/** Whether the project was identified well enough to build and test it. */
 	public static boolean supported(WorkspaceState state) {
 		return problems(state).isEmpty();

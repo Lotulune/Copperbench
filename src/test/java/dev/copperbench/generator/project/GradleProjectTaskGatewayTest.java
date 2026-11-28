@@ -278,9 +278,13 @@ class GradleProjectTaskGatewayTest {
 	@Test void theEnvironmentSeparatesTheProjectBuildFromThePinnedHost() throws Exception {
 		fabric("1.7.4", "gradle-8.8-bin.zip");
 		try (var session = open()) {
-			JsonObject execution = session.uiEntry().query(Query.of(UUID.randomUUID(), session.workspaceId(),
+			JsonObject environment = session.uiEntry().query(Query.of(UUID.randomUUID(), session.workspaceId(),
 					Operation.GET_WORKSPACE_ENVIRONMENT, JsonParser.parseString("{\"fieldContracts\":\"summary\"}").getAsJsonObject()))
-					.data().getAsJsonObject().getAsJsonObject("execution");
+					.data().getAsJsonObject();
+			assertTrue(environment.getAsJsonObject("fieldContracts").isEmpty());
+			JsonObject execution = environment.getAsJsonObject("execution");
+			assertEquals("src/copperbenchTest/java", execution.getAsJsonObject("testing").get("sourceDirectory").getAsString());
+			assertFalse(execution.getAsJsonObject("testing").has("mode"), "nothing is configured yet");
 			assertEquals("project", execution.get("dependencySource").getAsString());
 			assertEquals("gradle-8.8-bin.zip", execution.getAsJsonObject("gradle").get("distribution").getAsString());
 			assertFalse(execution.getAsJsonObject("gradle").getAsJsonObject("tasks").has("runDatagen"));

@@ -165,9 +165,47 @@ class HeadlessProductLauncherTest {
 		Files.delete(project.resolve("gradle/wrapper/gradle-wrapper.jar"));
 		JsonObject build = run(project, "build");
 		assertEquals("GRADLE_PROJECT_UNSUPPORTED", build.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
-		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(project, "api").get("code").getAsString());
 		assertFalse(Files.exists(project.resolve(".git")));
 		assertFalse(Files.exists(project.resolve("build")));
+	}
+
+	@Test void gradleProjectFoldersServeTheNativeApiAndTheDoctor() throws Exception {
+		Path project = Files.createDirectory(tempDir.resolve("ember-kit"));
+		Path example = Path.of("examples/agent-native/survey-pulse");
+		try (var paths = Files.walk(example)) {
+			for (Path path : paths.filter(Files::isRegularFile).toList()) {
+				Path target = project.resolve(example.relativize(path).toString());
+				Files.createDirectories(target.getParent());
+				Files.copy(path, target);
+			}
+		}
+		JsonObject doctor = run(project, "doctor");
+		assertEquals("succeeded", doctor.get("status").getAsString(), doctor.toString());
+		assertEquals("fabric-1.21.1", doctor.getAsJsonObject("data").get("generatorId").getAsString());
+		assertFalse(Files.exists(project.resolve(".copperbench")), "the doctor does not adopt the project");
+		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(project, "doctor", "--extra").get("code").getAsString());
+		assertEquals("GRADLE_PROJECT_NOT_FOUND", run(Files.createDirectory(tempDir.resolve("empty")), "doctor").get("code").getAsString());
+
+		StringWriter output = new StringWriter();
+		int exit = HeadlessProductLauncher.run(new String[] { "--workspace", project.toString(), "api" }, new PrintWriter(output, true),
+				new java.io.StringReader(request("query", "get_workbench", "{}")
+						+ request("command", "update_workspace_file", "{\"relativePath\":\"src/main/java/dev/example/Added.java\","
+								+ "\"content\":\"package dev.example;\\n\\nfinal class Added {}\\n\",\"createNew\":true}")
+						+ request("command", "create_mod_element", "{\"elementType\":\"item\",\"name\":\"ember\",\"initialValues\":{}}")));
+		assertEquals(0, exit, output.toString());
+		var lines = output.toString().lines().map(line -> JsonParser.parseString(line).getAsJsonObject()).toList();
+		assertEquals("ready", lines.get(0).get("status").getAsString());
+		assertEquals("gradle_project", lines.get(1).getAsJsonObject("result").getAsJsonObject("data").getAsJsonObject("workspace").get("kind").getAsString());
+		assertEquals("committed", lines.get(2).getAsJsonObject("result").get("status").getAsString(), lines.get(2).toString());
+		assertTrue(Files.isRegularFile(project.resolve("src/main/java/dev/example/Added.java")));
+		assertTrue(lines.get(3).toString().contains("GRADLE_PROJECT_OPERATION_UNAVAILABLE"), lines.get(3).toString());
+		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(project, "api", "--extra").get("code").getAsString());
+		assertEquals("HEADLESS_INVALID_ARGUMENTS", run(project, "serve", "--idle-timeout", "1").get("code").getAsString());
+	}
+
+	private static String request(String kind, String operation, String payload) {
+		return "{\"id\":\"" + java.util.UUID.randomUUID() + "\",\"kind\":\"" + kind + "\",\"operation\":\"" + operation
+				+ "\",\"expectedRevision\":0,\"payload\":" + payload + "}\n";
 	}
 
 	private static JsonObject run(Path workspace, String... command) {

@@ -39,7 +39,7 @@ final class HeadlessPythonHost {
 	static Duration idleTimeout(String[] commandArguments) {
 		if (commandArguments.length == 1) return DEFAULT_IDLE_TIMEOUT;
 		if (commandArguments.length != 3 || !commandArguments[1].equals("--idle-timeout"))
-			throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> serve [--idle-timeout <seconds>]");
+			throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator|Gradle project folder> serve [--idle-timeout <seconds>]");
 		long seconds;
 		try { seconds = Long.parseLong(commandArguments[2]); }
 		catch (NumberFormatException exception) { throw new IllegalArgumentException("--idle-timeout must be a whole number of seconds"); }

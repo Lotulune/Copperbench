@@ -119,9 +119,12 @@ public final class GradleProjectDetector {
 		} else if (identified) {
 			String candidate = loader + "-" + version;
 			var catalog = VersionTrackCatalog.official();
-			// Preview tracks identify the project too; their operations still need the negotiated preview contract.
-			if (catalog.decision(candidate).generatable() || catalog.requiresPreview(candidate))
+			// The preview contract's evidence covers generated workspaces only, so a preview track is not a target here.
+			if (catalog.decision(candidate).generatable())
 				generatorId = candidate;
+			else if (catalog.requiresPreview(candidate))
+				problems.add(new Problem(VERSION_UNSUPPORTED, "Minecraft " + version + " on " + loader
+						+ " is a preview track, which is not available for existing projects yet."));
 			else
 				problems.add(new Problem(VERSION_UNSUPPORTED, "Minecraft " + version + " on " + loader + " is not one of Copperbench's version tracks."));
 		}

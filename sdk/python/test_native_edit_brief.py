@@ -45,6 +45,24 @@ class NativeEditBriefTest(unittest.TestCase):
                 self.assertEqual('custom_entrypoints', self.ws.native_edit_brief()['reason'])
                 self.ws.read_file.assert_called_once_with(MANIFEST)
 
+    def test_an_existing_project_reports_where_and_against_what_its_tests_compile(self):
+        self.env.update(workspaceKind='gradle_project', gradleProject={'modId': 'river', 'problems': []})
+        self.env['execution']['testing'] = {'state': 'not_configured', 'sourceDirectory': 'src/copperbenchTest/java',
+                                            'host': {'loaderVersion': '0.19.3', 'fabricApiVersion': '0.116.15+1.21.1'}}
+        self.files[MAIN].update(ownership='manual', editable=True, userCodeBlocks=[])
+        brief = self.ws.native_edit_brief()
+        self.assertEqual(('ready', 'gradle_project', 'manual', True, 'src/copperbenchTest/java', '0.116.15+1.21.1'),
+                         (brief['status'], brief['workspaceKind'], brief['ownership'], brief['editable'],
+                          brief['gameTestSources'], brief['gameTestHost']['fabricApiVersion']))
+        self.assertNotIn('ready', (self.env['execution'].update(loader='neoforge') or self.ws.native_edit_brief())['status'])
+        problems = [{'code': 'GRADLE_PROJECT_VERSION_UNSUPPORTED', 'message': 'Minecraft 1.21.4 ...'}]
+        self.env['gradleProject']['problems'] = problems
+        self.ws.read_file.reset_mock()
+        unsupported = self.ws.native_edit_brief()
+        self.assertEqual(('needs_discovery', 'project_unsupported', problems),
+                         (unsupported['status'], unsupported['reason'], unsupported['problems']))
+        self.ws.read_file.assert_not_called()
+
     def test_custom_mappings_and_missing_files_are_distinct_from_denied_reads(self):
         self.files['build.gradle']['content'] += 'mappings project.otherMappings\n'
         self.assertEqual('inspect_build_mappings', self.ws.native_edit_brief()['reason'])

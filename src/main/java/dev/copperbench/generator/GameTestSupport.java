@@ -18,6 +18,8 @@ import java.util.Locale;
 public final class GameTestSupport {
     public static final String CONFIG_FILE = "copperbench-tests.json";
     public static final String DEFAULT_DIRECTORY = "src/gametest";
+    /** For adopted projects: a source set name no template uses, so their own build never compiles these tests. */
+    public static final String ADOPTED_DIRECTORY = "src/copperbenchTest";
     private static final String HOST_ID = "copperbench_test_host";
     private static final String TEST_CLASS = "copperbench.acceptance.AcceptanceTests";
     private GameTestSupport() {}

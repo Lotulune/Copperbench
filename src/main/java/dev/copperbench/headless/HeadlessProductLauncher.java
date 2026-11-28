@@ -118,17 +118,20 @@ public final class HeadlessProductLauncher {
 	static int run(String[] arguments, PrintWriter output, java.io.Reader input) {
 		try {
 			Invocation invocation = parse(arguments);
-			if (invocation.gradleProject()) return runGradleProject(invocation, output);
+			if (invocation.gradleProject() && !"doctor".equals(invocation.commandArguments()[0]))
+				return runGradleProject(invocation, output, input);
 			if ("doctor".equals(invocation.commandArguments()[0])) {
 				if (invocation.commandArguments().length != 1)
-					throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> doctor");
+					throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator|Gradle project folder> doctor");
 				JsonObject response = new JsonObject();
 				response.addProperty("schemaVersion", "1.0");
 				response.addProperty("operation", "get_workspace_doctor");
 				response.addProperty("status", "succeeded");
 				response.addProperty("exitCode", 0);
-				response.add("data", dev.copperbench.core.application.WorkspaceDoctor.inspectClosed(
-						invocation.workspace(), Path.of(System.getProperty("user.dir"))));
+				Path distribution = Path.of(System.getProperty("user.dir"));
+				response.add("data", invocation.gradleProject()
+						? dev.copperbench.core.application.WorkspaceDoctor.inspectClosedProject(invocation.workspace(), distribution)
+						: dev.copperbench.core.application.WorkspaceDoctor.inspectClosed(invocation.workspace(), distribution));
 				response.add("diagnostics", new JsonArray());
 				output.println(GSON.toJson(response));
 				output.flush();
@@ -155,7 +158,7 @@ public final class HeadlessProductLauncher {
 				HeadlessWorkspaceEntryAdapter adapter = session.headlessEntry(PermissionProfile.WORKSPACE);
 				if ("api".equals(invocation.commandArguments()[0])) {
 					if (invocation.commandArguments().length != 1)
-						throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> api");
+						throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator|Gradle project folder> api");
 					return new NativeApiSession(adapter, session.workspaceId()).serve(input, output);
 				}
 				if (serve) {
@@ -181,21 +184,33 @@ public final class HeadlessProductLauncher {
 	}
 
 	/**
-	 * One command against a Gradle project Copperbench did not create (ADR-0020). It needs no MCreator workspace or
-	 * generator runtime; long-lived hosts and the closed-workspace doctor still work on {@code .mcreator} files only.
+	 * One command or host for a Gradle project Copperbench did not create (ADR-0020). It needs no MCreator workspace or
+	 * generator runtime.
 	 */
-	private static int runGradleProject(Invocation invocation, PrintWriter output) throws java.io.IOException, InterruptedException {
-		String command = invocation.commandArguments()[0];
-		if (List.of("doctor", "api", "serve").contains(command))
-			throw new IllegalArgumentException("'" + command + "' is not available for Gradle project folders; it needs a .mcreator workspace");
-		boolean stream = announceStream(invocation, output);
+	private static int runGradleProject(Invocation invocation, PrintWriter output, java.io.Reader input)
+			throws java.io.IOException, InterruptedException {
+		String[] arguments = invocation.commandArguments();
+		boolean api = "api".equals(arguments[0]), serve = "serve".equals(arguments[0]);
+		if (api && arguments.length != 1)
+			throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator|Gradle project folder> api");
+		// Validate before taking the project's write lock.
+		Duration idleTimeout = serve ? HeadlessPythonHost.idleTimeout(arguments) : null;
+		boolean stream = !api && !serve && announceStream(invocation, output);
 		Path distribution = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+		var gateway = new java.util.concurrent.atomic.AtomicReference<GradleProjectTaskGateway>();
 		try (GradleProjectWorkspaceSession session = GradleProjectWorkspaceSession.open(invocation.workspace(),
-				(store, root) -> new GradleProjectTaskGateway(store, ignored -> root, distribution, Clock.systemUTC(), UUID::randomUUID,
-						profile -> GradleProjectTaskGateway.productProcesses(distribution, profile, HeadlessRuntimeBootstrap::prepareGradleHome)),
-				Clock.systemUTC(), UUID::randomUUID)) {
-			return runCommand(session.headlessEntry(PermissionProfile.WORKSPACE), session.workspaceId(), UUID::randomUUID,
-					invocation.commandArguments(), output, stream);
+				(store, root) -> {
+					var created = new GradleProjectTaskGateway(store, ignored -> root, distribution, Clock.systemUTC(), UUID::randomUUID,
+							profile -> GradleProjectTaskGateway.productProcesses(distribution, profile, HeadlessRuntimeBootstrap::prepareGradleHome));
+					gateway.set(created);
+					return created;
+				}, Clock.systemUTC(), UUID::randomUUID)) {
+			HeadlessWorkspaceEntryAdapter adapter = session.headlessEntry(PermissionProfile.WORKSPACE);
+			UUID workspaceId = session.workspaceId();
+			if (api) return new NativeApiSession(adapter, workspaceId).serve(input, output);
+			if (serve) return HeadlessPythonHost.serve(invocation.workspace(), workspaceId, adapter,
+					() -> !gateway.get().active(workspaceId).isEmpty(), idleTimeout, output);
+			return runCommand(adapter, workspaceId, UUID::randomUUID, arguments, output, stream);
 		}
 	}
 
