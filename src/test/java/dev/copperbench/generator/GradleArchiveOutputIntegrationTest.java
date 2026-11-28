@@ -78,9 +78,22 @@ class GradleArchiveOutputIntegrationTest {
         command.addAll(arguments);
         Process process = new ProcessBuilder(command).directory(project.toFile()).redirectErrorStream(true)
                 .redirectOutput(log.toFile()).start();
-        if (!process.waitFor(180, TimeUnit.SECONDS)) {
-            process.destroyForcibly();
-            fail("Archive receipt regression timed out; log: " + Files.readString(log));
+        // A --no-daemon build can still fork a single-use daemon. It may outlive the client and keep Gradle's native
+        // libraries in the temporary user home loaded, so the @TempDir cleanup failed on Windows (Nightly 2026-11-11).
+        // Record the process tree while the client runs and wait for all of it before returning.
+        java.util.Set<ProcessHandle> tree = new java.util.HashSet<>();
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(180);
+        while (!process.waitFor(100, TimeUnit.MILLISECONDS)) {
+            process.descendants().forEach(tree::add);
+            if (System.nanoTime() > deadline) {
+                tree.forEach(ProcessHandle::destroyForcibly);
+                process.destroyForcibly();
+                fail("Archive receipt regression timed out; log: " + Files.readString(log));
+            }
+        }
+        for (ProcessHandle child : tree) {
+            try { child.onExit().get(60, TimeUnit.SECONDS); }
+            catch (java.util.concurrent.TimeoutException stillRunning) { child.destroyForcibly(); }
         }
         assertEquals(0, process.exitValue(), () -> {
             try { return Files.readString(log); }
