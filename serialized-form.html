@@ -584,11 +584,46 @@ loadScripts(document, 'script');</script>
 </li>
 <li class="block-list">
 <h5>session</h5>
-<pre><a href="dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceSession.html" title="class in dev.copperbench.core.workspace.mcreator">MCreatorWorkspaceSession</a> session</pre>
+<pre><a href="dev/copperbench/core/application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a> session</pre>
 </li>
 <li class="block-list">
 <h5>unsavedSourceCount</h5>
 <pre><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html" title="class or interface in java.util.concurrent.atomic" class="external-link">AtomicInteger</a> unsavedSourceCount</pre>
+</li>
+</ul>
+</section>
+</li>
+</ul>
+</section>
+</li>
+<li>
+<section class="serialized-class-details" id="dev.copperbench.shell.GradleProjectWindow">
+<h3>Class&nbsp;<a href="dev/copperbench/shell/GradleProjectWindow.html" title="class in dev.copperbench.shell">dev.copperbench.shell.GradleProjectWindow</a></h3>
+<div class="type-signature">class GradleProjectWindow extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.desktop/javax/swing/JFrame.html" title="class or interface in javax.swing" class="external-link">JFrame</a> implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a></div>
+<ul class="block-list">
+<li>
+<section class="detail">
+<h4>Serialized Fields</h4>
+<ul class="block-list">
+<li class="block-list">
+<h5>closed</h5>
+<pre><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="dev/copperbench/shell/GradleProjectWindow.html" title="class in dev.copperbench.shell">GradleProjectWindow</a>&gt; closed</pre>
+</li>
+<li class="block-list">
+<h5>identity</h5>
+<pre><a href="dev/copperbench/core/workspace/project/GradleProjectIdentity.html" title="class in dev.copperbench.core.workspace.project">GradleProjectIdentity</a> identity</pre>
+</li>
+<li class="block-list">
+<h5>root</h5>
+<pre><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a> root</pre>
+</li>
+<li class="block-list">
+<h5>shell</h5>
+<pre><a href="dev/copperbench/shell/CopperbenchProductShell.html" title="class in dev.copperbench.shell">CopperbenchProductShell</a> shell</pre>
+</li>
+<li class="block-list">
+<h5>windowChromeController</h5>
+<pre><a href="dev/copperbench/window/WindowsWindowChromeController.html" title="class in dev.copperbench.window">WindowsWindowChromeController</a> windowChromeController</pre>
 </li>
 </ul>
 </section>
@@ -14061,6 +14096,10 @@ loadScripts(document, 'script');</script>
 <li class="block-list">
 <h5>recentWorkspaces</h5>
 <pre><a href="net/mcreator/ui/workspace/selector/RecentWorkspaces.html" title="class in net.mcreator.ui.workspace.selector">RecentWorkspaces</a> recentWorkspaces</pre>
+</li>
+<li class="block-list">
+<h5>recentWorkspacesLoaded</h5>
+<pre>boolean recentWorkspacesLoaded</pre>
 </li>
 <li class="block-list">
 <h5>subactions</h5>

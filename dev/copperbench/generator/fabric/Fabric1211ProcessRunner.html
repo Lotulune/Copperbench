@@ -68,6 +68,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#system(java.lang.String)" tabindex="0">system(String)</a></li>
 <li><a href="#system(java.lang.String,java.nio.file.Path)" tabindex="0">system(String, Path)</a></li>
 <li><a href="#system(java.lang.String,java.util.function.Supplier)" tabindex="0">system(String, Supplier)</a></li>
+<li><a href="#system(java.lang.String,java.util.function.Supplier,java.util.function.BooleanSupplier)" tabindex="0">system(String, Supplier, BooleanSupplier)</a></li>
 <li><a href="#wrapperCommand(boolean,java.lang.String,boolean)" tabindex="0">wrapperCommand(boolean, String, boolean)</a></li>
 <li><a href="#daemonArguments(java.util.List,boolean)" tabindex="0">daemonArguments(List, boolean)</a></li>
 <li><a href="#isClientRun(java.util.List)" tabindex="0">isClientRun(List)</a></li>
@@ -198,11 +199,19 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#system(java.lang.String,java.util.function.Supplier)" class="member-name-link">system</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readinessMarker,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;javaHome)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#wrapperCommand(boolean,java.lang.String,boolean)" class="member-name-link">wrapperCommand</a><wbr>(boolean&nbsp;windows,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static <a href="Fabric1211ProcessRunner.html" title="interface in dev.copperbench.generator.fabric">Fabric1211ProcessRunner</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#system(java.lang.String,java.util.function.Supplier,java.util.function.BooleanSupplier)" class="member-name-link">system</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readinessMarker,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;javaHome,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/BooleanSupplier.html" title="class or interface in java.util.function" class="external-link">BooleanSupplier</a>&nbsp;productGradleHome)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
+<div class="block">Like <a href="#system(java.lang.String,java.util.function.Supplier)"><code>system(String, Supplier)</code></a>; while <code>productGradleHome</code> is false the process keeps the
+environment's own Gradle user home instead of the product's, and with it the product's mirror settings.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#wrapperCommand(boolean,java.lang.String,boolean)" class="member-name-link">wrapperCommand</a><wbr>(boolean&nbsp;windows,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;configuredGradle,
  boolean&nbsp;launcherExecutable)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1">
 <div class="block">The workspace wrapper is addressed relative to the process directory.</div>
 </div>
 </div>
@@ -283,6 +292,18 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="Fabric1211ProcessRunner.html" title="interface in dev.copperbench.generator.fabric">Fabric1211ProcessRunner</a></span>&nbsp;<span class="element-name">system</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readinessMarker,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;javaHome)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="system(java.lang.String,java.util.function.Supplier,java.util.function.BooleanSupplier)">
+<h3>system</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="Fabric1211ProcessRunner.html" title="interface in dev.copperbench.generator.fabric">Fabric1211ProcessRunner</a></span>&nbsp;<span class="element-name">system</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readinessMarker,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;javaHome,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/BooleanSupplier.html" title="class or interface in java.util.function" class="external-link">BooleanSupplier</a>&nbsp;productGradleHome)</span></div>
+<div class="block">Like <a href="#system(java.lang.String,java.util.function.Supplier)"><code>system(String, Supplier)</code></a>; while <code>productGradleHome</code> is false the process keeps the
+environment's own Gradle user home instead of the product's, and with it the product's mirror settings.</div>
 </div>
 </section>
 </li>

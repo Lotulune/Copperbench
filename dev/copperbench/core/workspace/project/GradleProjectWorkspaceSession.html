@@ -67,6 +67,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#workspaceId()" tabindex="0">workspaceId()</a></li>
 <li><a href="#root()" tabindex="0">root()</a></li>
 <li><a href="#service()" tabindex="0">service()</a></li>
+<li><a href="#settings()" tabindex="0">settings()</a></li>
+<li><a href="#decideGitIgnore(boolean)" tabindex="0">decideGitIgnore(boolean)</a></li>
+<li><a href="#useEnvironmentGradleHome(boolean)" tabindex="0">useEnvironmentGradleHome(boolean)</a></li>
 <li><a href="#headlessEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" tabindex="0">headlessEntry(UiCore.PermissionProfile)</a></li>
 <li><a href="#mcpEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" tabindex="0">mcpEntry(UiCore.PermissionProfile)</a></li>
 <li><a href="#uiEntry()" tabindex="0">uiEntry()</a></li>
@@ -86,13 +89,13 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
+<dd><code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">GradleProjectWorkspaceSession</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
-implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></span></div>
+implements <a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></span></div>
 <div class="block">Attaches the application service to a Gradle project Copperbench did not create (ADR-0020). Identity and revision
 live in <code>.copperbench/workspace.json</code>; every file stays hand-written and no project file is changed by opening.</div>
 </div>
@@ -145,32 +148,47 @@ live in <code>.copperbench/workspace.json</code>; every file stays hand-written 
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#close()" class="member-name-link">close</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/HeadlessWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">HeadlessWorkspaceEntryAdapter</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#headlessEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">headlessEntry</a><wbr>(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#mcpEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">mcpEntry</a><wbr>(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decideGitIgnore(boolean)" class="member-name-link">decideGitIgnore</a><wbr>(boolean&nbsp;add)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Records the answer to the <code>.gitignore</code> question (ADR-0020 decision 7).</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/HeadlessWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">HeadlessWorkspaceEntryAdapter</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#headlessEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">headlessEntry</a><wbr>(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="GradleProjectWorkspaceSession.html" title="class in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#open(java.nio.file.Path,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession.TaskFactory,java.time.Clock,java.util.function.Supplier)" class="member-name-link">open</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#mcpEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)" class="member-name-link">mcpEntry</a><wbr>(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="GradleProjectWorkspaceSession.html" title="class in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#open(java.nio.file.Path,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession.TaskFactory,java.time.Clock,java.util.function.Supplier)" class="member-name-link">open</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
  <a href="GradleProjectWorkspaceSession.TaskFactory.html" title="interface in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession.TaskFactory</a>&nbsp;taskFactory,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html" title="class or interface in java.time" class="external-link">Clock</a>&nbsp;clock,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&gt;&nbsp;ids)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Opens the project for this session.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#root()" class="member-name-link">root</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/WorkspaceApplicationService.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#service()" class="member-name-link">service</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#root()" class="member-name-link">root</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/WorkspaceApplicationService.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#service()" class="member-name-link">service</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="GradleProjectSettings.html" title="class in dev.copperbench.core.workspace.project">GradleProjectSettings</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#settings()" class="member-name-link">settings</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The project's own choices; see <a href="GradleProjectSettings.html" title="class in dev.copperbench.core.workspace.project"><code>GradleProjectSettings</code></a>.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../application/WorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">WorkspaceEntryAdapter</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#uiEntry()" class="member-name-link">uiEntry</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#workspaceId()" class="member-name-link">workspaceId</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#useEnvironmentGradleHome(boolean)" class="member-name-link">useEnvironmentGradleHome</a><wbr>(boolean&nbsp;environment)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Chooses the Gradle user home the project's builds use (ADR-0020 decision 8); the product's is the default.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#workspaceId()" class="member-name-link">workspaceId</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -237,6 +255,10 @@ The session owns the gateway <code>taskFactory</code> creates and closes it befo
 <h3>workspaceId</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a></span>&nbsp;<span class="element-name">workspaceId</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#workspaceId()">workspaceId</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -253,6 +275,48 @@ The session owns the gateway <code>taskFactory</code> creates and closes it befo
 <h3>service</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/WorkspaceApplicationService.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService</a></span>&nbsp;<span class="element-name">service</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#service()">service</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="settings()">
+<h3>settings</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="GradleProjectSettings.html" title="class in dev.copperbench.core.workspace.project">GradleProjectSettings</a></span>&nbsp;<span class="element-name">settings</span>()</div>
+<div class="block">The project's own choices; see <a href="GradleProjectSettings.html" title="class in dev.copperbench.core.workspace.project"><code>GradleProjectSettings</code></a>.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="decideGitIgnore(boolean)">
+<h3>decideGitIgnore</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">decideGitIgnore</span><wbr><span class="parameters">(boolean&nbsp;add)</span>
+                     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Records the answer to the <code>.gitignore</code> question (ADR-0020 decision 7). Adding the entry first takes a
+recovery point; declining leaves the project's files as they are.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="useEnvironmentGradleHome(boolean)">
+<h3>useEnvironmentGradleHome</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">useEnvironmentGradleHome</span><wbr><span class="parameters">(boolean&nbsp;environment)</span>
+                              throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Chooses the Gradle user home the project's builds use (ADR-0020 decision 8); the product's is the default.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -261,6 +325,10 @@ The session owns the gateway <code>taskFactory</code> creates and closes it befo
 <h3>headlessEntry</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/HeadlessWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">HeadlessWorkspaceEntryAdapter</a></span>&nbsp;<span class="element-name">headlessEntry</span><wbr><span class="parameters">(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#headlessEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)">headlessEntry</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -269,6 +337,10 @@ The session owns the gateway <code>taskFactory</code> creates and closes it befo
 <h3>mcpEntry</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a></span>&nbsp;<span class="element-name">mcpEntry</span><wbr><span class="parameters">(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#mcpEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)">mcpEntry</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -277,6 +349,10 @@ The session owns the gateway <code>taskFactory</code> creates and closes it befo
 <h3>uiEntry</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/WorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">WorkspaceEntryAdapter</a></span>&nbsp;<span class="element-name">uiEntry</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#uiEntry()">uiEntry</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -289,6 +365,8 @@ The session owns the gateway <code>taskFactory</code> creates and closes it befo
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html#close()" title="class or interface in java.lang" class="external-link">close</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#close()">close</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
 </dl>

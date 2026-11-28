@@ -65,6 +65,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#productProcesses(java.nio.file.Path,dev.copperbench.generator.JavaGeneratorProfile,java.lang.Runnable)" tabindex="0">productProcesses(Path, JavaGeneratorProfile, Runnable)</a></li>
+<li><a href="#productProcesses(java.nio.file.Path,dev.copperbench.generator.JavaGeneratorProfile,java.lang.Runnable,java.util.function.BooleanSupplier)" tabindex="0">productProcesses(Path, JavaGeneratorProfile, Runnable, BooleanSupplier)</a></li>
 <li><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" tabindex="0">start(UUID, UiCore.Operation, JsonObject)</a></li>
 <li><a href="#find(java.util.UUID,java.util.UUID)" tabindex="0">find(UUID, UUID)</a></li>
 <li><a href="#active(java.util.UUID)" tabindex="0">active(UUID)</a></li>
@@ -184,26 +185,35 @@ and run tasks.</div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">The track's JDK with the project's or host's wrapper; <code>prepare</code> runs before each Gradle process.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;com.google.gson.JsonObject&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#recent(java.util.UUID)" class="member-name-link">recent</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../GradleProcessRunner.html" title="interface in dev.copperbench.generator">GradleProcessRunner</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#productProcesses(java.nio.file.Path,dev.copperbench.generator.JavaGeneratorProfile,java.lang.Runnable,java.util.function.BooleanSupplier)" class="member-name-link">productProcesses</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
+ <a href="../JavaGeneratorProfile.html" title="interface in dev.copperbench.generator">JavaGeneratorProfile</a>&nbsp;profile,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;prepare,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/BooleanSupplier.html" title="class or interface in java.util.function" class="external-link">BooleanSupplier</a>&nbsp;environmentGradleHome)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Like <a href="#productProcesses(java.nio.file.Path,dev.copperbench.generator.JavaGeneratorProfile,java.lang.Runnable)"><code>productProcesses(Path, JavaGeneratorProfile, Runnable)</code></a>; <code>environmentGradleHome</code> is read
+before each process, so a changed project setting applies to the next task.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;com.google.gson.JsonObject&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#recent(java.util.UUID)" class="member-name-link">recent</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Bounded observations for task discovery, including terminal tasks retained across sessions.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;com.google.gson.JsonObject&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)" class="member-name-link">sourcePreview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;com.google.gson.JsonObject&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)" class="member-name-link">sourcePreview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sourcePath)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a bounded read-only preview for a source file already referenced by a task diagnostic.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="../../core/contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation,
  com.google.gson.JsonObject&nbsp;payload)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#subscribeTaskEvents(java.util.function.Consumer)" class="member-name-link">subscribeTaskEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../../core/application/WorkspaceTaskGateway.TaskEvent.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.TaskEvent</a>&gt;&nbsp;listener)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#subscribeTaskEvents(java.util.function.Consumer)" class="member-name-link">subscribeTaskEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../../core/application/WorkspaceTaskGateway.TaskEvent.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.TaskEvent</a>&gt;&nbsp;listener)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Subscribes to asynchronous task state changes.</div>
 </div>
 </div>
@@ -268,6 +278,19 @@ and run tasks.</div>
  <a href="../JavaGeneratorProfile.html" title="interface in dev.copperbench.generator">JavaGeneratorProfile</a>&nbsp;profile,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;prepare)</span></div>
 <div class="block">The track's JDK with the project's or host's wrapper; <code>prepare</code> runs before each Gradle process.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="productProcesses(java.nio.file.Path,dev.copperbench.generator.JavaGeneratorProfile,java.lang.Runnable,java.util.function.BooleanSupplier)">
+<h3>productProcesses</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../GradleProcessRunner.html" title="interface in dev.copperbench.generator">GradleProcessRunner</a></span>&nbsp;<span class="element-name">productProcesses</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distribution,
+ <a href="../JavaGeneratorProfile.html" title="interface in dev.copperbench.generator">JavaGeneratorProfile</a>&nbsp;profile,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;prepare,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/BooleanSupplier.html" title="class or interface in java.util.function" class="external-link">BooleanSupplier</a>&nbsp;environmentGradleHome)</span></div>
+<div class="block">Like <a href="#productProcesses(java.nio.file.Path,dev.copperbench.generator.JavaGeneratorProfile,java.lang.Runnable)"><code>productProcesses(Path, JavaGeneratorProfile, Runnable)</code></a>; <code>environmentGradleHome</code> is read
+before each process, so a changed project setting applies to the next task.</div>
 </div>
 </section>
 </li>

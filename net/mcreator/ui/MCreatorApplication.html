@@ -70,8 +70,10 @@ loadScripts(document, 'script');</script>
 <li><a href="#getWorkspaceSelector()" tabindex="0">getWorkspaceSelector()</a></li>
 <li><a href="#openWorkspaceInMCreator(java.io.File)" tabindex="0">openWorkspaceInMCreator(File)</a></li>
 <li><a href="#openWorkspaceInMCreator(java.io.File,boolean)" tabindex="0">openWorkspaceInMCreator(File, boolean)</a></li>
+<li><a href="#openGradleProject(java.io.File)" tabindex="0">openGradleProject(File)</a></li>
 <li><a href="#closeApplication()" tabindex="0">closeApplication()</a></li>
 <li><a href="#getOpenMCreators()" tabindex="0">getOpenMCreators()</a></li>
+<li><a href="#getOpenGradleProjects()" tabindex="0">getOpenGradleProjects()</a></li>
 <li><a href="#getDiscordClient()" tabindex="0">getDiscordClient()</a></li>
 <li><a href="#getTaskbarIntegration()" tabindex="0">getTaskbarIntegration()</a></li>
 </ol>
@@ -142,15 +144,26 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="component/util/DiscordClient.html" title="class in net.mcreator.ui.component.util">DiscordClient</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDiscordClient()" class="member-name-link">getDiscordClient</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="MCreator.html" title="class in net.mcreator.ui">MCreator</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getOpenMCreators()" class="member-name-link">getOpenMCreators</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="TaskbarIntegration.html" title="class in net.mcreator.ui">TaskbarIntegration</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTaskbarIntegration()" class="member-name-link">getTaskbarIntegration</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="../../../dev/copperbench/shell/GradleProjectWindow.html" title="class in dev.copperbench.shell">GradleProjectWindow</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getOpenGradleProjects()" class="member-name-link">getOpenGradleProjects</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The open windows of Gradle projects Copperbench did not create (ADR-0020).</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="MCreator.html" title="class in net.mcreator.ui">MCreator</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getOpenMCreators()" class="member-name-link">getOpenMCreators</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="workspace/selector/WorkspaceSelector.html" title="class in net.mcreator.ui.workspace.selector">WorkspaceSelector</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWorkspaceSelector()" class="member-name-link">getWorkspaceSelector</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="TaskbarIntegration.html" title="class in net.mcreator.ui">TaskbarIntegration</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTaskbarIntegration()" class="member-name-link">getTaskbarIntegration</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="workspace/selector/WorkspaceSelector.html" title="class in net.mcreator.ui.workspace.selector">WorkspaceSelector</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getWorkspaceSelector()" class="member-name-link">getWorkspaceSelector</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../../dev/copperbench/shell/GradleProjectWindow.html" title="class in dev.copperbench.shell">GradleProjectWindow</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#openGradleProject(java.io.File)" class="member-name-link">openGradleProject</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&nbsp;folder)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Opens a Gradle project Copperbench did not create in its own window (ADR-0020), or brings the window that
+already has it to the front.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="MCreator.html" title="class in net.mcreator.ui">MCreator</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#openWorkspaceInMCreator(java.io.File)" class="member-name-link">openWorkspaceInMCreator</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&nbsp;workspaceFile)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -278,6 +291,20 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="openGradleProject(java.io.File)">
+<h3>openGradleProject</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../../dev/copperbench/shell/GradleProjectWindow.html" title="class in dev.copperbench.shell">GradleProjectWindow</a></span>&nbsp;<span class="element-name">openGradleProject</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&nbsp;folder)</span></div>
+<div class="block">Opens a Gradle project Copperbench did not create in its own window (ADR-0020), or brings the window that
+already has it to the front.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the project's window, or <code>null</code> when the folder could not be opened</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="closeApplication()">
 <h3>closeApplication</h3>
 <div class="horizontal-scroll">
@@ -290,6 +317,15 @@ loadScripts(document, 'script');</script>
 <h3>getOpenMCreators</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="MCreator.html" title="class in net.mcreator.ui">MCreator</a>&gt;</span>&nbsp;<span class="element-name">getOpenMCreators</span>()</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getOpenGradleProjects()">
+<h3>getOpenGradleProjects</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../../../dev/copperbench/shell/GradleProjectWindow.html" title="class in dev.copperbench.shell">GradleProjectWindow</a>&gt;</span>&nbsp;<span class="element-name">getOpenGradleProjects</span>()</div>
+<div class="block">The open windows of Gradle projects Copperbench did not create (ADR-0020).</div>
 </div>
 </section>
 </li>

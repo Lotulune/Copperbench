@@ -64,6 +64,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#open(javax.swing.JFrame,net.mcreator.workspace.Workspace,java.lang.Runnable,java.lang.Runnable,java.util.function.Consumer,dev.copperbench.window.WindowsWindowChromeController)" tabindex="0">open(JFrame, Workspace, Runnable, Runnable, Consumer, WindowsWindowChromeController)</a></li>
+<li><a href="#openGradleProject(javax.swing.JFrame,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession,java.lang.Runnable,java.util.function.Consumer,dev.copperbench.window.WindowsWindowChromeController)" tabindex="0">openGradleProject(JFrame, GradleProjectWorkspaceSession, Runnable, Consumer, WindowsWindowChromeController)</a></li>
 <li><a href="#forceLoad()" tabindex="0">forceLoad()</a></li>
 <li><a href="#workspaceId()" tabindex="0">workspaceId()</a></li>
 <li><a href="#unsavedSourceCount()" tabindex="0">unsavedSourceCount()</a></li>
@@ -184,12 +185,21 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;openWorkspaceAction,
  <a href="../window/WindowsWindowChromeController.html" title="class in dev.copperbench.window">WindowsWindowChromeController</a>&nbsp;windowChromeController)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#unsavedSourceCount()" class="member-name-link">unsavedSourceCount</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#workspaceId()" class="member-name-link">workspaceId</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CopperbenchProductShell.html" title="class in dev.copperbench.shell">CopperbenchProductShell</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#openGradleProject(javax.swing.JFrame,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession,java.lang.Runnable,java.util.function.Consumer,dev.copperbench.window.WindowsWindowChromeController)" class="member-name-link">openGradleProject</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.desktop/javax/swing/JFrame.html" title="class or interface in javax.swing" class="external-link">JFrame</a>&nbsp;owner,
+ <a href="../core/workspace/project/GradleProjectWorkspaceSession.html" title="class in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession</a>&nbsp;session,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;closeAction,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;openWorkspaceAction,
+ <a href="../window/WindowsWindowChromeController.html" title="class in dev.copperbench.window">WindowsWindowChromeController</a>&nbsp;windowChromeController)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Hosts an adopted Gradle project's session (ADR-0020); the shell owns and closes it.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#unsavedSourceCount()" class="member-name-link">unsavedSourceCount</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#workspaceId()" class="member-name-link">workspaceId</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -254,6 +264,24 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;openWorkspaceAction,
  <a href="../window/WindowsWindowChromeController.html" title="class in dev.copperbench.window">WindowsWindowChromeController</a>&nbsp;windowChromeController)</span>
                                     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="openGradleProject(javax.swing.JFrame,dev.copperbench.core.workspace.project.GradleProjectWorkspaceSession,java.lang.Runnable,java.util.function.Consumer,dev.copperbench.window.WindowsWindowChromeController)">
+<h3>openGradleProject</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="CopperbenchProductShell.html" title="class in dev.copperbench.shell">CopperbenchProductShell</a></span>&nbsp;<span class="element-name">openGradleProject</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.desktop/javax/swing/JFrame.html" title="class or interface in javax.swing" class="external-link">JFrame</a>&nbsp;owner,
+ <a href="../core/workspace/project/GradleProjectWorkspaceSession.html" title="class in dev.copperbench.core.workspace.project">GradleProjectWorkspaceSession</a>&nbsp;session,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;closeAction,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;openWorkspaceAction,
+ <a href="../window/WindowsWindowChromeController.html" title="class in dev.copperbench.window">WindowsWindowChromeController</a>&nbsp;windowChromeController)</span>
+                                                 throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Hosts an adopted Gradle project's session (ADR-0020); the shell owns and closes it.</div>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>

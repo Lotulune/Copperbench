@@ -81,13 +81,13 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
+<dd><code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">MCreatorWorkspaceSession</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
-implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></span></div>
+implements <a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></span></div>
 <div class="block">Attaches the shared application service to an already opened, writer-leased upstream workspace.</div>
 </div>
 </section>
@@ -222,6 +222,10 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>workspaceId</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a></span>&nbsp;<span class="element-name">workspaceId</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#workspaceId()">workspaceId</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -230,6 +234,10 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>service</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/WorkspaceApplicationService.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService</a></span>&nbsp;<span class="element-name">service</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#service()">service</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -246,6 +254,10 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>headlessEntry</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/HeadlessWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">HeadlessWorkspaceEntryAdapter</a></span>&nbsp;<span class="element-name">headlessEntry</span><wbr><span class="parameters">(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#headlessEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)">headlessEntry</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -254,6 +266,10 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>mcpEntry</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/McpWorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">McpWorkspaceEntryAdapter</a></span>&nbsp;<span class="element-name">mcpEntry</span><wbr><span class="parameters">(<a href="../../contract/UiCore.PermissionProfile.html" title="enum class in dev.copperbench.core.contract">UiCore.PermissionProfile</a>&nbsp;permission)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#mcpEntry(dev.copperbench.core.contract.UiCore.PermissionProfile)">mcpEntry</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -262,6 +278,10 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>uiEntry</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../application/WorkspaceEntryAdapter.html" title="class in dev.copperbench.core.application">WorkspaceEntryAdapter</a></span>&nbsp;<span class="element-name">uiEntry</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#uiEntry()">uiEntry</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
+</dl>
 </div>
 </section>
 </li>
@@ -273,6 +293,8 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html#close()" title="class or interface in java.lang" class="external-link">close</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceSession.html#close()">close</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceSession.html" title="interface in dev.copperbench.core.application">WorkspaceSession</a></code></dd>
 </dl>
 </div>
 </section>
