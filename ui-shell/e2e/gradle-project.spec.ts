@@ -86,6 +86,31 @@ test.describe('Adopted Gradle project (ADR-0020)', () => {
     await expect.poll(() => changes(page)).toEqual([{ operation: 'git_ignore', add: true }]);
   });
 
+  // Focusing the window reloads workspace health. The press that focuses the window must still release on the
+  // same control, so nothing above it may move while health reloads.
+  test('the overview keeps its layout when the window regains focus', async ({ page }) => {
+    await installProjectHost(page);
+    await openProject(page);
+    const add = page.getByTestId('gradle-project-gitignore-add');
+    await expect(add).toBeVisible();
+    await expect(page.locator('.overview-counts')).toContainText(/资产\s*\d/);
+    const moves = await page.evaluate(async () => {
+      const top = () => document.querySelector('[data-testid="gradle-project-gitignore-add"]')?.getBoundingClientRect().top ?? -1;
+      const start = top();
+      const seen: number[] = [];
+      const observer = new MutationObserver(() => seen.push(top()));
+      observer.observe(document.querySelector('[data-testid="workbench-main"]')!, { subtree: true, childList: true, characterData: true, attributes: true });
+      window.dispatchEvent(new Event('focus'));
+      await new Promise(resolve => setTimeout(resolve, 600));
+      observer.disconnect();
+      return { start, seen: seen.length, moved: seen.filter(value => value !== start) };
+    });
+    expect(moves.seen, 'the focus refresh re-rendered the overview').toBeGreaterThan(0);
+    expect(moves.moved).toEqual([]);
+    await add.click();
+    await expect.poll(() => changes(page)).toEqual([{ operation: 'git_ignore', add: true }]);
+  });
+
   test('declining keeps the project files and offers the change later', async ({ page }) => {
     await installProjectHost(page);
     await openProject(page);

@@ -82,6 +82,7 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 	private final JPanel recentPanel = new JPanel(recentPanes);
 	private final WorkspaceOpenListener workspaceOpenListener;
 	private RecentWorkspaces recentWorkspaces = new RecentWorkspaces();
+	private boolean recentWorkspacesLoaded;
 
 	@Nullable private final MCreatorApplication application;
 
@@ -465,7 +466,12 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		}
 	}
 
-	public void addOrUpdateRecentWorkspace(RecentWorkspaceEntry recentWorkspaceEntry) {
+	public synchronized void addOrUpdateRecentWorkspace(RecentWorkspaceEntry recentWorkspaceEntry) {
+		// Opening from a launch argument happens before this window was activated and read the saved list
+		if (!recentWorkspacesLoaded)
+			loadRecentWorkspaces();
+		if (recentWorkspaces == null)
+			return; // an unreadable list is kept on disk rather than replaced by this one entry
 		if (!recentWorkspaces.getList().contains(recentWorkspaceEntry))
 			recentWorkspaces.getList().add(recentWorkspaceEntry);
 		else
@@ -476,7 +482,11 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		saveRecentWorkspaces();
 	}
 
-	private void removeRecentWorkspace(RecentWorkspaceEntry recentWorkspace) {
+	private synchronized void removeRecentWorkspace(RecentWorkspaceEntry recentWorkspace) {
+		if (!recentWorkspacesLoaded)
+			loadRecentWorkspaces();
+		if (recentWorkspaces == null)
+			return;
 		recentWorkspaces.getList().remove(recentWorkspace);
 		saveRecentWorkspaces();
 	}
@@ -491,6 +501,24 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 	}
 
 	private synchronized void reloadRecents() {
+		loadRecentWorkspaces();
+
+		if (recentWorkspaces != null && !recentWorkspaces.getList().isEmpty()) {
+			defaultListModel.removeAllElements();
+			recentWorkspaces.getList().forEach(defaultListModel::addElement);
+			recentPanes.show(recentPanel, "recents");
+		} else if (recentWorkspaces == null) {
+			recentPanes.show(recentPanel, "norecentsloaded");
+		} else {
+			recentPanes.show(recentPanel, "norecents");
+		}
+
+		recentPanel.revalidate();
+	}
+
+	/** Reads the saved list, leaving out entries whose workspace file or project folder is gone; {@code null} if unreadable. */
+	private synchronized void loadRecentWorkspaces() {
+		recentWorkspacesLoaded = true;
 		if (UserFolderManager.getFileFromUserFolder("recentworkspaces").isFile()) {
 			try {
 				recentWorkspaces = gson.fromJson(
@@ -508,18 +536,6 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 				LOG.warn("Failed to load recent workspaces", e);
 			}
 		}
-
-		if (recentWorkspaces != null && !recentWorkspaces.getList().isEmpty()) {
-			defaultListModel.removeAllElements();
-			recentWorkspaces.getList().forEach(defaultListModel::addElement);
-			recentPanes.show(recentPanel, "recents");
-		} else if (recentWorkspaces == null) {
-			recentPanes.show(recentPanel, "norecentsloaded");
-		} else {
-			recentPanes.show(recentPanel, "norecents");
-		}
-
-		recentPanel.revalidate();
 	}
 
 	private JButton mainWorkspaceButton(String text, ImageIcon icon, ActionListener event) {

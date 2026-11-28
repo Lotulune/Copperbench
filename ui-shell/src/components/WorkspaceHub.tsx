@@ -36,9 +36,16 @@ export const WorkspaceHub = () => {
     return () => { current = false; };
   }, [workspace?.id, workspace?.revision, sourceRefresh]);
   const sourceEntries = sourceIndex?.entries.slice(0, 6) ?? [];
-  const assetCount = workspaceHealth?.assets.indexed ? workspaceHealth.assets.summary?.totalAssets : undefined;
   // An adopted Gradle project (ADR-0020) has no structured elements, generator or version migration to show.
   const gradleProject = workspace?.kind === 'gradle_project';
+  const indexedAssetCount = workspaceHealth?.assets.indexed ? workspaceHealth.assets.summary?.totalAssets : undefined;
+  // Health reloads whenever the window regains focus. The last count keeps the row, and everything below it, in
+  // place, so the press that focuses the window still releases on the control it started on.
+  const [knownAssetCount, setKnownAssetCount] = useState<{ workspaceId: string; count: number } | null>(null);
+  useEffect(() => {
+    if (workspace && indexedAssetCount !== undefined) setKnownAssetCount({ workspaceId: workspace.id, count: indexedAssetCount });
+  }, [workspace?.id, indexedAssetCount]);
+  const assetCount = indexedAssetCount ?? (knownAssetCount && knownAssetCount.workspaceId === workspace?.id ? knownAssetCount.count : undefined);
 
   if (state.viewportState === 'loading') return <div className="workspace-overview-loading" data-testid="workbench-loading" role="status">
     {uiText('正在加载工作区…', 'Loading workspace…')}
@@ -63,7 +70,8 @@ export const WorkspaceHub = () => {
       </header>
       <div className="overview-counts" aria-label={uiText('工作区内容', 'Workspace contents')}>
         {!gradleProject && <span>{uiText('模组元素', 'Mod elements')} <strong>{counts?.total ?? 0}</strong></span>}
-        {assetCount !== undefined && <button type="button" onClick={() => setActiveView('assets')}>{uiText('资产', 'Assets')} <strong>{assetCount}</strong></button>}
+        {/* An adopted project has no element count, so its asset count holds the row's height from the first render. */}
+        {(assetCount !== undefined || gradleProject) && <button type="button" data-testid="hub-asset-count" onClick={() => setActiveView('assets')}>{uiText('资产', 'Assets')} <strong>{assetCount ?? '…'}</strong></button>}
         {!!counts?.draft && <span>{uiText('草稿', 'Drafts')} <strong>{counts.draft}</strong></span>}
         {(workspaceHealth?.diagnostics.error ?? 0) > 0 && <button type="button" onClick={() => { setHealthOpen(true); document.getElementById('workspace-health-panel')?.scrollIntoView({ block: 'nearest' }); }}>
           <span>{uiText('错误诊断', 'Errors')}</span> <strong>{workspaceHealth?.diagnostics.error}</strong></button>}
