@@ -665,6 +665,10 @@ to the section panel when clicked.</div>
 <dd>
 <div class="block">Keeps plugin-provided quick-start actions in the same keyboard-accessible list.</div>
 </dd>
+<dt><a href="dev/copperbench/generator/GameTestSupport.html#ADOPTED_DIRECTORY" class="member-name-link">ADOPTED_DIRECTORY</a> - Static variable in class dev.copperbench.generator.<a href="dev/copperbench/generator/GameTestSupport.html" title="class in dev.copperbench.generator">GameTestSupport</a></dt>
+<dd>
+<div class="block">For adopted projects: a source set name no template uses, so their own build never compiles these tests.</div>
+</dd>
 <dt><a href="dev/copperbench/generator/WorkspaceExecutionEnvironment.html#adoptedProject(java.nio.file.Path,java.nio.file.Path,java.lang.String)" class="member-name-link">adoptedProject(Path, Path, String)</a> - Static method in class dev.copperbench.generator.<a href="dev/copperbench/generator/WorkspaceExecutionEnvironment.html" title="class in dev.copperbench.generator">WorkspaceExecutionEnvironment</a></dt>
 <dd>
 <div class="block">Describes an adopted Gradle project's execution (ADR-0020): its own wrapper and dependencies build it, and only
@@ -15132,6 +15136,10 @@ for this <code>requiredMod</code>.</div>
 <dd>
 <div class="block">Inspects a closed workspace before runtime bootstrap, metadata creation or writer leasing.</div>
 </dd>
+<dt><a href="dev/copperbench/core/application/WorkspaceDoctor.html#inspectClosedProject(java.nio.file.Path,java.nio.file.Path)" class="member-name-link">inspectClosedProject(Path, Path)</a> - Static method in class dev.copperbench.core.application.<a href="dev/copperbench/core/application/WorkspaceDoctor.html" title="class in dev.copperbench.core.application">WorkspaceDoctor</a></dt>
+<dd>
+<div class="block">Inspects a Gradle project folder Copperbench did not create (ADR-0020) without opening or writing to it.</div>
+</dd>
 <dt><a href="dev/copperbench/migration/VersionCopyUpgradeExecution.Inspection.html#%3Cinit%3E(com.google.gson.JsonObject,com.google.gson.JsonObject,java.nio.file.Path,java.util.Map,java.util.List)" class="member-name-link">Inspection(JsonObject, JsonObject, Path, Map, List)</a> - Constructor for record class dev.copperbench.migration.<a href="dev/copperbench/migration/VersionCopyUpgradeExecution.Inspection.html" title="class in dev.copperbench.migration">VersionCopyUpgradeExecution.Inspection</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>Inspection</code> record class.</div>
@@ -15139,6 +15147,10 @@ for this <code>requiredMod</code>.</div>
 <dt><a href="dev/copperbench/core/workspace/DataPackArchive.Inspection.html#%3Cinit%3E(java.lang.String,com.google.gson.JsonObject,java.lang.String,java.lang.String,java.util.List,java.lang.String,int,boolean,java.util.List,java.util.List)" class="member-name-link">Inspection(String, JsonObject, String, String, List, String, int, boolean, List, List)</a> - Constructor for record class dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/DataPackArchive.Inspection.html" title="class in dev.copperbench.core.workspace">DataPackArchive.Inspection</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>Inspection</code> record class.</div>
+</dd>
+<dt><a href="dev/copperbench/core/application/WorkspaceDoctor.html#inspectProject(java.nio.file.Path,java.lang.String,java.util.List,java.util.function.Supplier)" class="member-name-link">inspectProject(Path, String, List, Supplier)</a> - Static method in class dev.copperbench.core.application.<a href="dev/copperbench/core/application/WorkspaceDoctor.html" title="class in dev.copperbench.core.application">WorkspaceDoctor</a></dt>
+<dd>
+<div class="block">Observes an adopted project: its wrapper belongs to the project, and identification problems are findings.</div>
 </dd>
 <dt><a href="dev/copperbench/window/WindowsWindowChromeController.html#install()" class="member-name-link">install()</a> - Method in class dev.copperbench.window.<a href="dev/copperbench/window/WindowsWindowChromeController.html" title="class in dev.copperbench.window">WindowsWindowChromeController</a></dt>
 <dd>&nbsp;</dd>
@@ -19676,6 +19688,10 @@ and NOT already included as names of objects like <a href="net/mcreator/generato
 <dd>&nbsp;</dd>
 <dt><a href="net/mcreator/element/types/VillagerTrade.TradeEntry.html#offer" class="member-name-link">offer</a> - Variable in class net.mcreator.element.types.<a href="net/mcreator/element/types/VillagerTrade.TradeEntry.html" title="class in net.mcreator.element.types">VillagerTrade.TradeEntry</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="dev/copperbench/core/workspace/project/GradleProjectOperations.html#offered(dev.copperbench.core.contract.UiCore.Operation)" class="member-name-link">offered(UiCore.Operation)</a> - Static method in class dev.copperbench.core.workspace.project.<a href="dev/copperbench/core/workspace/project/GradleProjectOperations.html" title="class in dev.copperbench.core.workspace.project">GradleProjectOperations</a></dt>
+<dd>
+<div class="block">Whether an adopted project ever offers the operation; a listing can leave out the others.</div>
+</dd>
 <dt><a href="dev/copperbench/release/ReleaseManifest.html#official()" class="member-name-link">official()</a> - Static method in class dev.copperbench.release.<a href="dev/copperbench/release/ReleaseManifest.html" title="class in dev.copperbench.release">ReleaseManifest</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="dev/copperbench/tracks/PreviewCapabilityCatalog.html#official()" class="member-name-link">official()</a> - Static method in class dev.copperbench.tracks.<a href="dev/copperbench/tracks/PreviewCapabilityCatalog.html" title="class in dev.copperbench.tracks">PreviewCapabilityCatalog</a></dt>

@@ -57,6 +57,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#inspectClosed(java.nio.file.Path,java.nio.file.Path)" tabindex="0">inspectClosed(Path, Path)</a></li>
+<li><a href="#inspectClosedProject(java.nio.file.Path,java.nio.file.Path)" tabindex="0">inspectClosedProject(Path, Path)</a></li>
+<li><a href="#inspectProject(java.nio.file.Path,java.lang.String,java.util.List,java.util.function.Supplier)" tabindex="0">inspectProject(Path, String, List, Supplier)</a></li>
 <li><a href="#inspect(java.nio.file.Path,java.lang.String,java.util.function.Supplier)" tabindex="0">inspect(Path, String, Supplier)</a></li>
 </ol>
 </li>
@@ -104,6 +106,20 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Inspects a closed workspace before runtime bootstrap, metadata creation or writer leasing.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#inspectClosedProject(java.nio.file.Path,java.nio.file.Path)" class="member-name-link">inspectClosedProject</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distributionRoot)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Inspects a Gradle project folder Copperbench did not create (ADR-0020) without opening or writing to it.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#inspectProject(java.nio.file.Path,java.lang.String,java.util.List,java.util.function.Supplier)" class="member-name-link">inspectProject</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generator,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../workspace/project/GradleProjectIdentity.Problem.html" title="class in dev.copperbench.core.workspace.project">GradleProjectIdentity.Problem</a>&gt;&nbsp;problems,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;com.google.gson.JsonObject&gt;&nbsp;execution)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Observes an adopted project: its wrapper belongs to the project, and identification problems are findings.</div>
+</div>
 </div>
 </div>
 </div>
@@ -133,6 +149,33 @@ loadScripts(document, 'script');</script>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="inspectClosedProject(java.nio.file.Path,java.nio.file.Path)">
+<h3>inspectClosedProject</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">inspectClosedProject</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;folder,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distributionRoot)</span>
+                                                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Inspects a Gradle project folder Copperbench did not create (ADR-0020) without opening or writing to it.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="inspectProject(java.nio.file.Path,java.lang.String,java.util.List,java.util.function.Supplier)">
+<h3>inspectProject</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">inspectProject</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;root,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generator,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../workspace/project/GradleProjectIdentity.Problem.html" title="class in dev.copperbench.core.workspace.project">GradleProjectIdentity.Problem</a>&gt;&nbsp;problems,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Supplier.html" title="class or interface in java.util.function" class="external-link">Supplier</a>&lt;com.google.gson.JsonObject&gt;&nbsp;execution)</span></div>
+<div class="block">Observes an adopted project: its wrapper belongs to the project, and identification problems are findings.</div>
 </div>
 </section>
 </li>

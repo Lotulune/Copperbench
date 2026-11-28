@@ -66,6 +66,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#refusal(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.contract.UiCore.Operation)" tabindex="0">refusal(WorkspaceState, UiCore.Operation)</a></li>
+<li><a href="#offered(dev.copperbench.core.contract.UiCore.Operation)" tabindex="0">offered(UiCore.Operation)</a></li>
 <li><a href="#supported(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">supported(WorkspaceState)</a></li>
 <li><a href="#problems(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">problems(WorkspaceState)</a></li>
 </ol>
@@ -131,20 +132,25 @@ rather than offered in a reduced form.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="GradleProjectIdentity.Problem.html" title="class in dev.copperbench.core.workspace.project">GradleProjectIdentity.Problem</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#problems(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">problems</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#offered(dev.copperbench.core.contract.UiCore.Operation)" class="member-name-link">offered</a><wbr>(<a href="../../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Whether an adopted project ever offers the operation; a listing can leave out the others.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="GradleProjectIdentity.Problem.html" title="class in dev.copperbench.core.workspace.project">GradleProjectIdentity.Problem</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#problems(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">problems</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">What identification found missing or unsupported when the project was last read.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#refusal(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.contract.UiCore.Operation)" class="member-name-link">refusal</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#refusal(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.contract.UiCore.Operation)" class="member-name-link">refusal</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state,
  <a href="../../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Diagnostic code when the operation cannot run on this adopted project, or <code>null</code> when it can.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#supported(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">supported</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#supported(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">supported</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Whether the project was identified well enough to build and test it.</div>
 </div>
 </div>
@@ -245,6 +251,15 @@ rather than offered in a reduced form.</div>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">refusal</span><wbr><span class="parameters">(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;state,
  <a href="../../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</span></div>
 <div class="block">Diagnostic code when the operation cannot run on this adopted project, or <code>null</code> when it can.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="offered(dev.copperbench.core.contract.UiCore.Operation)">
+<h3>offered</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">offered</span><wbr><span class="parameters">(<a href="../../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</span></div>
+<div class="block">Whether an adopted project ever offers the operation; a listing can leave out the others.</div>
 </div>
 </section>
 </li>
